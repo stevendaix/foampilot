@@ -312,14 +312,21 @@ class FoamPostProcessing:
         vorticity = mesh.compute_derivative(scalars=velocity_field, vorticity=True).point_data['vorticity']
         mesh.point_data['vorticity'] = vorticity
         return mesh
-
-    def export_plot(self, plotter, filename: str, image_format: str = 'png'):
+    
+    def export_plot(self, plotter, filename: Path, image_format: str = "png"):
         """
         Export the current plot to an image file.
+
+        Args:
+            plotter: The plotting object (ex: pyvista.Plotter).
+            filename (Path): Nom du fichier (avec ou sans extension).
+            image_format (str): Format de l'image (par défaut 'png').
         """
-        if not filename.endswith(f'.{image_format}'):
-            filename = f"{filename}.{image_format}"
-        plotter.screenshot(filename)
+        filename = Path(filename)
+        if filename.suffix != f".{image_format}":
+            filename = filename.with_suffix(f".{image_format}")
+
+        plotter.screenshot(str(filename))  # PyVista attend une string
         print(f"Plot exported to {filename}")
 
     def create_animation(self, scalars: str, filename: str, image_format: str = 'gif', fps: int = 10):
@@ -470,15 +477,25 @@ class FoamPostProcessing:
 
         return stats
 
-    def export_region_data_to_csv(self, structure, region_name: str, scalar_fields: list, output_filename: str):
+    def export_region_data_to_csv(self, structure, region_name: str, scalar_fields: list, output_filename: Path):
         """
         Exports XYZ coordinates and specified scalar field values for a given region to a CSV file.
+
+        Args:
+            structure: Dictionnaire contenant le maillage et les régions.
+            region_name (str): Nom de la région (par ex. "cell" ou "boundary").
+            scalar_fields (list): Champs scalaires à exporter.
+            output_filename (Path): Chemin du fichier de sortie (csv).
         """
-        mesh = None
+        output_filename = Path(output_filename)
+        output_filename.parent.mkdir(parents=True, exist_ok=True)  # crée le dossier si nécessaire
+        if output_filename.suffix != ".csv":
+            output_filename = output_filename.with_suffix(".csv")
+
         if region_name == "cell":
             mesh = structure["cell"]
         elif region_name in structure["boundaries"]:
-            mesh = mesh = structure["boundaries"][region_name]
+            mesh = structure["boundaries"][region_name]
         else:
             raise ValueError(f"Region '{region_name}' not found.")
 
@@ -493,7 +510,7 @@ class FoamPostProcessing:
                 raise ValueError(f"Scalar field '{field}' not found in region '{region_name}'.")
             
             field_data = mesh.point_data[field]
-            if field_data.ndim > 1: # Handle vector fields
+            if field_data.ndim > 1:  # Handle vector fields
                 for i in range(field_data.shape[1]):
                     data_to_export[f'{field}_{i}'] = field_data[:, i]
             else:
@@ -503,12 +520,22 @@ class FoamPostProcessing:
         df.to_csv(output_filename, index=False)
         print(f"Data for region '{region_name}' exported to {output_filename}")
 
-    def export_statistics_to_json(self, stats_data: dict, output_filename: str):
+
+    def export_statistics_to_json(self, stats_data: dict, output_filename: Path):
         """
         Exports statistical data to a JSON file.
+
+        Args:
+            stats_data (dict): Dictionnaire avec les statistiques.
+            output_filename (Path): Chemin du fichier de sortie (json).
         """
-        with open(output_filename, 'w') as f:
-            json.dump(stats_data, f, indent=4, cls=NumpyEncoder) # Use custom encoder for numpy types
+        output_filename = Path(output_filename)
+        output_filename.parent.mkdir(parents=True, exist_ok=True)  # crée le dossier si nécessaire
+        if output_filename.suffix != ".json":
+            output_filename = output_filename.with_suffix(".json")
+
+        with open(output_filename, "w") as f:
+            json.dump(stats_data, f, indent=4, cls=NumpyEncoder)  # Custom encoder for numpy types
         print(f"Statistics exported to {output_filename}")
 
 

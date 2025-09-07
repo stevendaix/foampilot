@@ -35,22 +35,23 @@ dependencies = [
   "pylatex",
   "streamlit",
   "classy_blocks",
-  "pylatex"
+  "pylatex",
+  "imageio"
 ]
 
 [project.optional-dependencies]
 dev = [
-  "pytest",
-  "black",
-  "mypy",
-  "ruff",
-  "pre-commit",
+
 ]
 
 docs = [
-  "sphinx",
-  "myst-parser",
-  "sphinx-rtd-theme",
+  "mkdocs" 
+  "mkdocs-material" 
+  "mkdocs-static-i18n"
+  "mkdocstrings"
+  "mkdocstrings-python"
+
+
 ]
 
 

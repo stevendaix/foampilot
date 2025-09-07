@@ -1,0 +1,50 @@
+site_name: FoamPilot Documentation
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+
+plugins:
+  - search
+  - mkdocstrings:
+  #     handlers:
+  #       python:
+  #         paths: ["../foampilot"]  # Chemin vers votre module
+  #         options:
+  #           show_root_heading: true
+  #           show_root_full_path: false
+  #           show_root_members_full_path: false
+  #           show_category_heading: true
+  #           show_if_no_docstring: false
+  #           show_signature_annotations: true
+  #           show_source: false
+  #           separate_signature: true
+  #           line_length: 80
+  #           merge_init_into_class: true
+  #           docstring_style: "google"  # ou "numpy" selon votre style
+  - i18n:
+      default_language: en
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: fr
+          name: Français
+          default: false
+          build: true
+        - locale: zh
+          name: 中文
+          default: false
+          build: true
+
+nav:
+  - Accueil: index.md
+  - À propos: about.md
+  - Installation: install_openfoam.md
+  # - Référence API:
+  #     - reference/base.md
+  #     - reference/boundaries.md
+  #     - reference/commons.md
