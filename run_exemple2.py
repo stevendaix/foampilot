@@ -1,5 +1,6 @@
 from foampilot import incompressibleFluid,Meshing , commons,utilities,postprocess
 
+import pyvista as pv
 from pathlib import Path
 from foampilot.utilities.manageunits import Quantity
 
@@ -155,30 +156,117 @@ residuals_post.process(export_csv=True, export_json=True, export_png=True, expor
 foam_post = postprocess.FoamPostProcessing(case_path=current_path)
 foam_post.foamToVTK()
 
-import pyvista as pv
-from pathlib import Path
 
-cwd = Path.cwd()
+# List time steps
+time_steps = foam_post.get_all_time_steps()
+print(f"Available time steps: {time_steps}")
 
+# Load the structure of the latest time step
+if time_steps:
+    latest_time_step = time_steps[-1]
+    structure = foam_post.load_time_step(latest_time_step)
+    cell_mesh = structure["cell"]
+    boundaries = structure["boundaries"]
+    print(f"Main mesh loaded for time step {latest_time_step}: {cell_mesh}")
+    print(f"Boundaries loaded: {list(boundaries.keys())}")
 
+    print("\n--- Testing visualization features (image generation) ---")
 
-#liste des fichiers vtk avec des numéros
-list_time_step = [0,75]
+    # Test plot_slice
+    print("Generating a slice plot...")
+    pl_slice = pv.Plotter(off_screen=True)
+    y_slice = cell_mesh.slice(normal='z')
+    pl_slice.add_mesh(y_slice, scalars='U', lighting=False, scalar_bar_args={'title': 'U'})
+    pl_slice.add_mesh(cell_mesh, color='w', opacity=0.25)
+    for name, mesh in boundaries.items():
+        pl_slice.add_mesh(mesh, opacity=0.5)
+    foam_post.export_plot(pl_slice, current_path / "slice_plot.png")
 
-# # paramètrer par défaut le dernier pas 
-# structure = {
-#     'cell': pv.read(cwd / "exemple2"/ "VTK"/"exemple2_75.vtk"),
-#     'boundaries': {
-#         "inlet" : pv.read(cwd / "exemple2"/ "VTK"/"inlet"/"inlet_75.vtk"),
-#         "outlet" : pv.read(cwd / "exemple2"/ "VTK"/"outlet"/"outlet_75.vtk"),
-#         "walls" : pv.read(cwd / "exemple2"/ "VTK"/"walls"/"walls_75.vtk")}
-#     }
+    # Test plot_contour
+    print("Generating a contour plot...")
+    pl_contour = pv.Plotter(off_screen=True)
+    pl_contour.add_mesh(cell_mesh, scalars='p', show_scalar_bar=True)
+    foam_post.export_plot(pl_contour, current_path / "contour_plot.png")
 
-# # generate a slice in the XZ plane
-# y_slice = structure["cell"].slice('z')
+    # Test plot_vectors
+    print("Generating a vector plot...")
+    pl_vectors = pv.Plotter(off_screen=True)
+    cell_mesh.set_active_vectors('U')
+    arrows = cell_mesh.glyph(orient='U', factor=0.001)
+    pl_vectors.add_mesh(arrows, color='blue')
+    foam_post.export_plot(pl_vectors, current_path / "vector_plot.png")
 
-# pl = pv.Plotter()
-# pl.add_mesh(y_slice, scalars='U', lighting=False, scalar_bar_args={'title': 'Flow Velocity'})
-# pl.add_mesh(structure["cell"], color='w', opacity=0.25)
-# pl.enable_anti_aliasing()
-# pl.show()
+    # Test plot_mesh_style
+    print("Generating a mesh style plot...")
+    pl_mesh_style = pv.Plotter(off_screen=True)
+    pl_mesh_style.add_mesh(cell_mesh, style='wireframe', show_edges=True, color='red')
+    foam_post.export_plot(pl_mesh_style, current_path / "mesh_style_plot.png")
+
+    print("\n--- Testing analysis features ---")
+
+    # Test calculate_q_criterion
+    print("Calculating Q-criterion...")
+    mesh_with_q = foam_post.calculate_q_criterion(mesh=cell_mesh, velocity_field="U")
+    if 'q_criterion' in mesh_with_q.point_data:
+        print(f"Q-criterion calculated. Value range: {mesh_with_q.point_data['q_criterion'].min():.2e} to {mesh_with_q.point_data['q_criterion'].max():.2e}")
+    else:
+        print("Failed to calculate Q-criterion.")
+
+    # Test calculate_vorticity
+    print("Calculating vorticity...")
+    mesh_with_vorticity = foam_post.calculate_vorticity(mesh=cell_mesh, velocity_field="U")
+    if 'vorticity' in mesh_with_vorticity.point_data:
+        print(f"Vorticity calculated. Value range: {mesh_with_vorticity.point_data['vorticity'].min():.2e} to {mesh_with_vorticity.point_data['vorticity'].max():.2e}")
+    else:
+        print("Failed to calculate vorticity.")
+
+    print("\n--- Testing statistical analysis features ---")
+
+    # Test get_scalar_statistics
+    print("Calculating statistics for pressure field 'p'...")
+    pressure_stats = foam_post.get_scalar_statistics(mesh=cell_mesh, scalar_field="p")
+    print(f"Pressure statistics: {pressure_stats}")
+
+    # Test get_time_series_data
+    print("Extracting time series for pressure field 'p' at a given point...")
+    point_to_probe = [0.0, 0.0, 0.0]
+    time_series = foam_post.get_time_series_data(scalar_field="p", point_coordinates=point_to_probe)
+    print(f"Pressure time series at point {point_to_probe}: {time_series['data']}")
+    print(f"Corresponding time steps: {time_series['time_steps']}")
+
+    # Test get_mesh_statistics
+    print("Calculating mesh statistics...")
+    mesh_stats = foam_post.get_mesh_statistics(cell_mesh)
+    print(f"Mesh statistics: {mesh_stats}")
+
+    # Test get_region_statistics (cell)
+    print("Calculating statistics for 'cell' region and 'U' field...")
+    cell_region_stats = foam_post.get_region_statistics(structure, "cell", "U")
+    print(f"'Cell' region statistics for 'U': {cell_region_stats}")
+
+    # Test get_region_statistics (boundary)
+    if "boundary1" in boundaries:
+        print("Calculating statistics for 'boundary1' region and 'p' field...")
+        boundary_region_stats = foam_post.get_region_statistics(structure, "boundary1", "p")
+        print(f"'Boundary1' region statistics for 'p': {boundary_region_stats}")
+
+    # Test export_region_data_to_csv
+    print("Exporting 'cell' region data to CSV file...")
+    foam_post.export_region_data_to_csv(structure, "cell", ["U", "p"], current_path / "cell_data.csv")
+
+    # Test export_statistics_to_json
+    print("Exporting statistics to JSON file...")
+    all_stats = {
+        "mesh_stats": mesh_stats,
+        "cell_region_stats_U": cell_region_stats,
+        "boundary1_region_stats_p": boundary_region_stats if "boundary1" in boundaries else "N/A"
+    }
+    foam_post.export_statistics_to_json(all_stats, current_path / "all_stats.json")
+
+    # Test create_animation
+    print("Creating an animation...")
+    foam_post.create_animation(scalars='U', filename='animation_test.gif', fps=5)
+else:
+    print("No time steps found, unable to test the class.")
+
+print("\nTest completed.")
