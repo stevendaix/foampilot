@@ -1,9 +1,9 @@
-foampilot 🚀
+# foampilot 🚀
 
 foampilot est une plateforme Python qui permet de piloter entièrement vos simulations OpenFOAM :
 tout est défini dans des fichiers Python, depuis la création du maillage jusqu’au post-traitement et à la génération de rapports.
 
-✨ Fonctionnalités principales
+# ✨ Fonctionnalités principales
 
 🔧 Configuration 100% Python : générez automatiquement vos fichiers OpenFOAM (system, constant, 0/…) sans édition manuelle.
 
@@ -16,7 +16,7 @@ tout est défini dans des fichiers Python, depuis la création du maillage jusqu
 📝 Rapports automatiques : générez une note de calcul en PDF ou un dashboard interactif Streamlit pour présenter vos résultats.
 
 
-🚀 Pourquoi foampilot ?
+# 🚀 Pourquoi foampilot ?
 
 ✅ Un seul langage pour tout contrôler : Python.
 
@@ -27,6 +27,6 @@ tout est défini dans des fichiers Python, depuis la création du maillage jusqu
 ✅ Résultats présentés de manière moderne et professionnelle.
 
 
-📌 Exemple rapide
+# 📌 Exemple rapide
 
 
