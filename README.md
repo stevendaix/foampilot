@@ -61,6 +61,7 @@ foampilot 是一个基于 Python 的平台，可以完全控制您的 OpenFOAM �
 ### 📌 快速示例
 
 ---
+<a id="french"></a>
 ## Français
 
 foampilot est une plateforme Python qui permet de piloter entièrement vos simulations OpenFOAM :
