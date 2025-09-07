@@ -1,7 +1,7 @@
 # foampilot 🚀
 
 
-[English](#english) | [中文](#中文) | [Français] (#french)
+[English](#english) | [中文](#中文) | [Français](#french)
 
 ---
 
