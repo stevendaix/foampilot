@@ -313,7 +313,7 @@ class FoamPostProcessing:
         mesh.point_data['vorticity'] = vorticity
         return mesh
     
-    def export_plot(self, plotter, filename: Path, image_format: str = "png"):
+        def export_plot(self, plotter, filename: Path, image_format: str = "png"):
         """
         Export the current plot to an image file.
 
