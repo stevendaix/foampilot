@@ -1,0 +1,280 @@
+import pyvista as pv
+from pathlib import Path
+import numpy as np 
+
+class STLAnalyzer:
+    """
+    A class for analyzing and processing STL (Stereolithography) files.
+    
+    This class provides methods to load STL files, extract geometric properties,
+    perform spatial queries, and calculate mesh-related parameters for CFD simulations.
+    
+    Attributes:
+        filename (Path): Path object pointing to the STL file
+        mesh (pv.PolyData): PyVista mesh object containing the loaded STL geometry
+        reader (pyvista.reader): Reader object for the STL file
+    """
+
+    def __init__(self, filename: Path):
+        """
+        Initialize the STL analyzer with a given STL file path.
+        
+        Args:
+            filename (Path): Path object pointing to the STL file to analyze
+        """
+        self.filename = filename
+        self.mesh = None
+        self.reader = pv.get_reader(str(self.filename))
+
+    def load(self) -> pv.PolyData:
+        """
+        Load and return the STL file as a PyVista mesh.
+        
+        Returns:
+            pv.PolyData: The loaded mesh object
+            
+        Note:
+            The loaded mesh is also stored in the instance's mesh attribute.
+        """
+        self.mesh = self.reader.read()
+        return self.mesh
+
+    def get_info(self) -> dict:
+        """
+        Get basic geometric information about the loaded mesh.
+        
+        Returns:
+            dict: Dictionary containing mesh properties including:
+                - 'Number of Points': Total vertices in the mesh
+                - 'Number of Cells': Total cells/faces in the mesh
+                - 'Dimensions': Bounding box dimensions (xmin, xmax, ymin, ymax, zmin, zmax)
+                - 'Surface Area': Total surface area of the mesh
+                - 'Volume': Enclosed volume of the mesh (if watertight)
+                
+        Raises:
+            ValueError: If the mesh hasn't been loaded yet
+        """
+        if self.mesh is None:
+            raise ValueError("The mesh has not been loaded. Please call 'load()' first.")
+
+        info = {
+            'Number of Points': self.mesh.n_points,
+            'Number of Cells': self.mesh.n_cells,
+            'Dimensions': self.mesh.bounds,
+            'Surface Area': self.mesh.area,
+            'Volume': self.mesh.volume,
+        }
+        return info
+
+    def is_point_inside(self, point: tuple) -> bool:
+        """
+        Check if a 3D point lies inside the closed STL mesh.
+        
+        Args:
+            point (tuple): (x, y, z) coordinates of the point to test
+            
+        Returns:
+            bool: True if the point is inside the mesh, False otherwise
+            
+        Raises:
+            ValueError: If the mesh hasn't been loaded yet
+        """
+        if self.mesh is None:
+            raise ValueError("The mesh has not been loaded. Please call 'load()' first.")
+
+        point_array = np.array(point).reshape(-1, 3)
+        points = pv.PolyData(point_array)
+        selected = self.mesh.select_enclosed_points(points, check_surface=False)
+        return bool(selected['SelectedPoints'].max())
+
+    def get_center_of_mass(self) -> tuple:
+        """
+        Calculate the center of mass of the STL mesh.
+        
+        Returns:
+            tuple: (x, y, z) coordinates of the center of mass
+            
+        Raises:
+            ValueError: If the mesh hasn't been loaded yet
+        """
+        if self.mesh is None:
+            raise ValueError("The mesh has not been loaded. Please call 'load()' first.")
+        center_of_mass = self.mesh.center_of_mass()
+        return center_of_mass
+
+    def get_curvature(self) -> dict:
+        """
+        Calculate mean and Gaussian curvature values for the mesh.
+        
+        Returns:
+            dict: Dictionary containing:
+                - 'Mean_Curvature': Array of mean curvature values at each point
+                - 'Gaussian_Curvature': Array of Gaussian curvature values at each point
+                
+        Raises:
+            ValueError: If the mesh hasn't been loaded yet
+        """
+        if self.mesh is None:
+            raise ValueError("The mesh has not been loaded. Please call 'load()' first.")
+
+        mean_curvature = self.mesh.curvature(curv_type='mean')
+        gaussian_curvature = self.mesh.curvature(curv_type='gaussian')
+        return {
+            'Mean_Curvature': mean_curvature,
+            'Gaussian_Curvature': gaussian_curvature
+        }
+
+    def get_smallest_curvature(self) -> float:
+        """
+        Find the minimum mean curvature value in the mesh.
+        
+        Returns:
+            float: The smallest mean curvature value
+            
+        Raises:
+            ValueError: If the mesh hasn't been loaded yet
+        """
+        curvature_values = self.get_curvature()['Mean_Curvature']
+        smallest_curvature = curvature_values.min()
+        return smallest_curvature
+
+    @staticmethod
+    def calc_mesh_settings(stlBoundingBox: tuple, nu: float = 1e-6, rho: float = 1000., 
+                         U: float = 1.0, maxCellSize: float = 0.5, sizeFactor: float = 1.0,
+                         expansion_ratio: float = 1.5, onGround: bool = False, 
+                         internalFlow: bool = False, refinement: int = 1,
+                         nLayers: int = 5, halfModel: bool = False, 
+                         thicknessRatio: float = 0.3) -> dict:
+        """
+        Calculate mesh generation parameters for CFD simulations based on STL geometry.
+        
+        Args:
+            stlBoundingBox (tuple): Bounding box of STL (xmin, xmax, ymin, ymax, zmin, zmax)
+            nu (float): Kinematic viscosity (default: 1e-6)
+            rho (float): Density (default: 1000.)
+            U (float): Characteristic velocity (default: 1.0)
+            maxCellSize (float): Maximum cell size (default: 0.5)
+            sizeFactor (float): Domain size multiplier (default: 1.0)
+            expansion_ratio (float): Boundary layer expansion ratio (default: 1.5)
+            onGround (bool): Whether object is on ground (affects domain) (default: False)
+            internalFlow (bool): Whether flow is internal (affects cell sizing) (default: False)
+            refinement (int): Refinement level (0=coarse, 1=medium, 2=fine) (default: 1)
+            nLayers (int): Number of boundary layers (default: 5)
+            halfModel (bool): Whether using half-model symmetry (default: False)
+            thicknessRatio (float): Final layer thickness ratio (default: 0.3)
+            
+        Returns:
+            dict: Dictionary containing all calculated mesh settings including:
+                - Domain dimensions
+                - Cell counts (Nx, Ny, Nz)
+                - Cell size parameters
+                - Refinement levels
+                - Turbulence modeling parameters
+        """
+        maxSTLLength = STLAnalyzer.getMaxSTLDim(stlBoundingBox)
+        minSTLLength = STLAnalyzer.getMinSTLDim(stlBoundingBox)
+
+        if maxCellSize < 0.001:
+            maxCellSize = maxSTLLength / 4.
+
+        domain_size = stlAnalysis.calc_domain_size(
+            stlBoundingBox=stlBoundingBox, 
+            sizeFactor=sizeFactor,
+            onGround=onGround, 
+            internalFlow=internalFlow, 
+            halfModel=halfModel
+        )
+
+        if refinement == 0:
+            backgroundCellSize = min(minSTLLength / 3., maxCellSize) if not internalFlow else min(minSTLLength / 6., maxCellSize)
+            target_yPlus = 70
+            nLayers = 3
+            refLevel = 2
+        elif refinement == 1:
+            backgroundCellSize = min(minSTLLength / 5., maxCellSize) if not internalFlow else min(minSTLLength / 12., maxCellSize)
+            target_yPlus = 50
+            nLayers = 5
+            refLevel = 4
+        elif refinement == 2:
+            backgroundCellSize = min(minSTLLength / 7., maxCellSize) if not internalFlow else min(minSTLLength / 18., maxCellSize)
+            target_yPlus = 30
+            nLayers = 7
+            refLevel = 6
+        else:
+            backgroundCellSize = min(maxSTLLength / 8., maxCellSize) if not internalFlow else min(maxSTLLength / 12., maxCellSize)
+            nLayers = 5
+            target_yPlus = 70
+            refLevel = 4
+
+        nx, ny, nz = stlAnalysis.calc_nx_ny_nz(domain_size, backgroundCellSize)
+        L = maxSTLLength
+        target_y = stlAnalysis.calc_y(nu, rho, L, U, target_yPlus=target_yPlus)
+        delta = stlAnalysis.calc_delta(U, nu, L)
+        nLayers, finalLayerThickness = stlAnalysis.calc_layers(yFirst=target_y, delta=delta, expRatio=expansion_ratio)
+        targetCellSize = stlAnalysis.calc_cell_size(target_y, expRatio=expansion_ratio, thicknessRatio=thicknessRatio, nLayers=nLayers)
+        refLevel = stlAnalysis.calc_refinement_levels(max_cell_size=backgroundCellSize, target_cell_size=targetCellSize)
+
+        if refinement == 0:
+            refLevel = max(2, refLevel)
+        elif refinement == 1:
+            refLevel = max(4, refLevel)
+        elif refinement == 2:
+            refLevel = max(6, refLevel)
+        else:
+            refLevel = max(3, refLevel)
+
+        adjustedTargetCellSize = backgroundCellSize / 2. ** refLevel
+        adjustedNearWallThickness = target_y
+        adjustedNearWallThickness = np.round(adjustedNearWallThickness, decimals=3)
+        adjustedYPlus = stlAnalysis.calc_yPlus(nu, L, U, adjustedNearWallThickness)
+        finalLayerThickness = adjustedTargetCellSize * thicknessRatio
+
+        mesh_settings = {
+            'Domain Size': {
+                'X': (domain_size[0], domain_size[1]),
+                'Y': (domain_size[2], domain_size[3]),
+                'Z': (domain_size[4], domain_size[5]),
+            },
+            'Nx': nx,
+            'Ny': ny,
+            'Nz': nz,
+            'Max Cell Size': backgroundCellSize,
+            'Min Cell Size': adjustedTargetCellSize,
+            'Refinement Level': refLevel,
+            'Turbulence': {
+                'Target yPlus': target_yPlus,
+                'Reynolds Number': U * L / nu,
+                'Boundary Layer Thickness': delta,
+                'First Layer Thickness': adjustedNearWallThickness,
+                'Final Layer Thickness': finalLayerThickness,
+                'YPlus': adjustedYPlus,
+                'Number of Layers': nLayers,
+            }
+        }
+
+        return mesh_settings
+
+
+if __name__ == "__main__":
+    stl_file = Path.cwd() / "Chess_Pawn.stl"
+    analyzer = STLAnalyzer(stl_file)
+
+    # Load the mesh
+    mesh = analyzer.load()
+
+    # Get mesh information
+    info = analyzer.get_info()
+    print(info)
+
+    # Check if a point is inside the mesh
+    test_point = (1.0, 1.0, 1.0)
+    inside = analyzer.is_point_inside(test_point)
+    print(f"The point {test_point} is inside the mesh: {inside}")
+
+    # Calculate the center of mass
+    center_of_mass = analyzer.get_center_of_mass()
+    print(f"The center of mass is: {center_of_mass}")
+
+    # Calculate the minimum curvature
+    smallest_curvature = analyzer.get_smallest_curvature()
+    print(f"The minimum curvature is: {smallest_curvature}")

@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "foampilot"
+version = "0.1.0"
+description = "foampilot: a Python platform to control OpenFOAM from meshing to post-processing and automated reporting."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "Steven Daix", email = "your_email@example.com" }
+]
+keywords = ["openfoam", "cfd", "simulation", "mesh", "post-processing", "pyvista", "streamlit"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+requires-python = ">=3.9"
+
+dependencies = [
+  "numpy",
+  "pandas",
+  "pyvista",
+  "plotly",
+  "matplotlib",
+  "pint",
+  "gmsh",
+  "pyfluids",
+  "pylatex",
+  "streamlit",
+  "classy_blocks",
+  "pylatex"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "black",
+  "mypy",
+  "ruff",
+  "pre-commit",
+]
+
+docs = [
+  "sphinx",
+  "myst-parser",
+  "sphinx-rtd-theme",
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/your-github/foampilot"
+"Bug Tracker" = "https://github.com/your-github/foampilot/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 88
+

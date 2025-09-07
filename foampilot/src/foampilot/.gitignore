@@ -1,0 +1,9 @@
+# Ignorer tout
+*
+!*
+*.ipynb
+*old/
+*test/
+*ref/
+*__
+*.egg-info

@@ -1,0 +1,14 @@
+# Ignorer tout
+*
+!*
+*.venv*
+*egg-info*
+*old/
+*test/
+*ref/
+*document/
+*exemple*
+!run_*
+!LICENSE*
+!pyproject.toml
+!readme.md
