@@ -1,5 +1,8 @@
 from foampilot import incompressibleFluid,Meshing , commons,utilities,postprocess
 
+import numpy as np
+import classy_blocks as cb
+
 import pyvista as pv
 from pathlib import Path
 from foampilot.utilities.manageunits import Quantity
@@ -12,94 +15,83 @@ system_dir = solver.constant.write()
 
 solver.system.fvSchemes.to_dict()
 
-#!/usr/bin/env python
-import numpy as np
-import classy_blocks as cb
 
-# Paramètres géométriques
-pipe_radius = 0.05
-muffler_radius = 0.08
-ref_length = 0.1
+# --- Geometry settings ---
+pipe_radius = 0.05      # Radius of the pipe
+muffler_radius = 0.08   # Radius of the muffler
+ref_length = 0.1        # Reference length for segments
+cell_size = 0.015       # Uniform cell size for the mesh
 
-# Taille de cellule constante pour cet exemple
-# Cela assure une taille de maille uniforme pour la visualisation.
-cell_size = 0.015
-
-# Liste pour stocker les formes géométriques créées
-# Les index dans cette liste correspondent aux formes dans le croquis de l'exemple original.
+# List to store all geometric shapes
 shapes = []
 
-# 0: Création du premier cylindre (tuyau d'entrée)
-# Le cylindre est défini par son point de départ, son point d'arrivée et un point définissant son rayon.
+# 0: Create the first cylinder (inlet pipe)
+# Defined by start point, end point, and a point for radius
 shapes.append(cb.Cylinder([0, 0, 0], [3 * ref_length, 0, 0], [0, pipe_radius, 0]))
-# Définition du maillage axial (le long de l'axe du cylindre)
+# Set mesh size along the cylinder's length (axial)
 shapes[-1].chop_axial(start_size=cell_size)
-# Définition du maillage radial (du centre vers l'extérieur)
+# Set mesh size from center to outer surface (radial)
 shapes[-1].chop_radial(start_size=cell_size)
-# Définition du maillage tangentiel (autour du cylindre)
+# Set mesh size around the cylinder (tangential)
 shapes[-1].chop_tangential(start_size=cell_size)
-# Attribution d'un patch (surface) nommé 'inlet' à la face de départ du cylindre.
+# Name the start face of the cylinder as 'inlet'
 shapes[-1].set_start_patch("inlet")
 
-# 1: Chaînage d'un cylindre à la forme précédente
-# La méthode 'chain' permet de créer une nouvelle forme qui prolonge la précédente.
+# 1: Extend the cylinder
+# 'chain' creates a new cylinder connected to the previous one
 shapes.append(cb.Cylinder.chain(shapes[-1], ref_length))
-# Maillage axial pour ce nouveau segment de cylindre.
+# Set mesh size along the length
 shapes[-1].chop_axial(start_size=cell_size)
 
-# 2: Création d'un anneau extrudé (début du silencieux)
-# La méthode 'expand' crée un anneau extrudé en augmentant le rayon de la forme précédente.
+# 2: Create an extruded ring (start of the muffler)
+# 'expand' creates a ring around the previous shape
 shapes.append(cb.ExtrudedRing.expand(shapes[-1], muffler_radius - pipe_radius))
-# Maillage radial pour l'anneau extrudé.
+# Set mesh size from center to outer surface
 shapes[-1].chop_radial(start_size=cell_size)
 
-# 3: Chaînage d'un anneau extrudé (corps du silencieux)
+# 3: Extend the extruded ring (muffler body)
 shapes.append(cb.ExtrudedRing.chain(shapes[-1], ref_length))
-# Maillage axial pour ce segment d'anneau.
+# Set mesh size along the length
 shapes[-1].chop_axial(start_size=cell_size)
 
-# 4: Chaînage d'un autre anneau extrudé (fin du silencieux)
+# 4: Extend the extruded ring (end of the muffler)
 shapes.append(cb.ExtrudedRing.chain(shapes[-1], ref_length))
-# Maillage axial pour ce segment d'anneau.
+# Set mesh size along the length
 shapes[-1].chop_axial(start_size=cell_size)
 
-# 5: Remplissage de l'anneau extrudé (retour à un cylindre)
-# La méthode 'fill' crée un cylindre qui remplit l'espace intérieur de l'anneau extrudé précédent.
+# 5: Fill the ring with a cylinder
+# 'fill' creates a cylinder inside the previous ring
 shapes.append(cb.Cylinder.fill(shapes[-1]))
-# Maillage radial pour le cylindre de remplissage.
+# Set mesh size from center to outer surface
 shapes[-1].chop_radial(start_size=cell_size)
 
-# 6: Création d'un coude
-# Le centre du coude est calculé en fonction de la forme précédente.
+# 6: Create an elbow (bend)
+# Calculate the center of the elbow
 elbow_center = shapes[-1].sketch_2.center + np.array([0, 2 * muffler_radius, 0])
-# La méthode 'Elbow.chain' crée un coude qui prolonge la forme précédente.
-# Les paramètres définissent l'angle de courbure, le centre de rotation, l'axe de rotation et le rayon du coude.
+# 'chain' creates a bend connected to the previous shape
+# Parameters: angle, center, rotation axis, and radius
 shapes.append(
     cb.Elbow.chain(shapes[-1], np.pi / 2, elbow_center, [0, 0, 1], pipe_radius)
 )
-# Maillage axial pour le coude.
+# Set mesh size along the length
 shapes[-1].chop_axial(start_size=cell_size)
-# Attribution d'un patch nommé 'outlet' à la face de fin du coude.
+# Name the end face of the elbow as 'outlet'
 shapes[-1].set_end_patch("outlet")
 
-# Initialisation de l'objet Mesh
-# C'est l'objet principal qui va contenir toutes les formes et générer le blockMeshDict.
+# --- Generate the mesh ---
+# Initialize the Mesh object
 mesh = cb.Mesh()
-# Ajout de toutes les formes créées au maillage.
+# Add all shapes to the mesh
 for shape in shapes:
     mesh.add(shape)
-
-# Définition d'un patch par défaut nommé 'walls' avec le type 'wall'.
-# Cela s'applique à toutes les surfaces qui n'ont pas été explicitement définies avec un patch.
+# Set default surface type to 'wall' for all unnamed surfaces
 mesh.set_default_patch("walls", "wall")
 
-# Écriture des fichiers de sortie
-# Le premier argument est le chemin vers le fichier blockMeshDict d'OpenFOAM.
-# Le second argument est le chemin vers un fichier VTK de débogage, utile pour la visualisation.
-mesh.write(current_path / "system" / "blockMeshDict", current_path /"debug.vtk")
+# --- Save the mesh files ---
+# Write the OpenFOAM blockMeshDict and a VTK file for visualization
+mesh.write(current_path / "system" / "blockMeshDict", current_path / "debug.vtk")
 
-print("Fichiers blockMeshDict et debug.vtk générés avec succès dans le dossier 'case'.")
-
+print("blockMeshDict and debug.vtk files generated successfully in the 'case' folder.")
 
 
 
