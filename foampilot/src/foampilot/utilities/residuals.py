@@ -1,50 +1,32 @@
 import re
-import pandas as pd
-import plotly.graph_objs as go
-from pathlib import Path
 import json
-import matplotlib.pyplot as plt
+import logging
+from pathlib import Path
+
+import pandas as pd
 import plotly.express as px
+import plotly.graph_objs as go
 import matplotlib
 matplotlib.use('Agg')  # Force headless backend before importing pyplot
 import matplotlib.pyplot as plt
+
+
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+
 
 class ResidualsPost:
     """
     Post-processing tool for OpenFOAM residuals.
 
-    This class extracts solver residuals from an OpenFOAM log file
-    and exports them in multiple formats for visualization and analysis:
+    Extracts solver residuals from an OpenFOAM log file
+    and exports them in multiple formats:
     - CSV
     - JSON
     - PNG (Matplotlib)
     - HTML (Plotly)
-
-    Attributes
-    ----------
-    log_file : Path
-        Path to the OpenFOAM log file.
-    patterns : dict
-        Dictionary of regex patterns used to detect solver fields.
-    residuals : dict
-        Parsed residuals organized by field, containing:
-        - time
-        - initial residuals
-        - final residuals
-    df : pandas.DataFrame or None
-        DataFrame storing extracted residuals (columns: time, field, initial, final).
-    output_dir : Path
-        Output directory where CSV, JSON, PNG, and HTML files will be stored.
     """
-    def __init__(self, log_file: str):
-        """
-        Initialize residuals post-processor.
 
-        Parameters
-        ----------
-        log_file : str
-            Path to the OpenFOAM log file to parse.
-        """
+    def __init__(self, log_file: str | Path):
         self.log_file = Path(log_file)
         self.patterns = {
             "Ux": r"Solving for Ux",
@@ -56,35 +38,33 @@ class ResidualsPost:
             "epsilon": r"Solving for epsilon",
         }
         self.residuals = {var: {"time": [], "initial": [], "final": []} for var in self.patterns}
-        self.df = None
+        self.df: pd.DataFrame | None = None
+
+        # Centralize output dir and base filename
         self.output_dir = self.log_file.parent / "residuals"
         self.output_dir.mkdir(exist_ok=True)
+        self.base_name = f"{self.log_file.stem}_residuals"
 
-    def check_log_exists(self) -> bool:
-        """
-        Check if the log file exists.
+    # -------------------------
+    # Internal helpers
+    # -------------------------
 
-        Returns
-        -------
-        bool
-            True if the log file exists, False otherwise.
-        """
-        return self.log_file.exists()
+    def _check_data(self) -> bool:
+        """Return True if residuals DataFrame exists and is not empty."""
+        return self.df is not None and not self.df.empty
 
-    def extract_residuals(self):
-        """
-        Parse the OpenFOAM log file and extract residuals.
+    def _save_file(self, suffix: str) -> Path:
+        """Return the output file path with given suffix (e.g. '.csv')."""
+        return self.output_dir / f"{self.base_name}{suffix}"
 
-        The method updates the `residuals` dictionary and builds
-        a pandas DataFrame (`self.df`) containing the parsed data.
+    # -------------------------
+    # Core parsing
+    # -------------------------
 
-        Notes
-        -----
-        - Only fields defined in `self.patterns` are extracted.
-        - Both initial and final residuals are stored.
-        """
-        if not self.check_log_exists():
-            print(f"[ERROR] Log file {self.log_file} does not exist.")
+    def extract_residuals(self) -> None:
+        """Parse the log file and build DataFrame of residuals."""
+        if not self.log_file.exists():
+            logging.error("Log file %s does not exist.", self.log_file)
             return
 
         time_pattern = re.compile(r"Time = (\d+\.?\d*)")
@@ -95,105 +75,55 @@ class ResidualsPost:
         current_time = None
         with self.log_file.open("r", encoding="utf-8", errors="ignore") as f:
             for line in f:
-                t_match = time_pattern.search(line)
-                if t_match:
+                if (t_match := time_pattern.search(line)):
                     current_time = float(t_match.group(1))
 
-                s_match = solver_pattern.search(line)
-                if s_match and current_time is not None:
+                if current_time is not None and (s_match := solver_pattern.search(line)):
                     field, init_res, final_res = s_match.groups()
                     if field in self.residuals:
                         self.residuals[field]["time"].append(current_time)
                         self.residuals[field]["initial"].append(float(init_res))
                         self.residuals[field]["final"].append(float(final_res))
 
-        records = []
-        for field, data in self.residuals.items():
-            for t, init, final in zip(data["time"], data["initial"], data["final"]):
-                records.append({"time": t, "field": field, "initial": init, "final": final})
+        # Build DataFrame
+        records = [
+            {"time": t, "field": field, "initial": init, "final": final}
+            for field, data in self.residuals.items()
+            for t, init, final in zip(data["time"], data["initial"], data["final"])
+        ]
         if records:
             self.df = pd.DataFrame(records)
-            print(f"[INFO] Extracted residuals for {len(self.df['field'].unique())} fields.")
+            logging.info("Extracted residuals for %d fields.", self.df["field"].nunique())
+        else:
+            logging.warning("No residuals found in log file.")
 
-    def prepare_plotly_figure(self):
-        """
-        Prepare a Plotly figure of residuals.
+    # -------------------------
+    # Exporters
+    # -------------------------
 
-        Returns
-        -------
-        plotly.graph_objs.Figure or None
-            Interactive Plotly figure with log-scale residuals over time,
-            or None if no data is available.
-        """
-        if self.df is None or self.df.empty:
-            print("[WARNING] No data to plot.")
-            return None
-
-        colors = px.colors.qualitative.Set1
-        color_map = {field: colors[i % len(colors)] for i, field in enumerate(self.df["field"].unique())}
-
-        traces = []
-        for field in self.df["field"].unique():
-            sub = self.df[self.df["field"] == field]
-            traces.append(go.Scatter(
-                x=sub["time"], y=sub["initial"], mode="lines",
-                name=f"{field} initial",
-                line=dict(color=color_map[field], dash="solid")
-            ))
-            traces.append(go.Scatter(
-                x=sub["time"], y=sub["final"], mode="lines",
-                name=f"{field} final",
-                line=dict(color=color_map[field], dash="dash")
-            ))
-
-        layout = go.Layout(
-            title=f"{self.log_file.name} - OpenFOAM Residuals",
-            xaxis=dict(title="Time (s)"),
-            yaxis=dict(title="Residuals (log scale)", type="log"),
-        )
-        fig = go.Figure(data=traces, layout=layout)
-        print("[INFO] Plotly figure prepared.")
-        return fig
-
-    def export_csv(self):
-        """
-        Export residuals as a CSV file.
-
-        The file is stored in `output_dir` with suffix `_residuals.csv`.
-        """
-        if self.df is None or self.df.empty:
-            print("[WARNING] No data to export as CSV.")
+    def export_csv(self) -> None:
+        if not self._check_data():
+            logging.warning("No data to export as CSV.")
             return
-        output_file = self.output_dir / f"{self.log_file.stem}_residuals.csv"
-        self.df.to_csv(output_file, index=False)
-        print(f"[SUCCESS] CSV exported: {output_file}")
+        output = self._save_file(".csv")
+        self.df.to_csv(output, index=False)
+        logging.info("CSV exported: %s", output)
 
-    def export_json(self):
-        """
-        Export residuals as a JSON file.
-
-        The file is stored in `output_dir` with suffix `_residuals.json`.
-        """
-        if self.df is None or self.df.empty:
-            print("[WARNING] No data to export as JSON.")
+    def export_json(self) -> None:
+        if not self._check_data():
+            logging.warning("No data to export as JSON.")
             return
-        output_file = self.output_dir / f"{self.log_file.stem}_residuals.json"
-        self.df.to_json(output_file, orient="records", indent=2)
-        print(f"[SUCCESS] JSON exported: {output_file}")
+        output = self._save_file(".json")
+        self.df.to_json(output, orient="records", indent=2)
+        logging.info("JSON exported: %s", output)
 
-    def export_matplotlib_png(self):
-        """
-        Export residuals as a PNG image using Matplotlib.
-
-        The file is stored in `output_dir` with suffix `_residuals.png`.
-        """
-        if self.df is None or self.df.empty:
-            print("[WARNING] No data to export as PNG.")
+    def export_matplotlib_png(self) -> None:
+        if not self._check_data():
+            logging.warning("No data to export as PNG.")
             return
 
         plt.figure(figsize=(10, 6))
-        for field in self.df["field"].unique():
-            sub = self.df[self.df["field"] == field]
+        for field, sub in self.df.groupby("field"):
             plt.semilogy(sub["time"], sub["initial"], label=f"{field} initial")
             plt.semilogy(sub["time"], sub["final"], "--", label=f"{field} final")
 
@@ -203,53 +133,59 @@ class ResidualsPost:
         plt.legend()
         plt.grid(True, which="both")
 
-        output_file = self.output_dir / f"{self.log_file.stem}_residuals.png"
-        plt.savefig(output_file, dpi=300, bbox_inches="tight")
+        output = self._save_file(".png")
+        plt.savefig(output, dpi=300, bbox_inches="tight")
         plt.close()
-        print(f"[SUCCESS] PNG exported: {output_file}")
+        logging.info("PNG exported: %s", output)
 
-    def export_plotly_html(self, fig):
-        """
-        Export residuals as an interactive Plotly HTML file.
-
-        Parameters
-        ----------
-        fig : plotly.graph_objs.Figure
-            The prepared Plotly figure to save.
-
-        Notes
-        -----
-        The file is stored in `output_dir` with suffix `_residuals.html`.
-        """
+    def export_plotly_html(self, fig: go.Figure | None) -> None:
         if fig is None:
+            logging.warning("No Plotly figure to export.")
             return
-        output_file = self.output_dir / f"{self.log_file.stem}_residuals.html"
-        fig.write_html(output_file)
-        print(f"[SUCCESS] HTML exported: {output_file}")
+        output = self._save_file(".html")
+        fig.write_html(output)
+        logging.info("HTML exported: %s", output)
 
-    def process(self, export_json=True, export_csv=True, export_png=True, export_html=True):
-        """
-        Run the full residuals processing pipeline.
+    # -------------------------
+    # Plot preparation
+    # -------------------------
 
-        This method extracts residuals, prepares a Plotly figure,
-        and exports the results in multiple formats.
+    def prepare_plotly_figure(self) -> go.Figure | None:
+        if not self._check_data():
+            logging.warning("No data to plot.")
+            return None
 
-        Parameters
-        ----------
-        export_json : bool, optional
-            Whether to export residuals as JSON (default is True).
-        export_csv : bool, optional
-            Whether to export residuals as CSV (default is True).
-        export_png : bool, optional
-            Whether to export residuals as PNG (default is True).
-        export_html : bool, optional
-            Whether to export residuals as HTML (default is True).
+        colors = px.colors.qualitative.Set1
+        color_map = {f: colors[i % len(colors)] for i, f in enumerate(self.df["field"].unique())}
 
-        Notes
-        -----
-        - If the log file does not exist, no processing is performed.
-        - If no residuals are found, no files are exported.
-        """
+        traces = []
+        for field, sub in self.df.groupby("field"):
+            traces.append(go.Scatter(
+                x=sub["time"], y=sub["initial"], mode="lines",
+                name=f"{field} initial",
+                line=dict(color=color_map[field], dash="solid"),
+            ))
+            traces.append(go.Scatter(
+                x=sub["time"], y=sub["final"], mode="lines",
+                name=f"{field} final",
+                line=dict(color=color_map[field], dash="dash"),
+            ))
+
+        layout = go.Layout(
+            title=f"{self.log_file.name} - OpenFOAM Residuals",
+            xaxis=dict(title="Time (s)"),
+            yaxis=dict(title="Residuals (log scale)", type="log"),
+        )
+        fig = go.Figure(data=traces, layout=layout)
+        logging.info("Plotly figure prepared.")
+        return fig
+
+    # -------------------------
+    # Full pipeline
+    # -------------------------
+
+    def process(self, export_json=True, export_csv=True, export_png=True, export_html=True) -> None:
+        """Run the full residuals processing pipeline."""
         self.extract_residuals()
         fig = self.prepare_plotly_figure()
 
@@ -261,4 +197,5 @@ class ResidualsPost:
             self.export_matplotlib_png()
         if export_html:
             self.export_plotly_html(fig)
-        print("[INFO] Residuals processing completed.")
+
+        logging.info("Residuals processing completed.")
