@@ -59,11 +59,7 @@ class OpenFOAMFile:
             "class": "dictionary",
             "object": object_name
         }
- # Global switches
-        self.compressible: bool = False     # True → physicalProperties, False → transportProperties
-        self.energy: bool = False           # Add energy term in physicalProperties
-        self.boussinesq: bool = False       # Use Boussinesq EOS if True, PerfectGas otherwise
-        self.with_gravity: bool = True           # Control if g file is written
+ 
 
         # Store attributes dictionary
         self.attributes = dict(attributes)
