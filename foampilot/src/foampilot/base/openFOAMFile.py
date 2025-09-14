@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from foampilot.utilities.manageunits import Quantity
 
 class OpenFOAMFile:
     """
@@ -9,6 +10,39 @@ class OpenFOAMFile:
         header (dict): The header information for the OpenFOAM file.
         attributes (dict): The specific attributes for the file, including nested dictionaries.
     """
+    DEFAULT_UNITS = {
+        # transportProperties
+        "nu": "m^2/s",           # kinematic viscosity
+        "mu": "Pa.s",            # dynamic viscosity
+        "rho": "kg/m^3",         # density
+
+        # turbulenceProperties
+        "k": "m^2/s^2",          # turbulent kinetic energy
+        "epsilon": "m^2/s^3",    # turbulent dissipation rate
+        "omega": "1/s",           # specific dissipation rate
+        "nut": "m^2/s",           # turbulent viscosity
+        "mut": "Pa.s",            # turbulent dynamic viscosity
+
+        # field variables
+        "U": "m/s",               # velocity vector
+        "p": "Pa",                # pressure
+        "T": "K",                 # temperature
+        "alpha": "m^2/s",         # thermal diffusivity
+        "phi": "m^3/s",           # volumetric flow rate
+
+        # derived quantities
+        "Re": None,               # Reynolds number, dimensionless
+        "Pr": None,               # Prandtl number, dimensionless
+        "Ma": None,               # Mach number, dimensionless
+        "Fo": None,               # Fourier number, dimensionless
+        "yPlus": None,            # dimensionless wall distance
+
+        # porous media / multiphase
+        "porosity": None,          # fraction, dimensionless
+        "alpha.water": None,       # volume fraction, dimensionless
+        "alpha.air": None,         # volume fraction, dimensionless
+    }
+
 
     def __init__(self, object_name, **attributes):
         """
@@ -25,45 +59,64 @@ class OpenFOAMFile:
             "class": "dictionary",
             "object": object_name
         }
-        # Specific attributes for the file, including nested dictionaries
-        self.attributes = attributes
 
+        # Store attributes dictionary
+        self.attributes = dict(attributes)
         self.object_name = object_name
-        for key, value in attributes.items():  # Correction ici
-            setattr(self, key, value)
-            
+
+    def __getattr__(self, item):
+        """
+        Dynamically access attributes inside self.attributes.
+        """
+        if item in self.attributes:
+            return self.attributes[item]
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{item}'")
+
+    def __setattr__(self, key, value):
+        """
+        Dynamically update attributes inside self.attributes.
+        """
+        # To avoid recursion, bypass __setattr__ for core attributes
+        if key in ("header", "attributes", "object_name"):
+            super().__setattr__(key, value)
+        elif "attributes" in self.__dict__ and key in self.attributes:
+            self.attributes[key] = value
+        else:
+            super().__setattr__(key, value)
+
+    def _format_value(self, key, value):
+        """
+        Convert value to a string for OpenFOAM.
+        Uses DEFAULT_UNITS if value is a Quantity.
+        """
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if isinstance(value, (int, float)):
+            return format(value, ".15g")
+        if isinstance(value, Quantity):
+            unit = self.DEFAULT_UNITS.get(key, None)
+            if unit:
+                return format(value.get_in(unit), ".15g")
+            else:
+                return format(value.magnitude, ".15g")
+        return str(value)
+
+
 
     def _write_attributes(self, file, attributes, indent_level=0):
-        """
-        Writes the attributes to the file with proper indentation.
-
-        Args:
-            file (file object): The file object to write to.
-            attributes (dict): The attributes to write.
-            indent_level (int): The current level of indentation.
-        """
         indent = "    " * indent_level
-
-        # Only write if there are attributes to write
         for key, value in attributes.items():
             if isinstance(value, dict):
-                if value:  # Write only if the dictionary is not empty
+                if value:
                     file.write(f"{indent}{key}\n{indent}{{\n")
                     self._write_attributes(file, value, indent_level + 1)
                     file.write(f"{indent}}}\n")
             else:
-                # Convert Python bool to OpenFOAM true/false
-                if isinstance(value, bool):
-                    value = "true" if value else "false"
-                # Write simple attributes
-                file.write(f"{indent}{key} {value};\n")
+                file.write(f"{indent}{key} {self._format_value(key, value)};\n")
 
     def write(self, filepath):
         """
         Writes the OpenFOAM file to the specified filepath.
-
-        Args:
-            filepath (str): The path to the file to write.
         """
         try:
             filepath = Path(filepath)

@@ -1,0 +1,9 @@
+# Ignorer tout
+*
+!*.png
+!*.json
+!*.pdf
+!residuals/
+!log.*
+!.gitignore
+!report/

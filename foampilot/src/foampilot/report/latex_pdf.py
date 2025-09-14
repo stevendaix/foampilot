@@ -3,16 +3,31 @@ from pylatex import Document, Section, Subsection, Math, NoEscape, Figure, Packa
 import os
 import subprocess
 from pylatex import Tabular, MultiColumn, MultiRow, Figure
+from pathlib import Path
 
 class LatexDocument:
-    def __init__(self, title, author, filename):
+    def __init__(self, title, author, filename, output_dir=None, parent_path=None):
         self.doc = Document()
         self.doc.preamble.append(NoEscape(r'\usepackage{graphicx}'))
 
         self.doc.preamble.append(NoEscape(r'\title{' + title + '}'))
         self.doc.preamble.append(NoEscape(r'\author{' + author + '}'))
         self.doc.preamble.append(NoEscape(r'\date{\today}'))
+
         self.filename = filename
+
+        # Définir le dossier parent pour l'écriture
+        if output_dir:
+            self.parent_path = Path(output_dir)
+        else:
+            self.parent_path = Path.cwd()  # Par défaut le dossier courant
+
+        # Créer le dossier report dans le dossier parent
+        self.report_path = self.parent_path / "report"
+        self.report_path.mkdir(parents=True, exist_ok=True)
+
+        # Chemin complet du fichier sans extension
+        self.filepath = self.report_path / self.filename
 
     def add_title(self):
         self.doc.append(NoEscape(r'\maketitle'))
@@ -184,18 +199,16 @@ class LatexDocument:
     def add_custom_preamble(self, command):
         self.doc.preamble.append(NoEscape(command))
 
+
     def generate_tex(self):
-        self.doc.generate_tex(self.filename)
+        self.doc.generate_tex(str(self.filepath))
 
     def generate_pdf(self):
-        # Compile twice to ensure proper TOC generation
-        subprocess.run(['pdflatex', f'{self.filename}.tex'])
-        subprocess.run(['pdflatex', f'{self.filename}.tex'])
+        # Compile deux fois pour la TOC
+        subprocess.run(['pdflatex', f'{self.filename}.tex'], cwd=self.report_path)
+        subprocess.run(['pdflatex', f'{self.filename}.tex'], cwd=self.report_path)
 
     def generate_document(self, output_format="pdf"):
-        """
-        Generate the document in the specified format ('tex' or 'pdf').
-        """
         self.generate_tex()
         if output_format == "pdf":
             self.generate_pdf()

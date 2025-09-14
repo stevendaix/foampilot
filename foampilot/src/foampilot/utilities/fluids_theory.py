@@ -18,17 +18,51 @@ class FluidMechanics:
         fluid: PyFluids Fluid object initialized with current state
     """
 
-    def __init__(self, fluid_name: FluidsList, temperature: Quantity, pressure: Quantity, 
-                 velocity: Quantity, characteristic_length: Quantity):
+    @staticmethod
+    def get_available_fluids() -> dict:
         """
-        Initialize fluid mechanics calculator with fluid properties and flow conditions.
+        Get a dictionary of all available fluids in the pyfluids library.
+
+        Returns:
+            dict: Dictionary where keys are fluid names and values are FluidsList enum members.
+                Example: {
+                    'Water': FluidsList.Water,
+                    'Air': FluidsList.Air,
+                    'Nitrogen': FluidsList.Nitrogen,
+                    ...
+                }
+
+        Example:
+            >>> fluids = FluidMechanics.get_available_fluids()
+            >>> for name, fluid in fluids.items():
+            ...     print(f"Fluid: {name}")
+            >>> 
+            >>> # Create instance with a specific fluid
+            >>> fm = FluidMechanics(fluids['Water'], ...)
+        """
+        available_fluids = {}
+        for fluid in FluidsList:
+            # Get the name without the enum class prefix
+            name = fluid.name
+            available_fluids[name] = fluid
+        return available_fluids
+
+    def __init__(self, fluid_name: FluidsList, temperature: Quantity, pressure: Quantity, 
+                 velocity: Quantity | None = None, characteristic_length: Quantity | None = None):
+        """
+        Initialize fluid mechanics calculator with fluid properties and optional flow conditions.
 
         Args:
             fluid_name: Fluid type from FluidsList enum (e.g., FluidsList.Water)
             temperature: Fluid temperature (e.g., Quantity(300, 'K'))
             pressure: Fluid pressure (e.g., Quantity(101325, 'Pa'))
-            velocity: Characteristic flow velocity (e.g., Quantity(2, 'm/s'))
-            characteristic_length: Relevant length scale (e.g., pipe diameter)
+            velocity: Optional characteristic flow velocity (e.g., Quantity(2, 'm/s'))
+            characteristic_length: Optional relevant length scale (e.g., pipe diameter)
+
+        Notes:
+            velocity and characteristic_length are only required for dimensionless number
+            calculations (Reynolds, y+, etc.) and boundary layer analysis. They can be
+            omitted if you only need fluid properties.
         """
         self.fluid_name = fluid_name
         self.temperature = temperature
@@ -39,22 +73,80 @@ class FluidMechanics:
             Input.pressure(pressure.get_in("Pa")), 
             Input.temperature(temperature.get_in("K")))
 
-    def get_fluid_properties(self, temperature: Quantity) -> tuple:
+    def get_fluid_properties(self) -> dict:
         """
-        Retrieve fundamental fluid properties at specified temperature.
+        Retrieve available fluid properties at specified temperature.
 
         Args:
             temperature: Temperature at which to evaluate properties
 
         Returns:
-            tuple: (density [kg/m³], dynamic_viscosity [Pa·s], 
-                   thermal_conductivity [W/(m·K)], specific_heat [J/(kg·K)])
+            dict: Dictionary containing available fluid properties. Properties that are not
+            available for the current fluid or state are omitted. Most properties are
+            returned as Quantity objects with appropriate units:
+                - density [kg/m³]
+                - dynamic_viscosity [Pa·s]
+                - kinematic_viscosity [m²/s]
+                - thermal_conductivity [W/(m·K)]
+                - specific_heat [J/(kg·K)]
+                - enthalpy [J/kg]
+                - entropy [J/(kg·K)]
+                - internal_energy [J/kg]
+                - quality [-] (dimensionless)
+                - speed_of_sound [m/s]
+                - surface_tension [N/m]
+                - phase [-] (string)
+                - pressure [Pa]
+                - temperature [K]
+                - critical_pressure [Pa]
+                - critical_temperature [K]
+
+        Note:
+            The actual properties available depend on the fluid type and its current state.
+            Some properties might not be available for certain fluids or conditions.
+            Properties without units (like 'quality' and 'phase') are returned as raw values.
         """
         fluid_state = Fluid(self.fluid_name).with_state(
             Input.pressure(self.pressure.get_in("Pa")), 
-            Input.temperature(temperature.get_in("K")))
-        return (fluid_state.density, fluid_state.dynamic_viscosity,
-                fluid_state.conductivity, fluid_state.specific_heat)
+            Input.temperature(self.temperature.get_in("K")))
+        
+        # Create dictionary for available properties
+        properties = {}
+
+        # Dictionary of property definitions with their units
+        property_definitions = {
+            'density': ('density', 'kg/m^3'),
+            'dynamic_viscosity': ('dynamic_viscosity', 'Pa.s'),
+            'kinematic_viscosity': ('kinematic_viscosity', 'm^2/s'),
+            'thermal_conductivity': ('conductivity', 'W/(m.K)'),
+            'specific_heat': ('specific_heat', 'J/(kg.K)'),
+            'enthalpy': ('enthalpy', 'J/kg'),
+            'entropy': ('entropy', 'J/(kg.K)'),
+            'internal_energy': ('internal_energy', 'J/kg'),
+            'quality': ('quality', None),  # No units for quality
+            'speed_of_sound': ('speed_of_sound', 'm/s'),
+            'surface_tension': ('surface_tension', 'N/m'),
+            'phase': ('phase', None),  # No units for phase
+            'pressure': ('pressure', 'Pa'),
+            'temperature': ('temperature', 'K'),
+            'critical_pressure': ('critical_pressure', 'Pa'),
+            'critical_temperature': ('critical_temperature', 'K')
+        }
+
+        # Add properties that are available
+        for prop_name, (attr_name, unit) in property_definitions.items():
+            try:
+                value = getattr(fluid_state, attr_name)
+                if value is not None:  # Skip None values
+                    if unit is not None:
+                        properties[prop_name] = Quantity(value, unit)
+                    else:
+                        properties[prop_name] = value
+            except (AttributeError, ValueError) as e:
+                # Skip properties that don't exist or can't be converted
+                continue
+        
+        return properties
 
     def calculate_reynolds(self) -> float:
         """
@@ -63,12 +155,15 @@ class FluidMechanics:
         Returns:
             float: Reynolds number (Re = ρvL/μ)
         
-        Note:
-            Uses characteristic length and velocity provided during initialization
+        Raises:
+            ValueError: If velocity or characteristic_length were not provided during initialization
         """
-        density, viscosity, _, _ = self.get_fluid_properties(self.temperature)
-        return (density * self.velocity.get_in('m/s') * 
-                self.characteristic_length.get_in('m')) / viscosity
+        if self.velocity is None or self.characteristic_length is None:
+            raise ValueError("Reynolds number calculation requires both velocity and characteristic_length")
+        
+        props = self.get_fluid_properties(self.temperature)
+        return (props['density'].get_in('kg/m^3') * self.velocity.get_in('m/s') * 
+                self.characteristic_length.get_in('m')) / props['dynamic_viscosity'].get_in('Pa.s')
 
     def calculate_y_plus(self, wall_shear_stress: Quantity) -> float:
         """
@@ -79,7 +174,13 @@ class FluidMechanics:
 
         Returns:
             float: y+ value (y+ = τ_w·L/μ)
+            
+        Raises:
+            ValueError: If characteristic_length was not provided during initialization
         """
+        if self.characteristic_length is None:
+            raise ValueError("y+ calculation requires characteristic_length")
+            
         viscosity = self.fluid.dynamic_viscosity  
         return (wall_shear_stress.get_in('Pa') * 
                 self.characteristic_length.get_in('m')) / viscosity
@@ -91,9 +192,10 @@ class FluidMechanics:
         Returns:
             float: Prandtl number (Pr = μ·c_p/k)
         """
-        _, viscosity, conductivity, _ = self.get_fluid_properties(self.temperature)
-        cp = Quantity(self.fluid.specific_heat, 'J/(kg.K)').get_in('J/(kg.K)')
-        return (viscosity * cp) / conductivity
+        props = self.get_fluid_properties(self.temperature)
+        return ((props['dynamic_viscosity'].get_in('Pa.s') * 
+                props['specific_heat'].get_in('J/(kg.K)')) / 
+                props['thermal_conductivity'].get_in('W/(m.K)'))
 
     def calculate_thermal_expansion_coefficient(self, temperature1: Quantity, 
                                               temperature2: Quantity,
@@ -128,19 +230,21 @@ class FluidMechanics:
             float: Rayleigh number (Ra = g·β·ΔT·L³/(ν·α))
         """
         temp_ave = (temperature1.get_in("K") + temperature2.get_in("K"))/2
-        density1, visc1, k1, cp1 = self.get_fluid_properties(temperature1)
-        density2, visc2, k2, cp2 = self.get_fluid_properties(temperature2)
-        density_ave, visc_ave, k_ave, cp_ave = self.get_fluid_properties(
-            Quantity(temp_ave, "K"))
+        props1 = self.get_fluid_properties(temperature1)
+        props2 = self.get_fluid_properties(temperature2)
+        props_ave = self.get_fluid_properties(Quantity(temp_ave, "K"))
 
-        density = (density1 + density2)/2
-        viscosity = (visc1 + visc2)/2
-        conductivity = (k1 + k2)/2
+        density = (props1['density'].get_in('kg/m^3') + props2['density'].get_in('kg/m^3'))/2
+        viscosity = (props1['dynamic_viscosity'].get_in('Pa.s') + props2['dynamic_viscosity'].get_in('Pa.s'))/2
+        conductivity = (props1['thermal_conductivity'].get_in('W/(m.K)') + props2['thermal_conductivity'].get_in('W/(m.K)'))/2
 
         g = Quantity(9.81, 'm/s^2').get_in('m/s^2')
         delta_T = abs(temperature1.get_in('K') - temperature2.get_in('K'))
         beta = self.calculate_thermal_expansion_coefficient(
-            temperature1, temperature2, density1, density2, density_ave)
+            temperature1, temperature2,
+            props1['density'].get_in('kg/m^3'),
+            props2['density'].get_in('kg/m^3'),
+            props_ave['density'].get_in('kg/m^3'))
 
         return (density * g * beta * delta_T * 
                 self.characteristic_length.get_in('m')**3 / 

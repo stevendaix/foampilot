@@ -20,9 +20,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-
 requires-python = ">=3.9"
-
 dependencies = [
   "numpy",
   "pandas",
@@ -35,29 +33,19 @@ dependencies = [
   "pylatex",
   "streamlit",
   "classy_blocks",
-  "pylatex",
-  "imageio"
+  "imageio",
+  "seaborn",
+  "ipykernel",
+  "jupyter"
 ]
 
 [project.optional-dependencies]
-dev = [
-
-]
-
-docs = [
-  "mkdocs" 
-  "mkdocs-material" 
-  "mkdocs-static-i18n"
-  "mkdocstrings"
-  "mkdocstrings-python"
-
-
-]
-
+dev = []
+docs = ["mkdocs", "mkdocs-material", "mkdocs-static-i18n", "mkdocstrings", "mkdocstrings-python"]
 
 [project.urls]
-"Homepage" = "https://github.com/your-github/foampilot"
-"Bug Tracker" = "https://github.com/your-github/foampilot/issues"
+Homepage = "https://github.com/your-github/foampilot"
+Bug_Tracker = "https://github.com/your-github/foampilot/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -68,4 +56,3 @@ target-version = ["py39"]
 
 [tool.ruff]
 line-length = 88
-
