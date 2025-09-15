@@ -5,27 +5,30 @@ from foampilot.constant.transportPropertiesFile import TransportPropertiesFile
 from foampilot.constant.turbulencePropertiesFile import TurbulencePropertiesFile
 from foampilot.constant.physicalPropertiesFile import PhysicalPropertiesFile
 from foampilot.constant.gravityFile import GravityFile
+from foampilot.constant.pRefFile import PRefFile
 
 
 class ConstantDirectory:
     """
-    A class representing the 'constant' directory in an OpenFOAM case.
+    Manager for the 'constant' directory in an OpenFOAM case.
+    Each file is a separate class handling its own content.
+    This class only decides:
+      - Which files are required
+      - Where to write them
     """
 
     def __init__(self, parent):
-        """
-        Initializes the ConstantDirectory with default instances of files.
-        """
-        self.parent = parent 
+        self.parent = parent
 
-        # Initialize default files
+        # Instantiate default files
         self._transportProperties = TransportPropertiesFile()
         self._turbulenceProperties = TurbulencePropertiesFile()
         self._physicalProperties = PhysicalPropertiesFile()
         self._gravity = GravityFile()
+        self._pRef = PRefFile()  # Instancié mais n'est écrit que si compressible
 
     # -------------------
-    # Transport Properties
+    # Properties
     # -------------------
     @property
     def transportProperties(self):
@@ -35,9 +38,6 @@ class ConstantDirectory:
     def transportProperties(self, value):
         self._transportProperties = value
 
-    # -------------------
-    # Turbulence Properties
-    # -------------------
     @property
     def turbulenceProperties(self):
         return self._turbulenceProperties
@@ -46,9 +46,6 @@ class ConstantDirectory:
     def turbulenceProperties(self, value):
         self._turbulenceProperties = value
 
-    # -------------------
-    # Physical Properties
-    # -------------------
     @property
     def physicalProperties(self):
         return self._physicalProperties
@@ -57,43 +54,47 @@ class ConstantDirectory:
     def physicalProperties(self, value):
         self._physicalProperties = value
 
-    # -------------------
-    # Gravity
-    # -------------------
     @property
     def gravity(self):
         return self._gravity
 
     @gravity.setter
     def gravity(self, value):
-        self._gravity = value
+        self._gravity = value  # La classe GravityFile gère elle-même le format et les unités
+
+    @property
+    def pRef(self):
+        return self._pRef
+
+    @pRef.setter
+    def pRef(self, value):
+        self._pRef = value  # La classe PRefFile gère elle-même float ou Quantity
 
     # -------------------
     # Write method
     # -------------------
     def write(self):
         """
-        Writes the files to their respective locations within the 'constant' directory.
-        Uses parent configuration to decide which files are required.
+        Writes required files in the 'constant' directory.
+        Only writes files that are relevant for the current case.
         """
-        base_path = Path(self.parent.case_path) 
+        base_path = Path(self.parent.case_path)
         constant_path = base_path / "constant"
         polyMesh_path = constant_path / "polyMesh"
 
-        # Create directories if they don't exist
+        # Create directories if needed
         polyMesh_path.mkdir(parents=True, exist_ok=True)
 
         # Always write turbulence properties
         self.turbulenceProperties.write(constant_path / "turbulenceProperties")
 
-        # Decide between incompressible and compressible setups
+        # Compressible vs incompressible
         if getattr(self.parent, "compressible", False):
-            # Compressible → physicalProperties
             self.physicalProperties.write(constant_path / "physicalProperties")
+            self.pRef.write(constant_path / "pRef")  # uniquement compressible
         else:
-            # Incompressible → transportProperties
             self.transportProperties.write(constant_path / "transportProperties")
 
-        # If gravity is enabled
+        # Gravity if enabled
         if getattr(self.parent, "with_gravity", True):
             self.gravity.write(constant_path / "g")
