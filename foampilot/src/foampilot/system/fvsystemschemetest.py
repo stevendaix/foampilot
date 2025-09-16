@@ -1,101 +1,122 @@
 # system/fvSchemesFile.py
+from typing import Dict, Optional, Any
 from foampilot.base.openFOAMFile import OpenFOAMFile
+
 
 class FvSchemesFile(OpenFOAMFile):
     """
-    fvSchemes configuration adaptable to simulation type.
-    
-    It builds schemes depending on parent Foam attributes:
+    Represents the fvSchemes file in OpenFOAM.
+
+    This class builds schemes depending on parent Foam attributes:
         - simulation_type: "incompressible", "boussinesq", "compressible"
         - energy_variable (compressible only): "e", "h" or "T"
     """
 
-    def __init__(self, parent,
-                 ddtSchemes=None, gradSchemes=None, divSchemes=None,
-                 laplacianSchemes=None, interpolationSchemes=None, snGradSchemes=None):
-        """
-        Args:
-            parent: Foam instance (or compatible) exposing attributes:
-                - parent.simulation_type
-                - parent.energy_variable (if compressible)
-        """
+    def __init__(
+        self,
+        parent: Any,
+        ddtSchemes: Optional[Dict[str, str]] = None,
+        gradSchemes: Optional[Dict[str, str]] = None,
+        divSchemes: Optional[Dict[str, str]] = None,
+        laplacianSchemes: Optional[Dict[str, str]] = None,
+        interpolationSchemes: Optional[Dict[str, str]] = None,
+        snGradSchemes: Optional[Dict[str, str]] = None,
+    ) -> None:
         self.parent = parent
 
-        # === Defaults ===
-        if ddtSchemes is None:
-            ddtSchemes = {"default": "Euler"}
+        self.ddtSchemes = self._init_ddt_schemes(ddtSchemes)
+        self.gradSchemes = self._init_grad_schemes(gradSchemes)
+        self.divSchemes = self._init_div_schemes(divSchemes)
+        self.laplacianSchemes = self._init_laplacian_schemes(laplacianSchemes)
+        self.interpolationSchemes = self._init_interpolation_schemes(interpolationSchemes)
+        self.snGradSchemes = self._init_sn_grad_schemes(snGradSchemes)
 
-        if gradSchemes is None:
-            gradSchemes = {"default": "Gauss linear"}
-
-        if divSchemes is None:
-            divSchemes = {"default": "none",
-                          "div(phi,U)": "Gauss upwind"}
-
-            # --- Handle physics ---
-            if self.parent.simulation_type == "boussinesq":
-                divSchemes["div(phi,T)"] = "Gauss upwind"
-
-            elif self.parent.simulation_type == "compressible":
-                energy = getattr(self.parent, "energy_variable", "e")
-                if energy in ("e", "h", "T"):
-                    divSchemes[f"div(phi,{energy})"] = "Gauss upwind"
-                divSchemes["div(phi,(p|rho))"] = "Gauss linear"
-
-            # turbulence terms
-            divSchemes.update({
-                "div(phi,k)": "Gauss upwind",
-                "div(phi,epsilon)": "Gauss upwind",
-                "div(((rho*nuEff)*dev2(T(grad(U)))))": "Gauss linear"
-            })
-
-        if laplacianSchemes is None:
-            laplacianSchemes = {"default": "Gauss linear corrected"}
-
-            if self.parent.simulation_type == "boussinesq":
-                laplacianSchemes["laplacian(alphaEff,T)"] = "Gauss linear corrected"
-
-            elif self.parent.simulation_type == "compressible":
-                energy = getattr(self.parent, "energy_variable", "e")
-                laplacianSchemes[f"laplacian(alphaEff,{energy})"] = "Gauss linear corrected"
-
-        if interpolationSchemes is None:
-            interpolationSchemes = {"default": "linear"}
-
-        if snGradSchemes is None:
-            snGradSchemes = {"default": "corrected"}
-
-        # Call parent class constructor
         super().__init__(
             object_name="fvSchemes",
-            ddtSchemes=ddtSchemes,
-            gradSchemes=gradSchemes,
-            divSchemes=divSchemes,
-            laplacianSchemes=laplacianSchemes,
-            interpolationSchemes=interpolationSchemes,
-            snGradSchemes=snGradSchemes
+            ddtSchemes=self.ddtSchemes,
+            gradSchemes=self.gradSchemes,
+            divSchemes=self.divSchemes,
+            laplacianSchemes=self.laplacianSchemes,
+            interpolationSchemes=self.interpolationSchemes,
+            snGradSchemes=self.snGradSchemes,
         )
 
-    def to_dict(self):
+    # -------------------------
+    # Initialization helpers
+    # -------------------------
+    def _init_ddt_schemes(self, ddtSchemes: Optional[Dict[str, str]]) -> Dict[str, str]:
+        return ddtSchemes.copy() if ddtSchemes else {"default": "Euler"}
+
+    def _init_grad_schemes(self, gradSchemes: Optional[Dict[str, str]]) -> Dict[str, str]:
+        return gradSchemes.copy() if gradSchemes else {"default": "Gauss linear"}
+
+    def _init_div_schemes(self, divSchemes: Optional[Dict[str, str]]) -> Dict[str, str]:
+        if divSchemes is not None:
+            return divSchemes.copy()
+
+        divSchemes = {
+            "default": "none",
+            "div(phi,U)": "Gauss upwind",
+            "div(phi,k)": "Gauss upwind",
+            "div(phi,epsilon)": "Gauss upwind",
+            "div(((rho*nuEff)*dev2(T(grad(U)))))": "Gauss linear",
+        }
+
+        if self.parent.simulation_type == "boussinesq":
+            divSchemes["div(phi,T)"] = "Gauss upwind"
+
+        elif self.parent.simulation_type == "compressible":
+            energy = getattr(self.parent, "energy_variable", "e")
+            if energy in ("e", "h", "T"):
+                divSchemes[f"div(phi,{energy})"] = "Gauss upwind"
+            divSchemes["div(phi,(p|rho))"] = "Gauss linear"
+
+        return divSchemes
+
+    def _init_laplacian_schemes(self, laplacianSchemes: Optional[Dict[str, str]]) -> Dict[str, str]:
+        if laplacianSchemes is not None:
+            return laplacianSchemes.copy()
+
+        laplacianSchemes = {"default": "Gauss linear corrected"}
+
+        if self.parent.simulation_type == "boussinesq":
+            laplacianSchemes["laplacian(alphaEff,T)"] = "Gauss linear corrected"
+
+        elif self.parent.simulation_type == "compressible":
+            energy = getattr(self.parent, "energy_variable", "e")
+            laplacianSchemes[f"laplacian(alphaEff,{energy})"] = "Gauss linear corrected"
+
+        return laplacianSchemes
+
+    def _init_interpolation_schemes(self, interpolationSchemes: Optional[Dict[str, str]]) -> Dict[str, str]:
+        return interpolationSchemes.copy() if interpolationSchemes else {"default": "linear"}
+
+    def _init_sn_grad_schemes(self, snGradSchemes: Optional[Dict[str, str]]) -> Dict[str, str]:
+        return snGradSchemes.copy() if snGradSchemes else {"default": "corrected"}
+
+    # -------------------------
+    # Export / Import
+    # -------------------------
+    def to_dict(self) -> Dict[str, Dict[str, str]]:
         """Export to OpenFOAM dictionary structure."""
         return {
-            'ddtSchemes': self.ddtSchemes,
-            'gradSchemes': self.gradSchemes,
-            'divSchemes': self.divSchemes,
-            'laplacianSchemes': self.laplacianSchemes,
-            'interpolationSchemes': self.interpolationSchemes,
-            'snGradSchemes': self.snGradSchemes
+            "ddtSchemes": self.ddtSchemes,
+            "gradSchemes": self.gradSchemes,
+            "divSchemes": self.divSchemes,
+            "laplacianSchemes": self.laplacianSchemes,
+            "interpolationSchemes": self.interpolationSchemes,
+            "snGradSchemes": self.snGradSchemes,
         }
 
     @classmethod
-    def from_dict(cls, config, parent):
+    def from_dict(cls, config: Dict[str, Dict[str, str]], parent: Any) -> "FvSchemesFile":
         """Build instance from dict + Foam parent."""
         return cls(
             parent=parent,
-            ddtSchemes=config.get('ddtSchemes', {}),
-            gradSchemes=config.get('gradSchemes', {}),
-            divSchemes=config.get('divSchemes', {}),
-            laplacianSchemes=config.get('laplacianSchemes', {}),
-            interpolationSchemes=config.get('interpolationSchemes', {}),
-            snGradSchemes=config.get('snGradSchemes', {})
+            ddtSchemes=config.get("ddtSchemes"),
+            gradSchemes=config.get("gradSchemes"),
+            divSchemes=config.get("divSchemes"),
+            laplacianSchemes=config.get("laplacianSchemes"),
+            interpolationSchemes=config.get("interpolationSchemes"),
+            snGradSchemes=config.get("snGradSchemes"),
         )
