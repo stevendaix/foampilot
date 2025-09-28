@@ -1,197 +1,232 @@
-# system/fvSolutionFile.py
+from typing import Dict, Optional, Any
 from foampilot.base.openFOAMFile import OpenFOAMFile
 
 class FvSolutionFile(OpenFOAMFile):
     """
-    A class representing the fvSolution file in OpenFOAM.
-    
-    This class handles the creation and manipulation of the fvSolution file which defines
-    the solution algorithms and solver controls for an OpenFOAM simulation. It inherits
-    from OpenFOAMFile and provides specific functionality for solver configuration.
-
-    Attributes:
-        solvers (dict): Dictionary containing solver settings for each field.
-        SIMPLE (dict): SIMPLE algorithm control parameters.
-        relaxationFactors (dict): Under-relaxation factors for fields and equations.
+    Représente le fichier fvSolution dans OpenFOAM, avec configuration automatique
+    basée sur les attributs du parent (simulation_type, algorithm, energy_variable).
     """
-    
-    def __init__(self, solvers=None, SIMPLE=None, relaxationFactors=None):
-        """
-        Initialize the FvSolutionFile with solver configuration.
 
-        Args:
-            solvers: Dictionary of solver configurations for each field (default: {
-                "p": {
-                    "solver": "GAMG",
-                    "tolerance": "1e-06",
-                    "relTol": "0.1",
-                    "smoother": "GaussSeidel",
-                    "nPreSweeps": "0",
-                    "nPostSweeps": "2",
-                    "cacheAgglomeration": "on",
-                    "agglomerator": "faceAreaPair",
-                    "nCellsInCoarsestLevel": "10",
-                    "mergeLevels": "1"
-                },
-                "U": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                },
-                "k": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                },
-                "epsilon": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                },
-                "R": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                },
-                "nuTilda": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                }
-            }).
-            SIMPLE: SIMPLE algorithm settings (default: {
-                "nNonOrthogonalCorrectors": "0",
-                "residualControl": {
-                    "p": "1e-2",
-                    "U": "1e-4",
-                    "k": "1e-4",
-                    "epsilon": "1e-4"
-                }
-            }).
-            relaxationFactors: Under-relaxation factors (default: {
-                "fields": {"p": "0.3"},
-                "equations": {"U": "0.7", "k": "0.7", "epsilon": "0.7"}
-            }).
-        """
-        # Initialize solver configurations with default values if None provided
-        if solvers is None:
-            solvers = {
-                "p": {
-                    "solver": "GAMG",
-                    "tolerance": "1e-06",
-                    "relTol": "0.1",
-                    "smoother": "GaussSeidel",
-                    "nPreSweeps": "0",
-                    "nPostSweeps": "2",
-                    "cacheAgglomeration": "on",
-                    "agglomerator": "faceAreaPair",
-                    "nCellsInCoarsestLevel": "10",
-                    "mergeLevels": "1"
-                },
-                "U": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                },
-                "k": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                },
-                "epsilon": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                },
-                "R": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                },
-                "nuTilda": {
-                    "solver": "smoothSolver",
-                    "smoother": "symGaussSeidel",
-                    "tolerance": "1e-05",
-                    "relTol": "0.1"
-                }
-            }
+    DEFAULT_TOLERANCE: float = 1e-6
+    DEFAULT_REL_TOL: float = 0.1
+    DEFAULT_RELAXATION_FACTOR: float = 0.7
 
-        if SIMPLE is None:
-            SIMPLE = {
-                "nNonOrthogonalCorrectors": "0",
-                "residualControl": {
-                    "p": "1e-2",
-                    "U": "1e-4",
-                    "k": "1e-4",
-                    "epsilon": "1e-4"
-                }
-            }
+    def __init__(
+        self,
+        parent: Any,
+        solvers: Optional[Dict[str, Dict[str, str]]] = None,
+        SIMPLE: Optional[Dict[str, Any]] = None,
+        PIMPLE: Optional[Dict[str, Any]] = None,
+        relaxationFactors: Optional[Dict[str, Dict[str, str]]] = None,
+    ) -> None:
+        self.parent = parent
+        self.solvers = self._init_solvers(solvers)
 
-        if relaxationFactors is None:
-            relaxationFactors = {
-                "fields": {"p": "0.3"},
-                "equations": {"U": "0.7", "k": "0.7", "epsilon": "0.7"}
-            }
+        if getattr(self.parent, "algorithm", "SIMPLE") == "SIMPLE":
+            self.SIMPLE = self._init_simple(SIMPLE)
+            self.PIMPLE = None
+        else:
+            self.PIMPLE = self._init_pimple(PIMPLE)
+            self.SIMPLE = None
 
-        # Call parent class constructor with all configurations
+        self.relaxationFactors = self._init_relaxation_factors(relaxationFactors)
+
         super().__init__(
             object_name="fvSolution",
-            solvers=solvers,
-            SIMPLE=SIMPLE,
-            relaxationFactors=relaxationFactors
+            solvers=self.solvers,
+            SIMPLE=self.SIMPLE,
+            PIMPLE=self.PIMPLE,
+            relaxationFactors=self.relaxationFactors,
         )
 
-    def to_dict(self):
-        """
-        Convert the solver configuration to a dictionary.
-        
-        Returns:
-            dict: A dictionary containing all solver settings with their current configuration.
-                  The structure matches the OpenFOAM fvSolution format with three main sections:
-                  - solvers: Per-field solver configurations
-                  - SIMPLE: Algorithm controls
-                  - relaxationFactors: Under-relaxation parameters
-        """
-        return {
-            'solvers': self.solvers,
-            'SIMPLE': self.SIMPLE,
-            'relaxationFactors': self.relaxationFactors
+    # -------------------------
+    # Solvers
+    # -------------------------
+    def _init_solvers(self, solvers: Optional[Dict[str, Dict[str, str]]]) -> Dict[str, Dict[str, str]]:
+        if solvers is not None:
+            return solvers.copy()
+
+        solvers = {
+            "p": self._default_solver(
+                solver="GAMG",
+                tolerance=self.DEFAULT_TOLERANCE,
+                relTol=self.DEFAULT_REL_TOL,
+                smoother="GaussSeidel",
+                nPreSweeps="0",
+                nPostSweeps="2",
+                cacheAgglomeration="on",
+                agglomerator="faceAreaPair",
+                nCellsInCoarsestLevel="10",
+                mergeLevels="1",
+            ),
+            "U": self._default_solver(
+                solver="smoothSolver",
+                smoother="symGaussSeidel",
+                tolerance=1e-5,
+                relTol=self.DEFAULT_REL_TOL,
+            ),
+            "k": self._default_solver(
+                solver="smoothSolver",
+                smoother="symGaussSeidel",
+                tolerance=1e-5,
+                relTol=self.DEFAULT_REL_TOL,
+            ),
+            "epsilon": self._default_solver(
+                solver="smoothSolver",
+                smoother="symGaussSeidel",
+                tolerance=1e-5,
+                relTol=self.DEFAULT_REL_TOL,
+            ),
         }
 
+        self._extend_solvers_for_simulation_type(solvers)
+        return solvers
+
+    def _default_solver(self, solver: str, **kwargs: Any) -> Dict[str, str]:
+        return {
+            "solver": solver,
+            "tolerance": str(kwargs.get("tolerance", self.DEFAULT_TOLERANCE)),
+            "relTol": str(kwargs.get("relTol", self.DEFAULT_REL_TOL)),
+            **{k: str(v) for k, v in kwargs.items() if k not in ("tolerance", "relTol")},
+        }
+
+    def _extend_solvers_for_simulation_type(self, solvers: Dict[str, Dict[str, str]]) -> None:
+        sim_type = getattr(self.parent, "simulation_type", "incompressible")
+        algo = getattr(self.parent, "algorithm", "SIMPLE")
+        energy_active = getattr(self.parent, "energy_activated", False)
+        energy_var = getattr(self.parent, "energy_variable", "e")
+
+        # Boussinesq
+        if sim_type == "boussinesq":
+            solvers["T"] = self._default_solver(
+                solver="smoothSolver",
+                smoother="symGaussSeidel",
+                tolerance=1e-5,
+                relTol=self.DEFAULT_REL_TOL,
+            )
+
+        # Compressible ou énergie activée
+        if sim_type == "compressible" or energy_active:
+            solvers[energy_var] = self._default_solver(
+                solver="smoothSolver",
+                smoother="symGaussSeidel",
+                tolerance=1e-5,
+                relTol=self.DEFAULT_REL_TOL,
+            )
+            if sim_type == "compressible":
+                solvers["rho"] = self._default_solver(
+                    solver="smoothSolver",
+                    smoother="symGaussSeidel",
+                    tolerance=1e-6,
+                    relTol=self.DEFAULT_REL_TOL,
+                )
+
+        # PIMPLE : champs finals
+        if algo == "PIMPLE" and (sim_type == "compressible" or energy_active):
+            if sim_type == "compressible":
+                solvers["p_rgh"] = {
+                    "solver": "PCG",
+                    "preconditioner": "DIC",
+                    "tolerance": "1e-8",
+                    "relTol": "0.01",
+                }
+            solvers["p_rghFinal"] = {"$p_rgh": "", "relTol": "0"}
+            solvers["UFinal"] = {"$U": "", "relTol": "0"}
+            solvers[f"{energy_var}Final"] = {"$" + energy_var: "", "relTol": "0"}
+            solvers["kFinal"] = {"$k": "", "relTol": "0"}
+            solvers["epsilonFinal"] = {"$epsilon": "", "relTol": "0"}
+
+    # -------------------------
+    # SIMPLE
+    # -------------------------
+    def _init_simple(self, SIMPLE: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        if SIMPLE is not None:
+            return SIMPLE.copy()
+
+        SIMPLE = {
+            "nNonOrthogonalCorrectors": "0",
+            "residualControl": {
+                "p": "1e-2",
+                "U": "1e-4",
+                "k": "1e-4",
+                "epsilon": "1e-4",
+            },
+        }
+
+        sim_type = getattr(self.parent, "simulation_type", "incompressible")
+        energy_active = getattr(self.parent, "energy_activated", False)
+        energy_var = getattr(self.parent, "energy_variable", "e")
+
+        if sim_type == "boussinesq":
+            SIMPLE["residualControl"]["T"] = "1e-4"
+        elif sim_type == "compressible" or energy_active:
+            SIMPLE["residualControl"][energy_var] = "1e-4"
+            if sim_type == "compressible":
+                SIMPLE["residualControl"]["rho"] = "1e-4"
+
+        return SIMPLE
+
+    # -------------------------
+    # PIMPLE
+    # -------------------------
+    def _init_pimple(self, PIMPLE: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        if PIMPLE is not None:
+            return PIMPLE.copy()
+        return {
+            "momentumPredictor": "yes",
+            "nOuterCorrectors": "1",
+            "nCorrectors": "2",
+            "nNonOrthogonalCorrectors": "0",
+            "pRefCell": "0",
+            "pRefValue": "0",
+        }
+
+    # -------------------------
+    # Relaxation factors
+    # -------------------------
+    def _init_relaxation_factors(self, relaxationFactors: Optional[Dict[str, Dict[str, str]]]) -> Dict[str, Dict[str, str]]:
+        if relaxationFactors is not None:
+            return relaxationFactors.copy()
+
+        relaxationFactors = {
+            "fields": {"p": str(self.DEFAULT_RELAXATION_FACTOR)},
+            "equations": {
+                "U": str(self.DEFAULT_RELAXATION_FACTOR),
+                "k": str(self.DEFAULT_RELAXATION_FACTOR),
+                "epsilon": str(self.DEFAULT_RELAXATION_FACTOR),
+            },
+        }
+
+        sim_type = getattr(self.parent, "simulation_type", "incompressible")
+        energy_active = getattr(self.parent, "energy_activated", False)
+        energy_var = getattr(self.parent, "energy_variable", "e")
+
+        if sim_type == "boussinesq":
+            relaxationFactors["equations"]["T"] = str(self.DEFAULT_RELAXATION_FACTOR)
+        elif sim_type == "compressible" or energy_active:
+            relaxationFactors["equations"][energy_var] = str(self.DEFAULT_RELAXATION_FACTOR)
+            if sim_type == "compressible":
+                relaxationFactors["equations"]["rho"] = str(self.DEFAULT_RELAXATION_FACTOR)
+
+        return relaxationFactors
+
+    # -------------------------
+    # Export / Import
+    # -------------------------
+    def to_dict(self) -> Dict[str, Any]:
+        d = {"solvers": self.solvers, "relaxationFactors": self.relaxationFactors}
+        if self.SIMPLE is not None:
+            d["SIMPLE"] = self.SIMPLE
+        if self.PIMPLE is not None:
+            d["PIMPLE"] = self.PIMPLE
+        return d
+
     @classmethod
-    def from_dict(cls, config):
-        """
-        Create a FvSolutionFile instance from a configuration dictionary.
-        
-        This class method allows creating a FvSolutionFile instance by providing a dictionary
-        with solver configurations. Missing sections will use empty dictionaries.
-
-        Args:
-            config (dict): Dictionary containing solver configuration. Possible keys:
-                - solvers: Dictionary of solver configurations
-                - SIMPLE: SIMPLE algorithm settings
-                - relaxationFactors: Under-relaxation factors
-                
-        Returns:
-            FvSolutionFile: A new instance initialized with the provided configurations.
-        """
-        # Get each configuration section from dict or use empty dict if not provided
-        solvers = config.get('solvers', {})
-        SIMPLE = config.get('SIMPLE', {})
-        relaxationFactors = config.get('relaxationFactors', {})
-
-        # Create and return new instance
+    def from_dict(cls, config: Dict[str, Any], parent: Any) -> "FvSolutionFile":
         return cls(
-            solvers=solvers,
-            SIMPLE=SIMPLE,
-            relaxationFactors=relaxationFactors
+            parent=parent,
+            solvers=config.get("solvers"),
+            SIMPLE=config.get("SIMPLE"),
+            PIMPLE=config.get("PIMPLE"),
+            relaxationFactors=config.get("relaxationFactors"),
         )
