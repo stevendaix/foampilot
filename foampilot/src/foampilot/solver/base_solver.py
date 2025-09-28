@@ -61,7 +61,7 @@ class BaseSolver(ABC):
 
         # Generic flags (can be overridden by subclasses)
         self.compressible = False
-        self.with_gravity = True
+        self.with_gravity = False 
 
     @classmethod
     def create(cls, case_path: str | Path, solver_name: str) -> BaseSolver:
