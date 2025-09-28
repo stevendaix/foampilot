@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional, Callable, List
 from foampilot.solver.base_solver import BaseSolver
+from foampilot.solver.boundaries_dict import Boundary  
 
 class Solver:
     """
@@ -20,7 +21,10 @@ class Solver:
         self._error_handlers: List[Callable[[str], None]] = []
         self._event_handlers: List[Callable[[str, str], None]] = []
 
+        self.boundary = Boundary(self, turbulence_model="kEpsilon")
+
         self._update_solver()
+        
 
     # ---------- Handlers ----------
     def add_error_handler(self, handler: Callable[[str], None]):
@@ -136,6 +140,7 @@ class Solver:
         energy_activated=self.energy_activated,
         transient=self._transient
     )
+    
 
     # Mise à jour des flags dynamiques sur l'instance BaseSolver
     self._solver.compressible = self._compressible
@@ -144,6 +149,21 @@ class Solver:
     self._solver.is_solid = self._is_solid
     self._solver.energy_activated = self.energy_activated
     self._solver.transient = self._transient
+
+    if self.energy_activated:
+            self.boundary.fields.update({
+                "T": {},
+                "alpha": {},
+                "phi": {},
+            })
+
+    def setup_boundaries(self):
+        try:
+            self.boundary.initialize_boundary()
+            self._notify_event("boundary_setup", "Boundary conditions initialized.")
+        except Exception as e:
+            self._notify_error(f"Failed to initialize boundaries: {str(e)}")
+            raise
 
     # ---------- Public methods ----------
     def setup_case(self):
