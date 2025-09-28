@@ -3,19 +3,13 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 import subprocess
 import os
-from typing import List, Dict, ClassVar
+from typing import List, Dict, ClassVar, Type
 
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 
 class BaseSolver(ABC):
-    """
-    Base class for solvers. Provides common case management and helpers.
-    Subclasses must implement update_case_specific_attributes().
-    """
-
-    # Dictionnaire des modules solvers pour foamRun (OpenFOAM v13)
     SOLVER_MODULES: ClassVar[Dict[str, str]] = {
         # Single-phase modules
         "fluid": "fluid",
@@ -24,7 +18,6 @@ class BaseSolver(ABC):
         "multicomponentFluid": "multicomponentFluid",
         "shockFluid": "shockFluid",
         "XiFluid": "XiFluid",
-
         # Multiphase/VoF flow modules
         "compressibleMultiphaseVoF": "compressibleMultiphaseVoF",
         "compressibleVoF": "compressibleVoF",
@@ -33,15 +26,12 @@ class BaseSolver(ABC):
         "incompressibleVoF": "incompressibleVoF",
         "isothermalFluid": "isothermalFluid",
         "multiphaseEuler": "multiphaseEuler",
-
         # Solid modules
         "solid": "solid",
         "solidDisplacement": "solidDisplacement",
-
         # Film modules
         "isothermalFilm": "isothermalFilm",
         "film": "film",
-
         # Utility modules
         "functions": "functions",
         "movingMesh": "movingMesh",
@@ -49,7 +39,17 @@ class BaseSolver(ABC):
 
     SOLVER_CLASSES: ClassVar[Dict[str, Type[BaseSolver]]] = {}
 
-    def __init__(self, case_path: str | Path, solver_name: str):
+    def __init__(
+        self,
+        case_path: str | Path,
+        solver_name: str,
+        compressible: bool = False,
+        with_gravity: bool = False,
+        is_vof: bool = False,
+        is_solid: bool = False,
+        energy_activated: bool = False,
+        transient: bool = False
+    ):
         self.case_path = Path(case_path)
         self.solver_name = solver_name
         self.foamrun_module = self.SOLVER_MODULES.get(solver_name, solver_name)
@@ -59,27 +59,49 @@ class BaseSolver(ABC):
         self.constant = ConstantDirectory(self)
         self.boundary = Boundary(self)
 
-        # Generic flags (can be overridden by subclasses)
-        self.compressible = False
-        self.with_gravity = False 
+        # Generic flags
+        self.compressible = compressible
+        self.with_gravity = with_gravity
+        self.is_vof = is_vof
+        self.is_solid = is_solid
+        self.energy_activated = energy_activated
+        self.transient = transient
 
     @classmethod
-    def create(cls, case_path: str | Path, solver_name: str) -> BaseSolver:
+    def create(
+        cls,
+        case_path: str | Path,
+        solver_name: str,
+        compressible: bool = False,
+        with_gravity: bool = False,
+        is_vof: bool = False,
+        is_solid: bool = False,
+        energy_activated: bool = False,
+        transient: bool = False
+    ) -> BaseSolver:
         """
-        Factory method to create the appropriate solver instance.
+        Factory method to create the appropriate solver instance,
+        passing all flags to the solver.
         """
-        solver_class = cls.SOLVER_CLASSES.get(solver_name, cls)
-        return solver_class(case_path, solver_name)
+        solver_class: Type[BaseSolver] = cls.SOLVER_CLASSES.get(solver_name, cls)
+        return solver_class(
+            case_path,
+            solver_name,
+            compressible=compressible,
+            with_gravity=with_gravity,
+            is_vof=is_vof,
+            is_solid=is_solid,
+            energy_activated=energy_activated,
+            transient=transient
+        )
 
+    # ---------- Directory and setup ----------
     def ensure_dirs(self) -> None:
         (self.case_path / "system").mkdir(parents=True, exist_ok=True)
         (self.case_path / "constant").mkdir(parents=True, exist_ok=True)
         (self.case_path / "0").mkdir(parents=True, exist_ok=True)
 
     def setup_case(self) -> None:
-        """
-        Prepare the case directory and apply solver-specific attribute updates.
-        """
         self.ensure_dirs()
         self.update_case_specific_attributes()
 
@@ -90,10 +112,8 @@ class BaseSolver(ABC):
         """
         raise NotImplementedError
 
+    # ---------- Case writing ----------
     def write_case(self) -> None:
-        """
-        Write case files (delegates to components).
-        """
         try:
             self.system.write()
         except Exception:
@@ -104,11 +124,8 @@ class BaseSolver(ABC):
         except Exception:
             pass
 
+    # ---------- Running simulation ----------
     def run_command(self, cmd: List[str], log_filename: str) -> None:
-        """
-        Run a command in the case directory and write stdout+stderr to log file.
-        Raises CalledProcessError on non-zero exit.
-        """
         if not self.case_path.exists() or not self.case_path.is_dir():
             raise FileNotFoundError(f"Case path {self.case_path} does not exist or is not a directory.")
 
@@ -127,9 +144,6 @@ class BaseSolver(ABC):
             )
 
     def check_solver_module_exists(self) -> bool:
-        """
-        Check if the solver module exists in $FOAM_MODULES.
-        """
         foam_modules = os.getenv("FOAM_MODULES", "")
         if not foam_modules:
             print("⚠️  $FOAM_MODULES environment variable is not set.")
@@ -143,9 +157,6 @@ class BaseSolver(ABC):
         return True
 
     def run_simulation(self, log_filename: str | None = None) -> None:
-        """
-        Run the simulation using foamRun with the appropriate solver module.
-        """
         if log_filename is None:
             log_filename = f"log.{self.solver_name}"
 
