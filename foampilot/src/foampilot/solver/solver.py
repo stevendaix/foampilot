@@ -5,6 +5,7 @@ from foampilot.solver.base_solver import BaseSolver
 class Solver:
     """
     Generic solver class that adapts based on user-defined attributes.
+    Supports transient incompressible fluids with PIMPLE.
     """
 
     def __init__(self, case_path: str | Path):
@@ -14,11 +15,11 @@ class Solver:
         self._with_gravity: bool = False
         self._is_vof: bool = False
         self._is_solid: bool = False
-        self._energy_user: Optional[bool] = None  # valeur demandée par l’utilisateur
+        self._energy_user: Optional[bool] = None
+        self._transient: bool = False  # Nouveau flag
         self._error_handlers: List[Callable[[str], None]] = []
         self._event_handlers: List[Callable[[str, str], None]] = []
 
-        # Create the initial solver based on default attributes
         self._update_solver()
 
     # ---------- Handlers ----------
@@ -87,27 +88,28 @@ class Solver:
         if value:
             self._compressible = False
             self._with_gravity = False
-            self._energy_user = False  # pas d’énergie en solide
+            self._energy_user = False
         self._is_solid = value
         self._update_solver()
 
     @property
     def energy_activated(self) -> bool:
-        """
-        L'énergie est automatiquement activée si compressible ou gravité.
-        Sinon, on prend la valeur utilisateur (par défaut False).
-        """
         if self._compressible or self._with_gravity:
             return True
         return self._energy_user if self._energy_user is not None else False
 
     @energy_activated.setter
     def energy_activated(self, value: bool):
-        """
-        L’utilisateur peut forcer l’énergie activée,
-        sauf si compressible ou gravité (dans ce cas c’est toujours True).
-        """
         self._energy_user = value
+        self._update_solver()
+
+    @property
+    def transient(self) -> bool:
+        return self._transient
+
+    @transient.setter
+    def transient(self, value: bool):
+        self._transient = value
         self._update_solver()
 
     # ---------- Solver selection ----------
@@ -125,7 +127,12 @@ class Solver:
         old_solver_name = self._solver.solver_name if self._solver else "None"
         self._notify_event("solver_change", f"Changing solver from {old_solver_name} to {solver_name}")
 
-        self._solver = BaseSolver.create(self.case_path, solver_name)
+        # Création du solver avec le flag transient
+        self._solver = BaseSolver.create(
+            self.case_path, 
+            solver_name, 
+            transient=self._transient
+        )
 
         self._solver.compressible = self._compressible
         self._solver.with_gravity = self._with_gravity
