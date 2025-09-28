@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 # Import required libraries
-from foampilot import incompressibleFluid, Meshing, commons, utilities, postprocess,latex_pdf
+from foampilot.solver import Solver
+from foampilot import Meshing, commons, utilities, postprocess,latex_pdf
 from foampilot.utilities.fluids_theory import FluidMechanics
 import pyvista as pv
 from pathlib import Path
@@ -34,8 +35,10 @@ kinematic_viscosity = properties['kinematic_viscosity']
 print(f"\nUsing fluid: Water")
 print(f"Kinematic viscosity: {kinematic_viscosity}")
 
-# Initialize the solver for incompressible fluid simulation
-solver = incompressibleFluid(path_case=current_path)
+# Initialize the solver 
+solver = Solver(current_path)
+solver.compressible = False
+solver.with_gravity = False
 
 # Set the kinematic viscosity in the solver's constant directory
 
