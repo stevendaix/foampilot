@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 import subprocess
+import os
 from typing import List, Dict, ClassVar
 
 from foampilot.system.SystemDirectory import SystemDirectory
@@ -115,12 +116,31 @@ class BaseSolver(ABC):
                 check=True,
             )
 
+    def check_solver_module_exists(self) -> bool:
+        """
+        Check if the solver module exists in $FOAM_MODULES.
+        """
+        foam_modules = os.getenv("FOAM_MODULES", "")
+        if not foam_modules:
+            print("⚠️  $FOAM_MODULES environment variable is not set.")
+            return False
+
+        module_path = Path(foam_modules) / self.foamrun_module
+        if not module_path.exists():
+            print(f"⚠️  Solver module '{self.foamrun_module}' not found in {foam_modules}")
+            return False
+
+        return True
+
     def run_simulation(self, log_filename: str | None = None) -> None:
         """
         Run the simulation using foamRun with the appropriate solver module.
         """
         if log_filename is None:
             log_filename = f"log.{self.solver_name}"
+
+        if not self.check_solver_module_exists():
+            raise RuntimeError(f"Solver module '{self.foamrun_module}' is not available.")
 
         try:
             # Use foamRun with the mapped solver module
