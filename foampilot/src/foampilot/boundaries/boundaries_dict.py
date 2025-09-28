@@ -35,7 +35,10 @@ class Boundary:
             "p": {},
             "k": {},
             "epsilon": {},
-            "nut": {}
+            "nut": {},
+            "T": {}, # Température
+            "alpha": {}, # Diffusivité thermique
+            "phi": {}, # Flux volumique
         }
 
     def load_boundary_names(self, case_path: Path) -> dict[str, str]:
@@ -404,81 +407,115 @@ class Boundary:
         self.apply_condition_with_wildcard("epsilon", patch_pattern, condition_epsilon)
         self.apply_condition_with_wildcard("nut", patch_pattern, condition_nut)
 
+    def _format_value_for_field(self, field_name, value):
+        if isinstance(value, Quantity):
+            unit = OpenFOAMFile.DEFAULT_UNITS.get(field_name, None)
+            if unit:
+                return format(value.get_in(unit), ".15g")
+            return format(float(value.quantity.magnitude), ".15g")
+
+        if isinstance(value, (tuple, list)):
+            parts = []
+            for v in value:
+                if isinstance(v, Quantity):
+                    unit = OpenFOAMFile.DEFAULT_UNITS.get(field_name, None)
+                    if unit:
+                        parts.append(format(v.get_in(unit), ".15g"))
+                    else:
+                        parts.append(format(float(v.quantity.magnitude), ".15g"))
+                else:
+                    parts.append(format(float(v), ".15g"))
+            return f"({' '.join(parts)})"
+
+        if isinstance(value, bool):
+            return "true" if value else "false"
+
+        return format(float(value), ".15g")
+
+    def set_temperature_inlet(self, pattern, temperature, bc_type="fixedValue"):
+        if not isinstance(temperature, Quantity):
+            temperature = Quantity(float(temperature), "K")
+        else:
+            if temperature.quantity.units == "degC":
+                temperature = Quantity(temperature.get_in("degC") + 273.15, "K")
+        T_val = temperature.get_in("K")
+        cond = {"type": bc_type, "value": f"uniform {format(T_val, '.15g')}"}
+        self.apply_condition_with_wildcard("T", pattern, cond)
+
+    def set_temperature_wall(self, pattern, temperature, bc_type="fixedValue"):
+        self.set_temperature_inlet(pattern, temperature, bc_type=bc_type)
+
+    def set_temperature_flux(self, pattern, heat_flux, bc_type="externalWallHeatFluxTemperature"):
+        if not isinstance(heat_flux, Quantity):
+            heat_flux = Quantity(float(heat_flux), "W/m^2")
+        q = heat_flux.get_in("W/m^2")
+        cond = {"type": bc_type, "value": f"uniform {format(q, '.15g')}"}
+        self.apply_condition_with_wildcard("T", pattern, cond)
+
     def write_boundary_file(self, field):
-        """
-        Write a boundary file for a specified field in OpenFOAM format.
-        
-        Args:
-            field: The field name to write ("U", "p", "k", "epsilon", or "nut").
-        """
-        base_path = Path(self.parent.case_path)    
+        base_path = Path(self.parent.case_path)
         system_path = Path(base_path) / '0'
         system_path.mkdir(parents=True, exist_ok=True)
         file_path = system_path / field
 
         with open(file_path, "w") as file:
-            # Write complete header
             file.write(self.generate_header(field))
 
-            # Dimensions and internal field
             dimensions = {
                 "U": "[0 1 -1 0 0 0 0]",
                 "p": "[0 2 -2 0 0 0 0]",
                 "k": "[0 2 -2 0 0 0 0]",
                 "epsilon": "[0 2 -3 0 0 0 0]",
-                "nut": "[0 2 -1 0 0 0 0]"
+                "nut": "[0 2 -1 0 0 0 0]",
+                "T": "[0 0 0 1 0 0 0]",
+                "alpha": "[0 2 -1 0 0 0 0]",
+                "phi": "[0 3 -1 0 0 0 0]",
             }
-            file.write(f"\ndimensions      {dimensions.get(field, '[0 0 0 0 0 0 0]')};\n")
-            if field == "U":
-                file.write("internalField   uniform (0 0 0);\n\n")
-            elif field == "epsilon":
-                file.write("internalField   uniform 0.125;\n\n")
-            elif field == "k":
-                file.write("internalField   uniform 0.375;\n\n")
-            else:
-                file.write("internalField   uniform 0;\n\n")
+            file.write(f"\ndimensions {dimensions.get(field, '[0 0 0 0 0 0 0]')};\n")
 
-            # boundaryField block
+            if field == "U":
+                file.write("internalField uniform (0 0 0);\n\n")
+            elif field == "epsilon":
+                file.write("internalField uniform 0.125;\n\n")
+            elif field == "k":
+                file.write("internalField uniform 0.375;\n\n")
+            elif field == "T":
+                file.write("internalField uniform 300;\n\n") # Température par défaut en K
+            else:
+                file.write("internalField uniform 0;\n\n")
+
             file.write("boundaryField\n{\n")
             for boundary, conditions in self.fields[field].items():
                 if conditions:
-                    file.write(f"    {boundary}\n    {{\n")
+                    file.write(f" {boundary}\n {{\n")
                     for key, value in conditions.items():
-                        file.write(f"        {key:<15} {value};\n")
-                    file.write("    }\n\n")
+                        if key in ("value", "uniformValue", "refValue"):
+                            if isinstance(value, str) and (value.strip().startswith("uniform") or value.strip().startswith("(")):
+                                file.write(f" {key:<15} {value};\n")
+                            else:
+                                formatted = self._format_value_for_field(field, value)
+                                if formatted.startswith("("):
+                                    file.write(f" {key:<15} uniform {formatted};\n")
+                                else:
+                                    file.write(f" {key:<15} uniform {formatted};\n")
+                        else:
+                            file.write(f" {key:<15} {value};\n")
+                    file.write(" }\n\n")
             file.write("}\n\n")
             file.write("// ************************************************************************* //\n")
 
     def generate_header(self, field):
-        """
-        Generate the OpenFOAM file header for a field.
-        
-        Args:
-            field: The field name to generate header for.
-            
-        Returns:
-            A string containing the properly formatted OpenFOAM file header.
-        """
-        dimensions = {
-            "U": "[0 1 -1 0 0 0 0]",
-            "p": "[0 2 -2 0 0 0 0]",
-            "k": "[0 2 -2 0 0 0 0]",
-            "epsilon": "[0 2 -3 0 0 0 0]",
-            "nut": "[0 2 -1 0 0 0 0]"
-        }
-
-        if field == "U" :
+        if field == "U":
             class_field = "volVectorField"
-        else :
+        else:
             class_field = "volScalarField"
         return (
             f"FoamFile\n"
             f"{{\n"
-            f"    version     2.0;\n"
-            f"    format      ascii;\n"
-            f"    class       {class_field};\n"
-            f"    object      {field};\n"
+            f" version 2.0;\n"
+            f" format ascii;\n"
+            f" class {class_field};\n"
+            f" object {field};\n"
             f"}}\n"
         )
-
 
