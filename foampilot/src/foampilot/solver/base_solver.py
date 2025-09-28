@@ -2,12 +2,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 import subprocess
-from typing import List
+from typing import List, Dict, ClassVar
 
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
-
 
 class BaseSolver(ABC):
     """
@@ -15,9 +14,42 @@ class BaseSolver(ABC):
     Subclasses must implement update_case_specific_attributes().
     """
 
+    # Dictionnaire des modules solvers pour foamRun (OpenFOAM v13)
+    SOLVER_MODULES: ClassVar[Dict[str, str]] = {
+        # Single-phase modules
+        "fluid": "fluid",
+        "incompressibleDenseParticleFluid": "incompressibleDenseParticleFluid",
+        "incompressibleFluid": "incompressibleFluid",
+        "multicomponentFluid": "multicomponentFluid",
+        "shockFluid": "shockFluid",
+        "XiFluid": "XiFluid",
+
+        # Multiphase/VoF flow modules
+        "compressibleMultiphaseVoF": "compressibleMultiphaseVoF",
+        "compressibleVoF": "compressibleVoF",
+        "incompressibleDriftFlux": "incompressibleDriftFlux",
+        "incompressibleMultiphaseVoF": "incompressibleMultiphaseVoF",
+        "incompressibleVoF": "incompressibleVoF",
+        "isothermalFluid": "isothermalFluid",
+        "multiphaseEuler": "multiphaseEuler",
+
+        # Solid modules
+        "solid": "solid",
+        "solidDisplacement": "solidDisplacement",
+
+        # Film modules
+        "isothermalFilm": "isothermalFilm",
+        "film": "film",
+
+        # Utility modules
+        "functions": "functions",
+        "movingMesh": "movingMesh",
+    }
+
     def __init__(self, case_path: str | Path, solver_name: str):
         self.case_path = Path(case_path)
         self.solver_name = solver_name
+        self.foamrun_module = self.SOLVER_MODULES.get(solver_name, solver_name)
 
         # Initialize subcomponents
         self.system = SystemDirectory(self)
@@ -51,19 +83,15 @@ class BaseSolver(ABC):
         """
         Write case files (delegates to components).
         """
-        # SystemDirectory.write and ConstantDirectory.write exist in repo
         try:
             self.system.write()
         except Exception:
-            # keep behavior tolerant if a subsystem is not fully configured
             pass
 
         try:
             self.constant.write()
         except Exception:
             pass
-
-        # Boundary writing is handled by boundary helper methods (no generic write assumed)
 
     def run_command(self, cmd: List[str], log_filename: str) -> None:
         """
@@ -89,14 +117,14 @@ class BaseSolver(ABC):
 
     def run_simulation(self, log_filename: str | None = None) -> None:
         """
-        Default run_simulation uses the solver_name as the command.
-        Subclasses can override if they need a different command.
+        Run the simulation using foamRun with the appropriate solver module.
         """
         if log_filename is None:
             log_filename = f"log.{self.solver_name}"
 
         try:
-            self.run_command([self.solver_name], log_filename)
+            # Use foamRun with the mapped solver module
+            self.run_command(["foamRun", "-solver", self.foamrun_module], log_filename)
             print(f"✅ Simulation {self.solver_name} finished successfully. Log: {self.case_path / log_filename}")
         except subprocess.CalledProcessError:
             print(f"❌ Simulation {self.solver_name} failed. See log: {self.case_path / log_filename}")
