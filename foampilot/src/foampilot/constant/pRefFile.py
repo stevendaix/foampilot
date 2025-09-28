@@ -18,8 +18,6 @@ class PRefFile(OpenFOAMFile):
             value (Quantity): Reference pressure (default = 1e5 Pa).
             dimensions (str): Dimensions string for pressure.
         """
-        from foampilot.utilities.manageunits import ureg
-
         if value is None:
             value = Quantity(1e5, "Pa")
 
@@ -36,6 +34,6 @@ class PRefFile(OpenFOAMFile):
         Override for 'value' since pRef expects a scalar Quantity.
         """
         if key == "value" and isinstance(value, Quantity):
-            # toujours en Pascal (Pa)
-            return format(value.to("Pa").magnitude, ".15g")
+            # toujours en Pascal (Pa) via get_in()
+            return format(value.get_in("Pa"), ".15g")
         return super()._format_value(key, value)
