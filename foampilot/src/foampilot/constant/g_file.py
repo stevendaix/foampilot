@@ -27,17 +27,20 @@ class GravityFile(OpenFOAMFile):
         elif isinstance(value, Quantity) and axis:
             # single Quantity + axis
             if axis.lower() == "x":
-                vec = (value, 0 * value.units, 0 * value.units)
+                vec = (value, Quantity(0, str(value.quantity.units)), Quantity(0, str(value.quantity.units)))
             elif axis.lower() == "y":
-                vec = (0 * value.units, value, 0 * value.units)
+                vec = (Quantity(0, str(value.quantity.units)), value, Quantity(0, str(value.quantity.units)))
             elif axis.lower() == "z":
-                vec = (0 * value.units, 0 * value.units, value)
+                vec = (Quantity(0, str(value.quantity.units)), Quantity(0, str(value.quantity.units)), value)
             else:
                 raise ValueError("axis must be 'x', 'y' or 'z'")
         else:
-            # valeur par défaut : g en Y
-            from foampilot.utilities.manageunits import ureg
-            vec = (0 * ureg("m/s^2"), -9.81 * ureg("m/s^2"), 0 * ureg("m/s^2"))
+            # valeur par défaut : g en Y (en m/s^2)
+            vec = (
+                Quantity(0, "m/s^2"),
+                Quantity(-9.81, "m/s^2"),
+                Quantity(0, "m/s^2"),
+            )
 
         super().__init__(
             object_name="g",
@@ -54,6 +57,6 @@ class GravityFile(OpenFOAMFile):
         if key == "value":
             if isinstance(value, tuple) and all(isinstance(v, Quantity) for v in value):
                 unit = "m/s^2"
-                vals = [format(v.to(unit).magnitude, ".15g") for v in value]
+                vals = [format(v.get_in(unit), ".15g") for v in value]
                 return f"({vals[0]} {vals[1]} {vals[2]})"
         return super()._format_value(key, value)
