@@ -4,7 +4,7 @@ from foampilot.base.openFOAMFile import OpenFOAMFile
 class FvSolutionFile(OpenFOAMFile):
     """
     Représente le fichier fvSolution dans OpenFOAM, avec configuration automatique
-    basée sur les attributs du parent (simulation_type, algorithm, energy_variable).
+    basée sur les attributs du parent (simulation_type, algorithm, energy_variable, transient).
     """
 
     DEFAULT_TOLERANCE: float = 1e-6
@@ -22,7 +22,10 @@ class FvSolutionFile(OpenFOAMFile):
         self.parent = parent
         self.solvers = self._init_solvers(solvers)
 
-        if getattr(self.parent, "algorithm", "SIMPLE") == "SIMPLE":
+        algo = getattr(self.parent, "algorithm", "SIMPLE")
+        transient = getattr(self.parent, "transient", False)
+
+        if algo == "SIMPLE" and not transient:
             self.SIMPLE = self._init_simple(SIMPLE)
             self.PIMPLE = None
         else:
@@ -93,6 +96,7 @@ class FvSolutionFile(OpenFOAMFile):
     def _extend_solvers_for_simulation_type(self, solvers: Dict[str, Dict[str, str]]) -> None:
         sim_type = getattr(self.parent, "simulation_type", "incompressible")
         algo = getattr(self.parent, "algorithm", "SIMPLE")
+        transient = getattr(self.parent, "transient", False)
         energy_active = getattr(self.parent, "energy_activated", False)
         energy_var = getattr(self.parent, "energy_variable", "e")
 
@@ -122,17 +126,12 @@ class FvSolutionFile(OpenFOAMFile):
                 )
 
         # PIMPLE : champs finals
-        if algo == "PIMPLE" and (sim_type == "compressible" or energy_active):
-            if sim_type == "compressible":
-                solvers["p_rgh"] = {
-                    "solver": "PCG",
-                    "preconditioner": "DIC",
-                    "tolerance": "1e-8",
-                    "relTol": "0.01",
-                }
-            solvers["p_rghFinal"] = {"$p_rgh": "", "relTol": "0"}
+        if (algo == "PIMPLE" or (sim_type=="incompressible" and transient)) and (sim_type in ["compressible", "incompressible"] or energy_active):
+            # Pression finale
+            solvers["pFinal"] = {"$p": "", "relTol": "0"}
             solvers["UFinal"] = {"$U": "", "relTol": "0"}
-            solvers[f"{energy_var}Final"] = {"$" + energy_var: "", "relTol": "0"}
+            if sim_type == "compressible" or energy_active:
+                solvers[f"{energy_var}Final"] = {"$" + energy_var: "", "relTol": "0"}
             solvers["kFinal"] = {"$k": "", "relTol": "0"}
             solvers["epsilonFinal"] = {"$epsilon": "", "relTol": "0"}
 
