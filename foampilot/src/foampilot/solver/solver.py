@@ -14,32 +14,31 @@ class Solver:
         self._with_gravity: bool = False
         self._is_vof: bool = False
         self._is_solid: bool = False
+        self._energy_user: Optional[bool] = None  # valeur demandée par l’utilisateur
         self._error_handlers: List[Callable[[str], None]] = []
         self._event_handlers: List[Callable[[str, str], None]] = []
 
         # Create the initial solver based on default attributes
         self._update_solver()
 
+    # ---------- Handlers ----------
     def add_error_handler(self, handler: Callable[[str], None]):
-        """Add a custom error handler."""
         self._error_handlers.append(handler)
 
     def add_event_handler(self, handler: Callable[[str, str], None]):
-        """Add a custom event handler."""
         self._event_handlers.append(handler)
 
     def _notify_error(self, message: str):
-        """Notify all error handlers."""
         print(f"⚠️ Error: {message}")
         for handler in self._error_handlers:
             handler(message)
 
     def _notify_event(self, event_type: str, message: str):
-        """Notify all event handlers."""
         print(f"🔔 Event: {event_type} - {message}")
         for handler in self._event_handlers:
             handler(event_type, message)
 
+    # ---------- Properties ----------
     @property
     def compressible(self) -> bool:
         return self._compressible
@@ -86,61 +85,71 @@ class Solver:
             self._notify_error("A simulation cannot be both VoF and solid.")
             return
         if value:
-            self._compressible = False  # Force incompressible for solids
-            self._with_gravity = False  # Force no gravity for solids
+            self._compressible = False
+            self._with_gravity = False
+            self._energy_user = False  # pas d’énergie en solide
         self._is_solid = value
         self._update_solver()
 
+    @property
+    def energy_activated(self) -> bool:
+        """
+        L'énergie est automatiquement activée si compressible ou gravité.
+        Sinon, on prend la valeur utilisateur (par défaut False).
+        """
+        if self._compressible or self._with_gravity:
+            return True
+        return self._energy_user if self._energy_user is not None else False
+
+    @energy_activated.setter
+    def energy_activated(self, value: bool):
+        """
+        L’utilisateur peut forcer l’énergie activée,
+        sauf si compressible ou gravité (dans ce cas c’est toujours True).
+        """
+        self._energy_user = value
+        self._update_solver()
+
+    # ---------- Solver selection ----------
     def _update_solver(self):
-        """
-        Update the solver instance based on current attributes.
-        """
         if self._is_solid:
             solver_name = "solid"
         elif self._is_vof:
             solver_name = "incompressibleVoF" if not self._compressible else "compressibleVoF"
         else:
-            solver_name = "incompressibleFluid" if not self._compressible else "fluid"
+            if self.energy_activated:
+                solver_name = "fluid"
+            else:
+                solver_name = "incompressibleFluid"
 
-        # Notify that the solver is about to change
         old_solver_name = self._solver.solver_name if self._solver else "None"
         self._notify_event("solver_change", f"Changing solver from {old_solver_name} to {solver_name}")
 
-        # Create a new solver instance
         self._solver = BaseSolver.create(self.case_path, solver_name)
 
-        # Update solver flags
         self._solver.compressible = self._compressible
         self._solver.with_gravity = self._with_gravity
 
+    # ---------- Public methods ----------
     def setup_case(self):
-        """
-        Prepare the case directory and apply solver-specific attributes.
-        """
         if self._solver is None:
-            error_msg = "Solver is not initialized."
-            self._notify_error(error_msg)
-            raise RuntimeError(error_msg)
+            msg = "Solver is not initialized."
+            self._notify_error(msg)
+            raise RuntimeError(msg)
         self._solver.setup_case()
         self._notify_event("case_setup", "Case setup completed.")
 
     def run_simulation(self):
-        """
-        Run the simulation.
-        """
         if self._solver is None:
-            error_msg = "Solver is not initialized."
-            self._notify_error(error_msg)
-            raise RuntimeError(error_msg)
+            msg = "Solver is not initialized."
+            self._notify_error(msg)
+            raise RuntimeError(msg)
         self._solver.run_simulation()
         self._notify_event("simulation_run", "Simulation started.")
 
     def __getattr__(self, name):
-        """
-        Delegate attribute access to the underlying solver instance.
-        """
         if self._solver is None:
-            error_msg = f"Cannot access attribute '{name}': Solver is not initialized."
-            self._notify_error(error_msg)
-            raise RuntimeError(error_msg)
+            msg = f"Cannot access attribute '{name}': Solver is not initialized."
+            self._notify_error(msg)
+            raise RuntimeError(msg)
         return getattr(self._solver, name)
