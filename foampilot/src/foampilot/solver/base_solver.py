@@ -47,6 +47,8 @@ class BaseSolver(ABC):
         "movingMesh": "movingMesh",
     }
 
+    SOLVER_CLASSES: ClassVar[Dict[str, Type[BaseSolver]]] = {}
+
     def __init__(self, case_path: str | Path, solver_name: str):
         self.case_path = Path(case_path)
         self.solver_name = solver_name
@@ -60,6 +62,14 @@ class BaseSolver(ABC):
         # Generic flags (can be overridden by subclasses)
         self.compressible = False
         self.with_gravity = True
+
+    @classmethod
+    def create(cls, case_path: str | Path, solver_name: str) -> BaseSolver:
+        """
+        Factory method to create the appropriate solver instance.
+        """
+        solver_class = cls.SOLVER_CLASSES.get(solver_name, cls)
+        return solver_class(case_path, solver_name)
 
     def ensure_dirs(self) -> None:
         (self.case_path / "system").mkdir(parents=True, exist_ok=True)
@@ -143,7 +153,6 @@ class BaseSolver(ABC):
             raise RuntimeError(f"Solver module '{self.foamrun_module}' is not available.")
 
         try:
-            # Use foamRun with the mapped solver module
             self.run_command(["foamRun", "-solver", self.foamrun_module], log_filename)
             print(f"✅ Simulation {self.solver_name} finished successfully. Log: {self.case_path / log_filename}")
         except subprocess.CalledProcessError:
