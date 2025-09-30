@@ -452,57 +452,58 @@ class Boundary:
         cond = {"type": bc_type, "value": f"uniform {format(q, '.15g')}"}
         self.apply_condition_with_wildcard("T", pattern, cond)
 
-    def write_boundary_file(self, field):
-        base_path = Path(self.parent.case_path)
-        system_path = Path(base_path) / '0'
-        system_path.mkdir(parents=True, exist_ok=True)
-        file_path = system_path / field
+    def write_boundary_file(self, field: str):
+    base_path = Path(self.parent.case_path)
+    system_path = base_path / "0"
+    system_path.mkdir(parents=True, exist_ok=True)
+    file_path = system_path / field
 
-        with open(file_path, "w") as file:
-            file.write(self.generate_header(field))
+    with open(file_path, "w") as file:
+        # === Header ===
+        file.write(self.generate_header(field))
 
-            dimensions = {
-                "U": "[0 1 -1 0 0 0 0]",
-                "p": "[0 2 -2 0 0 0 0]",
-                "k": "[0 2 -2 0 0 0 0]",
-                "epsilon": "[0 2 -3 0 0 0 0]",
-                "nut": "[0 2 -1 0 0 0 0]",
-                "T": "[0 0 0 1 0 0 0]",
-                "alpha": "[0 2 -1 0 0 0 0]",
-                "phi": "[0 3 -1 0 0 0 0]",
-            }
-            file.write(f"\ndimensions {dimensions.get(field, '[0 0 0 0 0 0 0]')};\n")
+        # === Dimensions dynamiques via Quantity ===
+        unit = OpenFOAMFile.DEFAULT_UNITS.get(field, None)
+        if unit:
+            q = Quantity(1.0, unit)
+            dim_vector = q.get_dimensions_vector()
+        else:
+            dim_vector = "[0 0 0 0 0 0 0]"
 
-            if field == "U":
-                file.write("internalField uniform (0 0 0);\n\n")
-            elif field == "epsilon":
-                file.write("internalField uniform 0.125;\n\n")
-            elif field == "k":
-                file.write("internalField uniform 0.375;\n\n")
-            elif field == "T":
-                file.write("internalField uniform 300;\n\n") # Température par défaut en K
-            else:
-                file.write("internalField uniform 0;\n\n")
+        file.write(f"\ndimensions      {dim_vector};\n")
 
-            file.write("boundaryField\n{\n")
-            for boundary, conditions in self.fields[field].items():
-                if conditions:
-                    file.write(f" {boundary}\n {{\n")
-                    for key, value in conditions.items():
-                        if key in ("value", "uniformValue", "refValue"):
-                            if isinstance(value, str) and (value.strip().startswith("uniform") or value.strip().startswith("(")):
-                                file.write(f" {key:<15} {value};\n")
-                            else:
-                                formatted = self._format_value_for_field(field, value)
-                                if formatted.startswith("("):
-                                    file.write(f" {key:<15} uniform {formatted};\n")
-                                else:
-                                    file.write(f" {key:<15} uniform {formatted};\n")
-                        else:
+        # === Internal field par défaut ===
+        defaults = {
+            "U": "uniform (0 0 0)",
+            "epsilon": "uniform 0.125",
+            "k": "uniform 0.375",
+            "T": "uniform 300",  # K
+        }
+        default_value = defaults.get(field, "uniform 0")
+        file.write(f"internalField   {default_value};\n\n")
+
+        # === Boundary field ===
+        file.write("boundaryField\n{\n")
+        for boundary, conditions in self.fields[field].items():
+            if conditions:
+                file.write(f" {boundary}\n {{\n")
+                for key, value in conditions.items():
+                    if key in ("value", "uniformValue", "refValue"):
+                        if isinstance(value, str) and (
+                            value.strip().startswith("uniform")
+                            or value.strip().startswith("(")
+                        ):
                             file.write(f" {key:<15} {value};\n")
-                    file.write(" }\n\n")
-            file.write("}\n\n")
-            file.write("// ************************************************************************* //\n")
+                        else:
+                            formatted = self._format_value_for_field(field, value)
+                            file.write(f" {key:<15} uniform {formatted};\n")
+                    else:
+                        file.write(f" {key:<15} {value};\n")
+                file.write(" }\n\n")
+        file.write("}\n\n")
+
+        # === Footer ===
+        file.write("// ************************************************************************* //\n")
 
     def generate_header(self, field):
         if field == "U":
