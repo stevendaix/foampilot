@@ -4,7 +4,7 @@ import subprocess
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Union
 
-class GeometryCFD:
+class gmsh_mesher:
     def __init__(self, model_name: str = "cfd_model", verbose: bool = True):
         """Initialize the CFD geometry handler.
         
@@ -482,7 +482,7 @@ class GeometryCFD:
     def finalize(self):
         """Finalize the Gmsh API session."""
         self._log("Finalizing Gmsh session")
-        gmsh.finalize():
+        gmsh.finalize()
         """Clean up and close Gmsh."""
         self._log("Finalizing Gmsh session")
         gmsh.finalize()

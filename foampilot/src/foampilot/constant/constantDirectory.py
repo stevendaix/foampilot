@@ -3,7 +3,7 @@
 from pathlib import Path
 from foampilot.constant.transportPropertiesFile import TransportPropertiesFile
 from foampilot.constant.turbulencePropertiesFile import TurbulencePropertiesFile
-from foampilot.constant.physicalPropertiesFile import PhysicalPropertiesFile
+from foampilot.constant.physicalProperties import PhysicalPropertiesFile
 from foampilot.constant.gravityFile import GravityFile
 from foampilot.constant.pRefFile import PRefFile
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional, Callable, List
 from foampilot.solver.base_solver import BaseSolver
-from foampilot.solver.boundaries_dict import Boundary  
+from foampilot.boundaries.boundaries_dict import Boundary  
 
 class Solver:
     """
@@ -118,44 +118,44 @@ class Solver:
 
     # ---------- Solver selection ----------
     def _update_solver(self):
-    # Détermination du nom du solver
-    if self._is_solid:
-        solver_name = "solid"
-    elif self._is_vof:
-        solver_name = "incompressibleVoF" if not self._compressible else "compressibleVoF"
-    else:
-        solver_name = "fluid" if self.energy_activated else "incompressibleFluid"
+        # Détermination du nom du solver
+        if self._is_solid:
+            solver_name = "solid"
+        elif self._is_vof:
+            solver_name = "incompressibleVoF" if not self._compressible else "compressibleVoF"
+        else:
+            solver_name = "fluid" if self.energy_activated else "incompressibleFluid"
 
-    old_solver_name = self._solver.solver_name if self._solver else "None"
-    self._notify_event("solver_change", f"Changing solver from {old_solver_name} to {solver_name}")
+        old_solver_name = self._solver.solver_name if self._solver else "None"
+        self._notify_event("solver_change", f"Changing solver from {old_solver_name} to {solver_name}")
 
-    # Création du solver en transmettant tous les flags
-    self._solver = BaseSolver.create(
-        case_path=self.case_path,
-        solver_name=solver_name,
-        compressible=self._compressible,
-        with_gravity=self._with_gravity,
-        is_vof=self._is_vof,
-        is_solid=self._is_solid,
-        energy_activated=self.energy_activated,
-        transient=self._transient
-    )
-    
+        # Création du solver en transmettant tous les flags
+        self._solver = BaseSolver.create(
+            case_path=self.case_path,
+            solver_name=solver_name,
+            compressible=self._compressible,
+            with_gravity=self._with_gravity,
+            is_vof=self._is_vof,
+            is_solid=self._is_solid,
+            energy_activated=self.energy_activated,
+            transient=self._transient
+        )
+        
 
-    # Mise à jour des flags dynamiques sur l'instance BaseSolver
-    self._solver.compressible = self._compressible
-    self._solver.with_gravity = self._with_gravity
-    self._solver.is_vof = self._is_vof
-    self._solver.is_solid = self._is_solid
-    self._solver.energy_activated = self.energy_activated
-    self._solver.transient = self._transient
+        # Mise à jour des flags dynamiques sur l'instance BaseSolver
+        self._solver.compressible = self._compressible
+        self._solver.with_gravity = self._with_gravity
+        self._solver.is_vof = self._is_vof
+        self._solver.is_solid = self._is_solid
+        self._solver.energy_activated = self.energy_activated
+        self._solver.transient = self._transient
 
-    if self.energy_activated:
-            self.boundary.fields.update({
-                "T": {},
-                "alpha": {},
-                "phi": {},
-            })
+        if self.energy_activated:
+                self.boundary.fields.update({
+                    "T": {},
+                    "alpha": {},
+                    "phi": {},
+                })
 
     def setup_boundaries(self):
         try:

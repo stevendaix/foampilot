@@ -1,7 +1,7 @@
 # foampilot/constant/gravityFile.py
 
 from foampilot.utilities.manageunits import Quantity
-from foampilot.utilities.openfoamfile import OpenFOAMFile
+from foampilot.base.openFOAMFile import OpenFOAMFile
 
 
 class GravityFile(OpenFOAMFile):
