@@ -160,3 +160,41 @@ class OpenFOAMVariables:
                     bc_dict["value"] = f"uniform {value.quantity.magnitude:.15g}"
 
         field.boundary_conditions[patch_name] = bc_dict
+
+
+class BaseSolver(ABC):
+    def __init__(self, ..., energy_activated: bool = False, turbulence_model: str = "kEpsilon"):
+        # ...
+        self.variables = OpenFOAMVariables()
+        self._update_active_variables(energy_activated, turbulence_model)
+
+    def _update_active_variables(self, energy_activated: bool, turbulence_model: str):
+        """Met à jour les flags d'activation des variables."""
+        self.variables.T.active = energy_activated
+        self.variables.alpha.active = energy_activated
+
+        if turbulence_model == "kEpsilon":
+            self.variables.k.activate_field()
+            self.variables.epsilon.activate_field()
+            self.variables.nut.activate_field()
+        elif turbulence_model == "kOmega":
+            self.variables.k.activate_field()
+            self.variables.omega.activate_field()
+            self.variables.nut.activate_field()
+
+    def set_default_value(self, field_name: str, value: Union[float, Quantity]):
+        """Définit la valeur par défaut pour un champ."""
+        if not hasattr(self.variables, field_name):
+            raise ValueError(f"Field '{field_name}' not supported.")
+        getattr(self.variables, field_name).set_default_value(value)
+
+    def set_boundary_condition(
+        self,
+        field_name: str,
+        patch_name: str,
+        bc_type: str,
+        value: Optional[Union[float, Quantity, str]] = None,
+        unit: Optional[str] = None
+    ):
+        """Délègue la définition des conditions aux limites à la dataclass."""
+        self.variables.set_boundary_condition(field_name, patch_name, bc_type, value, unit)
