@@ -1,74 +1,62 @@
-# constant/constantDirectory.py
-
 from pathlib import Path
 from foampilot.constant.transportPropertiesFile import TransportPropertiesFile
 from foampilot.constant.turbulencePropertiesFile import TurbulencePropertiesFile
 from foampilot.constant.physicalProperties import PhysicalPropertiesFile
 from foampilot.constant.gravityFile import GravityFile
 from foampilot.constant.pRefFile import PRefFile
+from foampilot.constant.radiationPropertiesFile import RadiationPropertiesFile, FvModelsFile
 
 
 class ConstantDirectory:
     """
     Manager for the 'constant' directory in an OpenFOAM case.
     Each file is a separate class handling its own content.
-    This class only decides:
-      - Which files are required
-      - Where to write them
     """
 
     def __init__(self, parent):
         self.parent = parent
 
-        # Instantiate default files
+        # Default components
         self._transportProperties = TransportPropertiesFile()
         self._turbulenceProperties = TurbulencePropertiesFile()
         self._physicalProperties = PhysicalPropertiesFile()
         self._gravity = GravityFile()
-        self._pRef = PRefFile()  # Instancié mais n'est écrit que si compressible
+        self._pRef = PRefFile()
+
+        # Radiation (optional)
+        self.with_radiation = False
+        self._radiation = None
+        self._fvmodels = None
 
     # -------------------
     # Properties
     # -------------------
     @property
-    def transportProperties(self):
-        return self._transportProperties
+    def radiation(self):
+        return self._radiation
 
-    @transportProperties.setter
-    def transportProperties(self, value):
-        self._transportProperties = value
+    @radiation.setter
+    def radiation(self, value):
+        self._radiation = value
 
-    @property
-    def turbulenceProperties(self):
-        return self._turbulenceProperties
+    # -------------------
+    # Enable radiation
+    # -------------------
+    def enable_radiation(self, model: str = "P1", absorptivity=0.5, emissivity=0.5):
+        """
+        Enable radiation model in the constant directory.
 
-    @turbulenceProperties.setter
-    def turbulenceProperties(self, value):
-        self._turbulenceProperties = value
-
-    @property
-    def physicalProperties(self):
-        return self._physicalProperties
-
-    @physicalProperties.setter
-    def physicalProperties(self, value):
-        self._physicalProperties = value
-
-    @property
-    def gravity(self):
-        return self._gravity
-
-    @gravity.setter
-    def gravity(self, value):
-        self._gravity = value  # La classe GravityFile gère elle-même le format et les unités
-
-    @property
-    def pRef(self):
-        return self._pRef
-
-    @pRef.setter
-    def pRef(self, value):
-        self._pRef = value  # La classe PRefFile gère elle-même float ou Quantity
+        Args:
+            model (str): 'P1' or 'fvDOM'
+            absorptivity, emissivity (float): parameters for radiation model
+        """
+        self.with_radiation = True
+        self._radiation = RadiationPropertiesFile(
+            model=model,
+            absorptivity=absorptivity,
+            emissivity=emissivity,
+        )
+        self._fvmodels = FvModelsFile()
 
     # -------------------
     # Write method
@@ -81,8 +69,6 @@ class ConstantDirectory:
         base_path = Path(self.parent.case_path)
         constant_path = base_path / "constant"
         polyMesh_path = constant_path / "polyMesh"
-
-        # Create directories if needed
         polyMesh_path.mkdir(parents=True, exist_ok=True)
 
         # Always write turbulence properties
@@ -91,10 +77,16 @@ class ConstantDirectory:
         # Compressible vs incompressible
         if getattr(self.parent, "compressible", False):
             self.physicalProperties.write(constant_path / "physicalProperties")
-            self.pRef.write(constant_path / "pRef")  # uniquement compressible
+            self.pRef.write(constant_path / "pRef")
         else:
             self.transportProperties.write(constant_path / "transportProperties")
 
         # Gravity if enabled
         if getattr(self.parent, "with_gravity", True):
             self.gravity.write(constant_path / "g")
+
+        # Radiation if enabled
+        if self.with_radiation and self._radiation is not None:
+            self._radiation.write(constant_path)
+            if self._fvmodels is not None:
+                self._fvmodels.write(constant_path)
