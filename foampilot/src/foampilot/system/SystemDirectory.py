@@ -33,7 +33,11 @@ class SystemDirectory:
         self.controlDict = ControlDictFile()
         self.fvSchemes = FvSchemesFile()
         self.fvSolution = FvSolutionFile()
-        self.additional_files = {}  
+        self.additional_files = {}
+        self.fvSchemes = FvSchemesFile(parent=parent, fields_manager=getattr(parent, "fields_manager", None))
+
+    # ... (le reste de la classe reste inchangé)
+
 
     def write(self):
         """
