@@ -48,24 +48,38 @@ class BaseSolver(ABC):
         is_vof: bool = False,
         is_solid: bool = False,
         energy_activated: bool = False,
-        transient: bool = False
+        transient: bool = False,
+        turbulence_model: Optional[str] = None,
+        with_radiation: bool = False,
     ):
         self.case_path = Path(case_path)
         self.solver_name = solver_name
         self.foamrun_module = self.SOLVER_MODULES.get(solver_name, solver_name)
 
-        # Initialize subcomponents
+        # --- Gestion dynamique des champs ---
+        self.fields_manager = CaseFieldsManager(
+            is_solid=is_solid,
+            with_gravity=with_gravity,
+            is_vof=is_vof,
+            energy_activated=energy_activated,
+            turbulence_model=turbulence_model,
+            with_radiation=with_radiation,
+        )
+
+        # Initialize subcomponents avec accès aux champs
         self.system = SystemDirectory(self)
         self.constant = ConstantDirectory(self)
-        self.boundary = Boundary(self)
+        self.boundary = Boundary(self, fields_manager=self.fields_manager)  # Passer le gestionnaire de champs
 
-        # Generic flags
+        # Generic flags (gardés pour compatibilité)
         self.compressible = compressible
         self.with_gravity = with_gravity
         self.is_vof = is_vof
         self.is_solid = is_solid
         self.energy_activated = energy_activated
         self.transient = transient
+        self.turbulence_model = turbulence_model
+        self.with_radiation = with_radiation
 
     @classmethod
     def create(
@@ -77,12 +91,10 @@ class BaseSolver(ABC):
         is_vof: bool = False,
         is_solid: bool = False,
         energy_activated: bool = False,
-        transient: bool = False
+        transient: bool = False,
+        turbulence_model: Optional[str] = None,
+        with_radiation: bool = False,
     ) -> BaseSolver:
-        """
-        Factory method to create the appropriate solver instance,
-        passing all flags to the solver.
-        """
         solver_class: Type[BaseSolver] = cls.SOLVER_CLASSES.get(solver_name, cls)
         return solver_class(
             case_path,
@@ -92,8 +104,11 @@ class BaseSolver(ABC):
             is_vof=is_vof,
             is_solid=is_solid,
             energy_activated=energy_activated,
-            transient=transient
+            transient=transient,
+            turbulence_model=turbulence_model,
+            with_radiation=with_radiation,
         )
+
 
     # ---------- Directory and setup ----------
     def ensure_dirs(self) -> None:
