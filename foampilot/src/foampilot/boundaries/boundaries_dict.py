@@ -1,59 +1,48 @@
-
 from pathlib import Path
-from foampilot.base.openFOAMFile import OpenFOAMFile
 import re
-from foampilot.utilities.manageunits import Quantity
 import warnings
+from typing import Dict, List, Optional, Any
+from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.utilities.manageunits import Quantity
+from .boundary_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
+
+
 
 class Boundary:
     """
-    A class to handle boundary conditions for OpenFOAM simulations.
-    
-    This class provides methods to set, manage, and write boundary conditions for various fields
-    (velocity, pressure, turbulence parameters) in OpenFOAM cases. It supports different types of
-    boundary conditions including inlets, outlets, walls, and symmetry planes.
-    
-    Attributes:
-        parent: The parent OpenFOAM case object.
-        turbulence_model: The turbulence model being used (default: "kEpsilon").
-        fields: A dictionary containing boundary conditions for each field.
+    A class to handle boundary conditions for OpenFOAM simulations using a configuration-driven approach.
+    This class provides a flexible way to set, manage, and write boundary conditions for various fields
+    in OpenFOAM cases, supporting different types of boundary conditions and turbulence models.
     """
-    
-    def __init__(self, parent, turbulence_model="kEpsilon"):
+
+    def __init__(self, parent, fields_manager: CaseFieldsManager, turbulence_model: str = "kEpsilon"):
         """
         Initialize the Boundary class.
-        
+
         Args:
             parent: The parent OpenFOAM case object.
+            fields_manager: Instance of CaseFieldsManager to get dynamic fields.
             turbulence_model: The turbulence model to use (default: "kEpsilon").
         """
         self.parent = parent
         self.turbulence_model = turbulence_model
-        self.fields = {
-            "U": {},
-            "p": {},
-            "k": {},
-            "epsilon": {},
-            "nut": {},
-            "T": {}, # Température
-            "alpha": {}, # Diffusivité thermique
-            "phi": {}, # Flux volumique
-        }
+        self.fields_manager = fields_manager
+        self.config = BOUNDARY_CONDITIONS_CONFIG.get(self.turbulence_model)
+        if not self.config:
+            raise ValueError(f"Turbulence model '{self.turbulence_model}' is not supported.")
 
-    def load_boundary_names(self, case_path: Path) -> dict[str, str]:
+        # Initialize fields from CaseFieldsManager
+        self.fields = {field: {} for field in self.fields_manager.get_field_names()}
+
+    def load_boundary_names(self, case_path: Path) -> Dict[str, str]:
         """
         Load boundary names and types from the polyMesh/boundary file.
-        
-        Parses the OpenFOAM boundary file to extract patch names and their corresponding types.
-        
+
         Args:
             case_path: Path to the OpenFOAM case directory.
-            
+
         Returns:
-            A dictionary mapping patch names to their types (e.g., {"inlet": "patch", "wall": "wall"}).
-            
-        Raises:
-            FileNotFoundError: If the boundary file doesn't exist.
+            A dictionary mapping patch names to their types.
         """
         boundary_file = case_path / 'constant' / 'polyMesh' / 'boundary'
         if not boundary_file.exists():
@@ -62,26 +51,19 @@ class Boundary:
         with open(boundary_file, 'r') as f:
             content = f.read()
 
-        # Regular expression to capture patch blocks with type
         pattern = re.compile(r'(\w+)\s*\{\s*[^}]*?type\s+(\w+);', re.DOTALL)
         patches = dict(pattern.findall(content))
 
-        # Possible exclusions (OpenFOAM file metadata)
         exclude = {'FoamFile', 'format', 'class', 'location', 'object'}
         return {k: v for k, v in patches.items() if k not in exclude}
 
     def initialize_boundary(self):
         """
-        Initialize boundary fields with patch names and automatically apply wall conditions.
-        
-        Reads the boundary names from the mesh and initializes empty boundary conditions
-        for all fields. Automatically applies wall conditions to patches of type 'wall'
-        and symmetry conditions to patches of type 'empty'.
+        Initialize boundary fields with patch names and automatically apply wall/symmetry conditions.
         """
         case_path = Path(self.parent.case_path)
-        patch_types = self.load_boundary_names(case_path)  # ex: {"inlet": "patch", "body": "wall"}
+        patch_types = self.load_boundary_names(case_path)
 
-        # Warn about patches of type 'patch' which might need manual configuration
         patch_type_to_warn = "patch"
         patches_found = [name for name, ptype in patch_types.items() if ptype == patch_type_to_warn]
 
@@ -90,433 +72,201 @@ class Boundary:
                 f"Warning: The following patches are of type '{patch_type_to_warn}': {patches_found}. "
                 "Please verify that their boundary conditions are properly defined."
             )
-            
-        # Initialize empty fields for all patches
-        self.fields = {field: {name: {} for name in patch_types} for field in ["U", "p", "k", "epsilon", "nut"]}
 
-        # Automatically apply wall conditions for wall-type patches
+        for field in self.fields:
+            self.fields[field] = {name: {} for name in patch_types}
+
         for patch_name, patch_type in patch_types.items():
             if patch_type == "wall":
-                self.set_wall(patch_name)
+                self.set_condition(patch_name, "wall", friction=True)
             elif patch_type == "empty":
-                self.set_symmetry(patch_name)
+                self.set_condition(patch_name, "symmetry")
 
-    def apply_condition_with_wildcard(self, field, pattern, condition):
+    def apply_condition_with_wildcard(self, pattern: str, condition_type: str, **kwargs):
         """
         Apply a condition to all boundaries matching a pattern.
-        
+
         Args:
-            field: The field to apply the condition to (e.g., "U", "p").
             pattern: Regular expression pattern to match boundary names.
-            condition: Dictionary containing the boundary condition settings.
+            condition_type: The type of condition to apply (e.g., "velocityInlet").
+            **kwargs: Arguments for the condition (e.g., velocity, pressure).
         """
-        for boundary in self.fields[field].keys():
+        for boundary in self.fields[next(iter(self.fields))].keys():
             if re.match(pattern, boundary):
-                self.fields[field][boundary] = condition
+                self.set_condition(boundary, condition_type, **kwargs)
 
-    def set_velocity_inlet(self, pattern, velocity, turbulence_intensity=None):
+    def set_condition(self, boundary_name: str, condition_type: str, **kwargs):
         """
-        Set a velocity inlet boundary condition.
-        
+        Set a boundary condition based on the configuration.
+
         Args:
-            pattern: Regular expression pattern to match boundary names.
-            velocity: Tuple of 3 Quantity objects (u, v, w) representing velocity components.
-            turbulence_intensity: Turbulence intensity value between 0 and 1 (optional).
-            
-        Raises:
-            ValueError: If velocity components don't have correct units.
+            boundary_name: The name of the boundary to apply the condition to.
+            condition_type: The type of condition (e.g., "velocityInlet").
+            **kwargs: Arguments for the condition.
         """
-        u, v, w = velocity
+        condition_config = self.config.get(condition_type)
+        if not condition_config:
+            raise ValueError(f"Condition type '{condition_type}' is not defined for model '{self.turbulence_model}'.")
 
-        # Verify each component has velocity units
-        for comp in (u, v, w):
-            if not comp.quantity.check('[length] / [time]'):
-                raise ValueError("Each velocity component must have units of length/time.")
+        calculator = CONDITION_CALCULATORS.get(condition_type)
+        if calculator:
+            if not calculator["validate"](**kwargs):
+                raise ValueError(calculator["error_message"])
+            calculated_params = calculator["calculate"](**kwargs)
+            kwargs.update(calculated_params)
 
-        # Format velocity value for OpenFOAM
-        velocity_value = f"uniform ({u.get_in('m/s')} {v.get_in('m/s')} {w.get_in('m/s')})"
-        condition_U = {"type": "fixedValue", "value": velocity_value}
-        self.apply_condition_with_wildcard("U", pattern, condition_U)
-
-        # Pressure: zeroGradient
-        self.apply_condition_with_wildcard("p", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("nut", pattern, {"type": "calculated", "value": f"uniform 0"})
-
-        if turbulence_intensity:
-            # Calculate velocity magnitude
-            norm_u = (u.get_in("m/s")**2 + v.get_in("m/s")**2 + w.get_in("m/s")**2) ** 0.5
-
-            k_value = 1.5 * (norm_u * turbulence_intensity) ** 2
-            epsilon_value = (k_value ** 1.5) / (0.07 * norm_u)
-
-            self.apply_condition_with_wildcard("k", pattern, {
-                "type": "fixedValue",
-                "value": f"uniform {k_value}"
-            })
-            self.apply_condition_with_wildcard("epsilon", pattern, {
-                "type": "fixedValue",
-                "value": f"uniform {epsilon_value}"
-            })
-        else:
-            self.apply_condition_with_wildcard("k", pattern, {"type": "zeroGradient"})
-            self.apply_condition_with_wildcard("epsilon", pattern, {"type": "zeroGradient"})
-
-    def set_pressure_inlet(self, pattern, pressure, turbulence_intensity=None):
-        """
-        Set a pressure inlet boundary condition.
-        
-        Args:
-            pattern: Regular expression pattern to match boundary names.
-            pressure: Pressure value as a Quantity object.
-            turbulence_intensity: Turbulence intensity value between 0 and 1 (optional).
-            
-        Raises:
-            ValueError: If pressure doesn't have correct units.
-        """
-        if not pressure.quantity.check('[mass] / ([length] * [time] ** 2)'):
-            raise ValueError("Pressure must have units of mass/(length*time²).")
-
-        # Velocity condition
-        condition_U = {"type": "zeroGradient"}
-        self.apply_condition_with_wildcard("U", pattern, condition_U)
-
-        # Pressure condition
-        pressure_value = f"uniform {pressure.get_in('Pa') }"
-        condition_p = {"type": "fixedValue", "value": pressure_value}
-        self.apply_condition_with_wildcard("p", pattern, condition_p)
-        self.apply_condition_with_wildcard("nut", pattern, {"type": "calculated", "value": f"uniform 0"})
-
-        # Turbulence conditions
-        if turbulence_intensity:
-            k_value = (1.5 * (pressure.get_in("Pa") * turbulence_intensity) ** 2)
-            condition_k = {"type": "fixedValue", "value": f"uniform {k_value}"}
-            self.apply_condition_with_wildcard("k", pattern, condition_k)
-
-            epsilon_value = (k_value ** 1.5) / (0.07 * pressure.get_in("Pa"))
-            condition_epsilon = {"type": "fixedValue", "value": f"uniform {epsilon_value}"}
-            self.apply_condition_with_wildcard("epsilon", pattern, condition_epsilon)
-        else:
-            self.apply_condition_with_wildcard("k", pattern, {"type": "zeroGradient"})
-            self.apply_condition_with_wildcard("epsilon", pattern, {"type": "zeroGradient"})
-
-    def set_pressure_outlet(self, pattern, velocity):
-        """
-        Set a pressure outlet boundary condition.
-        
-        Args:
-            pattern: Regular expression pattern to match boundary names.
-            velocity: Tuple of 3 Quantity objects (u, v, w) representing velocity components.
-        """
-        u, v, w = velocity
-
-        velocity_value = f"uniform ({u.get_in('m/s')} {v.get_in('m/s')} {w.get_in('m/s')})"
-        condition_U = {"type": "pressureInletOutletVelocity", "value": velocity_value}
-        self.apply_condition_with_wildcard("U", pattern, condition_U)
-
-        condition_p = {"type": "fixedValue", "value": "uniform 0"}
-        self.apply_condition_with_wildcard("p", pattern, condition_p)
-
-        self.apply_condition_with_wildcard("k", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("epsilon", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("nut", pattern, {"type": "calculated", "value": f"uniform 0"})
-
-    def set_mass_flow_inlet(self, pattern, mass_flow_rate, density):
-        """
-        Set a mass flow inlet boundary condition.
-        
-        Args:
-            pattern: Regular expression pattern to match boundary names.
-            mass_flow_rate: Mass flow rate as a Quantity object.
-            density: Density as a Quantity object.
-            
-        Raises:
-            ValueError: If units are incorrect.
-        """
-        mass_flow_rate_quantity = Quantity(mass_flow_rate, "kg/s")
-        density_quantity = Quantity(density, "kg/m^3")
-
-        if not mass_flow_rate_quantity.quantity.check('[mass] / [time]'):
-            raise ValueError("Mass flow rate must have units of mass/time.")
-        if not density_quantity.quantity.check('[mass] / [volume]'):
-            raise ValueError("Density must have units of mass/volume.")
-
-        velocity_value = (mass_flow_rate_quantity.get_in("m/s") / density_quantity.quantity.magnitude)
-        condition_U = {"type": "fixedValue", "value": f"uniform ({velocity_value} 0 0)"}
-        self.apply_condition_with_wildcard("U", pattern, condition_U)
-
-        self.apply_condition_with_wildcard("p", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("k", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("epsilon", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("nut", pattern, {"type": "calculated", "value": f"uniform 0"})
-
-    def set_wall(self, pattern, friction=True, velocity=None):
-        """
-        Set a wall boundary condition.
-        
-        Args:
-            pattern: Regular expression pattern to match boundary names.
-            friction: If True (default), use no-slip condition. If False, use slip condition.
-            velocity: Optional tuple of 3 Quantity objects for fixed velocity wall.
-        """
-        vel_cond = False
-        if velocity is not None:
-            u, v, w = velocity
-            vel_cond = True
-
-            condition_U = {
-                "type": "fixedValue",
-                "value": f"uniform ({u.get_in('m/s')} {v.get_in('m/s')} {w.get_in('m/s')})"
-            }
-        elif not friction:
-            condition_U = {"type": "slip"}
-        else:
-            condition_U = {"type": "noSlip"}
-
-        self.apply_condition_with_wildcard("U", pattern, condition_U)
-        self.apply_condition_with_wildcard("p", pattern, {"type": "zeroGradient"})
-
-        for field in ["k", "epsilon", "omega"]:
+        for field, field_config in condition_config.items():
             if field in self.fields:
-                self.apply_condition_with_wildcard(field, pattern, self.get_wall_function(field, vel_cond=vel_cond))
+                final_config = self._resolve_field_config(field_config, kwargs)
+                if final_config:
+                    self.fields[field][boundary_name] = self._format_config(final_config, kwargs)
 
-        self.apply_condition_with_wildcard("nut", pattern, {"type": "nutkWallFunction",   
-                                                          "Cmu": 0.09,
-                                                          "kappa": 0.41,
-                                                          "E": 9.8,
-                                                          "value": f"uniform 0"})
-
-    def set_symmetry(self, pattern):
+    def _resolve_field_config(self, field_config: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Set a symmetry (empty) boundary condition.
-        
-        Args:
-            pattern: Regular expression pattern to match boundary names.
+        Resolve the specific configuration for a field based on provided arguments.
         """
-        empty_condition = {"type": "empty"}
-        for field in ["U", "p", "k", "epsilon", "nut"]:
-            self.apply_condition_with_wildcard(field, pattern, empty_condition)
-
-    def set_no_friction_wall(self, pattern):
-        """
-        Set a no-friction (slip) wall boundary condition.
-        
-        Args:
-            pattern: Regular expression pattern to match boundary names.
-        """
-        condition_U = {"type": "slip"}
-        self.apply_condition_with_wildcard("U", pattern, condition_U)
-        self.apply_condition_with_wildcard("p", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("k", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("epsilon", pattern, {"type": "zeroGradient"})
-        self.apply_condition_with_wildcard("nut", pattern, {"type": "nutkWallFunction",
-                                                          "Cmu": 0.09,
-                                                          "kappa": 0.41,
-                                                          "E": 9.8,
-                                                          "value": f"uniform 0"})
-
-    def get_wall_function(self, field: str, vel_cond: bool) -> dict:
-        """
-        Get the appropriate wall function for a given field.
-        
-        Args:
-            field: The field name ("k", "epsilon", or "omega").
-            vel_cond: Whether velocity condition is applied.
-            
-        Returns:
-            A dictionary containing the wall function settings.
-        """
-        model = self.turbulence_model.lower()
-
-        if field == "epsilon":
-            return {
-                "type": "epsilonWallFunction",
-                "value": "uniform 0",
-                "Cmu": 0.09,
-                "kappa": 0.41,
-                "E": 9.8
-            }
-        elif field == "k":
-            if vel_cond:
-                value = 0.375
+        if "type" in field_config and field_config["type"] == "wallFunction":
+            wall_func_conf = WALL_FUNCTIONS[self.turbulence_model][field_config["function"]]
+            if kwargs.get("velocity"):
+                return wall_func_conf.get("fixedValue", wall_func_conf.get("default"))
             else:
-                value = 0
-            return {
-                "type": "kqRWallFunction",
-                "value": f"uniform {value}"
-            }
-        elif field == "omega":
-            return {
-                "type": "omegaWallFunction",
-                "value": "uniform 0"
-            }
-        else:
-            return {
-                "type": "zeroGradient"
-            }
+                return wall_func_conf.get("noSlip", wall_func_conf.get("default"))
 
-    def set_uniform_normal_fixed_value_all_fields(self, patch_pattern: str, mode: str = "intakeType3", ref_value: float = 1.2):
-        """
-        Set uniformNormalFixedValue or surfaceNormalFixedValue condition on all fields.
-        
-        Args:
-            patch_pattern: Regular expression pattern to match boundary names.
-            mode: Type of condition to apply:
-                - "intakeType1": surfaceNormalFixedValue with ramp table
-                - "intakeType2": uniformNormalFixedValue with uniformValue table
-                - "intakeType3": uniformNormalFixedValue with uniformValue constant + ramp table
-            ref_value: Reference value for the condition.
-            
-        Raises:
-            ValueError: If invalid mode is specified.
-        """
-        # Velocity condition based on mode
-        if mode == "intakeType1":
-            condition_U = {
-                "type": "surfaceNormalFixedValue",
-                "refValue": f"uniform {ref_value}",
-                "ramp": "table ((0 0) (10 1))"
-            }
-        elif mode == "intakeType2":
-            condition_U = {
-                "type": "uniformNormalFixedValue",
-                "uniformValue": f"table ((0 0) (10 {ref_value}))"
-            }
-        elif mode == "intakeType3":
-            condition_U = {
-                "type": "uniformNormalFixedValue",
-                "uniformValue": f"constant {ref_value}",
-                "ramp": "table ((0 0) (10 1))"
-            }
-        else:
-            raise ValueError(f"Unknown mode '{mode}'. Choose from 'intakeType1', 'intakeType2', 'intakeType3'.")
+        if kwargs.get("turbulence_intensity") and "withTurbulence" in field_config:
+            return field_config["withTurbulence"]
+        elif "default" in field_config:
+            return field_config["default"]
 
-        # Other field conditions
-        condition_p = {"type": "zeroGradient"}
-        condition_k = {"type": "zeroGradient"}
-        condition_epsilon = {"type": "zeroGradient"}
-        condition_nut = {
-            "type": "calculated",
-            "value": "uniform 0"
+        if kwargs.get("friction") is False and "slip" in field_config:
+            return field_config["slip"]
+        elif "noSlip" in field_config:
+            return field_config["noSlip"]
+
+        return field_config
+
+    def _format_config(self, config: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Format the configuration dictionary by substituting placeholders with calculated values.
+        """
+        formatted_config = {}
+        for key, value in config.items():
+            if isinstance(value, str):
+                try:
+                    formatted_config[key] = value.format(**params)
+                except KeyError:
+                    formatted_config[key] = value
+            else:
+                formatted_config[key] = value
+        return formatted_config
+
+    def write_boundary_conditions(self):
+        """
+        Write the boundary conditions to their respective files in the 0/ directory.
+        """
+        for field, boundaries in self.fields.items():
+            file_path = self.parent.case_path / "0" / field
+            foam_file = OpenFOAMFile(file_path)
+            foam_file.set_boundary_field(boundaries)
+            foam_file.write()
+
+# Example Usage (for demonstration)
+if __name__ == '__main__':
+    class MockParent:
+        def __init__(self, case_path):
+            self.case_path = Path(case_path)
+
+    # Create a dummy case structure
+    dummy_case = Path("./dummy_case")
+    (dummy_case / "constant" / "polyMesh").mkdir(parents=True, exist_ok=True)
+    (dummy_case / "0").mkdir(exist_ok=True)
+
+    with open(dummy_case / "constant" / "polyMesh" / "boundary", "w") as f:
+        f.write("""
+        FoamFile
+        {
+            version     2.0;
+            format      ascii;
+            class       polyBoundaryMesh;
+            location    "constant/polyMesh";
+            object      boundary;
         }
-
-        # Apply conditions to all relevant fields
-        self.apply_condition_with_wildcard("U", patch_pattern, condition_U)
-        self.apply_condition_with_wildcard("p", patch_pattern, condition_p)
-        self.apply_condition_with_wildcard("k", patch_pattern, condition_k)
-        self.apply_condition_with_wildcard("epsilon", patch_pattern, condition_epsilon)
-        self.apply_condition_with_wildcard("nut", patch_pattern, condition_nut)
-
-    def _format_value_for_field(self, field_name, value):
-        if isinstance(value, Quantity):
-            unit = OpenFOAMFile.DEFAULT_UNITS.get(field_name, None)
-            if unit:
-                return format(value.get_in(unit), ".15g")
-            return format(float(value.quantity.magnitude), ".15g")
-
-        if isinstance(value, (tuple, list)):
-            parts = []
-            for v in value:
-                if isinstance(v, Quantity):
-                    unit = OpenFOAMFile.DEFAULT_UNITS.get(field_name, None)
-                    if unit:
-                        parts.append(format(v.get_in(unit), ".15g"))
-                    else:
-                        parts.append(format(float(v.quantity.magnitude), ".15g"))
-                else:
-                    parts.append(format(float(v), ".15g"))
-            return f"({' '.join(parts)})"
-
-        if isinstance(value, bool):
-            return "true" if value else "false"
-
-        return format(float(value), ".15g")
-
-    def set_temperature_inlet(self, pattern, temperature, bc_type="fixedValue"):
-        if not isinstance(temperature, Quantity):
-            temperature = Quantity(float(temperature), "K")
-        else:
-            if temperature.quantity.units == "degC":
-                temperature = Quantity(temperature.get_in("degC") + 273.15, "K")
-        T_val = temperature.get_in("K")
-        cond = {"type": bc_type, "value": f"uniform {format(T_val, '.15g')}"}
-        self.apply_condition_with_wildcard("T", pattern, cond)
-
-    def set_temperature_wall(self, pattern, temperature, bc_type="fixedValue"):
-        self.set_temperature_inlet(pattern, temperature, bc_type=bc_type)
-
-    def set_temperature_flux(self, pattern, heat_flux, bc_type="externalWallHeatFluxTemperature"):
-        if not isinstance(heat_flux, Quantity):
-            heat_flux = Quantity(float(heat_flux), "W/m^2")
-        q = heat_flux.get_in("W/m^2")
-        cond = {"type": bc_type, "value": f"uniform {format(q, '.15g')}"}
-        self.apply_condition_with_wildcard("T", pattern, cond)
-
-    def write_boundary_file(self, field: str):
-            
-        base_path = Path(self.parent.case_path)
-        system_path = base_path / "0"
-        system_path.mkdir(parents=True, exist_ok=True)
-        file_path = system_path / field
-
-        with open(file_path, "w") as file:
-            # === Header ===
-            file.write(self.generate_header(field))
-
-            # === Dimensions dynamiques via Quantity ===
-            unit = OpenFOAMFile.DEFAULT_UNITS.get(field, None)
-            if unit:
-                q = Quantity(1.0, unit)
-                dim_vector = q.get_dimensions_vector()
-            else:
-                dim_vector = "[0 0 0 0 0 0 0]"
-
-            file.write(f"\ndimensions      {dim_vector};\n")
-
-            # === Internal field par défaut ===
-            defaults = {
-                "U": "uniform (0 0 0)",
-                "epsilon": "uniform 0.125",
-                "k": "uniform 0.375",
-                "T": "uniform 300",  # K
+        (
+            inlet
+            {
+                type            patch;
+                nFaces          20;
+                startFace       760;
             }
-            default_value = defaults.get(field, "uniform 0")
-            file.write(f"internalField   {default_value};\n\n")
+            outlet
+            {
+                type            patch;
+                nFaces          20;
+                startFace       780;
+            }
+            walls
+            {
+                type            wall;
+                nFaces          400;
+                startFace       800;
+            }
+        )
+        """)
 
-            # === Boundary field ===
-            file.write("boundaryField\n{\n")
-            for boundary, conditions in self.fields[field].items():
-                if conditions:
-                    file.write(f" {boundary}\n {{\n")
-                    for key, value in conditions.items():
-                        if key in ("value", "uniformValue", "refValue"):
-                            if isinstance(value, str) and (
-                                value.strip().startswith("uniform")
-                                or value.strip().startswith("(")
-                            ):
-                                file.write(f" {key:<15} {value};\n")
-                            else:
-                                formatted = self._format_value_for_field(field, value)
-                                file.write(f" {key:<15} uniform {formatted};\n")
-                        else:
-                            file.write(f" {key:<15} {value};\n")
-                    file.write(" }\n\n")
-            file.write("}\n\n")
+    # --- kEpsilon Example ---
+    print("--- Running kEpsilon Example ---")
+    parent_case = MockParent(dummy_case)
+    fields_manager = CaseFieldsManager(
+        with_gravity=False,
+        is_vof=False,
+        energy_activated=False,
+        turbulence_model="kEpsilon",
+    )
+    boundary_manager = Boundary(parent_case, fields_manager=fields_manager, turbulence_model="kEpsilon")
+    boundary_manager.initialize_boundary()
 
-            # === Footer ===
-            file.write("// ************************************************************************* //\n")
+    velocity_in = (Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+    boundary_manager.apply_condition_with_wildcard("inlet", "velocityInlet", velocity=velocity_in, turbulence_intensity=0.05)
 
-        def generate_header(self, field):
-            if field == "U":
-                class_field = "volVectorField"
-            else:
-                class_field = "volScalarField"
-            return (
-                f"FoamFile\n"
-                f"{{\n"
-                f" version 2.0;\n"
-                f" format ascii;\n"
-                f" class {class_field};\n"
-                f" object {field};\n"
-                f"}}\n"
-            )
+    velocity_out = (Quantity(0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+    boundary_manager.apply_condition_with_wildcard("outlet", "pressureOutlet", velocity=velocity_out)
 
+    boundary_manager.write_boundary_conditions()
+
+    # Verify output
+    with open(dummy_case / "0" / "U", "r") as f:
+        print("--- U file ---")
+        print(f.read())
+
+    # --- kOmegaSST Example ---
+    print("\n--- Running kOmegaSST Example ---")
+    fields_manager_sst = CaseFieldsManager(
+        with_gravity=False,
+        is_vof=False,
+        energy_activated=False,
+        turbulence_model="kOmegaSST",
+    )
+    boundary_manager_sst = Boundary(parent_case, fields_manager=fields_manager_sst, turbulence_model="kOmegaSST")
+    boundary_manager_sst.initialize_boundary()
+
+    boundary_manager_sst.apply_condition_with_wildcard("inlet", "velocityInlet", velocity=velocity_in, turbulence_intensity=0.05)
+    boundary_manager_sst.apply_condition_with_wildcard("outlet", "pressureOutlet", velocity=velocity_out)
+
+    boundary_manager_sst.write_boundary_conditions()
+    with open(dummy_case / "0" / "omega", "r") as f:
+        print("--- omega file ---")
+        print(f.read())
+
+    # --- Thermal Example ---
+    print("\n--- Running Thermal Example ---")
+    fields_manager_thermal = CaseFieldsManager(
+        with_gravity=False,
+        is_vof=False,
+        energy_activated=True,
+        turbulence_model="kEpsilon",
+    )
+    boundary_manager_thermal = Boundary(parent_case, fields_manager=fields_manager_thermal, turbulence_model="kEpsilon")
+    boundary_manager_thermal.initialize_boundary()
+    boundary_manager_thermal.write_boundary_conditions()
+    with open(dummy_case / "0" / "T", "r") as f:
+        print("--- T file ---")
+        print(f.read())
