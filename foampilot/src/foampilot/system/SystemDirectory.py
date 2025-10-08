@@ -31,7 +31,6 @@ class SystemDirectory:
         """
         self.parent = parent 
         self.controlDict = ControlDictFile()
-        self.fvSchemes = FvSchemesFile()
         self.fvSolution = FvSolutionFile()
         self.additional_files = {}
         self.fvSchemes = FvSchemesFile(parent=parent, fields_manager=getattr(parent, "fields_manager", None))
