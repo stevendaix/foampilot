@@ -1,49 +1,46 @@
-
 from pathlib import Path
 import re
 import warnings
+from typing import Dict, List, Optional, Any
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from foampilot.utilities.manageunits import Quantity
 from .boundary_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
 
+
+
 class Boundary:
     """
     A class to handle boundary conditions for OpenFOAM simulations using a configuration-driven approach.
-    
     This class provides a flexible way to set, manage, and write boundary conditions for various fields
-    in OpenFOAM cases. It supports different types of boundary conditions and turbulence models through an
-    external configuration file.
-    
-    Attributes:
-        parent: The parent OpenFOAM case object.
-        turbulence_model: The turbulence model being used (e.g., "kEpsilon").
-        fields: A dictionary containing boundary conditions for each field.
-        config: The configuration for the selected turbulence model.
+    in OpenFOAM cases, supporting different types of boundary conditions and turbulence models.
     """
-    
-    def __init__(self, parent, fields, turbulence_model="kEpsilon"):
+
+    def __init__(self, parent, fields_manager: CaseFieldsManager, turbulence_model: str = "kEpsilon"):
         """
         Initialize the Boundary class.
-        
+
         Args:
             parent: The parent OpenFOAM case object.
-            fields: A list of fields to manage (e.g., ["U", "p", "T"]).
+            fields_manager: Instance of CaseFieldsManager to get dynamic fields.
             turbulence_model: The turbulence model to use (default: "kEpsilon").
         """
         self.parent = parent
         self.turbulence_model = turbulence_model
-        self.fields = {field: {} for field in fields}
+        self.fields_manager = fields_manager
         self.config = BOUNDARY_CONDITIONS_CONFIG.get(self.turbulence_model)
         if not self.config:
             raise ValueError(f"Turbulence model '{self.turbulence_model}' is not supported.")
 
-    def load_boundary_names(self, case_path: Path) -> dict[str, str]:
+        # Initialize fields from CaseFieldsManager
+        self.fields = {field: {} for field in self.fields_manager.get_field_names()}
+
+    def load_boundary_names(self, case_path: Path) -> Dict[str, str]:
         """
         Load boundary names and types from the polyMesh/boundary file.
-        
+
         Args:
             case_path: Path to the OpenFOAM case directory.
-            
+
         Returns:
             A dictionary mapping patch names to their types.
         """
@@ -75,7 +72,7 @@ class Boundary:
                 f"Warning: The following patches are of type '{patch_type_to_warn}': {patches_found}. "
                 "Please verify that their boundary conditions are properly defined."
             )
-            
+
         for field in self.fields:
             self.fields[field] = {name: {} for name in patch_types}
 
@@ -85,10 +82,10 @@ class Boundary:
             elif patch_type == "empty":
                 self.set_condition(patch_name, "symmetry")
 
-    def apply_condition_with_wildcard(self, pattern, condition_type, **kwargs):
+    def apply_condition_with_wildcard(self, pattern: str, condition_type: str, **kwargs):
         """
         Apply a condition to all boundaries matching a pattern.
-        
+
         Args:
             pattern: Regular expression pattern to match boundary names.
             condition_type: The type of condition to apply (e.g., "velocityInlet").
@@ -98,7 +95,7 @@ class Boundary:
             if re.match(pattern, boundary):
                 self.set_condition(boundary, condition_type, **kwargs)
 
-    def set_condition(self, boundary_name, condition_type, **kwargs):
+    def set_condition(self, boundary_name: str, condition_type: str, **kwargs):
         """
         Set a boundary condition based on the configuration.
 
@@ -124,7 +121,7 @@ class Boundary:
                 if final_config:
                     self.fields[field][boundary_name] = self._format_config(final_config, kwargs)
 
-    def _resolve_field_config(self, field_config, kwargs):
+    def _resolve_field_config(self, field_config: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """
         Resolve the specific configuration for a field based on provided arguments.
         """
@@ -134,14 +131,12 @@ class Boundary:
                 return wall_func_conf.get("fixedValue", wall_func_conf.get("default"))
             else:
                 return wall_func_conf.get("noSlip", wall_func_conf.get("default"))
-        
-        # Handle conditional configs (e.g., withTurbulence)
+
         if kwargs.get("turbulence_intensity") and "withTurbulence" in field_config:
             return field_config["withTurbulence"]
         elif "default" in field_config:
             return field_config["default"]
-        
-        # Handle friction for walls
+
         if kwargs.get("friction") is False and "slip" in field_config:
             return field_config["slip"]
         elif "noSlip" in field_config:
@@ -149,7 +144,7 @@ class Boundary:
 
         return field_config
 
-    def _format_config(self, config, params):
+    def _format_config(self, config: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
         """
         Format the configuration dictionary by substituting placeholders with calculated values.
         """
@@ -158,8 +153,7 @@ class Boundary:
             if isinstance(value, str):
                 try:
                     formatted_config[key] = value.format(**params)
-                except KeyError as e:
-                    # If a placeholder is not found, keep it as is for OpenFOAM to interpret
+                except KeyError:
                     formatted_config[key] = value
             else:
                 formatted_config[key] = value
@@ -221,13 +215,18 @@ if __name__ == '__main__':
     # --- kEpsilon Example ---
     print("--- Running kEpsilon Example ---")
     parent_case = MockParent(dummy_case)
-    fields_to_manage = ["U", "p", "k", "epsilon", "nut"]
-    boundary_manager = Boundary(parent_case, fields=fields_to_manage, turbulence_model="kEpsilon")
+    fields_manager = CaseFieldsManager(
+        with_gravity=False,
+        is_vof=False,
+        energy_activated=False,
+        turbulence_model="kEpsilon",
+    )
+    boundary_manager = Boundary(parent_case, fields_manager=fields_manager, turbulence_model="kEpsilon")
     boundary_manager.initialize_boundary()
 
     velocity_in = (Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
     boundary_manager.apply_condition_with_wildcard("inlet", "velocityInlet", velocity=velocity_in, turbulence_intensity=0.05)
-    
+
     velocity_out = (Quantity(0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
     boundary_manager.apply_condition_with_wildcard("outlet", "pressureOutlet", velocity=velocity_out)
 
@@ -240,8 +239,13 @@ if __name__ == '__main__':
 
     # --- kOmegaSST Example ---
     print("\n--- Running kOmegaSST Example ---")
-    fields_to_manage_sst = ["U", "p", "k", "omega", "nut"]
-    boundary_manager_sst = Boundary(parent_case, fields=fields_to_manage_sst, turbulence_model="kOmegaSST")
+    fields_manager_sst = CaseFieldsManager(
+        with_gravity=False,
+        is_vof=False,
+        energy_activated=False,
+        turbulence_model="kOmegaSST",
+    )
+    boundary_manager_sst = Boundary(parent_case, fields_manager=fields_manager_sst, turbulence_model="kOmegaSST")
     boundary_manager_sst.initialize_boundary()
 
     boundary_manager_sst.apply_condition_with_wildcard("inlet", "velocityInlet", velocity=velocity_in, turbulence_intensity=0.05)
@@ -254,11 +258,14 @@ if __name__ == '__main__':
 
     # --- Thermal Example ---
     print("\n--- Running Thermal Example ---")
-    fields_to_manage_thermal = ["U", "p", "T"]
-    boundary_manager_thermal = Boundary(parent_case, fields=fields_to_manage_thermal, turbulence_model="kEpsilon") # Assuming kEpsilon for flow
+    fields_manager_thermal = CaseFieldsManager(
+        with_gravity=False,
+        is_vof=False,
+        energy_activated=True,
+        turbulence_model="kEpsilon",
+    )
+    boundary_manager_thermal = Boundary(parent_case, fields_manager=fields_manager_thermal, turbulence_model="kEpsilon")
     boundary_manager_thermal.initialize_boundary()
-    # Note: Thermal conditions would need to be added to the config file to be used.
-    # For now, this demonstrates that the field 'T' is created.
     boundary_manager_thermal.write_boundary_conditions()
     with open(dummy_case / "0" / "T", "r") as f:
         print("--- T file ---")
