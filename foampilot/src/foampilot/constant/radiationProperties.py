@@ -157,3 +157,99 @@ class RadiationPropertiesFile(OpenFOAMFile):
         file_path.parent.mkdir(parents=True, exist_ok=True)
         self.write_file(file_path)
         print(f"✅ radiationProperties écrit ({self.model}) → {file_path}")
+
+
+from foampilot.base.openFOAMFile import OpenFOAMFile
+from pathlib import Path
+from typing import Optional, Any, Dict, Union
+
+class FvModelsFile(OpenFOAMFile):
+    """
+    Represents the `fvModels` file inside the `constant/` directory.
+    Automatically enables the radiation model and supports dynamic configuration.
+
+    Examples
+    --------
+    >>> # Default radiation model
+    >>> fv_models = FvModelsFile()
+    >>> fv_models.write("./constant")
+
+    >>> # With custom radiation library
+    >>> fv_models = FvModelsFile(radiation_libs=["libradiationModels.so", "libmyCustomRadiation.so"])
+    >>> fv_models.write("./constant")
+    """
+
+    def __init__(
+        self,
+        parent: Optional[Any] = None,
+        radiation_libs: Optional[list] = None,
+        additional_models: Optional[Dict[str, Dict[str, str]]] = None,
+    ):
+        """
+        Initialize an `fvModels` file.
+
+        Parameters
+        ----------
+        parent : Any, optional
+            Parent object with `fields_manager` (for dynamic field detection).
+        radiation_libs : list, optional
+            List of radiation libraries to load (default: ["libradiationModels.so"]).
+        additional_models : dict, optional
+            Additional models to include in fvModels (e.g., {"combustion": {"type": "combustion"}}).
+        """
+        super().__init__(object_name="fvModels")
+        self.parent = parent
+        self.radiation_libs = radiation_libs or ["libradiationModels.so"]
+        self.additional_models = additional_models or {}
+
+        # Configure attributes
+        self._configure_attributes()
+
+        # Override with dynamic fields if parent has CaseFieldsManager
+        if self.parent and hasattr(self.parent, "fields_manager"):
+            self._configure_from_fields()
+
+    def _configure_attributes(self):
+        """
+        Define attributes for fvModels.
+        """
+        self.attributes = {
+            "radiation": {
+                "type": "radiation",
+                "libs": self.radiation_libs,
+            }
+        }
+
+        # Add additional models
+        self.attributes.update(self.additional_models)
+
+    def _configure_from_fields(self):
+        """
+        Override configuration based on fields available in CaseFieldsManager.
+        """
+        if not hasattr(self.parent, "fields_manager"):
+            return
+
+        fields_manager = self.parent.fields_manager
+        field_names = fields_manager.get_field_names()
+
+        # Detect combustion fields to add combustion model
+        if any(field.startswith("Y") for field in field_names):  # e.g., YFuel, YO2
+            self.attributes["combustion"] = {
+                "type": "combustion",
+                "libs": ["libcombustionModels.so"],
+            }
+
+        # Detect turbulence fields to ensure radiation-turbulence coupling
+        if any(field in field_names for field in ["k", "epsilon", "omega", "nut"]):
+            self.attributes["radiation"]["turbulence"] = "yes"
+
+    def write(self, base_path: Union[Path, str]):
+        """
+        Write the fvModels file under base_path/constant/.
+        """
+        base_path = Path(base_path)
+        file_path = base_path / "constant" / self.object_name
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        self.write_file(file_path)
+        print(f"✅ fvModels écrit → {file_path}")
