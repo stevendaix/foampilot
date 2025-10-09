@@ -1,29 +1,81 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from pathlib import Path
-
+from typing import Optional, Any, Dict, Union
 
 class RadiationPropertiesFile(OpenFOAMFile):
     """
     Represents the OpenFOAM `radiationProperties` file inside the `constant/` directory.
 
-    Supports radiation models: P1 and fvDOM.
+    Supports dynamic configuration based on:
+      - CaseFieldsManager (for field detection)
+      - Radiation models: P1, fvDOM, and S2S (new)
+      - Automatic detection of radiation fields (e.g., K, G)
+
+    Examples
+    --------
+    >>> # Default P1 model
+    >>> radiation = RadiationPropertiesFile()
+    >>> radiation.write("./constant")
+
+    >>> # fvDOM model with custom parameters
+    >>> radiation = RadiationPropertiesFile(
+    >>>     model="fvDOM",
+    >>>     nPhi=5,
+    >>>     nTheta=7,
+    >>>     tolerance=1e-4
+    >>> )
+    >>> radiation.write("./constant")
     """
 
-    SUPPORTED_MODELS = ["P1", "fvDOM"]
+    SUPPORTED_MODELS = ["P1", "fvDOM", "S2S"]
 
     def __init__(
         self,
+        parent: Optional[Any] = None,
         model: str = "P1",
         absorptivity: float = 0.5,
         emissivity: float = 0.5,
         E: float = 0.0,
-        solver_freq: int | float = None,
+        solver_freq: Optional[Union[int, float]] = None,
         nPhi: int = 3,
         nTheta: int = 5,
         tolerance: float = 1e-3,
         maxIter: int = 10,
+        scatterModel: str = "none",
+        sootModel: str = "none",
     ):
+        """
+        Initialize a `radiationProperties` file.
+
+        Parameters
+        ----------
+        parent : Any, optional
+            Parent object with `fields_manager` (for dynamic field detection).
+        model : str, optional
+            Radiation model: "P1" (default), "fvDOM", or "S2S".
+        absorptivity : float, optional
+            Absorptivity coefficient (default: 0.5).
+        emissivity : float, optional
+            Emissivity coefficient (default: 0.5).
+        E : float, optional
+            Emission coefficient (default: 0.0).
+        solver_freq : int or float, optional
+            Solver frequency (default: 1 for P1, 10 for others).
+        nPhi : int, optional
+            Number of phi divisions for fvDOM (default: 3).
+        nTheta : int, optional
+            Number of theta divisions for fvDOM (default: 5).
+        tolerance : float, optional
+            Solver tolerance (default: 1e-3).
+        maxIter : int, optional
+            Maximum iterations (default: 10).
+        scatterModel : str, optional
+            Scatter model (default: "none").
+        sootModel : str, optional
+            Soot model (default: "none").
+        """
         super().__init__(object_name="radiationProperties")
+        self.parent = parent
         self.model = model
         self.absorptivity = absorptivity
         self.emissivity = emissivity
@@ -33,24 +85,34 @@ class RadiationPropertiesFile(OpenFOAMFile):
         self.nTheta = nTheta
         self.tolerance = tolerance
         self.maxIter = maxIter
+        self.scatterModel = scatterModel
+        self.sootModel = sootModel
 
         if model not in self.SUPPORTED_MODELS:
             raise ValueError(f"Unsupported radiation model '{model}'. Supported: {self.SUPPORTED_MODELS}")
 
+        # Configure attributes based on model and fields
         self._configure_attributes()
+
+        # Override with dynamic fields if parent has CaseFieldsManager
+        if self.parent and hasattr(self.parent, "fields_manager"):
+            self._configure_from_fields()
 
     def _configure_attributes(self):
         """
         Define attributes based on the chosen radiation model.
         """
-        self.attributes["radiationModel"] = self.model
-        self.attributes["solverFreq"] = self.solver_freq
-        self.attributes["absorptionEmissionModel"] = "constant"
-
-        self.attributes["constantCoeffs"] = {
-            "absorptivity": self.absorptivity,
-            "emissivity": self.emissivity,
-            "E": self.E,
+        self.attributes = {
+            "radiationModel": self.model,
+            "solverFreq": self.solver_freq,
+            "absorptionEmissionModel": "constant",
+            "constantCoeffs": {
+                "absorptivity": self.absorptivity,
+                "emissivity": self.emissivity,
+                "E": self.E,
+            },
+            "scatterModel": self.scatterModel,
+            "sootModel": self.sootModel,
         }
 
         if self.model.lower() == "fvdom":
@@ -60,38 +122,38 @@ class RadiationPropertiesFile(OpenFOAMFile):
                 "tolerance": self.tolerance,
                 "maxIter": self.maxIter,
             }
+        elif self.model.lower() == "s2s":
+            self.attributes["S2SCoeffs"] = {
+                "tolerance": self.tolerance,
+                "maxIter": self.maxIter,
+            }
 
-        self.attributes["scatterModel"] = "none"
-        self.attributes["sootModel"] = "none"
+    def _configure_from_fields(self):
+        """
+        Override configuration based on fields available in CaseFieldsManager.
+        """
+        if not hasattr(self.parent, "fields_manager"):
+            return
 
-    def write(self, base_path: Path | str):
+        fields_manager = self.parent.fields_manager
+        field_names = fields_manager.get_field_names()
+
+        # Detect radiation-related fields (e.g., K, G)
+        if "K" in field_names:
+            # Adjust solver frequency if radiation field is present
+            self.attributes["solverFreq"] = min(5, self.solver_freq)  # More frequent updates
+
+        # Detect energy field (T) to enable radiation-energy coupling
+        if "T" in field_names:
+            self.attributes["absorptionEmissionModel"] = "semiTransparent"
+            self.attributes["constantCoeffs"]["E"] = 1.0  # Enable emission
+
+    def write(self, base_path: Union[Path, str]):
         """
         Write the radiationProperties file under base_path/constant/.
         """
         base_path = Path(base_path)
-        file_path = base_path / self.object_name
+        file_path = base_path / "constant" / self.object_name
+        file_path.parent.mkdir(parents=True, exist_ok=True)
         self.write_file(file_path)
         print(f"✅ radiationProperties écrit ({self.model}) → {file_path}")
-
-
-class FvModelsFile(OpenFOAMFile):
-    """
-    Represents the `fvModels` file inside the `constant/` directory,
-    automatically enabling the radiation model.
-    """
-
-    def __init__(self):
-        super().__init__(object_name="fvModels")
-        self.attributes["radiation"] = {
-            "type": "radiation",
-            "libs": ["libradiationModels.so"],
-        }
-
-    def write(self, base_path: Path | str):
-        """
-        Write the fvModels file under base_path/constant/.
-        """
-        base_path = Path(base_path)
-        file_path = base_path / self.object_name
-        self.write_file(file_path)
-        print(f"✅ fvModels écrit → {file_path}")
