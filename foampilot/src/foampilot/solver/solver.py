@@ -1,12 +1,14 @@
 from pathlib import Path
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, Any
 from foampilot.solver.base_solver import BaseSolver
-from foampilot.boundaries.boundaries_dict import Boundary  
+from foampilot.boundaries.boundaries_dict import Boundary
+from foampilot.utilities.manageunits import Quantity
 
 class Solver:
     """
     Generic solver class that adapts based on user-defined attributes.
-    Supports transient incompressible fluids with PIMPLE.
+    Supports transient incompressible fluids with PIMPLE, VoF, and solid simulations.
+    Automatically configures fields and boundary conditions using CaseFieldsManager.
     """
 
     def __init__(self, case_path: str | Path):
@@ -17,14 +19,16 @@ class Solver:
         self._is_vof: bool = False
         self._is_solid: bool = False
         self._energy_user: Optional[bool] = None
-        self._transient: bool = False  # Nouveau flag
+        self._transient: bool = False
+        self._turbulence_model: str = "kEpsilon"
         self._error_handlers: List[Callable[[str], None]] = []
         self._event_handlers: List[Callable[[str, str], None]] = []
 
-        self.boundary = Boundary(self, turbulence_model="kEpsilon")
+        # Initialize boundary with default turbulence model
+        self.boundary = Boundary(self, fields_manager=None, turbulence_model=self._turbulence_model)
 
+        # Update solver and fields
         self._update_solver()
-        
 
     # ---------- Handlers ----------
     def add_error_handler(self, handler: Callable[[str], None]):
@@ -116,11 +120,23 @@ class Solver:
         self._transient = value
         self._update_solver()
 
+    @property
+    def turbulence_model(self) -> str:
+        return self._turbulence_model
+
+    @turbulence_model.setter
+    def turbulence_model(self, value: str):
+        self._turbulence_model = value
+        if self.boundary:
+            self.boundary.turbulence_model = value
+        self._update_solver()
+
     # ---------- Solver selection ----------
     def _update_solver(self):
-        # Détermination du nom du solver
+        """Update solver instance and configure fields based on current flags."""
+        # Determine solver name
         if self._is_solid:
-            solver_name = "solid"
+            solver_name = "solidDisplacement"
         elif self._is_vof:
             solver_name = "incompressibleVoF" if not self._compressible else "compressibleVoF"
         else:
@@ -129,7 +145,7 @@ class Solver:
         old_solver_name = self._solver.solver_name if self._solver else "None"
         self._notify_event("solver_change", f"Changing solver from {old_solver_name} to {solver_name}")
 
-        # Création du solver en transmettant tous les flags
+        # Create solver with all flags
         self._solver = BaseSolver.create(
             case_path=self.case_path,
             solver_name=solver_name,
@@ -138,26 +154,31 @@ class Solver:
             is_vof=self._is_vof,
             is_solid=self._is_solid,
             energy_activated=self.energy_activated,
-            transient=self._transient
+            transient=self._transient,
+            turbulence_model=self._turbulence_model,
         )
-        
 
-        # Mise à jour des flags dynamiques sur l'instance BaseSolver
+        # Update solver attributes
         self._solver.compressible = self._compressible
         self._solver.with_gravity = self._with_gravity
         self._solver.is_vof = self._is_vof
         self._solver.is_solid = self._is_solid
         self._solver.energy_activated = self.energy_activated
         self._solver.transient = self._transient
+        self._solver.turbulence_model = self._turbulence_model
 
-        if self.energy_activated:
-                self.boundary.fields.update({
-                    "T": {},
-                    "alpha": {},
-                    "phi": {},
-                })
+        # Update boundary with new solver and fields
+        self.boundary = Boundary(
+            self._solver,
+            fields_manager=self._solver.fields_manager,
+            turbulence_model=self._turbulence_model,
+        )
 
+        self._notify_event("solver_updated", f"Solver updated to {solver_name} with current flags.")
+
+    # ---------- Boundary setup ----------
     def setup_boundaries(self):
+        """Initialize boundary conditions based on current solver and fields."""
         try:
             self.boundary.initialize_boundary()
             self._notify_event("boundary_setup", "Boundary conditions initialized.")
@@ -167,6 +188,7 @@ class Solver:
 
     # ---------- Public methods ----------
     def setup_case(self):
+        """Set up the entire case directory structure and files."""
         if self._solver is None:
             msg = "Solver is not initialized."
             self._notify_error(msg)
@@ -175,6 +197,7 @@ class Solver:
         self._notify_event("case_setup", "Case setup completed.")
 
     def run_simulation(self):
+        """Run the simulation with current configuration."""
         if self._solver is None:
             msg = "Solver is not initialized."
             self._notify_error(msg)
@@ -182,7 +205,8 @@ class Solver:
         self._solver.run_simulation()
         self._notify_event("simulation_run", "Simulation started.")
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """Delegate attribute access to the solver instance."""
         if self._solver is None:
             msg = f"Cannot access attribute '{name}': Solver is not initialized."
             self._notify_error(msg)
