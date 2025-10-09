@@ -8,6 +8,8 @@ from typing import List, Dict, ClassVar, Type
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
+from foampilot.commons.cases_variables import CaseFieldsManager
+
 
 class BaseSolver(ABC):
     SOLVER_MODULES: ClassVar[Dict[str, str]] = {
