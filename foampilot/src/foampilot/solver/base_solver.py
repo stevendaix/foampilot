@@ -9,7 +9,8 @@ from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.base.cases_variables import CaseFieldsManager
-
+from typing import Dict, List, Optional
+from foampilot.utilities.manageunits import Quantity
 
 class BaseSolver(ABC):
     SOLVER_MODULES: ClassVar[Dict[str, str]] = {
@@ -188,8 +189,7 @@ class BaseSolver(ABC):
             raise RuntimeError(f"Simulation failed (see {self.case_path / log_filename})")
 
 
-from typing import Dict, List, Optional
-from foampilot.utilities.manageunits import Quantity
+
 
 class CaseFieldsManager:
     """
