@@ -6,7 +6,7 @@ from foampilot.base.openFOAMFile import OpenFOAMFile
 from foampilot.utilities.manageunits import Quantity
 from .boundary_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
 
-
+from foampilot.base.cases_variables import CaseFieldsManager
 
 class Boundary:
     """
