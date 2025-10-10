@@ -1,86 +1,118 @@
-from typing import Dict, Any, Optional, List, Tuple
+from __future__ import annotations
+from typing import Dict, Optional, Any
 from foampilot.utilities.manageunits import Quantity
 
 
 class CaseFieldsManager:
     """
-    Gère la création dynamique des champs OpenFOAM en fonction des flags du solveur.
-    Exemples :
-      - with_gravity=True → utilise p_rgh au lieu de p
-      - is_vof=True → ajoute alpha.water, alpha.air
-      - energy_activated=True → ajoute T
-      - turbulence_model="kEpsilon" → ajoute k, epsilon, nut
+    Dynamically generate OpenFOAM fields depending on solver configuration.
+    Adapts automatically to:
+      - compressible / incompressible
+      - gravity (p_rgh)
+      - VOF
+      - radiation
+      - temperature / energy
+      - turbulence model
     """
+
     def __init__(
         self,
-        is_solid: bool = False,
+        *,
+        compressible: bool = False,
         with_gravity: bool = False,
         is_vof: bool = False,
+        is_solid: bool = False,
         energy_activated: bool = False,
-        turbulence_model: Optional[str] = None,
         with_radiation: bool = False,
+        turbulence_model: Optional[str] = None,
     ):
-        self.fields: Dict[str, Dict[str, Any]] = {}
-        self.is_solid = is_solid
+        self.compressible = compressible
         self.with_gravity = with_gravity
         self.is_vof = is_vof
+        self.is_solid = is_solid
         self.energy_activated = energy_activated
-        self.turbulence_model = turbulence_model
         self.with_radiation = with_radiation
+        self.turbulence_model = turbulence_model or "kEpsilon"
 
-        # Génère les champs nécessaires
+        # Storage
+        self.fields: Dict[str, Dict[str, Any]] = {}
+        self.physical_properties: Dict[str, Quantity] = {}
+        self.turbulence_properties: Dict[str, Any] = {}
+
         self._generate_fields()
 
+    # ------------------------------------------------------------------ #
     def _generate_fields(self) -> None:
-        """Génère les champs en fonction des flags."""
-        # --- Champs de base pour un fluide ---
+        """Generate field dictionary depending on physical flags."""
+
+        # Reset
+        self.fields.clear()
+
+        # --- Base pressure and velocity fields
+        pressure_name = "p_rgh" if self.with_gravity and not self.compressible else "p"
+        self.fields[pressure_name] = {"value": Quantity(0, "Pa")}
         if not self.is_solid:
-            # Pression : p ou p_rgh selon la gravité
-            pressure_field = "p_rgh" if self.with_gravity else "p"
-            self.add_field(pressure_field, 0, "Pa")
+            self.fields["U"] = {"value": Quantity(0, "m/s")}
 
-            # Vitesse
-            self.add_field("U", (0, 0, 0), "m/s")
+        # --- Volume fraction (VOF)
+        if self.is_vof:
+            self.fields["alpha.water"] = {"value": Quantity(1.0, "")}
+            self.fields["alpha.air"] = {"value": Quantity(0.0, "")}
 
-            # VoF : alpha.water, alpha.air
-            if self.is_vof:
-                self.add_field("alpha.water", 0, "-")
-                self.add_field("alpha.air", 1, "-")
+        # --- Energy or temperature field
+        if self.energy_activated or self.compressible:
+            self.fields["T"] = {"value": Quantity(300, "K")}
 
-            # Rayonnement : K
-            if self.with_radiation:
-                self.add_field("K", 0, "1/m")
+        # --- Radiation
+        if self.with_radiation:
+            self.fields["G"] = {"value": Quantity(0, "W/m^2")}
+            self.fields["q_r"] = {"value": Quantity(0, "W/m^2")}
 
-        # --- Champs pour un solide ---
+        # --- Turbulence model fields
+        if self.turbulence_model:
+            self._generate_turbulence_fields()
+
+        # --- Solid-specific field
+        if self.is_solid:
+            self.fields = {"T": {"value": Quantity(300, "K")}}  # Only temperature in solids
+
+    # ------------------------------------------------------------------ #
+    def _generate_turbulence_fields(self) -> None:
+        """Add fields depending on turbulence model."""
+        model = self.turbulence_model.lower()
+
+        if "kepsilon" in model:
+            self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
+            self.fields["epsilon"] = {"value": Quantity(0.1, "m^2/s^3")}
+        elif "omega" in model:
+            self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
+            self.fields["omega"] = {"value": Quantity(1, "1/s")}
+        elif "spalart" in model:
+            self.fields["nut"] = {"value": Quantity(1e-5, "m^2/s")}
+        elif "v2" in model:
+            self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
+            self.fields["epsilon"] = {"value": Quantity(0.1, "m^2/s^3")}
+            self.fields["v2"] = {"value": Quantity(0.1, "m^2/s^2")}
         else:
-            self.add_field("D", (0, 0, 0), "m")  # Déplacement
-            if self.energy_activated:
-                self.add_field("T", 300, "K")     # Température
+            # Default to k-epsilon if unknown
+            self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
+            self.fields["epsilon"] = {"value": Quantity(0.1, "m^2/s^3")}
 
-        # --- Énergie : T (si fluide et énergie activée) ---
-        if not self.is_solid and self.energy_activated:
-            self.add_field("T", 300, "K")
-
-        # --- Turbulence : k-ε ou k-ω ---
-        if self.turbulence_model == "kEpsilon":
-            self.add_field("k", 0.01, "m²/s²")
-            self.add_field("epsilon", 0.01, "m²/s³")
-            self.add_field("nut", 0, "m²/s")
-        elif self.turbulence_model == "kOmegaSST":
-            self.add_field("k", 0.01, "m²/s²")
-            self.add_field("omega", 1, "1/s")
-            self.add_field("nut", 0, "m²/s")
-
-    def add_field(self, name: str, value: Any, units: Optional[str] = None) -> None:
-        """Ajoute un champ avec sa valeur et ses unités."""
-        if units:
-            value = Quantity(value, units) if not isinstance(value, Quantity) else value
-        self.fields[name] = {"value": value}
-
-    def get_field_names(self) -> List[str]:
-        """Retourne la liste des noms de champs."""
+    # ------------------------------------------------------------------ #
+    def get_field_names(self) -> list[str]:
+        """Return the list of field names."""
         return list(self.fields.keys())
 
-    def get_field(self, name: str) -> Dict[str, Any]:
-        """Retourne un champ par son nom."""
-        return self.fields.get(name, {})
+    # ------------------------------------------------------------------ #
+    def to_dict(self) -> Dict[str, Any]:
+        """Export to a simplified dict for serialization."""
+        return {k: str(v["value"]) for k, v in self.fields.items()}
+
+    # ------------------------------------------------------------------ #
+    def __repr__(self) -> str:
+        flags = (
+            f"compressible={self.compressible}, gravity={self.with_gravity}, vof={self.is_vof}, "
+            f"solid={self.is_solid}, energy={self.energy_activated}, radiation={self.with_radiation}, "
+            f"model={self.turbulence_model}"
+        )
+        return f"<CaseFieldsManager {flags}>"
