@@ -1,24 +1,16 @@
-"""
-foampilot.constant.constantDirectory
------------------------------------
-
-Manager for the 'constant' directory in an OpenFOAM case.
-
-Ce module gère l'ensemble des fichiers habituellement présents dans
-constant/: transportProperties, turbulenceProperties, physicalProperties,
-g (gravity), pRef (si compressible) et optionnellement radiationProperties
-+ fvModels.
-
-La méthode write() tente d'appeler la méthode write() de chaque fichier de
-façon robuste (soit en lui passant un "file path", soit en lui passant le
-répertoire parent) et utilise un fallback sur write_file() si disponible.
-"""
-
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Optional, Dict, Union
+from typing import Any, Optional, Dict, Union, List, TYPE_CHECKING
 import logging
 
+if TYPE_CHECKING:
+    from foampilot.solver import Solver
+
+# Configuration du logger
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+
+# Import des fichiers de configuration
 from foampilot.constant.transportPropertiesFile import TransportPropertiesFile
 from foampilot.constant.turbulencePropertiesFile import TurbulencePropertiesFile
 from foampilot.constant.physicalProperties import PhysicalPropertiesFile
@@ -26,42 +18,46 @@ from foampilot.constant.gravityFile import GravityFile
 from foampilot.constant.pRefFile import PRefFile
 from foampilot.constant.radiationPropertiesFile import RadiationPropertiesFile, FvModelsFile
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
-
-
 class ConstantDirectory:
     """
     Manager for the 'constant' directory in an OpenFOAM case.
+    Handles all constant directory files and maintains backward compatibility.
 
-    Usage:
-        cd = ConstantDirectory(parent_foam_instance)
-        cd.enable_radiation(model="fvDOM", absorptivity=0.7, emissivity=0.7)
-        cd.write()
+    Features:
+    - Automatic p → p_rgh conversion when gravity is enabled
+    - Robust file writing with multiple fallback methods
+    - Radiation support with dynamic configuration
+    - Backward compatibility with solver.constant.write()
     """
 
     def __init__(self, parent: Any, *, with_radiation: bool = False):
+        """
+        Initialize the constant directory manager.
+
+        Args:
+            parent: Parent solver instance
+            with_radiation: Enable radiation by default
+        """
         self.parent = parent
+        self.with_radiation = with_radiation
 
-        # composants par défaut (instances prêtes à l'emploi)
-        self._transportProperties = TransportPropertiesFile()
-        self._turbulenceProperties = TurbulencePropertiesFile()
-        self._physicalProperties = PhysicalPropertiesFile()
-        self._gravity = GravityFile()
-        self._pRef = PRefFile()
+        # Initialize default file instances with parent reference
+        self._transportProperties = TransportPropertiesFile(parent=self.parent)
+        self._turbulenceProperties = TurbulencePropertiesFile(parent=self.parent)
+        self._physicalProperties = PhysicalPropertiesFile(parent=self.parent)
+        self._gravity = GravityFile(parent=self.parent)
+        self._pRef = PRefFile(parent=self.parent)
 
-        # radiation (optionnel)
-        self.with_radiation: bool = False
+        # Radiation components (optional)
         self._radiation: Optional[RadiationPropertiesFile] = None
         self._fvmodels: Optional[FvModelsFile] = None
 
         if with_radiation:
-            # activation avec paramètres par défaut
             self.enable_radiation()
 
-    # -------------------
-    # Properties (getters / setters)
-    # -------------------
+    # ======================
+    # Property Accessors
+    # ======================
     @property
     def transportProperties(self) -> TransportPropertiesFile:
         return self._transportProperties
@@ -93,6 +89,8 @@ class ConstantDirectory:
     @gravity.setter
     def gravity(self, value: GravityFile) -> None:
         self._gravity = value
+        if hasattr(self.parent, "with_gravity"):
+            self.parent.with_gravity = True
 
     @property
     def pRef(self) -> PRefFile:
@@ -111,153 +109,114 @@ class ConstantDirectory:
         self._radiation = value
         self.with_radiation = value is not None
 
-    # -------------------
-    # Radiation helpers
-    # -------------------
-    def enable_radiation(self, model: str = "P1", absorptivity: float = 0.5,
-                         emissivity: float = 0.5, E: float = 0.0, **kwargs) -> None:
+    # ======================
+    # Radiation Management
+    # ======================
+    def enable_radiation(self, model: str = "P1", **kwargs) -> None:
         """
-        Activer la radiation et créer les instances nécessaires.
+        Enable radiation modeling with specified parameters.
 
         Args:
-            model: "P1" ou "fvDOM"
-            absorptivity, emissivity, E: constantes pour constantCoeffs
-            kwargs: passe d'autres paramètres (nPhi, nTheta, tolerance, maxIter)
+            model: Radiation model ("P1" or "fvDOM")
+            **kwargs: Additional model parameters
         """
-        logger.debug("Enabling radiation: model=%s, absorptivity=%s, emissivity=%s", model, absorptivity, emissivity)
         self.with_radiation = True
-        self._radiation = RadiationPropertiesFile(
-            model=model,
-            absorptivity=absorptivity,
-            emissivity=emissivity,
-            E=E,
-            **kwargs
-        )
-        self._fvmodels = FvModelsFile()
+        self._radiation = RadiationPropertiesFile(parent=self.parent, model=model, **kwargs)
+        self._fvmodels = FvModelsFile(parent=self.parent)
+        logger.info(f"Radiation enabled with model: {model}")
 
     def disable_radiation(self) -> None:
-        """Désactive la radiation (les fichiers ne seront pas écrits)."""
-        logger.debug("Disabling radiation")
+        """Disable radiation modeling."""
         self.with_radiation = False
         self._radiation = None
         self._fvmodels = None
+        logger.info("Radiation disabled")
 
-    # -------------------
-    # Internal utility: write wrapper robuste
-    # -------------------
+    # ======================
+    # File Writing Utilities
+    # ======================
     def _safe_write(self, obj: Any, target_path: Union[str, Path]) -> None:
         """
-        Appelle la méthode write de l'objet de la façon la plus robuste possible.
+        Safely write a file using multiple fallback methods.
 
-        Tentatives (dans l'ordre):
-          1. obj.write(target_path)  # la plupart des classes (file path)
-          2. obj.write(target_path.parent)  # si l'objet attend un dossier
-          3. obj.write_file(target_path)  # fallback direct sur write_file si disponible
-
-        Lève l'exception finale si aucune tentative ne fonctionne.
+        Args:
+            obj: File object to write
+            target_path: Destination path
         """
         target = Path(target_path)
-        logger.debug("Trying to write %s -> %s", getattr(obj, "object_name", type(obj)), target)
-        # 1) Essayer directement
-        try:
-            obj.write(target)
-            logger.info("Wrote %s -> %s", getattr(obj, "object_name", type(obj)), target)
-            return
-        except TypeError as exc_type:
-            logger.debug("obj.write(target) raised TypeError: %s", exc_type)
-        except Exception as exc:
-            # Si l'objet a sa propre erreur d'écriture, on essaie quand même d'autres approches
-            logger.debug("obj.write(target) raised: %s", exc)
+        logger.debug(f"Writing {getattr(obj, 'object_name', type(obj))} to {target}")
 
-        # 2) Essayer de passer le dossier parent (cas où write attend le dossier)
         try:
-            obj.write(target.parent)
-            logger.info("Wrote %s -> %s (using parent dir)", getattr(obj, "object_name", type(obj)), target.parent)
-            return
-        except Exception as exc:
-            logger.debug("obj.write(target.parent) also failed: %s", exc)
-
-        # 3) Fallback: si l'objet expose write_file(file_path)
-        if hasattr(obj, "write_file"):
-            try:
-                obj.write_file(target)
-                logger.info("Wrote %s -> %s (using write_file)", getattr(obj, "object_name", type(obj)), target)
+            # Try direct write with path
+            if hasattr(obj, 'write') and callable(obj.write):
+                obj.write(target)
                 return
-            except Exception as exc:
-                logger.debug("obj.write_file(target) failed: %s", exc)
 
-        # Rien n'a fonctionné : propager une erreur claire
-        raise RuntimeError(f"Impossible d'écrire l'objet {obj} vers {target}; "
-                           "méthodes write(...) / write_file(...) ont toutes échoué.")
+            # Try write with parent directory
+            if hasattr(obj, 'write') and callable(obj.write):
+                obj.write(target.parent)
+                return
 
-    # -------------------
-    # Write method principal
-    # -------------------
-    def write(self) -> None:
+            # Fallback to write_file if available
+            if hasattr(obj, 'write_file') and callable(obj.write_file):
+                obj.write_file(target)
+                return
+
+            logger.error(f"Cannot write {obj}: no compatible write method found")
+            raise RuntimeError(f"Cannot write {obj}: no compatible write method")
+
+        except Exception as e:
+            logger.error(f"Failed to write {obj}: {str(e)}")
+            raise
+
+    def _update_pressure_field(self) -> None:
         """
-        Écrit tous les fichiers nécessaires dans le dossier constant/ du cas.
+        Update pressure field from p to p_rgh when gravity is enabled.
+        """
+        if hasattr(self.parent, "fields_manager"):
+            fields = self.parent.fields_manager
+            if hasattr(fields, "fields") and "p" in fields.fields and "p_rgh" not in fields.fields:
+                fields.fields["p_rgh"] = fields.fields.pop("p")
+                logger.info("Updated pressure field: p → p_rgh (gravity enabled)")
 
-        - crée constant/ et constant/polyMesh si nécessaire
-        - écrit turbulenceProperties (toujours)
-        - si compressible: écrit physicalProperties + pRef
-          sinon: écrit transportProperties
-        - écrit g si with_gravity est True
-        - écrit radiationProperties et fvModels si with_radiation est True
+    # ======================
+    # Main Write Method
+    # ======================
+    def write(self) -> "ConstantDirectory":
+        """
+        Write all constant directory files and return self for chaining.
+        Maintains backward compatibility with solver.constant.write().
         """
         base_path = Path(self.parent.case_path)
         constant_path = base_path / "constant"
-        polyMesh_path = constant_path / "polyMesh"
-
-        # create directories
-        polyMesh_path.mkdir(parents=True, exist_ok=True)
         constant_path.mkdir(parents=True, exist_ok=True)
-        logger.debug("Ensured directories exist: %s, %s", constant_path, polyMesh_path)
 
-        # turbulenceProperties (toujours)
-        try:
-            self._safe_write(self.turbulenceProperties, constant_path / "turbulenceProperties")
-        except Exception as exc:
-            logger.error("Erreur écriture turbulenceProperties: %s", exc)
-            raise
+        # 1. Always write turbulence properties
+        self._safe_write(self.turbulenceProperties, constant_path / "turbulenceProperties")
 
-        # compressible vs incompressible
+        # 2. Write transport/physical properties based on simulation type
         if getattr(self.parent, "compressible", False):
-            try:
-                self._safe_write(self.physicalProperties, constant_path / "physicalProperties")
-                self._safe_write(self.pRef, constant_path / "pRef")
-            except Exception as exc:
-                logger.error("Erreur écriture fichiers compressible: %s", exc)
-                raise
+            self._safe_write(self.physicalProperties, constant_path / "physicalProperties")
+            self._safe_write(self.pRef, constant_path / "pRef")
         else:
-            try:
-                self._safe_write(self.transportProperties, constant_path / "transportProperties")
-            except Exception as exc:
-                logger.error("Erreur écriture transportProperties: %s", exc)
-                raise
+            self._safe_write(self.transportProperties, constant_path / "transportProperties")
 
-        # Gravity (g) si activé sur le parent ou si le flag with_gravity n'existe pas (on écrit par défaut)
-        with_gravity = getattr(self.parent, "with_gravity", True)
-        if with_gravity:
-            try:
-                self._safe_write(self.gravity, constant_path / "g")
-            except Exception as exc:
-                logger.error("Erreur écriture gravity (g): %s", exc)
-                raise
+        # 3. Write gravity file if enabled
+        if getattr(self.parent, "with_gravity", False):
+            self._safe_write(self.gravity, constant_path / "g")
+            self._update_pressure_field()  # Update p → p_rgh
 
-        # Radiation (optionnel)
+        # 4. Write radiation files if enabled
         if self.with_radiation:
-            # Si absence d'instances, créer des instances par défaut
             if self._radiation is None:
-                self._radiation = RadiationPropertiesFile()
-            if self._fvmodels is None:
-                self._fvmodels = FvModelsFile()
+                self.enable_radiation()  # Create default instances
+            self._safe_write(self._radiation, constant_path / "radiationProperties")
+            self._safe_write(self._fvmodels, constant_path / "fvModels")
 
-            try:
-                # _safe_write essaiera d'appeler obj.write(file_path) puis obj.write(dir)
-                self._safe_write(self._radiation, constant_path / "radiationProperties")
-                self._safe_write(self._fvmodels, constant_path / "fvModels")
-            except Exception as exc:
-                logger.error("Erreur écriture radiation: %s", exc)
-                raise
+        logger.info(f"Successfully wrote constant directory files to {constant_path}")
+        return self  # Enable method chaining
 
-        logger.info("Écriture du répertoire constant terminée pour %s", base_path)
+    # ======================
+    # Backward Compatibility
+    # ======================
+    __call__ = write  # Allow solver.constant() syntax
