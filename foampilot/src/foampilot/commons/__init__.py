@@ -4,3 +4,7 @@
 
 from foampilot.commons.read_polymesh import BoundaryFileHandler
 
+
+from foampilot.commons.serialize_class import Serializable
+
+
