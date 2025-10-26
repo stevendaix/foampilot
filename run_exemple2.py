@@ -147,28 +147,29 @@ meshing.run_blockMesh()
 solver.boundary.initialize_boundary()
 
 # Set inlet velocity boundary condition
-solver.boundary.set_velocity_inlet(
+solver.boundary.apply_condition_with_wildcard(
     pattern="inlet",
-    velocity=(Quantity(10,"m/s"),Quantity(0,"m/s"),Quantity(0,"m/s")),
+    condition_type="velocityInlet",
+    velocity=(Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")),
     turbulence_intensity=0.05  # 5% turbulence intensity
 )
 
 # Set outlet pressure boundary condition
-solver.boundary.set_pressure_outlet(
+solver.boundary.apply_condition_with_wildcard(
     pattern="outlet",
-    velocity=(Quantity(10,"m/s"),Quantity(0,"m/s"),Quantity(0,"m/s")),
+    condition_type="pressureOutlet"
 )
 
-# Set no-slip wall boundary condition
-solver.boundary.set_wall(
-    pattern="walls",velocity=(Quantity(0,"m/s"),Quantity(0,"m/s"),Quantity(0,"m/s"))
+
+solver.boundary.apply_condition_with_wildcard(
+    pattern="walls",
+    condition_type="wall"
 )
 
 
 # Write boundary condition files for all fields
-fields = ["U", "p", "k", "epsilon","nut"]
-for field in fields:
-    solver.boundary.write_boundary_file(field)
+solver.boundary.write_boundary_conditions()
+
 
 print("Boundary condition files have been generated")
 

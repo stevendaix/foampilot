@@ -1,17 +1,29 @@
-# Ignorer tout
+# === Ignore tout par défaut ===
 *
-!*
-*.venv*
-*egg-info*
-*old/
-*test/
-*ref/
-*document/
-*tuto/
-*exemple*
-*.ipynb
-!run_*
-!LICENSE*
+
+# === Réautorise la navigation dans les dossiers ===
+!*/
+
+# === Garde les fichiers essentiels ===
 !pyproject.toml
+!LICENSE*
+!README.md
 !readme.md
+!run_*
 !cas_test/
+
+
+# === Ignore les dossiers de build / metadata ===
+*.egg-info/
+__pycache__/
+*.py[cod]
+
+# === Ignore les dossiers spécifiques à ton projet ===
+old/
+test/
+ref/
+document/
+tuto/
+exemple*/
+notebook*/
+*.ipynb

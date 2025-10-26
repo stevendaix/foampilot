@@ -68,7 +68,7 @@ BOUNDARY_CONDITIONS_CONFIG = {
             },
         },
         "pressureOutlet": {
-            "U": {"type": "pressureInletOutletVelocity", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
+            "U": {"type": "pressureInletOutletVelocity", "value": "uniform (0 0 0)"},
             "p": {"type": "fixedValue", "value": "uniform 0"},
             "k": {"type": "zeroGradient"},
             "epsilon": {"type": "zeroGradient"},

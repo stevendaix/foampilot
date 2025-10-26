@@ -93,4 +93,6 @@ tout est défini dans des fichiers Python, depuis la création du maillage jusqu
 
 # 📌 Exemple rapide
 
+installer ca pour gmsh
+sudo apt install libglu1-mesa libgl1-mesa-glx libxrender1 libxext6
 

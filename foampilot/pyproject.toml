@@ -43,6 +43,9 @@ dependencies = [
 dev = []
 docs = ["mkdocs", "mkdocs-material", "mkdocs-static-i18n", "mkdocstrings", "mkdocstrings-python"]
 
+[tool.foampilot.system-requirements]
+linux = ["libglu1-mesa", "libgl1-mesa-glx", "libxrender1", "libxext6"]
+
 [project.urls]
 Homepage = "https://github.com/your-github/foampilot"
 Bug_Tracker = "https://github.com/your-github/foampilot/issues"

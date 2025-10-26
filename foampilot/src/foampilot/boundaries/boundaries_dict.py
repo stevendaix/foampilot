@@ -4,7 +4,7 @@ import warnings
 from typing import Dict, List, Optional, Any
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from foampilot.utilities.manageunits import Quantity
-from .boundary_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
+from foampilot.boundaries.boundaries_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
 
 from foampilot.base.cases_variables import CaseFieldsManager
 
@@ -59,28 +59,31 @@ class Boundary:
 
     def initialize_boundary(self):
         """
-        Initialize boundary fields with patch names and automatically apply wall/symmetry conditions.
+        Initialize boundary fields with patch names and automatically apply default conditions.
+        Wall boundaries get 'wall' with friction, empty boundaries get 'symmetry'.
         """
         case_path = Path(self.parent.case_path)
         patch_types = self.load_boundary_names(case_path)
 
-        patch_type_to_warn = "patch"
-        patches_found = [name for name, ptype in patch_types.items() if ptype == patch_type_to_warn]
-
+        # Warning for generic patch types
+        patches_found = [name for name, ptype in patch_types.items() if ptype == "patch"]
         if patches_found:
             warnings.warn(
-                f"Warning: The following patches are of type '{patch_type_to_warn}': {patches_found}. "
+                f"Warning: The following patches are of type 'patch': {patches_found}. "
                 "Please verify that their boundary conditions are properly defined."
             )
 
+        # Initialize empty dictionaries for each field
         for field in self.fields:
             self.fields[field] = {name: {} for name in patch_types}
 
+        # Apply default conditions
         for patch_name, patch_type in patch_types.items():
             if patch_type == "wall":
                 self.set_condition(patch_name, "wall", friction=True)
             elif patch_type == "empty":
                 self.set_condition(patch_name, "symmetry")
+            # Leave 'patch' type for later explicit assignment if needed
 
     def apply_condition_with_wildcard(self, pattern: str, condition_type: str, **kwargs):
         """
@@ -97,17 +100,21 @@ class Boundary:
 
     def set_condition(self, boundary_name: str, condition_type: str, **kwargs):
         """
-        Set a boundary condition based on the configuration.
-
-        Args:
-            boundary_name: The name of the boundary to apply the condition to.
-            condition_type: The type of condition (e.g., "velocityInlet").
-            **kwargs: Arguments for the condition.
+        Set a boundary condition for a given patch, using the turbulence model config.
+        Automatically provides default 'velocity' if required.
         """
         condition_config = self.config.get(condition_type)
         if not condition_config:
-            raise ValueError(f"Condition type '{condition_type}' is not defined for model '{self.turbulence_model}'.")
+            raise ValueError(
+                f"Condition type '{condition_type}' is not defined for turbulence model '{self.turbulence_model}'."
+            )
 
+        # Ensure velocity is always defined
+        if "velocity" not in kwargs:
+            from foampilot.utilities.manageunits import Quantity
+            kwargs["velocity"] = (Quantity(0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+
+        # Validate and calculate additional parameters
         calculator = CONDITION_CALCULATORS.get(condition_type)
         if calculator:
             if not calculator["validate"](**kwargs):
@@ -115,6 +122,7 @@ class Boundary:
             calculated_params = calculator["calculate"](**kwargs)
             kwargs.update(calculated_params)
 
+        # Apply the resolved configuration to each field
         for field, field_config in condition_config.items():
             if field in self.fields:
                 final_config = self._resolve_field_config(field_config, kwargs)
@@ -124,7 +132,13 @@ class Boundary:
     def _resolve_field_config(self, field_config: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """
         Resolve the specific configuration for a field based on provided arguments.
+        Ensures that a default velocity is present for wall conditions.
         """
+        # Ajouter une valeur par défaut pour velocity si non fournie
+        if "velocity" not in kwargs:
+            from foampilot.utilities.manageunits import Quantity
+            kwargs["velocity"] = (Quantity(0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+
         if "type" in field_config and field_config["type"] == "wallFunction":
             wall_func_conf = WALL_FUNCTIONS[self.turbulence_model][field_config["function"]]
             if kwargs.get("velocity"):
@@ -143,6 +157,7 @@ class Boundary:
             return field_config["noSlip"]
 
         return field_config
+
 
     def _format_config(self, config: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
         """

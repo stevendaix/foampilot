@@ -2,7 +2,7 @@
 
 # Importer tous les modules nécessaires
 from foampilot.base import  Meshing
-from foampilot.solver import  incompressibleFluid
+from foampilot.solver import  solver
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
