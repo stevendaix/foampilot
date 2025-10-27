@@ -174,17 +174,18 @@ class Boundary:
                 formatted_config[key] = value
         return formatted_config
 
+
     def write_boundary_conditions(self):
-    """
-    Write the boundary conditions to their respective files in the 0/ directory.
-    """
-    for field, boundaries in self.fields.items():
-        foam_file = OpenFOAMFile(field)  # on donne le nom du champ à la classe
-        foam_file.write_boundary_file(
-            field=field,
-            boundaries=boundaries,
-            case_path=self.parent.case_path
-        )
+        """
+        Write the boundary conditions to their respective files in the 0/ directory.
+        """
+        for field, boundaries in self.fields.items():
+            foam_file = OpenFOAMFile(field)  # on donne le nom du champ à la classe
+            foam_file.write_boundary_file(
+                field=field,
+                boundaries=boundaries,
+                case_path=self.parent.case_path
+            )
 
 # Example Usage (for demonstration)
 if __name__ == '__main__':
