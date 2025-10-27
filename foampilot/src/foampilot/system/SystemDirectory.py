@@ -30,7 +30,7 @@ class SystemDirectory:
             parent: The parent case object that owns this system directory.
         """
         self.parent = parent 
-        self.controlDict = ControlDictFile()
+        self.controlDict = ControlDictFile(parent=parent)
       
         self.additional_files = {}
         self.fvSchemes = FvSchemesFile(parent=parent, fields_manager=getattr(parent, "fields_manager", None))
