@@ -75,7 +75,7 @@ class TransportPropertiesFile(OpenFOAMFile):
         """
         self.parent = parent
         self.transportModel = transportModel
-        self.nu = self._to_quantity(nu, "nu")
+        self._nu = self._to_quantity(nu, "nu") # Stockage interne
         self.rho = self._to_quantity(rho, "rho") if rho is not None else None
         self.mu = self._to_quantity(mu, "mu") if mu is not None else None
         self.crossPowerLawCoeffs = self._process_coeffs(crossPowerLawCoeffs) if crossPowerLawCoeffs else None
@@ -90,7 +90,18 @@ class TransportPropertiesFile(OpenFOAMFile):
         if self.parent and hasattr(self.parent, "fields_manager"):
             self._configure_from_fields()
 
-        super().__init__(object_name="transportProperties")
+        super().__init__(object_name="transportProperties", **self.attributes)
+
+    @property
+    def nu(self):
+        return self._nu
+
+    @nu.setter
+    def nu(self, value):
+        self._nu = self._to_quantity(value, "nu")
+        self._configure_attributes()
+        # Mise à jour de self.attributes pour l'écriture
+        self.attributes = self.to_dict()
 
     def _to_quantity(self, value: Union[str, Quantity, float], name: str) -> Quantity:
         """
@@ -137,7 +148,7 @@ class TransportPropertiesFile(OpenFOAMFile):
             # Convert dynamic viscosity (mu) to kinematic viscosity (nu)
             if self.rho is None:
                 raise ValueError("Density (rho) is required to convert dynamic viscosity (mu) to kinematic viscosity (nu)")
-            self.nu = self.mu / self.rho
+            self._nu = self.mu / self.rho
             self.mu = None  # Clear to avoid confusion
 
     def _configure_attributes(self):
@@ -147,9 +158,11 @@ class TransportPropertiesFile(OpenFOAMFile):
         self.attributes = {
             "transportModel": self.transportModel,
         }
-
+        
+        # Ajouter le champ nu si le modèle est Newtonian
         if self.transportModel == "Newtonian":
             self.attributes["nu"] = f"[0 2 -1 0 0 0 0] {self.nu.magnitude if isinstance(self.nu, Quantity) else self.nu}"
+
         elif self.transportModel == "nonNewtonian":
             self.attributes.update({
                 "transportModel": "nonNewtonian",
