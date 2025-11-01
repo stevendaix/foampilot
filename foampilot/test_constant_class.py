@@ -107,6 +107,95 @@ def run_test(case_name: str, compressible: bool, with_gravity: bool, with_radiat
 
     print(f"--- Fin du test : {case_name} ---\n")
 
+#############################
+
+
+
+def build_reference_files(
+    compressible: bool,
+    with_gravity: bool,
+    with_radiation: bool,
+    overwrite: bool = True,
+):
+    """
+    Construit un set de fichiers de référence dans reference_constant_files/
+    selon les options du solveur (compressible, gravité, radiation).
+    """
+
+    tmp_case = Path("_reference_tmp_case")
+
+    # Reset dossier
+    if tmp_case.exists():
+        shutil.rmtree(tmp_case)
+    tmp_case.mkdir(parents=True)
+
+    # Init solver
+    solver = Solver(tmp_case)
+    solver.compressible = compressible
+    solver.with_gravity = with_gravity
+
+    if compressible:
+        solver.constant.physicalProperties.mu = Quantity("1.8e-5", "kg/m/s")
+        solver.constant.physicalProperties.Cp = Quantity(1005, "J/kg/K")
+        solver.constant.pRef.value = Quantity(101325, "Pa")
+    else:
+        solver.constant.transportProperties.nu = Quantity("1.5e-5", "m^2/s")
+
+    if with_radiation:
+        solver.constant.enable_radiation(model="P1")
+
+    # Write constant files
+    solver.constant.write()
+
+    # Ensure reference dir exists
+    REFERENCE_DIR.mkdir(exist_ok=True)
+
+    # Copy generated files
+    constant_dir = tmp_case / "constant"
+
+    print("\nCréation des fichiers de référence :")
+    for f in constant_dir.iterdir():
+        dst = REFERENCE_DIR / f.name
+
+        if dst.exists() and not overwrite:
+            print(f"   ⚠ {f.name} existe déjà → ignoré")
+            continue
+
+        shutil.copy(f, dst)
+        print(f"   ✅ Copié : {f.name}")
+
+    print("\n✅ Références mises à jour dans reference_constant_files/")
+
+    # Clean tmp dir
+    shutil.rmtree(tmp_case)
+
+def build_all_reference_sets(overwrite=True):
+
+    print("\n=== Construction des références ===\n")
+
+    cases = [
+        ("incompressible", False, False),
+        ("incompressible_gravity", False, True),
+        ("compressible", True, False),
+        ("compressible_gravity_radiation", True, True),
+    ]
+
+    for name, comp, grav in cases:
+        print(f"--- {name} ---")
+        build_reference_files(
+            compressible=comp,
+            with_gravity=grav,
+            with_radiation=(comp and grav),
+            overwrite=overwrite,
+        )
+
+    print("\n=== Fin construction références ===\n")
+
+    # build_all_reference_sets(overwrite=True)
+
+
+
+
 
 if __name__ == "__main__":
     run_test("test_incompressible", compressible=False, with_gravity=False, with_radiation=False)
