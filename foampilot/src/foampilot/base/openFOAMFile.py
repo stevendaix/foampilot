@@ -48,7 +48,7 @@ class OpenFOAMFile:
     def __getattr__(self, item):
         if item in self.attributes:
             return self.attributes[item]
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{item}'")
+        raise AttributeError(f"\'{self.__class__.__name__}\' object has no attribute \'{item}\'")
 
     def __setattr__(self, key, value):
         if key in ("header", "attributes", "object_name"):
@@ -67,11 +67,11 @@ class OpenFOAMFile:
         if isinstance(value, (int, float)):
             return format(value, ".15g")
         if isinstance(value, Quantity):
-            unit = self.DEFAULT_UNITS.get(key, None)
-            if unit:
-                return format(value.get_in(unit), ".15g")
-            else:
-                return format(value.magnitude, ".15g")
+            unit = self.DEFAULT_UNITS.get(key)
+            val = value.get_in(unit) if unit else value.magnitude
+            if isinstance(val, (int, float)):
+                return f'{val:.15g}'
+            return str(val)
         return str(value)
 
     def _write_attributes(self, file, attributes, indent_level=0):
@@ -79,22 +79,22 @@ class OpenFOAMFile:
         for key, value in attributes.items():
             if isinstance(value, dict):
                 if value:
-                    file.write(f"{indent}{key}\n{indent}{{\n")
+                    file.write(f'{indent}{key}\n{indent}{{\n')
                     self._write_attributes(file, value, indent_level + 1)
-                    file.write(f"{indent}}}\n")
+                    file.write(f'{indent}}}\n')
             else:
-                file.write(f"{indent}{key} {self._format_value(key, value)};\n")
+                file.write(f'{indent}{key} {self._format_value(key, value)};\n')
 
     # -------------------------------------------------------------------------
     # Generic writer
     # -------------------------------------------------------------------------
-    def write(self, filepath):
+    def write_file(self, filepath):
         try:
             filepath = Path(filepath)
             with open(filepath, 'w') as file:
                 file.write("FoamFile\n{\n")
                 for key, value in self.header.items():
-                    file.write(f"    {key}     {value};\n")
+                    file.write(f'    {key}     {value};\n')
                 file.write("}\n\n")
                 self._write_attributes(file, self.attributes)
         except IOError as e:
@@ -146,14 +146,14 @@ class OpenFOAMFile:
         # Write file
         with open(file_path, "w") as f:
             f.write(self._generate_field_header(field))
-            f.write(f"\ndimensions      {self.FIELD_DIMENSIONS.get(field, '[0 0 0 0 0 0 0]')};\n")
+            f.write(f'\ndimensions      {self.FIELD_DIMENSIONS.get(field, "[0 0 0 0 0 0 0]")};\n')
             f.write(f"internalField   {internal_field};\n\n")
 
             f.write("boundaryField\n{\n")
             for patch, params in boundaries.items():
-                f.write(f"    {patch}\n    {{\n")
+                f.write(f'    {patch}\n    {{\n')
                 for key, value in params.items():
-                    f.write(f"        {key:<15} {value};\n")
+                    f.write(f'        {key:<15} {value};\n')
                 f.write("    }\n\n")
             f.write("}\n\n")
             f.write("// ************************************************************************* //\n")
