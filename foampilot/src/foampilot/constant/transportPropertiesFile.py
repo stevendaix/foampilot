@@ -1,6 +1,9 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from foampilot.utilities.manageunits import Quantity
 from typing import Optional, Any, Dict, Union
+from pathlib import Path
+
+
 
 class TransportPropertiesFile(OpenFOAMFile):
     """
@@ -195,3 +198,7 @@ class TransportPropertiesFile(OpenFOAMFile):
         Convert the configuration to a dictionary for OpenFOAM file writing.
         """
         return self.attributes
+
+    def write(self, filepath: Path):
+        """Write the transportProperties file."""
+        self.write_file(filepath)
