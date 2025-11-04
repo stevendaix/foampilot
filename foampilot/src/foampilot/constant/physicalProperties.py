@@ -1,6 +1,10 @@
+
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from foampilot.utilities.manageunits import Quantity
 from typing import Optional, Dict, Any
+from pathlib import Path
+
+
 
 class PhysicalPropertiesFile(OpenFOAMFile):
     """
@@ -256,3 +260,7 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         Convert the configuration to a dictionary for OpenFOAM file writing.
         """
         return self.attributes
+
+    def write(self, filepath: Path):
+        """Write the physicalProperties file."""
+        self.write_file(filepath)
