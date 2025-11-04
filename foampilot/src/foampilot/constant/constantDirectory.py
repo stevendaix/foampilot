@@ -99,7 +99,7 @@ class ConstantDirectory:
 
         # Gravity
         if getattr(self.solver, "with_gravity", False):
-            self._gravity.write(constant_path / "g")
+            self._gravity.write()
             # Update p → p_rgh if necessary
             if hasattr(self.solver.fields_manager.fields, "p") and "p_rgh" not in self.solver.fields_manager.fields:
                 self.solver.fields_manager.fields["p_rgh"] = self.solver.fields_manager.fields.pop("p")
