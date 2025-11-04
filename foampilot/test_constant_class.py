@@ -9,6 +9,7 @@ Ce script va :
 5. Comparer leur contenu avec des fichiers de référence.
 """
 
+
 from pathlib import Path
 import shutil
 import filecmp
@@ -155,6 +156,21 @@ def build_reference_files(
 
     print("\nCréation des fichiers de référence :")
     for f in constant_dir.iterdir():
+        if f.is_dir():
+                # Pour les répertoires comme radiationProperties et fvModels, on copie le contenu
+                # On suppose que le contenu est un fichier du même nom dans le sous-répertoire
+                sub_file = f / f.name
+                if sub_file.exists():
+                    dst = REFERENCE_DIR / sub_file.name
+                    if dst.exists() and not overwrite:
+                        print(f"   ⚠ {sub_file.name} existe déjà → ignoré")
+                        continue
+                    shutil.copy(sub_file, dst)
+                    print(f"   ✅ Copié : {sub_file.name}")
+                else:
+                    print(f"   ⚠ Répertoire {f.name} trouvé, mais fichier interne {sub_file.name} manquant → ignoré")
+                continue
+
         dst = REFERENCE_DIR / f.name
 
         if dst.exists() and not overwrite:
