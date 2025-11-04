@@ -1,5 +1,8 @@
+import OpenFOAMFile
+from typing import Any
 from pathlib import Path
-from foampilot.base.openFOAMFile import OpenFOAMFile
+
+
 
 class TurbulencePropertiesFile(OpenFOAMFile):
     """
@@ -25,7 +28,8 @@ class TurbulencePropertiesFile(OpenFOAMFile):
         "v2-f": "v2f"
     }
 
-    def __init__(self, simulationType="RAS", RASModel="k-epsilon", turbulence="on", printCoeffs="on"):
+    def __init__(self, parent: Any, simulationType="RAS", RASModel="k-epsilon", turbulence="on", printCoeffs="on"):
+        self.parent = parent
         """
         Initialize a turbulenceProperties file.
 
@@ -67,3 +71,7 @@ class TurbulencePropertiesFile(OpenFOAMFile):
             Internal code for the model in OpenFOAM.
         """
         cls.AVAILABLE_MODELS[model_name] = model_code
+
+    def write(self, filepath: Path):
+        """Write the turbulenceProperties file."""
+        self.write_file(filepath)
