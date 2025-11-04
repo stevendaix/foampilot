@@ -1,7 +1,11 @@
+
 # foampilot/constant/pRefFile.py
 
 from foampilot.utilities.manageunits import Quantity
 from foampilot.base.openFOAMFile import OpenFOAMFile
+from pathlib import Path
+
+
 
 
 class PRefFile(OpenFOAMFile):
@@ -37,3 +41,7 @@ class PRefFile(OpenFOAMFile):
             # toujours en Pascal (Pa) via get_in()
             return format(value.get_in("Pa"), ".15g")
         return super()._format_value(key, value)
+
+    def write(self, filepath: Path):
+        """Write the pRef file."""
+        self.write_file(filepath)
