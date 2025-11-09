@@ -195,6 +195,10 @@ class FvSchemesFile(OpenFOAMFile):
             d["wallDist"] = self.wallDist
         return d
 
+    def write(self, filepath):
+        """Write the fvSchemes file."""
+        self.write_file(filepath)
+
     @classmethod
     def from_dict(cls, config: Dict[str, Dict[str, str]], parent: Any) -> "FvSchemesFile":
         return cls(
