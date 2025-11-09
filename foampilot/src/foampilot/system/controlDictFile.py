@@ -107,3 +107,6 @@ class ControlDictFile(OpenFOAMFile):
             runTimeModifiable=config.get('runTimeModifiable', True),
             functions=config.get('functions', {})
         )
+    def write(self, filepath):
+        """Write the controlDict file."""
+        self.write_file(filepath)
