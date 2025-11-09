@@ -105,7 +105,7 @@ if __name__ == "__main__":
     run_system_test("test_incompressible_simple", transient=False, energy=False, simulation_type="incompressible", algorithm="SIMPLE")
 
     # Cas incompressible transitoire SIMPLE
-    run_system_test("test_incompressible_transient", transient=True, energy=False, simulation_type="incompressible", algorithm="SIMPLE")
+    run_system_test("test_incompressible_transient", transient=True, energy=False, simulation_type="incompressible", algorithm="PIMPLE")
 
     # Cas compressible avec énergie
     run_system_test("test_compressible_energy", transient=False, energy=True, simulation_type="compressible", algorithm="SIMPLE")
