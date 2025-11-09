@@ -66,6 +66,8 @@ class SystemDirectory:
         # Write any additional files that were added
         for file_name, file in self.additional_files.items():
             file.write(system_path / file_name)
+        
+        return system_path
 
     def add_dict_file(self, file_name, file_content):
         """
