@@ -29,12 +29,12 @@ class FvSolutionFile(OpenFOAMFile):
         algo = getattr(self.parent, "algorithm", "SIMPLE")
         transient = getattr(self.parent, "transient", False)
 
-        if algo == "SIMPLE" and not transient:
-            self.SIMPLE = self._init_simple(SIMPLE)
-            self.PIMPLE = None
-        else:
+        if transient or algo == "PIMPLE":
             self.PIMPLE = self._init_pimple(PIMPLE)
             self.SIMPLE = None
+        else:
+            self.SIMPLE = self._init_simple(SIMPLE)
+            self.PIMPLE = None
 
         self.relaxationFactors = self._init_relaxation_factors(relaxationFactors)
 
@@ -118,7 +118,7 @@ class FvSolutionFile(OpenFOAMFile):
                 )
 
         # PIMPLE : champs finals
-        if (algo == "PIMPLE" or (sim_type == "incompressible" and transient)) and (sim_type in ["compressible", "incompressible"] or energy_active):
+        if (algo == "PIMPLE" or transient) and (sim_type in ["compressible", "incompressible"] or energy_active):
             final_fields = []
             if pressure_field in self.solvers:
                 final_fields.append(pressure_field)
@@ -237,7 +237,7 @@ class FvSolutionFile(OpenFOAMFile):
                     relTol=self.DEFAULT_REL_TOL,
                 )
 
-        if (algo == "PIMPLE" or (sim_type == "incompressible" and transient)) and (sim_type in ["compressible", "incompressible"] or energy_active):
+        if (algo == "PIMPLE" or transient) and (sim_type in ["compressible", "incompressible"] or energy_active):
             solvers["pFinal"] = {"$p": "", "relTol": "0"}
             solvers["UFinal"] = {"$U": "", "relTol": "0"}
             if sim_type == "compressible" or energy_active:
@@ -330,8 +330,12 @@ class FvSolutionFile(OpenFOAMFile):
             d["PIMPLE"] = self.PIMPLE
         return d
 
+    def write(self, filepath):
+        """Write the fvSolution file."""
+        self.write_file(filepath)
+
     @classmethod
-    def from_dict(cls, config: Dict[str, Any], parent: Any) -> "FvSolutionFile":
+    def from_dict(cls, config: Dict[str, Dict[str, str]], parent: Any) -> "FvSolutionFile":
         return cls(
             parent=parent,
             solvers=config.get("solvers"),
