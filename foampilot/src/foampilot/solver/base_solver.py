@@ -6,6 +6,7 @@ from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.base.cases_variables import CaseFieldsManager
+import os
 
 class BaseSolver:
     """Base solver class with all common functionality."""

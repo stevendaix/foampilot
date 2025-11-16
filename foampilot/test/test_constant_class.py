@@ -1,34 +1,25 @@
-"""
-Script de test complet pour toutes les classes du répertoire `constant` de foampilot.
-
-Ce script va :
-1. Initialiser un cas de test pour un solveur incompressible.
-2. Initialiser un cas de test pour un solveur compressible.
-3. Tester l'écriture de tous les fichiers du répertoire `constant`.
-4. Vérifier la présence des fichiers générés.
-5. Comparer leur contenu avec des fichiers de référence.
-"""
-
-
 from pathlib import Path
 import shutil
 import filecmp
 import os
 
-from foampilot.solver import Solver
+from foampilot.solver.solver import Solver
 from foampilot.utilities.manageunits import Quantity
 
+BASE_REFERENCE_DIR = Path("reference/constant_files")
+TESTS_DIR = Path("tests")
 
-REFERENCE_DIR = Path("reference_constant_files")
 
-
-def compare_with_reference(file_path: Path) -> bool:
-    """Compare un fichier généré avec son équivalent dans reference_constant_files."""
-    ref_file = REFERENCE_DIR / file_path.name
+# ------------------------
+# Comparaison avec référence
+# ------------------------
+def compare_with_reference(case_name: str, file_path: Path) -> bool:
+    """Compare un fichier généré avec son équivalent dans reference_constant_files/<case_name>."""
+    ref_file = BASE_REFERENCE_DIR / case_name / file_path.name
 
     if not ref_file.exists():
         print(f"   ⚠ Aucun fichier de référence trouvé pour {file_path.name} → ignoré")
-        return True  # On ignore la comparaison
+        return True
 
     if filecmp.cmp(file_path, ref_file, shallow=False):
         print(f"      ✅ Contenu identique au fichier de référence.")
@@ -38,23 +29,24 @@ def compare_with_reference(file_path: Path) -> bool:
     return False
 
 
+# ------------------------
+# Run test case
+# ------------------------
 def run_test(case_name: str, compressible: bool, with_gravity: bool, with_radiation: bool):
-    print(f"--- Démarrage du test : {case_name} ---")
-    case_path = Path.cwd() / case_name
+    print(f"\n--- Démarrage du test : {case_name} ---")
+    case_path = TESTS_DIR / case_name
     if case_path.exists():
         shutil.rmtree(case_path)
     case_path.mkdir(parents=True, exist_ok=True)
 
-    # 1. Initialisation du solveur
     solver = Solver(case_path)
     solver.compressible = compressible
     solver.with_gravity = with_gravity
 
-    # 2. Configuration des propriétés
+    # Propriétés
     if compressible:
         solver.constant.physicalProperties.mu = Quantity("1.8e-5", "kg/m/s")
         solver.constant.physicalProperties.Cp = Quantity(1005, "J/kg/K")
-        solver.constant.physicalProperties.energy = True
         solver.constant.pRef.value = Quantity(101325, "Pa")
     else:
         solver.constant.transportProperties.nu = Quantity("1.5e-5", "m^2/s")
@@ -62,13 +54,12 @@ def run_test(case_name: str, compressible: bool, with_gravity: bool, with_radiat
     if with_radiation:
         solver.constant.enable_radiation(model="P1")
 
-    # 3. Écriture
     solver.constant.write()
 
-    # 4. Vérification
+    # Vérification
     print(f"\nVérification des fichiers pour le cas '{case_name}':")
     constant_dir = case_path / "constant"
-    expected_files = []
+    expected_files = ["turbulenceProperties"]
 
     if compressible:
         expected_files.extend(["physicalProperties", "pRef"])
@@ -81,18 +72,15 @@ def run_test(case_name: str, compressible: bool, with_gravity: bool, with_radiat
     if with_radiation:
         expected_files.extend(["radiationProperties", "fvModels"])
 
-    expected_files.append("turbulenceProperties")
-
     all_ok = True
     for f in expected_files:
         file_path = constant_dir / f
-
+        
         if file_path.exists():
             print(f"  ✅ Fichier '{f}' trouvé.")
             if os.path.getsize(file_path) > 50:
                 print(f"      - Contenu non vide.")
-
-                ok = compare_with_reference(file_path)
+                ok = compare_with_reference(case_name, file_path)
                 all_ok = all_ok and ok
             else:
                 print(f"      ❌ Fichier '{f}' vide !")
@@ -108,29 +96,22 @@ def run_test(case_name: str, compressible: bool, with_gravity: bool, with_radiat
 
     print(f"--- Fin du test : {case_name} ---\n")
 
-#############################
 
-
-
+# ------------------------
+# Build reference files
+# ------------------------
 def build_reference_files(
+    case_name: str,
     compressible: bool,
     with_gravity: bool,
     with_radiation: bool,
     overwrite: bool = True,
 ):
-    """
-    Construit un set de fichiers de référence dans reference_constant_files/
-    selon les options du solveur (compressible, gravité, radiation).
-    """
-
     tmp_case = Path("_reference_tmp_case")
-
-    # Reset dossier
     if tmp_case.exists():
         shutil.rmtree(tmp_case)
     tmp_case.mkdir(parents=True)
 
-    # Init solver
     solver = Solver(tmp_case)
     solver.compressible = compressible
     solver.with_gravity = with_gravity
@@ -145,76 +126,51 @@ def build_reference_files(
     if with_radiation:
         solver.constant.enable_radiation(model="P1")
 
-    # Write constant files
     solver.constant.write()
 
-    # Ensure reference dir exists
-    REFERENCE_DIR.mkdir(exist_ok=True)
+    # Créer dossier de référence pour le cas
+    case_ref_dir = BASE_REFERENCE_DIR / case_name
+    case_ref_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copy generated files
     constant_dir = tmp_case / "constant"
-
-    print("\nCréation des fichiers de référence :")
+    print(f"\nCréation des fichiers de référence pour {case_name}:")
     for f in constant_dir.iterdir():
-        if f.is_dir():
-                # Pour les répertoires comme radiationProperties et fvModels, on copie le contenu
-                # On suppose que le contenu est un fichier du même nom dans le sous-répertoire
-                sub_file = f / f.name
-                if sub_file.exists():
-                    dst = REFERENCE_DIR / sub_file.name
-                    if dst.exists() and not overwrite:
-                        print(f"   ⚠ {sub_file.name} existe déjà → ignoré")
-                        continue
-                    shutil.copy(sub_file, dst)
-                    print(f"   ✅ Copié : {sub_file.name}")
-                else:
-                    print(f"   ⚠ Répertoire {f.name} trouvé, mais fichier interne {sub_file.name} manquant → ignoré")
-                continue
-
-        dst = REFERENCE_DIR / f.name
-
+        dst = case_ref_dir / f.name
         if dst.exists() and not overwrite:
             print(f"   ⚠ {f.name} existe déjà → ignoré")
             continue
-
         shutil.copy(f, dst)
         print(f"   ✅ Copié : {f.name}")
 
-    print("\n✅ Références mises à jour dans reference_constant_files/")
-
-    # Clean tmp dir
     shutil.rmtree(tmp_case)
+    print(f"\n✅ Références mises à jour pour {case_name}.\n")
 
+
+# ------------------------
+# Build all reference sets
+# ------------------------
 def build_all_reference_sets(overwrite=True):
-
     print("\n=== Construction des références ===\n")
-
     cases = [
-        ("incompressible", False, False),
-        ("incompressible_gravity", False, True),
-        ("compressible", True, False),
-        ("compressible_gravity_radiation", True, True),
+        ("incompressible", False, False, False),
+        ("incompressible_gravity", False, True, False),
+        ("compressible", True, False, False),
+        ("compressible_gravity_radiation", True, True, True),
     ]
-
-    for name, comp, grav in cases:
-        print(f"--- {name} ---")
-        build_reference_files(
-            compressible=comp,
-            with_gravity=grav,
-            with_radiation=(comp and grav),
-            overwrite=overwrite,
-        )
-
+    for name, comp, grav, rad in cases:
+        build_reference_files(name, comp, grav, rad, overwrite=overwrite)
     print("\n=== Fin construction références ===\n")
 
-    # build_all_reference_sets(overwrite=True)
 
-
-
-
-
+# ------------------------
+# Main
+# ------------------------
 if __name__ == "__main__":
-    run_test("test_incompressible", compressible=False, with_gravity=False, with_radiation=False)
-    run_test("test_incompressible_gravity", compressible=False, with_gravity=True, with_radiation=False)
-    run_test("test_compressible", compressible=True, with_gravity=False, with_radiation=False)
-    run_test("test_compressible_gravity_radiation", compressible=True, with_gravity=True, with_radiation=True)
+    # 1️⃣ Build references
+    build_all_reference_sets(overwrite=True)
+
+    # 2️⃣ Run all tests
+    run_test("incompressible", False, False, False)
+    run_test("incompressible_gravity", False, True, False)
+    run_test("compressible", True, False, False)
+    run_test("compressible_gravity_radiation", True, True, True)

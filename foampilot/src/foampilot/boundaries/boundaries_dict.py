@@ -111,7 +111,6 @@ class Boundary:
 
         # Ensure velocity is always defined
         if "velocity" not in kwargs:
-            from foampilot.utilities.manageunits import Quantity
             kwargs["velocity"] = (Quantity(0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
 
         # Validate and calculate additional parameters

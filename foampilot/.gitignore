@@ -4,7 +4,6 @@
 *.venv*
 *egg-info*
 *old/
-*test/
 *ref/
 *document/
 *exemple*
@@ -12,3 +11,4 @@
 !LICENSE*
 !pyproject.toml
 !readme.md
+

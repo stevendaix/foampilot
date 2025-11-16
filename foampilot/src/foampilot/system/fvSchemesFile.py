@@ -63,6 +63,17 @@ class FvSchemesFile(OpenFOAMFile):
         field_names = self.fields_manager.get_field_names()
         sim_type = getattr(self.parent, "simulation_type", "incompressible")
         energy_var = getattr(self.parent, "energy_variable", "e")
+        transient = getattr(self.parent, "transient", False)
+
+        # -------------------------
+        # 
+        # ddtSchemes
+        # -------------------------
+        # 
+        # Set ddt scheme for transient simulations
+        if not transient:
+            self.ddtSchemes["default"] = "steadyState"
+        
 
         # --- divSchemes ---
         if "U" in field_names:
@@ -175,7 +186,7 @@ class FvSchemesFile(OpenFOAMFile):
 
     def _init_wall_dist(self, wall: Optional[Dict[str, str]]) -> Optional[Dict[str, str]]:
         sim = getattr(self.parent, "simulation_type", "incompressible")
-        if sim == "vof" and wall is None:
+        if sim == "vof" or wall is None:
             return {"method": "meshWave"}
         return wall.copy() if wall else None
 

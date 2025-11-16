@@ -36,7 +36,10 @@ dependencies = [
   "imageio",
   "seaborn",
   "ipykernel",
-  "jupyter"
+  "jupyter",
+  "pytest",
+  "pdflatex",
+  "pyvirtualdisplay"
 ]
 
 [project.optional-dependencies]

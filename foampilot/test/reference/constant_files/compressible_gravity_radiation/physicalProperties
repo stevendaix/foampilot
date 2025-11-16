@@ -1,0 +1,41 @@
+FoamFile
+{
+    version     2.0;
+    format     ascii;
+    class     dictionary;
+    object     physicalProperties;
+}
+
+pRef 100000;
+thermoType
+{
+    type heRhoThermo;
+    mixture pureMixture;
+    transport const;
+    specie specie;
+    thermo hConst;
+    equationOfState perfectGas;
+    energy sensibleEnthalpy;
+}
+thermoType {'type': 'heRhoThermo', 'mixture': 'pureMixture', 'transport': 'const', 'specie': 'specie', 'thermo': 'hConst', 'equationOfState': 'perfectGas', 'energy': 'sensibleEnthalpy'};
+mixture
+{
+    specie
+    {
+        molWeight 28.9;
+    }
+    specie {'molWeight': 28.9};
+    transport
+    {
+        mu 1.8e-05;
+        Pr 0.7;
+    }
+    transport {'mu': 1.8e-05, 'Pr': 0.7};
+    thermodynamics
+    {
+        Cp 1005;
+        hf 0;
+    }
+    thermodynamics {'Cp': 1005.0, 'hf': 0.0};
+}
+mixture {'specie': {'molWeight': 28.9}, 'transport': {'mu': 1.8e-05, 'Pr': 0.7}, 'thermodynamics': {'Cp': 1005.0, 'hf': 0.0}};

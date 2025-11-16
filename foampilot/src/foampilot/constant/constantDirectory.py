@@ -108,8 +108,8 @@ class ConstantDirectory:
         if self.with_radiation:
             if self._radiation is None:
                 self.enable_radiation()
-            self._radiation.write(constant_path / "radiationProperties")
-            self._fvmodels.write(constant_path / "fvModels")
+            self._radiation.write(constant_path )
+            self._fvmodels.write(constant_path )
 
         logger.info(f"Constant directory written to {constant_path}")
         return self

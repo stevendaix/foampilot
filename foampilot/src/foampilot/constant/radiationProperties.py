@@ -154,15 +154,11 @@ class RadiationPropertiesFile(OpenFOAMFile):
         Write the radiationProperties file under base_path/constant/.
         """
         base_path = Path(base_path)
-        file_path = base_path / "constant" / self.object_name
+        file_path = base_path  / self.object_name
         file_path.parent.mkdir(parents=True, exist_ok=True)
         self.write_file(file_path)
         print(f"✅ radiationProperties écrit ({self.model}) → {file_path}")
 
-
-from foampilot.base.openFOAMFile import OpenFOAMFile
-from pathlib import Path
-from typing import Optional, Any, Dict, Union
 
 class FvModelsFile(OpenFOAMFile):
     """
@@ -250,7 +246,7 @@ class FvModelsFile(OpenFOAMFile):
         Write the fvModels file under base_path/constant/.
         """
         base_path = Path(base_path)
-        file_path = base_path / "constant" / self.object_name
+        file_path = base_path / self.object_name
         file_path.parent.mkdir(parents=True, exist_ok=True)
         self.write_file(file_path)
         print(f"✅ fvModels écrit → {file_path}")

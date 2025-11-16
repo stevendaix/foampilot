@@ -12,7 +12,6 @@ import classy_blocks as cb
 import json
 import pandas as pd
 
-
 # Define the working directory for the simulation case
 current_path = Path.cwd() / 'exemple2'
 
@@ -204,17 +203,13 @@ if time_steps:
 
         # Create a slice visualization
     print("Generating a slice plot...")
-    pl_slice = pv.Plotter(off_screen=True)
-    # Create a slice through the mesh normal to z-axis
-    y_slice = cell_mesh.slice(normal='z')
-    # Add the velocity field visualization to the slice
-    pl_slice.add_mesh(y_slice, scalars='U', lighting=False, scalar_bar_args={'title': 'U'})
-    # Add the full mesh as a transparent overlay
-    pl_slice.add_mesh(cell_mesh, color='w', opacity=0.25)
-    # Add all boundaries with semi-transparency
-    for name, mesh in boundaries.items():
-        pl_slice.add_mesh(mesh, opacity=0.5)
-    foam_post.export_plot(pl_slice, current_path / "slice_plot.png")
+    # foam_post.plot_slice(
+    #     structure=structure,
+    #     plane="z",
+    #     scalars="U",
+    #     opacity=0.25,
+    #     path_filename=current_path / "slice_plot.png"
+    # )
 
     # Create a pressure contour visualization
     print("Generating a contour plot...")
@@ -227,7 +222,7 @@ if time_steps:
     pl_vectors = pv.Plotter(off_screen=True)
     cell_mesh.set_active_vectors('U')
     # Create arrow glyphs oriented by velocity field
-    arrows = cell_mesh.glyph(orient='U', factor=0.001)
+    arrows = cell_mesh.glyph(orient='U', factor=0.0003)
     pl_vectors.add_mesh(arrows, color='blue')
     foam_post.export_plot(pl_vectors, current_path / "vector_plot.png")
 
@@ -288,7 +283,7 @@ if time_steps:
 
     # Create animation of the velocity field evolution
     print("Creating an animation...")
-    foam_post.create_animation(scalars='U', filename='animation_test.gif', fps=5)
+    foam_post.create_animation(scalars='U', filename= current_path / 'animation_test.gif', fps=5)
 
 else:
     print("No time steps found, unable to test the class.")
@@ -366,10 +361,10 @@ for img_name in ["slice_plot.png", "contour_plot.png", "vector_plot.png", "mesh_
         doc.add_figure(str(img_path), caption=img_name.replace("_", " ").title(), width="0.7\\textwidth")
 
 # Animation
-animation_file = current_path / "animation_test.gif"
-if animation_file.exists():
-    doc.add_section("Animation")
-    doc.add_figure(str(animation_file), caption="Velocity Field Evolution", width="0.7\\textwidth")
+# animation_file = current_path / "animation_test.gif"
+# if animation_file.exists():
+#     doc.add_section("Animation")
+#     doc.add_figure(str(animation_file), caption="Velocity Field Evolution", width="0.7\\textwidth")
 
 # Appendix
 doc.add_appendix("Cell Data Export", f"The cell data has been exported to {cell_csv.name} for further analysis.")

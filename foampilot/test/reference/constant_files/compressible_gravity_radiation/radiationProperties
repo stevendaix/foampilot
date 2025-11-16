@@ -1,0 +1,20 @@
+FoamFile
+{
+    version     2.0;
+    format     ascii;
+    class     dictionary;
+    object     radiationProperties;
+}
+
+radiationModel P1;
+solverFreq 1;
+absorptionEmissionModel semiTransparent;
+constantCoeffs
+{
+    absorptivity 0.5;
+    emissivity 0.5;
+    E 1;
+}
+constantCoeffs {'absorptivity': 0.5, 'emissivity': 0.5, 'E': 1.0};
+scatterModel none;
+sootModel none;

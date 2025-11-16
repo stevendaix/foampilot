@@ -84,9 +84,11 @@ class CaseFieldsManager:
         if "kepsilon" in model:
             self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
             self.fields["epsilon"] = {"value": Quantity(0.1, "m^2/s^3")}
+            self.fields["nut"] = {"value": Quantity(1e-5, "m^2/s")}
         elif "omega" in model:
             self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
             self.fields["omega"] = {"value": Quantity(1, "1/s")}
+            self.fields["nut"] = {"value": Quantity(1e-5, "m^2/s")}
         elif "spalart" in model:
             self.fields["nut"] = {"value": Quantity(1e-5, "m^2/s")}
         elif "v2" in model:

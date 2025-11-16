@@ -4,6 +4,7 @@ import pyvista as pv
 import numpy as np
 import pandas as pd
 import json
+from pyvirtualdisplay import Display
 
 
 class FoamPostProcessing:
@@ -91,6 +92,9 @@ class FoamPostProcessing:
             raise FileNotFoundError(f"Cell file not found: {cell_file}")
         structure["cell"] = pv.read(cell_file)
 
+
+
+
         # Charger automatiquement toutes les boundaries
         structure["boundaries"] = {}
         for subdir in self.vtk_dir.iterdir():
@@ -115,26 +119,39 @@ class FoamPostProcessing:
         """
         return self.list_time_steps()
 
-    def plot_slice(self, structure=None, plane="z", scalars="U", opacity=0.25):
+    def plot_slice(self, structure=None, plane="z", scalars="U", opacity=0.25, path_filename=None):
         """
         Generate a slice plot from the given structure dictionary.
         """
         if structure is None:
             raise RuntimeError("No structure provided. Run get_structure() first.")
 
+        # Détermine si on est en mode off_screen
+        off_screen = path_filename is not None
+
         y_slice = structure["cell"].slice(plane)
-        pl = pv.Plotter()
+        pl = pv.Plotter(off_screen=off_screen)
+
         pl.add_mesh(
             y_slice,
             scalars=scalars,
             lighting=False,
             scalar_bar_args={"title": scalars},
         )
-        pl.add_mesh(structure["cell"], color="w", opacity=opacity)
+
+        # pl.add_mesh(structure["cell"], color="w", opacity=opacity)
         for name, mesh in structure.get("boundaries", {}).items():
             pl.add_mesh(mesh, opacity=0.5)
         pl.enable_anti_aliasing()
-        pl.show()
+
+        if path_filename is not None:
+            # Exporte l'image directement
+            pl.screenshot(path_filename)
+            print(f"Image sauvegardée : {path_filename}")
+        else:
+            # Affiche le rendu à l'écran
+            pl.show()
+
 
     def plot_contour(self, mesh, scalars: str, is_filled: bool = True, opacity: float = 1.0):
         """
@@ -222,19 +239,19 @@ class FoamPostProcessing:
         plotter.screenshot(str(filename))  # PyVista attend une string
         print(f"Plot exported to {filename}")
 
-    def create_animation(self, scalars: str, filename: str, image_format: str = 'gif', fps: int = 10):
+    def create_animation(self, scalars: str, filename: Path, image_format: str = 'gif', fps: int = 10):
         """
         Create an animation across time steps.
         """
-        if not filename.endswith(f'.{image_format}'):
-            filename = f"{filename}.{image_format}"
+        if filename.suffix != f'.{image_format}':
+            filename = filename.with_suffix(f'.{image_format}')
 
         time_steps = self.list_time_steps()
         if not time_steps:
             raise FileNotFoundError("No VTK files found for animation.")
 
         pl = pv.Plotter(off_screen=True)
-        pl.open_gif(filename, fps=fps)
+        pl.open_gif(str(filename), fps=fps)
 
         for step in time_steps:
             structure = self.load_time_step(step)

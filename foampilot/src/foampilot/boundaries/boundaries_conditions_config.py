@@ -15,7 +15,7 @@ WALL_FUNCTIONS = {
     "kEpsilon": {
         "k": {
             "noSlip": {"type": "kqRWallFunction", "value": "uniform 0"},
-            "fixedValue": {"type": "kqRWallFunction", "value": "uniform {value}"},
+            "fixedValue": {"type": "kqRWallFunction", "value": "uniform 0"},
         },
         "epsilon": {
             "default": {"type": "epsilonWallFunction", "value": "uniform 0", **CONSTANTS},
@@ -27,7 +27,7 @@ WALL_FUNCTIONS = {
     "kOmegaSST": {
         "k": {
             "noSlip": {"type": "kWallFunction", "value": "uniform 0"},
-            "fixedValue": {"type": "kWallFunction", "value": "uniform {value}"},
+            "fixedValue": {"type": "kWallFunction", "value": "uniform 0"},
         },
         "omega": {
             "default": {"type": "omegaWallFunction", "value": "uniform 0"},

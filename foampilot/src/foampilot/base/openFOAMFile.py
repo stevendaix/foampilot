@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from foampilot.utilities.manageunits import Quantity
+from typing import Optional, Any, Union, Tuple
 
 
 class OpenFOAMFile:
@@ -17,6 +18,7 @@ class OpenFOAMFile:
         "nut": "m^2/s", "mut": "Pa.s",
         "U": "m/s", "p": "Pa", "T": "K",
         "alpha": "m^2/s", "phi": "m^3/s",
+        "g": "m/s^2",
         "Re": None, "Pr": None, "Ma": None, "Fo": None, "yPlus": None,
         "porosity": None, "alpha.water": None, "alpha.air": None,
     }
@@ -77,13 +79,19 @@ class OpenFOAMFile:
     def _write_attributes(self, file, attributes, indent_level=0):
         indent = "    " * indent_level
         for key, value in attributes.items():
-            if isinstance(value, dict):
-                if value:
-                    file.write(f'{indent}{key}\n{indent}{{\n')
-                    self._write_attributes(file, value, indent_level + 1)
-                    file.write(f'{indent}}}\n')
-            else:
-                file.write(f'{indent}{key} {self._format_value(key, value)};\n')
+            if not value is None:
+                if isinstance(value, dict):
+                    if value:
+                        file.write(f'{indent}{key}\n{indent}{{\n')
+                        self._write_attributes(file, value, indent_level + 1)
+                        file.write(f'{indent}}}\n')
+                if isinstance(value, Tuple):
+                    file.write(f'{indent}{key} (')
+                    for item in value:
+                        file.write(f'{indent}    {self._format_value(key, item)}')
+                    file.write(f'{indent});\n')
+                else:
+                    file.write(f'{indent}{key} {self._format_value(key, value)};\n')
 
     # -------------------------------------------------------------------------
     # Generic writer
