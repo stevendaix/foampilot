@@ -142,7 +142,6 @@ class FoamPostProcessing:
         # pl.add_mesh(structure["cell"], color="w", opacity=opacity)
         for name, mesh in structure.get("boundaries", {}).items():
             pl.add_mesh(mesh, opacity=0.5)
-        pl.enable_anti_aliasing()
 
         if path_filename is not None:
             # Exporte l'image directement
