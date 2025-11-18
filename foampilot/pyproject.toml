@@ -8,46 +8,81 @@ version = "0.1.0"
 description = "foampilot: a Python platform to control OpenFOAM from meshing to post-processing and automated reporting."
 readme = "README.md"
 license = { text = "MIT" }
+
 authors = [
   { name = "Steven Daix", email = "your_email@example.com" }
 ]
-keywords = ["openfoam", "cfd", "simulation", "mesh", "post-processing", "pyvista", "streamlit"]
+
+keywords = [
+  "openfoam",
+  "cfd",
+  "simulation",
+  "mesh",
+  "post-processing",
+  "pyvista",
+  "streamlit",
+  "latex",
+  "automation"
+]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Physics",
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "Operating System :: OS Independent"
 ]
+
 requires-python = ">=3.9"
+
 dependencies = [
   "numpy",
   "pandas",
-  "pyvista",
-  "plotly",
   "matplotlib",
-  "pint",
+  "seaborn",
+  "plotly",
+  "pyvista",
   "gmsh",
+  "classy_blocks",
+  "pint",
   "pyfluids",
+  "imageio",
   "pylatex",
   "streamlit",
-  "classy_blocks",
-  "imageio",
-  "seaborn",
   "ipykernel",
   "jupyter",
   "pytest",
-  "pdflatex",
   "pyvirtualdisplay"
 ]
 
 [project.optional-dependencies]
 dev = []
-docs = ["mkdocs", "mkdocs-material", "mkdocs-static-i18n", "mkdocstrings", "mkdocstrings-python"]
+docs = [
+  "mkdocs",
+  "mkdocs-material",
+  "mkdocs-static-i18n",
+  "mkdocstrings",
+  "mkdocstrings-python"
+]
 
+# --------------------------------------------------------------------
+# Linux / WSL system requirements needed for Gmsh, PyVista, LaTeX, etc.
+# --------------------------------------------------------------------
 [tool.foampilot.system-requirements]
-linux = ["libglu1-mesa", "libgl1-mesa-glx", "libxrender1", "libxext6"]
+linux = [
+  # --- OpenGL / Mesa (gmsh, pyvista, vtk) ---
+  "libglu1-mesa",
+  "libgl1-mesa-glx",
+  "libxrender1",
+  "libxext6",
+
+  # --- LaTeX (pdflatex + extended packages) ---
+  "texlive-latex-base",
+  "texlive-fonts-recommended",
+  "texlive-fonts-extra",
+  "texlive-latex-extra"
+]
 
 [project.urls]
 Homepage = "https://github.com/your-github/foampilot"
