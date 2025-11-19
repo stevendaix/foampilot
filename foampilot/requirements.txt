@@ -1,0 +1,17 @@
+# Dépendances pour foampilot
+# Basé sur les imports dans les exemples et le code source
+# Nécessite un environnement OpenFOAM fonctionnel
+
+# Pour la gestion des chemins et l'abstraction
+pathlib
+
+# Pour les opérations de maillage et de post-traitement
+pyvista
+numpy
+pandas
+
+# Pour la gestion des unités (vu dans run_exemple1.py)
+pint # Supposition basée sur l'utilisation de Quantity, à vérifier
+
+# Pour la génération de rapports (vu dans foampilot/src/foampilot/report/latex_pdf.py)
+reportlab # Supposition basée sur le nom du fichier
