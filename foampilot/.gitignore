@@ -11,4 +11,5 @@
 !LICENSE*
 !pyproject.toml
 !readme.md
+build/
 

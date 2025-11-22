@@ -93,6 +93,34 @@ tout est défini dans des fichiers Python, depuis la création du maillage jusqu
 
 # 📌 Exemple rapide
 
-installer ca pour gmsh
-sudo apt install libglu1-mesa libgl1-mesa-glx libxrender1 libxext6
+## Prérequis système (Linux)
 
+Pour utiliser ce projet, les bibliothèques système suivantes sont requises, notamment pour **GMSH** et **PyVista** :
+
+### Debian/Ubuntu
+Exécutez la commande suivante pour installer les dépendances :
+
+```bash
+sudo apt update
+sudo apt install -y \
+    libglu1-mesa \
+    libgl1 \
+    libxrender1 \
+    libxext6 \
+    libsm6 \
+    libice6 \
+    libglu1-mesa-dev \
+    libgl1-mesa-dri
+```
+pour pyvista
+
+```bash
+sudo apt install -y \
+    libx11-xcb1 \
+    libxcb-glx0 \
+    libxcb-dri2-0 \
+    libxcb-dri3-0 \
+    libxcb-present0 \
+    libxcb-sync1 \
+    libxshmfence1
+```
