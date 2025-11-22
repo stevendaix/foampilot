@@ -13,4 +13,3 @@ RAS
     turbulence on;
     printCoeffs on;
 }
-RAS {'RASModel': 'kEpsilon', 'turbulence': 'on', 'printCoeffs': 'on'};

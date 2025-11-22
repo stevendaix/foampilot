@@ -1,10 +1,10 @@
 import gmsh
 from pathlib import Path
-from OpenFOAM.python_code.code_manage.tuto.cfd_mesher1 import GeometryCFD
+from foampilot.mesh.gmsh_mesher import gmsh_mesher
 
 def run_full_stl_test():
     model_name = "chess_pieces_full_test"
-    case = GeometryCFD(model_name)
+    case = gmsh_mesher(model_name)
 
     try:
         # 1. Load the STL geometry

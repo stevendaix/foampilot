@@ -203,13 +203,13 @@ if time_steps:
 
         # Create a slice visualization
     print("Generating a slice plot...")
-    # foam_post.plot_slice(
-    #     structure=structure,
-    #     plane="z",
-    #     scalars="U",
-    #     opacity=0.25,
-    #     path_filename=current_path / "slice_plot.png"
-    # )
+    foam_post.plot_slice(
+        structure=structure,
+        plane="z",
+        scalars="U",
+        opacity=0.25,
+        path_filename=current_path / "slice_plot.png"
+    )
 
     # Create a pressure contour visualization
     print("Generating a contour plot...")

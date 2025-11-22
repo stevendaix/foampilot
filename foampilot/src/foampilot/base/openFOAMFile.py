@@ -59,7 +59,6 @@ class OpenFOAMFile:
             self.attributes[key] = value
         else:
             super().__setattr__(key, value)
-
     # -------------------------------------------------------------------------
     # Internal utilities
     # -------------------------------------------------------------------------
@@ -68,7 +67,7 @@ class OpenFOAMFile:
             return "true" if value else "false"
         if isinstance(value, (int, float)):
             return format(value, ".15g")
-        if isinstance(value, Quantity):
+        if Quantity and isinstance(value, Quantity):
             unit = self.DEFAULT_UNITS.get(key)
             val = value.get_in(unit) if unit else value.magnitude
             if isinstance(val, (int, float)):
@@ -79,19 +78,27 @@ class OpenFOAMFile:
     def _write_attributes(self, file, attributes, indent_level=0):
         indent = "    " * indent_level
         for key, value in attributes.items():
-            if not value is None:
-                if isinstance(value, dict):
-                    if value:
-                        file.write(f'{indent}{key}\n{indent}{{\n')
-                        self._write_attributes(file, value, indent_level + 1)
-                        file.write(f'{indent}}}\n')
-                if isinstance(value, Tuple):
-                    file.write(f'{indent}{key} (')
-                    for item in value:
-                        file.write(f'{indent}    {self._format_value(key, item)}')
-                    file.write(f'{indent});\n')
-                else:
-                    file.write(f'{indent}{key} {self._format_value(key, value)};\n')
+            if value is None:
+                continue
+
+            # dictionnaire → bloc
+            if isinstance(value, dict):
+                if value:
+                    file.write(f'{indent}{key}\n{indent}{{\n')
+                    self._write_attributes(file, value, indent_level + 1)
+                    file.write(f'{indent}}}\n')
+                continue  # éviter d'écrire dict en tant que str
+
+            # tuple → OpenFOAM list
+            if isinstance(value, Tuple):
+                file.write(f'{indent}{key} (')
+                for item in value:
+                    file.write(f'{self._format_value(key, item)} ')
+                file.write(');\n')
+                continue
+
+            # tout le reste
+            file.write(f'{indent}{key} {self._format_value(key, value)};\n')
 
     # -------------------------------------------------------------------------
     # Generic writer
@@ -100,14 +107,17 @@ class OpenFOAMFile:
         try:
             filepath = Path(filepath)
             with open(filepath, 'w') as file:
+                # header FoamFile
                 file.write("FoamFile\n{\n")
                 for key, value in self.header.items():
                     file.write(f'    {key}     {value};\n')
                 file.write("}\n\n")
+
+                # contenu principal
                 self._write_attributes(file, self.attributes)
         except IOError as e:
             print(f"Error writing file {filepath}: {e}")
-
+            
     # -------------------------------------------------------------------------
     # Specific: boundary field file
     # -------------------------------------------------------------------------
