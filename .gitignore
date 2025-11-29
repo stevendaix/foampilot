@@ -16,7 +16,7 @@
 # === Ignore les dossiers de build / metadata ===
 *.egg-info/
 __pycache__/
-*.py[cod]
+
 
 # === Ignore les dossiers spécifiques à ton projet ===
 old/
