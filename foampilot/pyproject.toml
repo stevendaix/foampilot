@@ -53,11 +53,11 @@ dependencies = [
   "ipykernel",
   "jupyter",
   "pytest",
-  "pyvirtualdisplay"
-  "trame" 
-  "trame-vtk" 
-  "trame-vuetify"
-  "meshio"
+  "pyvirtualdisplay",
+  "trame",
+  "trame-vtk", 
+  "trame-vuetify",
+  "meshio",
   "build123d"
 ]
 
