@@ -256,3 +256,17 @@ for plane in planes:
         off_screen=True,  # Mode hors écran pour éviter les problèmes d'affichage
     )
     print(f"Image sauvegardée : {plane['name']}.png")
+
+
+
+# -----------------------------
+# 8. Conversion Gmsh vers OpenFOAM (gmshToFoam)
+# -----------------------------
+print("\nConversion du maillage Gmsh vers OpenFOAM (gmshToFoam)...")
+try:
+    # Appel de la méthode gmshToFoam
+    Meshing.gmshToFoam(msh_file, current_path)
+    print("Conversion réussie. Les fichiers du maillage OpenFOAM sont dans constant/polyMesh.")
+except Exception as e:
+    print(f"Erreur lors de la conversion avec gmshToFoam : {e}")
+
