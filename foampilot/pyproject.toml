@@ -54,6 +54,11 @@ dependencies = [
   "jupyter",
   "pytest",
   "pyvirtualdisplay"
+  "trame" 
+  "trame-vtk" 
+  "trame-vuetify"
+  "meshio"
+  "build123d"
 ]
 
 [project.optional-dependencies]
