@@ -4,7 +4,7 @@ import subprocess
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Union
 
-class gmsh_mesher:
+class GmshMesher:
     def __init__(self, model_name: str = "cfd_model", verbose: bool = True):
         """Initialize the CFD geometry handler.
         
