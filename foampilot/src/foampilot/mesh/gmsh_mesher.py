@@ -45,18 +45,13 @@ class gmsh_mesher:
         self._log(f"Loading geometry from {filepath}")
 
         if filepath.suffix.lower() == ".step":
-            entities = gmsh.model.occ.importShapes(str(filepath))
+            gmsh.merge(str(filepath))
             gmsh.model.occ.synchronize()
         elif filepath.suffix.lower() == ".stl":
-            gmsh.merge(str(filepath))
-            # Pour les STL, nous devons créer une topologie à partir des surfaces discrètes
-            gmsh.model.mesh.createTopology()
-            gmsh.model.occ.synchronize()
-            entities = gmsh.model.getEntities()
+            raise ValueError(f"Run with snappyHexMesh for STL files, not direct import.")
         else:
             raise ValueError(f"Unsupported format: {filepath.suffix}")
 
-        return entities
 
     def merge_geometry(self, filepath: Union[Path, str]) -> List[Tuple[int, int]]:
         """Merge another geometry into the current model.
@@ -67,11 +62,10 @@ class gmsh_mesher:
         Returns:
             List of (dimension, tag) pairs for the merged entities
         """
-        entities = self.load_geometry(filepath)
+        self.load_geometry(filepath)
         self._log("Removing duplicate entities")
         gmsh.model.occ.removeAllDuplicates()
         gmsh.model.occ.synchronize()
-        return entities
 
     def wrap_surfaces(self, angle: float = 40.0):
         """Clean and wrap surfaces (useful for STL files).
@@ -121,77 +115,6 @@ class gmsh_mesher:
         surface_tags = [s[1] for s in surfaces]
         return self.define_physical_group(2, surface_tags, name)
 
-    def detect_inlets_outlets(self, 
-                           surface_tags_to_process: Optional[List[int]] = None,
-                           normal_tolerance: float = 0.2,
-                           inlet_name: str = "inlet",
-                           outlet_name: str = "outlet",
-                           wall_name: str = "walls") -> Dict[str, List[int]]:
-        """Automatically detect inlets and outlets based on surface normals.
-        
-        Args:
-            surface_tags_to_process: Optional list of surface tags to process. If None, processes all surfaces.
-            normal_tolerance: Tolerance for considering a surface normal aligned with axis
-            inlet_name: Name for inlet surfaces
-            outlet_name: Name for outlet surfaces
-            wall_name: Name for remaining surfaces
-            
-        Returns:
-            Dictionary of detected boundary groups
-        """
-        self._log("Detecting inlets and outlets based on surface normals")
-
-        if surface_tags_to_process is None:
-            surfaces = gmsh.model.getEntities(dim=2)
-            surface_tags_to_process = [s[1] for s in surfaces]
-
-        inlets = []
-        outlets = []
-        walls = []
-
-        for tag in surface_tags_to_process:
-            # Get surface normal (approximate using first triangle)
-            nodes, _, _ = gmsh.model.mesh.getNodes(dim=2, tag=tag)
-            if len(nodes) < 3:
-                continue
-
-            # Get coordinates of first three nodes
-            coords = gmsh.model.mesh.getNode(nodes[0])[0]
-            p1 = np.array(coords)
-            coords = gmsh.model.mesh.getNode(nodes[1])[0]
-            p2 = np.array(coords)
-            coords = gmsh.model.mesh.getNode(nodes[2])[0]
-            p3 = np.array(coords)
-
-            # Compute normal vector
-            v1 = p2 - p1
-            v2 = p3 - p1
-            normal = np.cross(v1, v2)
-            normal = normal / np.linalg.norm(normal)
-
-            # Classify based on normal direction
-            if normal[0] > (1 - normal_tolerance):
-                outlets.append(tag)
-            elif normal[0] < -(1 - normal_tolerance):
-                inlets.append(tag)
-            elif abs(normal[1]) > (1 - normal_tolerance) or abs(normal[2]) > (1 - normal_tolerance):
-                walls.append(tag)
-            else:
-                walls.append(tag)
-
-        # Create physical groups
-        results = {}
-        if inlets:
-            self.define_physical_group(2, inlets, inlet_name)
-            results[inlet_name] = inlets
-        if outlets:
-            self.define_physical_group(2, outlets, outlet_name)
-            results[outlet_name] = outlets
-        if walls:
-            self.define_physical_group(2, walls, wall_name)
-            results[wall_name] = walls
-
-        return results
 
     def create_external_domain(self, padding: float = 1.0) -> int:
         """Create an external air domain around existing geometry.
@@ -483,53 +406,4 @@ class gmsh_mesher:
         """Finalize the Gmsh API session."""
         self._log("Finalizing Gmsh session")
         gmsh.finalize()
-        """Clean up and close Gmsh."""
-        self._log("Finalizing Gmsh session")
-        gmsh.finalize()
 
-
-# Example usage
-if __name__ == "__main__":
-    # Create a new CFD case
-    case = GeometryCFD("tutorial_case")
-
-    try:
-        # Load main geometry
-        case.load_geometry("geometry.step")
-
-        # Merge additional components
-        case.merge_geometry("inlet_pipe.step")
-
-        # Wrap surfaces if needed (for STL)
-        # case.wrap_surfaces()
-
-        # Automatic boundary detection
-        case.detect_inlets_outlets()
-
-        # Alternatively, manual boundary definition
-        # case.define_all_surfaces_group("walls")
-        # case.define_surface_group_by_tag(10, "inlet")
-
-        # Create external domain
-        case.create_external_domain(padding=2.0)
-
-        # Assign materials
-        case.set_material("fluid", [1])
-        case.set_material("solid", [2])
-
-        # Generate mesh with local refinement near origin
-        case.mesh_volume(lc=0.1, refine_regions={
-            (0, 0, 0): (1.0, 0.02)  # Refine to 0.02 within 1m of origin
-        })
-
-        # Print mesh statistics
-        print("Mesh statistics:", case.get_mesh_stats())
-
-        # Export to OpenFOAM
-        case.export_to_openfoam("openfoam_case")
-
-        # Visualize in Gmsh GUI
-        case.visualize()
-
-    finally:
-        case.finalize()
