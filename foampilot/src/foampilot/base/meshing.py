@@ -2,7 +2,7 @@ from foampilot.base.openFOAMFile import OpenFOAMFile
 from pathlib import Path
 from foampilot.mesh.BlockMeshFile import BlockMesh
 from foampilot.mesh.gmsher import GmshMesher
-from foampilot.mesh.snappymesher import SnappyMesher
+from foampilot.mesh.snappymesh import SnappyMesher
 
 import json
 
