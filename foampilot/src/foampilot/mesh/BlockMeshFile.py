@@ -161,3 +161,45 @@ class BlockMeshFile(OpenFOAMFile):
             for pair in self.mergePatchPairs:
                 f.write(f"    ({pair[0]} {pair[1]});\n")
             f.write(");\n")
+
+    def run(self):
+        """
+        Executes the blockMesh command in the specified case path and logs the output.
+
+        Raises:
+            FileNotFoundError: If the case path does not exist.
+            RuntimeError: If the blockMesh command fails.
+        """
+        base_path = self.case_path
+        log_file = base_path / "log.blockMesh"
+
+        if not base_path.exists():
+            raise FileNotFoundError(f"The case path '{base_path}' does not exist.")
+
+        if not base_path.is_dir():
+            raise NotADirectoryError(f"The case path '{base_path}' is not a directory.")
+
+        try:
+            # Run blockMesh
+            with log_file.open("w") as f:
+                f.write(f"Running 'blockMesh' in: {base_path}\n")
+                result = subprocess.run(
+                    ["blockMesh"],
+                    cwd=base_path,
+                    text=True,
+                    capture_output=True,
+                    check=True
+                )
+                f.write("blockMesh executed successfully.\n")
+                f.write(result.stdout + "\n")
+                f.write(result.stderr + "\n")  # capture warnings/errors if any
+
+        except subprocess.CalledProcessError as e:
+            with log_file.open("a") as f:
+                f.write(f"Error executing blockMesh:\n{e.stderr}\n")
+            raise RuntimeError(f"blockMesh failed with error: {e.stderr}")
+
+        except Exception as e:
+            with log_file.open("a") as f:
+                f.write(f"Unexpected error: {str(e)}\n")
+            raise
