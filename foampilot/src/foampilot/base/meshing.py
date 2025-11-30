@@ -1,7 +1,7 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from pathlib import Path
-from foampilot.mesh.BlockMeshFile import BlockMesh
-from foampilot.mesh.gmsher import GmshMesher
+from foampilot.mesh.BlockMeshFile import BlockMesher
+from foampilot.mesh.gmsh_mesher import GmshMesher
 from foampilot.mesh.snappymesh import SnappyMesher
 
 import json
@@ -18,13 +18,19 @@ class Meshing:
         blockMeshDict (BlockMeshDictFile): The blockMeshDict file.
         additional_files (dict): Additional files to include in the system directory.
     """
-    def __init__(self, path_case):
-        self.case_path = Path(path_case)
+    def __init__(self, case_path, mesher="blockMesh"):
+        self.case_path = Path(case_path)
+        self.mesher_name = mesher
 
-        self.blockmesh = BlockMesher(self)
-        self.gmsher = GmshMesher(self)
-        self.snappy = SnappyMesher(self)
-
+        if mesher == "blockMesh":
+            self.mesher = BlockMesher(self)
+        elif mesher == "gmsh":
+            self.mesher = GmshMesher(self)
+        elif mesher == "snappy":
+            self.mesher = SnappyMesher(self)
+        else:
+            raise ValueError(f"Unknown mesher: {mesher}")
+        
         self.additional_files = {}
 
     def add_file(self, file_name, file_content):

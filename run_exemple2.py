@@ -136,9 +136,9 @@ mesh.write(current_path / "system" / "blockMeshDict", current_path /"debug.vtk")
 print("Successfully generated blockMeshDict and debug.vtk files in the case directory.")
 
 # Initialize meshing object and run blockMesh utility
-meshing = Meshing(path_case =current_path)
-meshing.run_blockMesh()
 
+mesh = Meshing(current_path,mesher="blockMesh")
+mesh.mesher.run(current_path / "city_block_cfd_domain.step")
 
 # --- 3. Boundary Conditions Management ---
 

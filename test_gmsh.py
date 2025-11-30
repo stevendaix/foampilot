@@ -125,12 +125,6 @@ fluid_domain.label = "FLUID"
 fluid_volume = fluid_domain - city
 
 
-# -----------------------------
-# 6. Export STEP pour Gmsh
-# -----------------------------
-from build123d import exporters3d
-exporters3d.export_step(fluid_volume, current_path / "city_block_cfd_domain.step")
-print("STEP exporté.")
 
 # -----------------------------
 # 7. Gmsh - maillage 3D

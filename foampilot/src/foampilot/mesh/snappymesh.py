@@ -14,7 +14,7 @@ class SnappyMesher:
     - snappy_hex_mesh_dict_path (Path): Path to the snappyHexMeshDict file.
     """
 
-    def __init__(self, base_path, stl_file, castellatedMesh=True, snap=True, addLayers=False):
+    def __init__(self, parent, stl_file, castellatedMesh=True, snap=True, addLayers=False):
         """
         Initialize snappyHexMesh main options.
 
@@ -26,7 +26,8 @@ class SnappyMesher:
             addLayers (bool): Enable the addition of boundary layers.
         """
         
-        self.base_path = Path(base_path)
+        self.parent = parent                       
+        self.case_path = parent.case_path 
         self.snappy_hex_mesh_dict_path = self.base_path / "system" / "snappyHexMeshDict"
         self.stl_file = Path(stl_file)
         

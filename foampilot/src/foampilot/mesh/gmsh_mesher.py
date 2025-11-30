@@ -5,7 +5,7 @@ import numpy as np
 from typing import Dict, List, Tuple, Optional, Union
 
 class GmshMesher:
-    def __init__(self, model_name: str = "cfd_model", verbose: bool = True):
+    def __init__(self, parent, model_name: str = "cfd_model", verbose: bool = True):
         """Initialize the CFD geometry handler.
         
         Args:
@@ -14,11 +14,14 @@ class GmshMesher:
         """
         gmsh.initialize()
         gmsh.model.add(model_name)
+        self.parent = parent                       
+        self.case_path = parent.case_path 
         self.model_name = model_name
         self.domain_box = None
         self.boundary_conditions: Dict[str, List[int]] = {}
         self.materials: Dict[str, List[int]] = {}
         self.verbose = verbose
+        self.unassigned_tag = "UNASSIGNED"
         self._log(f"Initialized GeometryCFD model \'{model_name}\'")
 
     def _log(self, message: str):
@@ -115,67 +118,105 @@ class GmshMesher:
         surface_tags = [s[1] for s in surfaces]
         return self.define_physical_group(2, surface_tags, name)
 
+    # ----------------------------------------------------
+    # 1) BOUNDING BOX
+    # ----------------------------------------------------
+    def compute_bbox(self, 
+                     xmin=None, xmax=None, ymin=None, ymax=None, zmin=None, zmax=None):
 
-    def create_external_domain(self, padding: float = 1.0) -> int:
-        """Create an external air domain around existing geometry.
-        
-        Args:
-            padding: Padding distance around the geometry
-            
-        Returns:
-            Tag of the created box volume
-        """
-        gmsh.model.occ.synchronize()
+        if xmin is not None:
+            return {
+                "xmin": xmin, "xmax": xmax,
+                "ymin": ymin, "ymax": ymax,
+                "zmin": zmin, "zmax": zmax,
+            }
+
+        else :
+            raise ValueError("You must provide all bounding box parameters: xmin, xmax, ymin, ymax, zmin, zmax")
+
+
+
+    # ----------------------------------------------------
+    # 2) FRAGMENTATION
+    # ----------------------------------------------------
+    def fragment_volumes(self):
         volumes = gmsh.model.getEntities(dim=3)
+        if not volumes:
+            return
 
-        # Déterminer la boîte englobante de la géométrie existante
-        self._log("Calculating bounding box from existing entities.")
+        try:
+            gmsh.model.occ.fragment(volumes, [])
+        except:
+            for v in volumes:
+                try: gmsh.model.occ.fragment([v], [])
+                except: pass
 
-        # Get all entities in the model
-        all_entities = gmsh.model.getEntities()
-
-        # Initialize min/max coordinates
-        xmin, ymin, zmin = float("inf"), float("inf"), float("inf")
-        xmax, ymax, zmax = float("-inf"), float("-inf"), float("-inf")
-
-        if not all_entities:
-            raise RuntimeError("No entities found in the model to calculate bounding box.")
-
-        for dim, tag in all_entities:
-            bbox = gmsh.model.getBoundingBox(dim, tag)
-            xmin = min(xmin, bbox[0])
-            ymin = min(ymin, bbox[1])
-            zmin = min(zmin, bbox[2])
-            xmax = max(xmax, bbox[3])
-            ymax = max(ymax, bbox[4])
-            zmax = max(zmax, bbox[5])
-
-        self._log(f"Bounding box: ({xmin:.2f}, {ymin:.2f}, {zmin:.2f}) to ({xmax:.2f}, {ymax:.2f}, {zmax:.2f})")
-
-        # Créer une boîte englobante plus grande comme domaine externe
-        external_box_tag = gmsh.model.occ.addBox(
-            xmin - padding, ymin - padding, zmin - padding,
-            (xmax - xmin) + 2 * padding,
-            (ymax - ymin) + 2 * padding,
-            (zmax - zmin) + 2 * padding
-        )
         gmsh.model.occ.synchronize()
-        self._log(f"External domain (bounding box) created with tag: {external_box_tag}")
 
-        # Pour les STL, nous ne créons pas de volume solide à partir des surfaces directement.
-        # Nous allons simplement définir le domaine externe comme le volume fluide.
-        # Les surfaces du STL serviront de frontières internes pour le maillage.
-        self.domain_box = external_box_tag
-        fluid_volume_tag = self.domain_box
-        self.define_physical_group(3, [fluid_volume_tag], "fluid_domain")
+    # ----------------------------------------------------
+    # 3) DETECT PATCH BASED ON CENTER OF MASS
+    # ----------------------------------------------------
+    def detect_patch(self, com, bbox, tol=1e-3):
+        x, y, z = com
 
-        # Créer un volume physique pour les surfaces du STL
-        stl_surfaces = gmsh.model.getEntities(dim=2)
-        stl_surface_tags = [s[1] for s in stl_surfaces]
-        if stl_surface_tags:
-            self.define_physical_group(2, stl_surface_tags, "stl_internal_walls")
+        if abs(x - bbox["xmin"]) < tol: return "INLET"
+        if abs(x - bbox["xmax"]) < tol: return "OUTLET"
+        if abs(z - bbox["zmin"]) < tol: return "GROUND"
+        if abs(z - bbox["zmax"]) < tol: return "TOP"
+        if abs(y - bbox["ymax"]) < tol: return "SIDE_NORTH"
+        if abs(y - bbox["ymin"]) < tol: return "SIDE_SOUTH"
 
-        return fluid_volume_tag
+        return None
+
+    # ----------------------------------------------------
+    # 4) MAIN PATCH ASSIGNMENT
+    # ----------------------------------------------------
+    def assign_boundary_patches(self, **bbox_args):
+
+        bbox = self.compute_bbox(**bbox_args)
+        self.fragment_volumes()
+
+        faces = gmsh.model.getEntities(dim=2)
+
+        patch_map = {
+            "INLET": [],
+            "OUTLET": [],
+            "GROUND": [],
+            "TOP": [],
+            "SIDE_NORTH": [],
+            "SIDE_SOUTH": [],
+            self.unassigned_tag: []
+        }
+
+        for _, face in faces:
+            try:
+                com = gmsh.model.occ.getCenterOfMass(2, face)
+            except:
+                patch_map[self.unassigned_tag].append(face)
+                continue
+
+            patch = self.detect_patch(com, bbox)
+            if patch:
+                patch_map[patch].append(face)
+            else:
+                patch_map[self.unassigned_tag].append(face)
+
+        # Create groups
+        for patch, tags in patch_map.items():
+            if tags:
+                gid = gmsh.model.addPhysicalGroup(2, tags)
+                gmsh.model.setPhysicalName(2, gid, patch)
+
+        # Tag FLUID volume
+        volumes = [v[1] for v in gmsh.model.getEntities(3)]
+        if volumes:
+            gid = gmsh.model.addPhysicalGroup(3, volumes)
+            gmsh.model.setPhysicalName(3, gid, "FLUID")
+
+        gmsh.model.occ.synchronize()
+
+
+
 
     def set_material(self, name: str, volume_tags: List[int]):
         """Assign a material name to volume(s).
@@ -187,70 +228,85 @@ class GmshMesher:
         self.materials[name] = volume_tags
         self._log(f"Assigned material \'{name}\' to {len(volume_tags)} volumes")
 
-    def mesh_volume(self, lc: float = 0.01, refine_regions: Optional[Dict[Tuple[float, float, float], Tuple[float, float]]] = None):
-        """Generate volume mesh with optional local refinement.
-        
+    def mesh_volume(self, lc_min: float = 1, lc_max: float = 5,
+                    refine_regions: Optional[Dict[Tuple[float, float, float], Tuple[float, float]]] = None):
+        """Generate a 3D mesh using TetGen and verify tetrahedra exist for OpenFOAM.
+
         Args:
-            lc: Global characteristic length
-            refine_regions: Dictionary of {center: (radius, refined_lc)} for local refinement
+            lc_min: Minimum characteristic length.
+            lc_max: Maximum characteristic length.
+            refine_regions: Optional dict {center: (radius, refined_lc)} for local refinement.
         """
-        self._log(f"Generating mesh with characteristic length {lc}")
+        self._log(f"Generating 3D mesh (TetGen) with lc_min={lc_min}, lc_max={lc_max}")
 
         # Set global mesh size
-        gmsh.model.mesh.setSize(gmsh.model.getEntities(0), lc)
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMin", lc_min)
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMax", lc_max)
+        gmsh.option.setNumber("Mesh.MshFileVersion", 2)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)  # TetGen
 
-        # Add local refinement if specified
-        if refine_regions:
-            for center, (radius, refined_lc) in refine_regions.items():
-                gmsh.model.mesh.setSize(gmsh.model.getEntitiesInBoundingBox(
-                    center[0]-radius, center[1]-radius, center[2]-radius,
-                    center[0]+radius, center[1]+radius, center[2]+radius
-                ), refined_lc)
-
-        # Nettoyer les surfaces avant de mailler
+        # Remove duplicates
         gmsh.model.occ.removeAllDuplicates()
         gmsh.model.occ.synchronize()
 
-        # Vérifier si des volumes existent et si le domaine fluide est défini
-        volumes = gmsh.model.getEntities(dim=3)
-        if self.domain_box and (3, self.domain_box) in volumes:
-            self._log(f"Fluid volume (tag {self.domain_box}) detected. Generating 3D mesh.")
-            # Set the background mesh field to define mesh size based on distance to the STL surfaces
-            # This ensures a finer mesh near the STL object.
-            gmsh.model.mesh.field.add("Distance", 1)
-            gmsh.model.mesh.field.setNumbers(1, "FacesList", [s[1] for s in gmsh.model.getEntities(dim=2)])
+        # Apply local refinements
+        if refine_regions:
+            for center, (radius, refined_lc) in refine_regions.items():
+                entities = gmsh.model.getEntitiesInBoundingBox(
+                    center[0]-radius, center[1]-radius, center[2]-radius,
+                    center[0]+radius, center[1]+radius, center[2]+radius
+                )
+                if entities:
+                    gmsh.model.mesh.setSize(entities, refined_lc)
 
-            gmsh.model.mesh.field.add("Threshold", 2)
-            gmsh.model.mesh.field.setNumber(2, "InField", 1)
-            gmsh.model.mesh.field.setNumber(2, "SizeMin", lc / 5) # Finer mesh near STL
-            gmsh.model.mesh.field.setNumber(2, "SizeMax", lc) # Coarser mesh away from S        # Vérifier si des volumes existent et si le domaine fluide est défini
-        volumes = gmsh.model.getEntities(dim=3)
-        if self.domain_box and (3, self.domain_box) in volumes:
-            self._log(f"Fluid volume (tag {self.domain_box}) detected. Generating 3D mesh.")
-            # Set the background mesh field to define mesh size based on distance to the STL surfaces
-            # This ensures a finer mesh near the STL obj            # Clear existing mesh fields before adding new ones
-            existing_field_ids = gmsh.model.mesh.field.getNumbers(-1, -1) # Use -1, -1 to get all field numbers
-            for field_id in existing_field_ids:
-                gmsh.model.mesh.field.remove(field_id)
+        # Retrieve volumes
+        volumes = [v[1] for v in gmsh.model.getEntities(dim=3)]
+        if not volumes:
+            self._log("No 3D volumes found. Cannot generate 3D mesh.")
+            return
 
-            gmsh.model.mesh.field.add("Distance", 1)
-            gmsh.model.mesh.field.setNumbers(1, "FacesList", [s[1] for s in gmsh.model.getEntities(dim=2)])
+        # Vérifier s'il existe déjà un Physical Group pour les volumes
+        existing_groups = gmsh.model.getPhysicalGroups(dim=3)
+        fluid_group_exists = any(name == "FLUID" for (dim, tag) in existing_groups
+                                for name in [gmsh.model.getPhysicalName(dim, tag)])
 
-            gmsh.model.mesh.field.add("Threshold", 2)
-            gmsh.model.mesh.field.setNumber(2, "InField", 1)
-            gmsh.model.mesh.field.setNumber(2, "SizeMin", lc / 5) # Finer mesh near STL
-            gmsh.model.mesh.field.setNumber(2, "SizeMax", lc) # Coarser mesh away from STL
-            gmsh.model.mesh.field.setNumber(2, "DistMin", 0.1) # Distance from STL where mesh is finest
-            gmsh.model.mesh.field.setNumber(2, "DistMax", 1.0) # Distance from STL where mesh is coarsest
-
-            gmsh.model.mesh.field.setAsBackgroundMesh(2)         # Essayer un algorithme de maillage 3D plus robuste
-            gmsh.option.setNumber("Mesh.Algorithm3D", 4) # 4 pour TetGen
-            gmsh.model.mesh.generate(3)
+        if fluid_group_exists:
+            self._log("Physical Group 'FLUID' already exists, skipping creation.")
         else:
-            self._log("No fluid volume detected or fluid volume not found. Generating 2D mesh on surfaces only.")
-            # Pour les STL sans volume défini, on maille les surfaces
-            gmsh.model.mesh.generate(2)
-        self._log("Mesh generation complete")
+            gmsh.model.addPhysicalGroup(3, volumes, name="FLUID")
+            self._log(f"Physical Group 'FLUID' created for volumes: {volumes}")
+
+        # Generate 3D mesh
+        gmsh.model.mesh.generate(3)
+
+    def get_unassigned_faces(self) -> list[int]:
+        """Return the tags of faces in the 'UNASSIGNED' physical group (2D)."""
+        phys_groups = gmsh.model.getPhysicalGroups(dim=2)
+
+        # Chercher l'ID du groupe "UNASSIGNED"
+        phys_id = next(
+            (pid for dim, pid in phys_groups if gmsh.model.getPhysicalName(dim, pid) == self.unassigned_tag),
+            None
+        )
+
+        if phys_id is not None:
+            return gmsh.model.getEntitiesForPhysicalGroup(2, phys_id)
+        return []
+
+
+    def get_volume_tags(self) -> List[int]:
+        """
+        Retourne la liste des tags des volumes 3D dans le modèle.
+        """
+        volumes = gmsh.model.getEntities(dim=3)
+        return [v[1] for v in volumes] if volumes else []
+
+    def get_face_tags(self) -> List[int]:
+        """
+        Retourne la liste des tags des faces 2D dans le modèle.
+        """
+        faces = gmsh.model.getEntities(dim=2)
+        return [f[1] for f in faces] if faces else []
 
     def get_basic_mesh_stats(self) -> Dict[str, int]:
         """Get basic mesh statistics (nodes, elements, surface elements).
@@ -373,18 +429,19 @@ class GmshMesher:
         self._log("Mesh quality analysis complete.")
         return metrics
 
-    def export_to_openfoam(self, folder: Union[Path, str], run_gmshtofoam: bool = True):
+    def export_to_openfoam(self, run_gmshtofoam: bool = True):
         """Export mesh to OpenFOAM format.
         
         Args:
             folder: Destination folder for OpenFOAM case
             run_gmshtofoam: Whether to run gmshToFoam conversion
         """
-        folder = Path(folder)
-        folder.mkdir(exist_ok=True, parents=True)
+        folder = self.parent.case_path
 
         msh_path = folder / "mesh.msh"
         self._log(f"Exporting mesh to {msh_path}")
+        gmsh.option.setNumber("Mesh.MshFileVersion", 2)
+
         gmsh.write(str(msh_path))
 
         if run_gmshtofoam:

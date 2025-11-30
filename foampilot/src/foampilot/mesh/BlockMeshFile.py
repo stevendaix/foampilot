@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 
-class BlockMesh(OpenFOAMFile):
+class BlockMesher(OpenFOAMFile):
     """
     Represents the `blockMeshDict` file in OpenFOAM.
 
@@ -29,7 +29,7 @@ class BlockMesh(OpenFOAMFile):
         List of merge patch pairs.
     """
 
-    def __init__(self, scale: float = 1, vertices=None, blocks=None, edges=None,
+    def __init__(self,parent, scale: float = 1, vertices=None, blocks=None, edges=None,
                  defaultPatch=None, boundary=None, mergePatchPairs=None):
         """
         Initialize the blockMeshDict file handler.
@@ -51,6 +51,8 @@ class BlockMesh(OpenFOAMFile):
         mergePatchPairs : list of tuple, optional
             List of merge patch pairs (default is empty list).
         """
+        self.parent = parent                       
+        self.case_path = parent.case_path 
         self.scale = scale
         self.vertices = vertices if vertices is not None else []
         self.blocks = blocks if blocks is not None else []
@@ -170,7 +172,7 @@ class BlockMesh(OpenFOAMFile):
             FileNotFoundError: If the case path does not exist.
             RuntimeError: If the blockMesh command fails.
         """
-        base_path = self.case_path
+        base_path = self.parent.case_path
         log_file = base_path / "log.blockMesh"
 
         if not base_path.exists():
