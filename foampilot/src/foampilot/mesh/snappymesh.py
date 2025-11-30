@@ -4,7 +4,7 @@ import numpy as np
 import subprocess
 
 
-class SnappyHexMesh:
+class SnappyMesher:
     """
     Class for configuring and generating snappyHexMeshDict based on STL geometry.
 
