@@ -1,6 +1,8 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from pathlib import Path
 from foampilot.mesh.BlockMeshFile import BlockMesh
+from foampilot.mesh.gmsher import GmshMesher
+
 import json
 
 import subprocess
