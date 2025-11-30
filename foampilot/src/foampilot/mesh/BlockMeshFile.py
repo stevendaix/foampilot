@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 
-class BlockMeshFile(OpenFOAMFile):
+class BlockMesh(OpenFOAMFile):
     """
     Represents the `blockMeshDict` file in OpenFOAM.
 
