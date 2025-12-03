@@ -118,9 +118,48 @@ class BaseSolver:
             return False
         return True
 
-    def run_simulation(self, log_filename: str | None = None) -> None:
-        if log_filename is None:
-            log_filename = f"log.{self.solver_name}"
-        if not self.check_solver_module_exists():
-            raise RuntimeError(f"Solver module '{self.foamrun_module}' is not available.")
-        self.run_command(["foamRun", "-solver", self.foamrun_module], log_filename)
+    def run_simulation(self, nb_proc: int = 1, log_filename: str | None = None):
+
+    # --- parallel execution ---
+    if nb_proc >= 2:
+        return self.run_parallel(nb_proc)
+
+    # --- serial execution ---
+    if log_filename is None:
+        log_filename = f"log.{self.solver_name}"
+
+    if not self.check_solver_module_exists():
+        raise RuntimeError(
+            f"Solver module '{self.foamrun_module}' is not available."
+        )
+
+    print(f"🔵 Running simulation in serial mode (1 proc)")
+
+    self.run_command(["foamRun", "-solver", self.foamrun_module], log_filename)
+
+    def run_parallel(self, nb_proc: int):
+
+    print(f"🔵 Parallel run with {nb_proc} processors")
+
+    # Ask the system directory to prepare decomposeParDict
+    if hasattr(self.system, "ensure_decomposeParDict"):
+        self.system.ensure_decomposeParDict(nb_proc)
+        self.system.write()
+
+    # 1. decomposePar
+    print("🟦 Running decomposePar ...")
+    subprocess.run(["decomposePar", "-case", str(self.case_path)], check=True)
+
+    # 2. mpirun
+    print("🟩 Running mpirun simulation ...")
+    subprocess.run(
+        ["mpirun", "-np", str(nb_proc), self.solver_name, "-parallel"],
+        cwd=self.case_path,
+        check=True
+    )
+
+    # 3. reconstructPar
+    print("🟪 Running reconstructPar ...")
+    subprocess.run(["reconstructPar", "-case", str(self.case_path)], check=True)
+
+    print("🏁 Parallel simulation finished !")
