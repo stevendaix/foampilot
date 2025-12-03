@@ -5,6 +5,7 @@ from foampilot.system.fvSchemesFile import FvSchemesFile
 from foampilot.system.fvSolutionFile import FvSolutionFile
 from foampilot.base.openFOAMFile import OpenFOAMFile
 import subprocess
+from foampilot.system.decomposeParDictFile import DecomposeParDictFile
 
 class SystemDirectory:
     """
@@ -36,10 +37,11 @@ class SystemDirectory:
         self.fvSchemes = FvSchemesFile(parent=parent, fields_manager=getattr(parent, "fields_manager", None))
       
         self.fvSolution = FvSolutionFile(parent=parent, fields_manager=getattr(parent, "fields_manager", None))
+      
+        self.decomposeParDict = None 
         
 
 
-    # ... (le reste de la classe reste inchangé)
 
 
     def write(self):
@@ -62,6 +64,10 @@ class SystemDirectory:
         self.controlDict.write(system_path / 'controlDict')
         self.fvSchemes.write(system_path / 'fvSchemes')
         self.fvSolution.write(system_path / 'fvSolution')
+
+        # Write decomposeParDict if created
+        if self.decomposeParDict is not None:
+           self.decomposeParDict.write(system_path / "decomposeParDict")
 
         # Write any additional files that were added
         for file_name, file in self.additional_files.items():
@@ -108,6 +114,18 @@ class SystemDirectory:
         self.controlDict = ControlDictFile.from_dict(config.get('controlDict', {}))
         self.fvSchemes = FvSchemesFile.from_dict(config.get('fvSchemes', {}))
         self.fvSolution = FvSolutionFile.from_dict(config.get('fvSolution', {}))
+
+
+    def ensure_decomposeParDict(self, nb_proc: int):
+    """
+    Create a decomposeParDict file handler if not present.
+    """
+    if self.decomposeParDict is None:
+        self.decomposeParDict = DecomposeParDictFile(parent=self.parent, nb_proc=nb_proc)
+    else:
+        self.decomposeParDict.set_nb_proc(nb_proc)
+
+
 
     def run_topoSet(self):
         """
