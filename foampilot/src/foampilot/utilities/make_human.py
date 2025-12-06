@@ -296,7 +296,7 @@ class HumanGeometry:
             combined = Compound()
             for solid in human_part.solids():
                 combined += solid  # ajoute chaque solide au Compound
-                
+
         Lx, Ly, Lz = domain_size
         with BuildPart() as cfd_box:
             Box(
@@ -304,17 +304,16 @@ class HumanGeometry:
                 align=(Align.CENTER, Align.CENTER, Align.MIN)  # Centre sur X/Y, base à Z=0
             )
             # Décaler la boîte de Lz/2 si tu veux le centre à Z=Lz/2
-            cfd_box.part = cfd_box.part.translate((0, 0, Lz/2))
+            cfd_box.part = cfd_box.part.translate((0, 0, -Lz/2))
         cfd_domain = cfd_box.part
 
         if subtract_human:
             # Nécessite de fusionner le corps humain en un seul solide pour la soustraction
 
-            cfd_domain = cfd_domain - human_part
+            cfd_domain = cfd_domain - combined
 
         return cfd_domain
-
-
+        
     def export_step_all(
         self,
         human_filename: str = "human_model.step",
@@ -325,23 +324,32 @@ class HumanGeometry:
 
         # Corps humain seul
         human_part = self.build_human()
-        # On crée un nouveau Compound avec tous les solides du Compound initial
         if isinstance(human_part, Compound):
             combined = Compound()
             for solid in human_part.solids():
-                combined += solid  # ajoute chaque solide au Compound
+                combined += solid
+            human_part = combined
 
         exporters3d.export_step(human_part, human_filename)
-        #
         exported_files.append(human_filename)
+
+        # Nombre de solides et de faces du corps humain
+        n_solids_human = len(list(human_part.solids()))
+        n_faces_human = len(list(human_part.faces()))
+        print(f"Corps humain : {n_solids_human} solides, {n_faces_human} faces")
 
         # Domaine CFD optionnel
         if domain_filename and domain_size:
             domain_part = self.build_cfd_domain(domain_size=domain_size, subtract_human=True)
             exporters3d.export_step(domain_part, domain_filename)
             exported_files.append(domain_filename)
+
+            # Nombre de solides et de faces du domaine CFD
+            n_solids_domain = len(list(domain_part.solids()))
+            n_faces_domain = len(list(domain_part.faces()))
+            print(f"Domaine CFD : {n_solids_domain} solides, {n_faces_domain} faces")
+
         elif domain_filename and not domain_size:
             print("AVERTISSEMENT: 'domain_filename' spécifié mais 'domain_size' manquant. Export du domaine omis.")
 
         return exported_files
-
