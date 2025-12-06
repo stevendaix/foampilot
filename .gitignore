@@ -27,3 +27,5 @@ tuto/
 exemple*/
 notebook*/
 *.ipynb
+
+*.step
