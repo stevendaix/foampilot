@@ -117,13 +117,13 @@ class SystemDirectory:
 
 
     def ensure_decomposeParDict(self, nb_proc: int):
-    """
-    Create a decomposeParDict file handler if not present.
-    """
-    if self.decomposeParDict is None:
-        self.decomposeParDict = DecomposeParDictFile(parent=self.parent, nb_proc=nb_proc)
-    else:
-        self.decomposeParDict.set_nb_proc(nb_proc)
+        """
+        Create a decomposeParDict file handler if not present.
+        """
+        if self.decomposeParDict is None:
+            self.decomposeParDict = DecomposeParDictFile(parent=self.parent, nb_proc=nb_proc)
+        else:
+            self.decomposeParDict.set_nb_proc(nb_proc)
 
 
 

@@ -7,4 +7,5 @@ from foampilot.utilities.fluids_theory import FluidMechanics
 from foampilot.utilities.manageunits import Quantity
 from foampilot.utilities.function import Functions
 from foampilot.utilities.residuals import ResidualsPost
+from foampilot.utilities.make_human import HumanGeometry
 # from .read_mesh import Quantity
