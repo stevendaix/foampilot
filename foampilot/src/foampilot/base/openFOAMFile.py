@@ -5,13 +5,21 @@ from typing import Optional, Any, Union, Tuple
 
 
 class OpenFOAMFile:
-    """
-    A base class for OpenFOAM configuration files.
+    """A base class for managing and writing OpenFOAM configuration files.
+
+    This class provides a structured way to handle OpenFOAM dictionary syntax,
+    including headers, nested dictionaries, and unit conversions for physical
+    quantities. It supports both generic dictionary files and specific 
+    field files (like 'U' or 'p').
 
     Attributes:
-        header (dict): The header information for the OpenFOAM file.
-        attributes (dict): The specific attributes for the file, including nested dictionaries.
+        DEFAULT_UNITS (dict): Mapping of field names to their standard OpenFOAM units.
+        FIELD_DIMENSIONS (dict): Mapping of field names to their SI unit dimension strings.
+        header (dict): Standard OpenFOAM 'FoamFile' header information.
+        attributes (dict): Data content of the file, stored as nested dictionaries or values.
+        object_name (str): The name of the OpenFOAM object (e.g., 'controlDict').
     """
+
     DEFAULT_UNITS = {
         "nu": "m^2/s", "mu": "Pa.s", "rho": "kg/m^3",
         "k": "m^2/s^2", "epsilon": "m^2/s^3", "omega": "1/s",
@@ -31,9 +39,13 @@ class OpenFOAMFile:
         "nut": "[0 2 -1 0 0 0 0]"
     }
 
-    def __init__(self, object_name, **attributes):
-        """
-        Initializes the OpenFOAMFile with a header and specific attributes.
+    def __init__(self, object_name: str, **attributes: Any):
+        """Initializes the OpenFOAMFile with a header and specific attributes.
+
+        Args:
+            object_name: The name used in the FoamFile 'object' entry.
+            **attributes: Arbitrary keyword arguments representing the 
+                dictionary entries.
         """
         self.header = {
             "version": "2.0",
@@ -44,25 +56,49 @@ class OpenFOAMFile:
         self.attributes = dict(attributes)
         self.object_name = object_name
 
-    # -------------------------------------------------------------------------
-    # Attribute access helpers
-    # -------------------------------------------------------------------------
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
+        """Allows access to dictionary attributes as object properties.
+
+        Args:
+            item: The attribute key to retrieve.
+
+        Returns:
+            The value associated with the key in `self.attributes`.
+
+        Raises:
+            AttributeError: If the key does not exist in the attributes dictionary.
+        """
         if item in self.attributes:
             return self.attributes[item]
         raise AttributeError(f"\'{self.__class__.__name__}\' object has no attribute \'{item}\'")
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: Any):
+        """Allows modifying existing dictionary attributes via dot notation.
+
+        Args:
+            key: The attribute name.
+            value: The value to assign.
+        """
         if key in ("header", "attributes", "object_name"):
             super().__setattr__(key, value)
         elif "attributes" in self.__dict__ and key in self.attributes:
             self.attributes[key] = value
         else:
             super().__setattr__(key, value)
-    # -------------------------------------------------------------------------
-    # Internal utilities
-    # -------------------------------------------------------------------------
-    def _format_value(self, key, value):
+
+    def _format_value(self, key: str, value: Any) -> str:
+        """Formats Python types into OpenFOAM-compatible string syntax.
+
+        Handles Booleans (true/false), floating point precision, and 
+        `Quantity` objects with unit conversion.
+
+        Args:
+            key: The attribute key (used to determine target units).
+            value: The value to format.
+
+        Returns:
+            A string representation of the value for OpenFOAM files.
+        """
         if isinstance(value, bool):
             return "true" if value else "false"
         if isinstance(value, (int, float)):
@@ -75,35 +111,47 @@ class OpenFOAMFile:
             return str(val)
         return str(value)
 
-    def _write_attributes(self, file, attributes, indent_level=0):
+    def _write_attributes(self, file: Any, attributes: dict, indent_level: int = 0):
+        """Recursively writes dictionary attributes to a file with proper indentation.
+
+        Args:
+            file: The file object to write to.
+            attributes: The dictionary of attributes to write.
+            indent_level: Current indentation depth.
+        """
         indent = "    " * indent_level
         for key, value in attributes.items():
             if value is None:
                 continue
 
-            # dictionnaire → bloc
+            # dictionary → block
             if isinstance(value, dict):
                 if value:
                     file.write(f'{indent}{key}\n{indent}{{\n')
                     self._write_attributes(file, value, indent_level + 1)
                     file.write(f'{indent}}}\n')
-                continue  # éviter d'écrire dict en tant que str
+                continue
 
             # tuple → OpenFOAM list
-            if isinstance(value, Tuple):
+            if isinstance(value, tuple):
                 file.write(f'{indent}{key} (')
                 for item in value:
                     file.write(f'{self._format_value(key, item)} ')
                 file.write(');\n')
                 continue
 
-            # tout le reste
+            # standard key-value
             file.write(f'{indent}{key} {self._format_value(key, value)};\n')
 
-    # -------------------------------------------------------------------------
-    # Generic writer
-    # -------------------------------------------------------------------------
-    def write_file(self, filepath):
+    def write_file(self, filepath: Union[str, Path]):
+        """Writes the current object as a standard OpenFOAM dictionary file.
+
+        Args:
+            filepath: Destination path where the file will be saved.
+
+        Raises:
+            IOError: If the file cannot be written to the disk.
+        """
         try:
             filepath = Path(filepath)
             with open(filepath, 'w') as file:
@@ -113,17 +161,19 @@ class OpenFOAMFile:
                     file.write(f'    {key}     {value};\n')
                 file.write("}\n\n")
 
-                # contenu principal
+                # main content
                 self._write_attributes(file, self.attributes)
         except IOError as e:
             print(f"Error writing file {filepath}: {e}")
-            
-    # -------------------------------------------------------------------------
-    # Specific: boundary field file
-    # -------------------------------------------------------------------------
-    def _generate_field_header(self, field):
-        """
-        Generate the OpenFOAM header for a specific field file.
+
+    def _generate_field_header(self, field: str) -> str:
+        """Generates the FoamFile header specific to field files (e.g., volScalarField).
+
+        Args:
+            field: The field name (e.g., 'U', 'p').
+
+        Returns:
+            A string containing the formatted OpenFOAM header.
         """
         class_field = "volVectorField" if field == "U" else "volScalarField"
         return (
@@ -136,15 +186,19 @@ class OpenFOAMFile:
             f"}}\n"
         )
 
-    def write_boundary_file(self, field, boundaries, case_path, internal_field=None):
-        """
-        Write an OpenFOAM boundary file for the given field.
-        
+    def write_boundary_file(self, field: str, boundaries: dict, case_path: Union[str, Path], internal_field: Optional[str] = None):
+        """Writes an OpenFOAM boundary condition file (usually in the '0/' directory).
+
+        This method handles the creation of the directory, dimension definitions,
+        and the formatting of boundary patches.
+
         Args:
-            field (str): Field name ("U", "p", "k", "epsilon", etc.)
-            boundaries (dict): Dictionary of boundary conditions for this field.
-            case_path (Path | str): Base path to the case directory.
-            internal_field (str, optional): Override for internal field (default auto).
+            field: Name of the field (e.g., "U", "p", "nut").
+            boundaries: Dictionary where keys are patch names and values 
+                are dictionaries of BC parameters.
+            case_path: Path to the OpenFOAM case root directory.
+            internal_field: Override for the `internalField` entry. 
+                Defaults to sensible defaults (e.g., "uniform (0 0 0)" for U).
         """
         base_path = Path(case_path)
         folder_0 = base_path / "0"
