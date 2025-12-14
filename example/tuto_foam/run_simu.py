@@ -94,50 +94,97 @@ solver.boundary.apply_condition_with_wildcard(
 # Write all boundary files
 solver.boundary.write_boundary_conditions()
 
-# ------------------------------
-# 6. FUNCTION OBJECTS (modern API)
-# ------------------------------
+ 
 
-# fieldAverage
-solver.system.add_function_object(
-    name="fieldAverage",
-    function_type="fieldAverage",
-    fields=["U", "p", "k"],
-    operation="average",
-    writeControl="timeStep",
-    writeInterval=10
+# --- 4. Adding functionObjects (fieldAverage, referencePressure, runTimeControl) ---
+# Example: add a fieldAverage function to system/controlDict
+name_field, field_average_dict = utilities.Functions.field_average("fieldAverage")
+utilities.Functions.write_function_field_average(name_field, field_average_dict, base_path=current_path, folder='system')
+
+# Example: add a reference pressure function
+name_field_ref, reference_dict = utilities.Functions.reference_pressure("referencePressure")
+utilities.Functions.write_function_reference_pressure(name_field_ref, reference_dict, base_path=current_path, folder='system')
+
+# Example: runTimeControl conditions (stopping criteria)
+conditions1 = {
+    "condition1": {
+        "type": "average",
+        "functionObject": "forceCoeffs1",
+        "fields": "(Cd)",
+        "tolerance": "1e-3",
+        "window": "20",
+        "windowType": "exact"
+    }
+}
+
+conditions2 = {
+    "condition1": {
+        "type": "maxDuration",
+        "duration": "100"
+    }
+}
+
+name_field_rt1, rt1_dict = utilities.Functions.run_time_control("runTimeControl", conditions=conditions1)
+utilities.Functions.write_function_run_time_control(
+    name_field=name_field_rt1,
+    name_condition="runTimeControl1",
+    function_dict=rt1_dict,
+    base_path=current_path,
+    folder='system'
 )
 
-# runTimeControl
-solver.system.add_function_object(
-    name="runTimeControl",
-    function_type="runTimeControl",
-    conditions=[
-        {
-            "type": "average",
-            "functionObject": "forceCoeffs",
-            "fields": "(Cd)",
-            "tolerance": 1e-3,
-            "window": 20
-        }
-    ]
-)
+# Create the functions file in system
+solver.system.write_functions_file(includes=["fieldAverage", "runTimeControl"])
 
-solver.system.write_functions_file()
+# --- 5. Dictionary manipulation (patches & topoSet) ---
+# Define patch names for createPatchDict
+patch_names = ["airIntake"]
+patches_dict = utilities.dictonnary.dict_tools.create_patches_dict(patch_names)
 
-# ------------------------------
-# 7. TOPOSET / CREATEPATCH (modern)
-# ------------------------------
+# Write createPatchDict file
+create_patch_dict_file = utilities.dictonnary.OpenFOAMDictAddFile(object_name='createPatchDict', **patches_dict)
+create_patch_dict_file.write("createPatchDict", current_path)
 
-commons.OpenFOAM.run_tool(
-    "topoSet",
-    case_path=current_path
-)
+# Define topoSet actions (to create cellSets, faceSets, etc.)
+actions = [
+    utilities.dictonnary.dict_tools.create_action(
+        name="porousCells",
+        action_type="cellSet",
+        action="new",
+        source="boxToCell",
+        box=[(2.05, 0.4, -1), (2.1, 0.85, 1)]
+    ),
+    utilities.dictonnary.dict_tools.create_action(
+        name="porousZone",
+        action_type="cellZoneSet",
+        action="new",
+        source="setToCellZone",
+        set="porousCells"
+    ),
+    utilities.dictonnary.dict_tools.create_action(
+        name="airIntake",
+        action_type="faceSet",
+        action="new",
+        source="patchToFace",
+        patch="body"
+    ),
+    utilities.dictonnary.dict_tools.create_action(
+        name="airIntake",
+        action_type="faceSet",
+        action="subset",
+        source="boxToFace",
+        box=[(2.6, 0.75, 0), (2.64, 0.8, 0.1)]
+    )
+]
 
-commons.OpenFOAM.run_tool(
-    "createPatch",
-    case_path=current_path
-)
+# Create topoSetDict and write it
+actions_dict = utilities.dictonnary.dict_tools.create_actions_dict(actions)
+create_topo_set_dict_file = utilities.dictonnary.OpenFOAMDictAddFile(object_name='topoSetDict', **actions_dict)
+create_topo_set_dict_file.write("topoSetDict", current_path)
+
+# Run topoSet and createPatch commands
+solver.system.run_topoSet()
+solver.system.run_createPatch()
 
 # ------------------------------
 # 8. RUN SIMULATION
