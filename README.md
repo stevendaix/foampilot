@@ -31,7 +31,6 @@ everything is defined in Python files, from mesh generation to post-processing a
 ✅ Save time in preparation and analysis.  
 ✅ Present results in a modern, professional way.  
 
-### 📌 Quick Example
 
 ---
 ## 中文
@@ -58,7 +57,6 @@ foampilot 是一个基于 Python 的平台，可以完全控制您的 OpenFOAM �
 ✅ 在准备和分析过程中节省时间。
 ✅ 以现代和专业的方式展示结果。
 
-### 📌 快速示例
 
 ---
 <a id="french"></a>
@@ -89,38 +87,3 @@ tout est défini dans des fichiers Python, depuis la création du maillage jusqu
 ✅ Gain de temps sur la préparation et l’analyse.
 
 ✅ Résultats présentés de manière moderne et professionnelle.
-
-
-# 📌 Exemple rapide
-
-## Prérequis système (Linux)
-
-Pour utiliser ce projet, les bibliothèques système suivantes sont requises, notamment pour **GMSH** et **PyVista** :
-
-### Debian/Ubuntu
-Exécutez la commande suivante pour installer les dépendances :
-
-```bash
-sudo apt update
-sudo apt install -y \
-    libglu1-mesa \
-    libgl1 \
-    libxrender1 \
-    libxext6 \
-    libsm6 \
-    libice6 \
-    libglu1-mesa-dev \
-    libgl1-mesa-dri
-```
-pour pyvista
-
-```bash
-sudo apt install -y \
-    libx11-xcb1 \
-    libxcb-glx0 \
-    libxcb-dri2-0 \
-    libxcb-dri3-0 \
-    libxcb-present0 \
-    libxcb-sync1 \
-    libxshmfence1
-```
