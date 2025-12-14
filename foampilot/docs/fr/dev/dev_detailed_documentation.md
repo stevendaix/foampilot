@@ -65,183 +65,25 @@ Ce sous-module regroupe diverses fonctions utilitaires.
 
 ## Installation
 
-L'utilisation de `foampilot` nécessite une installation fonctionnelle d'**OpenFOAM** sur votre système.
+Pour installer `foampilot`, clonez le dépôt GitHub et installez les dépendances nécessaires :
 
-Pour installer le module Python et ses dépendances :
-
-1.  **Cloner le dépôt GitHub** :
-    ```bash
-    git clone https://github.com/stevendaix/foampilot.git
-    cd foampilot
-    ```
-
-2.  **Installer les dépendances Python** :
-    `foampilot` utilise plusieurs bibliothèques pour le maillage, le post-traitement et la gestion des unités.
-    ```bash
-    pip install -r requirements.txt
-    ```
-    *(Note : Le fichier `requirements.txt` doit être créé ou mis à jour avec les dépendances réelles du projet, telles que `pyvista`, `numpy`, `pandas`, `pint`, etc.)*
-
-3.  **Installer le module localement** :
-    Pour utiliser `foampilot` comme un module importable, installez-le en mode éditable :
-    ```bash
-    pip install -e .
-    ```
-
-## Utilisation : Le Workflow foampilot
-
-`foampilot` est conçu pour suivre le workflow standard d'une simulation OpenFOAM, mais entièrement en Python. Le processus typique se déroule comme suit :
-
-1.  **Initialisation du Solveur** : Créer une instance de la classe `Solver` (ou d'une classe dérivée comme `incompressibleFluid`). C'est le point de départ qui configure l'environnement de simulation.
-2.  **Configuration Physique** : Définir les propriétés physiques de la simulation (compressible, transitoire, gravité, etc.) via les propriétés de l'objet `Solver`.
-3.  **Maillage** : Utiliser la classe `Meshing` pour générer le maillage (ex: `blockMesh`) et charger les informations de géométrie.
-4.  **Conditions aux Limites** : Utiliser l'objet `Boundary` (accessible via `solver.boundary`) pour définir les conditions aux limites pour tous les champs (vitesse `U`, pression `p`, turbulence, etc.).
-5.  **Configuration Numérique** : Configurer les schémas numériques (`fvSchemes`) et les solutions (`fvSolution`) via les objets `solver.system.fvSchemes` et `solver.system.fvSolution`.
-6.  **Lancement** : Exécuter la simulation avec la méthode `solver.run_simulation()`.
-7.  **Post-traitement** : Utiliser les outils de post-traitement (ex: `postprocess`, `utilities.ResidualsPost`) pour analyser les résultats.
-
-### La classe centrale `Solver`
-
-La classe `foampilot.solver.Solver` est le cœur du module. Elle agit comme un **gestionnaire de solveur** intelligent.
-
-| Propriété | Type | Description |
-| :--- | :--- | :--- |
-| `compressible` | `bool` | Si `True`, sélectionne un solveur pour fluide compressible (ex: `rhoSimpleFoam`). |
-| `with_gravity` | `bool` | Si `True`, inclut les effets de gravité (ex: `buoyantSimpleFoam`). |
-| `transient` | `bool` | Si `True`, sélectionne un solveur transitoire (ex: `pimpleFoam`). |
-| `is_vof` | `bool` | Si `True`, sélectionne un solveur pour interface libre (ex: `interFoam`). |
-| `energy_activated` | `bool` | Si `True`, inclut la résolution de l'énergie (température `T`). |
-| `turbulence_model` | `str` | Définit le modèle de turbulence (`kEpsilon`, `kOmegaSST`, etc.). |
-
-**Exemple de configuration physique :**
-
-```python
-from foampilot.solver import Solver
-from pathlib import Path
-
-case_path = Path("./my_case")
-solver = Solver(case_path=case_path)
-
-# Configuration pour une simulation transitoire, compressible, avec gravité
-solver.transient = True
-solver.compressible = True
-solver.with_gravity = True
-
-# Le solveur interne est automatiquement mis à jour (ex: vers un solveur de type buoyantPimpleFoam)
-print(f"Solveur sélectionné : {solver.solver_name}")
+```bash
+git clone https://github.com/stevendaix/foampilot.git
+cd foampilot
+pip install -r requirements.txt # (Assurez-vous que ce fichier existe ou créez-le)
 ```
 
-### Gestion des Unités avec `Quantity`
+## Utilisation
 
-`foampilot` utilise la classe `Quantity` (du sous-module `utilities.manageunits`) pour garantir la cohérence des unités physiques. Toutes les valeurs d'entrée (vitesse, pression, température, etc.) doivent être fournies comme des objets `Quantity`.
-
-```python
-from foampilot.utilities.manageunits import Quantity
-
-# Définir une vitesse de 10 mètres par seconde
-velocity = Quantity(10, "m/s")
-
-# Définir une pression de 100 000 Pascals
-pressure = Quantity(100000, "Pa")
-```
-
-Cette approche réduit les erreurs de conversion et rend le code de simulation plus lisible et robuste.
+(Cette section sera complétée avec des exemples de code et des explications détaillées sur l'utilisation des différentes classes et fonctions du module.)
 
 ## Exemples
 
-### 1. Démarrage Rapide : Simulation d'un Écoulement Incompressible Simple
-
-Cet exemple montre comment configurer un cas OpenFOAM minimaliste pour un écoulement incompressible stationnaire (simpleFoam).
-
-```python
-from foampilot.solver import incompressibleFluid
-from foampilot.base.meshing import Meshing
-from foampilot.utilities.manageunits import Quantity
-from pathlib import Path
-
-# 1. Définir le chemin du cas
-case_path = Path("./quick_start_case")
-
-# 2. Initialiser le solveur (incompressibleFluid est un alias pour Solver préconfiguré)
-solver = incompressibleFluid(path_case=case_path)
-
-# 3. Configuration des propriétés physiques
-# Par défaut : incompressible, stationnaire, kEpsilon
-
-# Définir la viscosité cinématique (nu)
-solver.constant.transportProperties.nu = Quantity(1e-5, "m^2/s")
-
-# 4. Maillage (Exemple simplifié avec un fichier JSON de blockMesh)
-# Assurez-vous que 'block_mesh.json' existe et contient la configuration de votre géométrie
-block_mesh_data = Path.cwd() / 'data' / "block_mesh.json"
-meshing = Meshing(path_case=case_path)
-meshing.load_from_json(block_mesh_data)
-
-# Écrire le blockMeshDict et lancer le maillage
-meshing.write()
-meshing.run_blockMesh()
-
-# 5. Conditions aux Limites
-# Le maillage doit être généré avant de définir les conditions aux limites.
-solver.boundary.initialize_boundary()
-
-# Exemple : Entrée de vitesse (patch 'inlet')
-solver.boundary.set_velocity_inlet(
-    pattern="inlet",
-    velocity=(Quantity(1.0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")),
-    turbulence_intensity=0.05
-)
-
-# Exemple : Sortie de pression (patch 'outlet')
-solver.boundary.set_pressure_outlet(
-    pattern="outlet",
-    velocity=(Quantity(1.0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")),
-)
-
-# Exemple : Paroi (patch 'wall')
-solver.boundary.set_wall(pattern="wall")
-
-# Écrire les fichiers de conditions aux limites (U, p, k, epsilon, etc.)
-solver.boundary.write_all_fields()
-
-# 6. Écrire les fichiers de configuration OpenFOAM
-solver.system.write()
-solver.constant.write()
-
-# 7. Lancer la simulation
-# solver.run_simulation()
-print(f"Cas de simulation prêt dans : {case_path}")
-
-### 2. Exemple Avancé : Configuration de FunctionObjects et TopoSet
-
-L'exemple `run_exemple1.py` montre comment `foampilot` gère les fonctionnalités avancées d'OpenFOAM, telles que :
-
-- **`FunctionObjects`** : Ajout de fonctions de post-traitement en cours de simulation (ex: `fieldAverage`, `forceCoeffs`, `runTimeControl`).
-- **`TopoSet` et `CreatePatch`** : Manipulation de la géométrie et du maillage pour définir des zones spécifiques (ex: zones poreuses) ou regrouper des faces en nouveaux patchs.
-
-Pour une analyse détaillée de ces fonctionnalités, veuillez consulter le fichier `run_exemple1.py` dans le répertoire racine du projet.
+(Cette section présentera des exemples concrets d'utilisation du module pour des cas de simulation typiques.)
 
 ## Améliorations et Contributions
 
-`foampilot` est un projet open-source et les contributions sont les bienvenues.
-
-### Comment Contribuer
-
-1.  **Forker** le dépôt sur GitHub.
-2.  **Cloner** votre fork localement.
-3.  Créer une **branche de fonctionnalité** (`git checkout -b feature/nouvelle-fonctionnalite`).
-4.  **Développer** votre fonctionnalité ou correction de bug.
-5.  Assurez-vous que les **tests** passent (ou ajoutez de nouveaux tests si nécessaire).
-6.  **Commiter** vos changements (`git commit -m 'feat: ajout de la fonctionnalité X'`).
-7.  **Pousser** la branche (`git push origin feature/nouvelle-fonctionnalite`).
-8.  Ouvrir une **Pull Request** sur le dépôt principal.
-
-### Améliorations Futures Envisagées
-
--   **Support Gmsh/SnappyHexMesh** : Intégration complète des outils de maillage avancés.
--   **Post-traitement Avancé** : Ajout de fonctions de post-traitement spécifiques à des solveurs (ex: calcul de `y+` pour les modèles de turbulence).
--   **Gestion des Tests** : Amélioration de la couverture des tests unitaires et d'intégration.
--   **Documentation Automatisée** : Utilisation d'outils comme Sphinx ou MkDocs pour générer automatiquement la documentation de l'API à partir des docstrings Python.
+(Cette section décrira comment contribuer au projet et les améliorations futures envisagées.)
 
 
 

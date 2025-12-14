@@ -12,7 +12,7 @@ import json
 # ------------------------------
 # 1. DEFINE CASE PATH
 # ------------------------------
-current_path = Path.cwd() / "exemple1_updated"
+current_path = Path.cwd() 
 
 # ------------------------------
 # 2. FLUID PROPERTIES (modern API)

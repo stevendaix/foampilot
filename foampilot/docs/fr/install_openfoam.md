@@ -100,6 +100,36 @@ Pour utiliser OpenFOAM, suivez ces étapes :
   . $HOME/.bashrc
   ```
 
----
 
-*Dernière mise à jour : juillet 2025*
+## Dépendances graphiques et LaTeX
+
+### Installer les bibliothèques pour Gmsh et OpenGL
+
+```bash
+sudo apt install libglu1-mesa libgl1-mesa-glx libxrender1 libxext6
+````
+
+### Installer TexLive pour LaTeX
+
+#### 1. Installation de base
+
+```bash
+sudo apt-get install texlive-latex-base
+```
+
+#### 2. Polices recommandées et supplémentaires
+
+Pour éviter les erreurs lors de l'utilisation de `pdflatex` avec des fichiers contenant plusieurs polices :
+
+```bash
+sudo apt-get install texlive-fonts-recommended
+sudo apt-get install texlive-fonts-extra
+```
+
+#### 3. Paquets LaTeX supplémentaires
+
+```bash
+sudo apt-get install texlive-latex-extra
+```
+
+

@@ -1,105 +1,159 @@
-# OpenFOAM sur Windows – Guide d'installation WSL
+# Windows 上的 OpenFOAM – WSL 安装指南
 
-Le sous-système Windows pour Linux (WSL) vous permet d’exécuter des applications Linux directement sur Windows 10 et 11.
-
----
-
-## Liens de téléchargement
-
-- [Site Web officiel d'OpenFOAM](#)
-- [OpenFOAM v13](#)
-- [OpenFOAM-dev](#)
-- [Exécuter OpenFOAM sous Windows](#)
-- [Exécuter OpenFOAM sur macOS](#)
-- [Compiler à partir de la source](#)
-- [Dépôt de paquets](#)
-- [Historique des versions](#)
+**Windows Subsystem for Linux (WSL)** 允许您在 Windows 10 和 11 上直接运行完整的 Linux 环境。这是目前在 Windows 上可靠运行 OpenFOAM 的推荐方法。
 
 ---
 
-## Installation de WSL
+## 下载链接
 
-### 1. Ouvrez l'invite de commande Windows en tant qu'administrateur
-- Cliquez sur le menu Démarrer, tapez « cmd ».
-- Faites un clic droit sur « Invite de commandes » et sélectionnez « Exécuter en tant qu'administrateur ».
-- Confirmez toutes les invites d’autorisation.
+- OpenFOAM 官方网站: https://www.openfoam.com  
+- OpenFOAM v13: https://www.openfoam.com/download  
+- OpenFOAM-dev: https://www.openfoam.com/download/dev  
+- 在 Windows 上运行 OpenFOAM (WSL): https://www.openfoam.com/download/windows  
+- 在 macOS 上运行 OpenFOAM: https://www.openfoam.com/download/mac  
+- 从源代码编译: https://www.openfoam.com/download/source  
+- 软件包仓库: https://dl.openfoam.org  
+- 版本历史: https://www.openfoam.com/releases  
 
-### 2. Vérifiez si WSL est installé
-Exécutez la commande :
+---
+
+## 安装 WSL
+
+### 1. 以管理员身份打开 Windows 命令提示符
+- 点击 **开始菜单**，输入 `cmd`  
+- 右键 **命令提示符** → *以管理员身份运行*  
+- 确认所有授权提示  
+
+### 2. 检查 WSL 是否已安装
+运行命令：
+
 ```bash
 wsl -l -v
-```
-- Si aucune distribution n’est installée, passez à l’étape suivante.
-- Sinon, vérifiez qu'Ubuntu est répertorié avec la version 2.
+````
 
-### 3. Installer WSL avec Ubuntu 22.04
-Courir:
+* 如果未安装任何发行版，请继续下一步
+* 否则，检查 Ubuntu 是否列出并且版本为 2
+
+### 3. 安装 WSL 和 Ubuntu 22.04
+
+运行：
+
 ```bash
 wsl --install -d Ubuntu-22.04
 ```
-- Suivez les instructions pour définir le nom d'utilisateur et le mot de passe.
 
-### 4. Démarrez WSL
-- Ouvrez le menu Démarrer, recherchez « Ubuntu » et lancez-le.
-- Ou tapez « wsl » dans l'invite de commande.
+* 按提示设置 Linux 用户名和密码
+
+### 4. 启动 WSL
+
+* 在 **开始菜单** 中搜索 **Ubuntu** 并打开
+* 或在命令提示符中输入：
+
+```bash
+wsl
+```
 
 ---
 
-## Installation d'OpenFOAM et ParaView
+## 安装 OpenFOAM 和 ParaView
 
-OpenFOAM et ParaView s'installent facilement grâce au gestionnaire de paquets « apt ». Vous devrez saisir votre mot de passe de superutilisateur pour exécuter les commandes suivantes avec « sudo » :
+OpenFOAM 和 ParaView 可以通过 `apt` 包管理器安装。以下命令需要超级用户权限 (`sudo`)。
 
-### 1. Ajoutez le référentiel OpenFOAM et la clé publique
-Exécutez ces commandes dans le terminal :
+### 1. 添加 OpenFOAM 仓库和公钥
+
+在终端中运行：
+
 ```bash
-sudo sh -c "wget ​​-O - https://dl.openfoam.org/gpg.key > /etc/apt/trusted.gpg.d/openfoam.asc"
+sudo sh -c "wget -O - https://dl.openfoam.org/gpg.key > /etc/apt/trusted.gpg.d/openfoam.asc"
 sudo add-apt-repository http://dl.openfoam.org/ubuntu
 ```
-Remarque : utilisez « https:// » pour la clé publique. L'URL du référentiel utilise « http:// » car « https:// » n'est peut-être pas pris en charge, mais la sécurité est assurée par la clé.
 
-### 2. Mettez à jour votre liste de colis
+**注意:**
+
+* 公钥使用 `https://`
+* 仓库 URL 使用 `http://`，安全性由 GPG 密钥保证
+
+### 2. 更新软件包列表
+
 ```bash
-mise à jour sudo apt
+sudo apt update
 ```
 
-### 3. Installez OpenFOAM 13
+### 3. 安装 OpenFOAM 13
+
 ```bash
 sudo apt -y install openfoam13
 ```
-OpenFOAM 13 et ParaView seront installés dans le répertoire `/opt`.
+
+OpenFOAM 13 和 ParaView 会安装在 `/opt` 目录下。
 
 ---
 
-## Configuration utilisateur
+## 用户配置
 
-Pour utiliser OpenFOAM, suivez ces étapes :
+要使用 OpenFOAM，请按以下步骤操作：
 
-1. Ouvrez votre fichier `.bashrc` dans votre répertoire personnel avec un éditeur, par exemple :
-   ```bash
-   gedit ~/.bashrc
-   ```
+1. 使用编辑器打开家目录下的 `.bashrc` 文件，例如：
 
-2. Ajoutez cette ligne à la fin du fichier, puis enregistrez et fermez :
-   ```bash
-   . /opt/openfoam13/etc/bashrc
-   ```
+```bash
+gedit ~/.bashrc
+```
 
-3. Ouvrez une nouvelle fenêtre de terminal et testez l'installation en exécutant :
-   ```bash
-   foamRun -aide
-   ```
+2. 在文件末尾添加以下行，然后保存并关闭：
 
-4. Vous devriez voir le message d'aide. L'installation et la configuration sont maintenant terminées.
+```bash
+. /opt/openfoam13/etc/bashrc
+```
 
----
+3. 打开一个新的终端窗口并测试安装：
 
-### Remarques
-- Si vous avez déjà une ligne similaire dans `.bashrc` (d'une ancienne version d'OpenFOAM), commentez-la en ajoutant un `#` au début de la ligne ou supprimez-la.
-- Pour appliquer les modifications immédiatement dans la même fenêtre de terminal après avoir modifié `.bashrc`, exécutez :
-  ```bash
-  . $HOME/.bashrc
-  ```
+```bash
+foamRun -help
+```
+
+4. 如果显示帮助信息，说明安装和配置已完成。
 
 ---
 
-*Dernière mise à jour : juillet 2025*
+### 注意事项
+
+* 如果 `.bashrc` 中已有类似的旧版本 OpenFOAM 配置，请用 `#` 注释或删除
+* 修改 `.bashrc` 后，要立即应用更改，请运行：
+
+```bash
+. $HOME/.bashrc
+```
+
+---
+
+## 图形库和 LaTeX 依赖
+
+### 安装 Gmsh 和 OpenGL 所需库
+
+```bash
+sudo apt install libglu1-mesa libgl1-mesa-glx libxrender1 libxext6
+```
+
+### 安装 TexLive（LaTeX）
+
+#### 1. 基础安装
+
+```bash
+sudo apt-get install texlive-latex-base
+```
+
+#### 2. 推荐字体和扩展字体
+
+为了避免在处理含多字体的 LaTeX 文件时使用 `pdflatex` 出现错误：
+
+```bash
+sudo apt-get install texlive-fonts-recommended
+sudo apt-get install texlive-fonts-extra
+```
+
+#### 3. 额外 LaTeX 软件包
+
+```bash
+sudo apt-get install texlive-latex-extra
+```
+

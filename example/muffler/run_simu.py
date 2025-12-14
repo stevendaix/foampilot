@@ -13,7 +13,8 @@ import json
 import pandas as pd
 
 # Define the working directory for the simulation case
-current_path = Path.cwd() / 'exemple2'
+current_path = Path.cwd() / 'cas_test'
+
 
 # List available fluids
 print("Available fluids:")
