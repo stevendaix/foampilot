@@ -8,7 +8,7 @@ def run_full_stl_test():
 
     try:
         # 1. Load the STL geometry
-        stl_filepath = Path("/home/ubuntu/chess-pieces.stl")
+        stl_filepath = Path("chess-pieces.stl")
         if not stl_filepath.exists():
             print(f"Error: STL file not found at {stl_filepath}")
             return

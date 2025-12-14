@@ -1,7 +1,5 @@
 # Documentation de Prise en Main pour Développeurs : Module `foampilot`
 
-**Auteur :** Manus AI
-**Date :** 4 Décembre 2025
 
 ## 1. Introduction
 

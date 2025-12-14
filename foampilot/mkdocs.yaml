@@ -1,4 +1,9 @@
 site_name: FoamPilot Documentation
+site_url: https://stevendaix.github.io/foampilot/
+
+repo_url: https://github.com/stevendaix/foampilot
+repo_name: FoamPilot
+
 theme:
   name: material
   features:
@@ -8,24 +13,8 @@ theme:
 
 plugins:
   - search
-  - mkdocstrings:
-  #     handlers:
-  #       python:
-  #         paths: ["../foampilot"]  # Chemin vers votre module
-  #         options:
-  #           show_root_heading: true
-  #           show_root_full_path: false
-  #           show_root_members_full_path: false
-  #           show_category_heading: true
-  #           show_if_no_docstring: false
-  #           show_signature_annotations: true
-  #           show_source: false
-  #           separate_signature: true
-  #           line_length: 80
-  #           merge_init_into_class: true
-  #           docstring_style: "google"  # ou "numpy" selon votre style
   - i18n:
-      default_language: en
+      docs_structure: folder
       languages:
         - locale: en
           name: English
@@ -40,11 +29,27 @@ plugins:
           default: false
           build: true
 
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  
 nav:
-  - Accueil: index.md
-  - À propos: about.md
-  - Installation: install_openfoam.md
-  # - Référence API:
-  #     - reference/base.md
-  #     - reference/boundaries.md
-  #     - reference/commons.md
+  - Home: en/index.md
+  - About: en/about.md
+  - Installation:
+      - OpenFOAM: en/install_openfoam.md
+  - Présentation de FOAMPilot: en/presentation.md
+  - Guide théorique: en/fluids_theory.md
+  - Guide utilisateur: en/user_documentation.md
+  - Partie développement:
+      - index: en/dev/dev_index.md
+      - introduction : en/dev/dev_intro_documentation.md
+      - Modules détailés de FoamPilot : en/dev/dev_detailed_documentation.md
+      - Gestion des quantités : en/dev/manage_quantity.md
+  - Partie exemples:
+      - index: en/example/presntation_example.md
+      - Étude de cas silencieux : en/example/muffler/detailled_example_muffler.md

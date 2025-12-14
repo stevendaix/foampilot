@@ -12,7 +12,7 @@
 !run_*
 !cas_test/
 !test_*.py
-
+!temp**
 # === Ignore les dossiers de build / metadata ===
 *.egg-info/
 __pycache__/

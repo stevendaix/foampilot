@@ -75,7 +75,7 @@ Pour les géométries complexes au format STL, vous devez d'abord créer un mail
     # snappyHexMesh n'a pas besoin d'un chemin de fichier en argument, il utilise les fichiers de configuration
     mesh_obj.mesher.run()
     \`\`\`
-    
+
     *Note : La configuration détaillée de `snappyHexMeshDict` (niveaux de raffinement, couches limites) doit être gérée par l'utilisateur, soit en modifiant le dictionnaire généré par défaut, soit en utilisant des fonctions avancées de `foampilot` si elles sont disponibles.*
 
 ## 3. Choix du Solveur et Prise en Compte des Physiques

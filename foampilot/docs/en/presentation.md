@@ -33,7 +33,7 @@ Le sous-module `system` gère le répertoire `system` d'OpenFOAM, qui dicte la m
 | **Schémas Numériques** | **Classe `fvSchemesFile`** | Gère la discrétisation des termes de l'équation (dérivées temporelles, termes de convection, termes de diffusion). Le choix des schémas (ex: Euler pour le temps, `upwind` ou `Gauss linear` pour la convection) impacte directement la stabilité et la précision de la solution numérique. |
 | **Solveurs Algébriques** | **Classe `fvSolutionFile`** | Configure les solveurs matriciels utilisés pour résoudre les systèmes d'équations linéaires résultant de la discrétisation (ex: `PCG` pour la pression, `BiCGStab` pour la vitesse). Il définit également les critères de convergence (tolérance) et les stratégies de sous-relaxation. |
 
-## 4. foampilot.mesh : La Géométrie et la Discrétisation Spatiale
+## 4. foampilot.mesh : Le maillage
 
 Le sous-module `mesh` est responsable de la création du maillage, la discrétisation spatiale du domaine de calcul.
 

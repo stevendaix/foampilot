@@ -22,6 +22,8 @@ Ce document détaille un script Python utilisant les bibliothèques `foampilot`,
 ## Introduction
 Ce script automatise la création d'une géométrie de silencieux, génère un maillage adapté, définit les conditions aux limites, exécute une simulation CFD (Computational Fluid Dynamics) avec OpenFOAM via `foampilot`, et effectue un post-traitement des résultats à l'aide de `pyvista`.
 
+Cet exemple est disponible dans exemple/muffler
+
 ---
 
 ## Importation des bibliothèques
