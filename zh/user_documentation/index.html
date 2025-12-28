@@ -1,0 +1,1731 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/zh/user_documentation/">
+      
+      
+        <link rel="prev" href="../fluids_theory/">
+      
+      
+        <link rel="next" href="../dev/dev_index/">
+      
+      
+        
+          <link rel="alternate" href="../../user_documentation/" hreflang="en">
+        
+          <link rel="alternate" href="../../fr/user_documentation/" hreflang="fr">
+        
+          <link rel="alternate" href="./" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Guide utilisateur - FoamPilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#documentation-utilisateur-pour-foampilot" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../" title="FoamPilot Documentation" class="md-header__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FoamPilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Guide utilisateur
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../user_documentation/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../fr/user_documentation/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stevendaix/foampilot" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../install_openfoam/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../presentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Présentation de FOAMPilot
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../fluids_theory/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide théorique
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide utilisateur
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dev/dev_index/" class="md-tabs__link">
+          
+  
+  
+  Partie développement
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../example/presentation_example/" class="md-tabs__link">
+          
+  
+  
+  Partie exemples
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="FoamPilot Documentation" class="md-nav__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FoamPilot Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stevendaix/foampilot" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install_openfoam/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenFOAM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../presentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Présentation de FOAMPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fluids_theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide théorique
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide utilisateur
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide utilisateur
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-reflexion-de-fonctionnement-globale-de-foampilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Réflexion de Fonctionnement Globale de foampilot
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-choix-de-la-geometrie-et-du-maillage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Choix de la Géométrie et du Maillage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Choix de la Géométrie et du Maillage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-maillage-structure-avec-blockmesh-via-classy_blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1. Maillage Structuré avec blockMesh (via classy_blocks)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-maillage-non-structure-avec-gmsh-pour-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2. Maillage Non Structuré avec gmsh (pour STEP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_intro_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_detailed_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules détailés de FoamPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/manage_quantity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestion des quantités
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie exemples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie exemples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/presentation_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/muffler/detailled_example_muffler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/simplecar/detailled_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="documentation-utilisateur-pour-foampilot">Documentation Utilisateur pour <code>foampilot</code></h1>
+<p><strong>Auteur :</strong> Manus AI
+<strong>Date :</strong> 4 Décembre 2025</p>
+<h2 id="1-reflexion-de-fonctionnement-globale-de-foampilot">1. Réflexion de Fonctionnement Globale de <code>foampilot</code></h2>
+<p>Le module <code>foampilot</code> est conçu comme une surcouche Python pour <strong>OpenFOAM</strong>, visant à simplifier et automatiser le processus de simulation numérique en mécanique des fluides (CFD). Il abstrait la complexité de la structure des fichiers et des commandes OpenFOAM, permettant à l'utilisateur de définir, exécuter et post-traiter une simulation entièrement en Python.</p>
+<p>La philosophie de <code>foampilot</code> repose sur les principes suivants :</p>
+<ol>
+<li><strong>Définition du Cas en Python :</strong> Au lieu de modifier manuellement des fichiers de configuration (dictionnaires) dans la structure de répertoires OpenFOAM, l'utilisateur interagit avec des objets Python (<code>Solver</code>, <code>Meshing</code>, <code>Boundary</code>, <code>Constant</code>, <code>System</code>).</li>
+<li><strong>Génération Automatique des Fichiers :</strong> Les objets Python sont responsables de la <strong>génération automatique</strong> des fichiers de configuration OpenFOAM (<code>controlDict</code>, <code>fvSchemes</code>, <code>transportProperties</code>, etc.) dans le répertoire du cas.</li>
+<li><strong>Intégration de l'Écosystème Python :</strong> Le module s'intègre avec des bibliothèques Python puissantes pour des tâches spécifiques :<ul>
+<li><strong><code>classy_blocks</code></strong> pour la génération de maillage structuré (<code>blockMesh</code>).</li>
+<li><strong><code>pyfluid</code></strong> (implicite dans l'exemple) pour la gestion des propriétés des fluides et des constantes physiques.</li>
+<li><strong><code>pyvista</code></strong> pour le post-traitement et la visualisation avancée.</li>
+<li><strong><code>latex_pdf</code></strong> pour la génération de rapports structurés.</li>
+</ul>
+</li>
+</ol>
+<p>En résumé, <code>foampilot</code> permet de passer d'un flux de travail <strong>manuel et fragmenté</strong> (édition de fichiers, exécution de commandes shell) à un flux de travail <strong>scripté et reproductible</strong> (un seul script Python).</p>
+<h2 id="2-choix-de-la-geometrie-et-du-maillage">2. Choix de la Géométrie et du Maillage</h2>
+<p>Le choix de la méthode de maillage est crucial en CFD et dépend de la complexité de la géométrie. <code>foampilot</code> intègre des outils pour gérer les trois scénarios principaux :</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Méthode de Maillage</th>
+<th style="text-align: left;">Géométrie Cible</th>
+<th style="text-align: left;">Outil <code>foampilot</code> / Librairie</th>
+<th style="text-align: left;">Description et Avantages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>blockMesh</code></strong></td>
+<td style="text-align: left;">Géométries simples, extrudées, ou composées de blocs hexaédriques.</td>
+<td style="text-align: left;"><code>Meshing(..., mesher="blockMesh")</code> (via <code>classy_blocks</code>)</td>
+<td style="text-align: left;">Idéal pour les géométries simples (canaux, cylindres, etc.) ou les domaines de calcul réguliers. Offre un <strong>contrôle total</strong> sur la qualité du maillage et la distribution des cellules. L'exemple <code>run_exemple2.py</code> utilise cette méthode pour créer une géométrie complexe par composition de blocs (<code>Cylinder</code>, <code>ExtrudedRing</code>, <code>Elbow</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>gmsh</code></strong></td>
+<td style="text-align: left;">Géométries complexes importées au format <strong>STEP</strong> ou IGES.</td>
+<td style="text-align: left;"><code>Meshing(..., mesher="gmsh")</code></td>
+<td style="text-align: left;">Permet de mailler des géométries CAO complexes avec des maillages non structurés (tétraèdres, prismes). Nécessite l'importation d'un fichier géométrique (ex: <code>.step</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>snappyHexMesh</code></strong></td>
+<td style="text-align: left;">Géométries complexes importées au format <strong>STL</strong> (surface triangulée).</td>
+<td style="text-align: left;"><code>Meshing(..., mesher="snappy")</code></td>
+<td style="text-align: left;">Le maillage de référence pour les géométries très complexes (véhicules, bâtiments). Il crée un maillage hexaédrique conforme à la surface STL, avec raffinement automatique des couches limites.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="21-maillage-structure-avec-blockmesh-via-classy_blocks">2.1. Maillage Structuré avec <code>blockMesh</code> (via <code>classy_blocks</code>)</h3>
+<p>Pour les géométries qui peuvent être décomposées en blocs hexaédriques (y compris les extrusions), <code>foampilot</code> utilise la librairie <code>classy_blocks</code>.</p>
+<p><strong>Principe :</strong>
+1.  Définir des formes géométriques de base (<code>cb.Cylinder</code>, <code>cb.ExtrudedRing</code>, <code>cb.Elbow</code>).
+2.  Utiliser les méthodes de chaînage (<code>.chain()</code>, <code>.expand()</code>, <code>.fill()</code>) pour construire la géométrie complexe.
+3.  Définir le maillage sur chaque forme avec les méthodes <code>.chop_axial()</code>, <code>.chop_radial()</code>, <code>.chop_tangential()</code>.
+4.  Assigner les <strong>patchs</strong> (surfaces) avec <code>.set_start_patch()</code>, <code>.set_end_patch()</code>.
+5.  Assembler le tout dans un objet <code>cb.Mesh()</code> et écrire le <code>blockMeshDict</code> :
+    ```python
+    # Exemple d'utilisation
+    mesh = cb.Mesh()
+    # ... ajouter les formes ...
+    mesh.set_default_patch("walls", "wall")
+    mesh.write(current_path / "system" / "blockMeshDict", current_path /"debug.vtk")
+    ```</p>
+<h3 id="22-maillage-non-structure-avec-gmsh-pour-step">2.2. Maillage Non Structuré avec <code>gmsh</code> (pour STEP)</h3>
+<p>Pour les géométries CAO au format STEP, l'approche est la suivante :</p>
+<ol>
+<li>Assurez-vous que le fichier STEP est disponible (ex: <code>geometry.step</code>).</li>
+<li>Initialisez l'objet <code>Meshing</code> en spécifiant <code>mesher="gmsh"</code>.</li>
+<li>
+<p>Exécutez le maillage en passant le chemin du fichier STEP :</p>
+<p>```python
+mesh_obj = Meshing(current_path, mesher="gmsh")</p>
+<h1 id="le-chemin-dacces-au-fichier-step-est-passe-a-la-methode-run">Le chemin d'accès au fichier STEP est passé à la méthode run</h1>
+<p>mesh_obj.mesher.run(current_path / "geometry.step")
+```</p>
+</li>
+</ol>
+<h3 id="23-maillage-de-surface-avec-snappyhexmesh-pour-stl">2.3. Maillage de Surface avec <code>snappyHexMesh</code> (pour STL)</h3>
+<p>Pour les géométries complexes au format STL, vous devez d'abord créer un maillage de base (<code>blockMesh</code>) qui englobe la géométrie STL, puis utiliser <code>snappyHexMesh</code> pour découper et affiner :</p>
+<ol>
+<li>Créez un <code>blockMeshDict</code> simple (via <code>classy_blocks</code> ou manuellement) pour définir le domaine de calcul englobant.</li>
+<li>Assurez-vous que le fichier STL est dans le répertoire <code>constant/triSurface</code>.</li>
+<li>Initialisez l'objet <code>Meshing</code> en spécifiant <code>mesher="snappyHexMesh"</code>.</li>
+<li>
+<p>Exécutez le maillage. <code>foampilot</code> gère la configuration et l'exécution des étapes de <code>snappyHexMesh</code> :</p>
+<p>```python
+mesh_obj = Meshing(current_path, mesher="snappyHexMesh")</p>
+<h1 id="snappyhexmesh-na-pas-besoin-dun-chemin-de-fichier-en-argument-il-utilise-les-fichiers-de-configuration">snappyHexMesh n'a pas besoin d'un chemin de fichier en argument, il utilise les fichiers de configuration</h1>
+<p>mesh_obj.mesher.run()
+```</p>
+<p><em>Note : La configuration détaillée de <code>snappyHexMeshDict</code> (niveaux de raffinement, couches limites) doit être gérée par l'utilisateur, soit en modifiant le dictionnaire généré par défaut, soit en utilisant des fonctions avancées de <code>foampilot</code> si elles sont disponibles.</em></p>
+</li>
+</ol>
+<h2 id="3-choix-du-solveur-et-prise-en-compte-des-physiques">3. Choix du Solveur et Prise en Compte des Physiques</h2>
+<p>Le choix du solveur est la manière dont <code>foampilot</code> prend en compte les physiques de la simulation. Le module utilise la classe <code>Solver</code> pour configurer le cas, et le solveur OpenFOAM approprié est sélectionné et exécuté en arrière-plan.</p>
+<h3 id="31-selection-du-solveur">3.1. Sélection du Solveur</h3>
+<p>La sélection du solveur se fait implicitement en configurant les propriétés de l'objet <code>Solver</code>.</p>
+<p>```python
+from foampilot.solver import Solver</p>
+<h1 id="initialisation-du-solveur-pour-le-repertoire-de-cas">Initialisation du solveur pour le répertoire de cas</h1>
+<p>solver = Solver(current_path)</p>
+<h1 id="configuration-des-physiques">Configuration des physiques</h1>
+<p>solver.compressible = False  # Simulation incompressible
+solver.with_gravity = False   # Sans gravité</p>
+<h1 id="dautres-proprietes-comme-turbulence-multiphase-etc">... d'autres propriétés comme turbulence, multiphase, etc.</h1>
+<p>```</p>
+<p>En fonction de ces propriétés, <code>foampilot</code> configure le <code>controlDict</code> et les autres dictionnaires pour utiliser le solveur OpenFOAM le plus pertinent (par exemple, <code>simpleFoam</code> ou <code>pimpleFoam</code> pour l'incompressible, <code>rhoSimpleFoam</code> pour le compressible).</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Physique</th>
+<th style="text-align: left;">Propriété <code>Solver</code></th>
+<th style="text-align: left;">Solveur OpenFOAM Typique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Incompressible</strong></td>
+<td style="text-align: left;"><code>solver.compressible = False</code></td>
+<td style="text-align: left;"><code>incompressibleFluid</code> (Solveur interne <code>foampilot</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Compressible</strong></td>
+<td style="text-align: left;"><code>solver.compressible = True</code></td>
+<td style="text-align: left;"><code>compressibleFluid</code> (Solveur interne <code>foampilot</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Transitoire</strong></td>
+<td style="text-align: left;"><code>solver.transient = True</code></td>
+<td style="text-align: left;">(Gère les paramètres transitoires)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Turbulence</strong></td>
+<td style="text-align: left;"><code>solver.turbulence_model = "kEpsilon"</code></td>
+<td style="text-align: left;">(Configure les modèles de turbulence)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Multiphase (VOF)</strong></td>
+<td style="text-align: left;"><code>solver.is_vof = True</code></td>
+<td style="text-align: left;"><code>incompressibleVoF</code> ou <code>compressibleVoF</code> (Solveurs internes <code>foampilot</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Solide (Déplacement)</strong></td>
+<td style="text-align: left;"><code>solver.is_solid = True</code></td>
+<td style="text-align: left;"><code>solidDisplacement</code> (Solveur interne <code>foampilot</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Énergie (Thermique)</strong></td>
+<td style="text-align: left;"><code>solver.energy_activated = True</code></td>
+<td style="text-align: left;">(Active les champs thermiques)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-mise-en-place-des-conditions-limites">3.2. Mise en Place des Conditions Limites</h3>
+<p>La gestion des conditions limites (CL) est centralisée dans l'objet <code>solver.boundary</code>. L'approche est de définir les conditions sur les <strong>patchs</strong> créés lors de l'étape de maillage.</p>
+<p><strong>Étapes :</strong>
+1.  <strong>Initialisation :</strong> <code>solver.boundary.initialize_boundary()</code> crée les fichiers de conditions limites initiaux (dans le répertoire <code>0</code>).
+2.  <strong>Application :</strong> La méthode <code>apply_condition_with_wildcard</code> permet d'appliquer une condition à un ou plusieurs patchs dont le nom correspond à un motif (wildcard).</p>
+<p>```python</p>
+<h1 id="initialisation-des-conditions-limites">Initialisation des conditions limites</h1>
+<p>solver.boundary.initialize_boundary()</p>
+<h1 id="condition-dentree-patch-inlet">Condition d'entrée (patch 'inlet')</h1>
+<p>solver.boundary.apply_condition_with_wildcard(
+    pattern="inlet",
+    condition_type="velocityInlet",
+    velocity=(Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")),
+    turbulence_intensity=0.05
+)</p>
+<h1 id="condition-de-sortie-patch-outlet">Condition de sortie (patch 'outlet')</h1>
+<p>solver.boundary.apply_condition_with_wildcard(
+    pattern="outlet",
+    condition_type="pressureOutlet"
+)</p>
+<h1 id="condition-de-paroi-patch-walls">Condition de paroi (patch 'walls')</h1>
+<p>solver.boundary.apply_condition_with_wildcard(
+    pattern="walls",
+    condition_type="wall"
+)</p>
+<h1 id="ecriture-des-fichiers-de-conditions-limites">Écriture des fichiers de conditions limites</h1>
+<p>solver.boundary.write_boundary_conditions()
+```</p>
+<p><strong>Conditions Limites Disponibles (Exemples Typiques) :</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><code>condition_type</code></th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Champs Typiques</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>fixedValue</code></strong></td>
+<td style="text-align: left;">Valeur fixe imposée (ex: température, concentration).</td>
+<td style="text-align: left;"><code>T</code>, <code>C</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>zeroGradient</code></strong></td>
+<td style="text-align: left;">Gradient normal nul (condition de Neumann).</td>
+<td style="text-align: left;"><code>p</code>, <code>T</code>, <code>U</code> (sortie)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>velocityInlet</code></strong></td>
+<td style="text-align: left;">Vitesse d'entrée avec profil (souvent uniforme) et paramètres de turbulence.</td>
+<td style="text-align: left;"><code>U</code>, <code>k</code>, <code>epsilon</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>pressureOutlet</code></strong></td>
+<td style="text-align: left;">Pression de sortie fixe ou à gradient nul.</td>
+<td style="text-align: left;"><code>p</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>wall</code></strong></td>
+<td style="text-align: left;">Paroi solide (vitesse nulle, flux de chaleur nul par défaut).</td>
+<td style="text-align: left;"><code>U</code>, <code>T</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>symmetryPlane</code></strong></td>
+<td style="text-align: left;">Plan de symétrie.</td>
+<td style="text-align: left;"><code>U</code>, <code>p</code>, <code>T</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="33-modification-dun-dictionnaire-ou-ajout-dun-patch">3.3. Modification d'un Dictionnaire ou Ajout d'un Patch</h3>
+<p><code>foampilot</code> expose les dictionnaires OpenFOAM comme des objets Python, ce qui permet une modification directe et intuitive.</p>
+<h4 id="modification-dun-dictionnaire-existant">Modification d'un Dictionnaire Existant</h4>
+<p>Pour modifier ou ajouter une entrée dans un dictionnaire, il suffit d'accéder à l'attribut correspondant :</p>
+<p>```python</p>
+<h1 id="modification-de-la-viscosite-cinematique-dans-transportproperties">Modification de la viscosité cinématique dans transportProperties</h1>
+<p>from foampilot.utilities.manageunits import Quantity
+kinematic_viscosity = Quantity(1e-6, "m2/s")
+solver.constant.transportProperties.nu = kinematic_viscosity</p>
+<h1 id="modification-dune-propriete-dans-controldict">Modification d'une propriété dans controlDict</h1>
+<p>solver.system.controlDict.writeInterval = 100 # Écrit les résultats toutes les 100 itérations
+solver.system.controlDict.endTime = 1000 # Définit le temps de fin de simulation
+```</p>
+<p><strong>Fichiers du Répertoire <code>system</code> Gérés par <code>foampilot</code> :</strong></p>
+<p>L'objet <code>solver.system</code> expose plusieurs attributs pour gérer les fichiers de ce répertoire :</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Attribut</th>
+<th style="text-align: left;">Fichier OpenFOAM Correspondant</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>solver.system.controlDict</code></td>
+<td style="text-align: left;"><code>controlDict</code></td>
+<td style="text-align: left;">Contrôle de la simulation (temps de début/fin, intervalle d'écriture, solveur).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.system.fvSchemes</code></td>
+<td style="text-align: left;"><code>fvSchemes</code></td>
+<td style="text-align: left;">Schémas de discrétisation des termes de l'équation (différenciation, interpolation).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.system.fvSolution</code></td>
+<td style="text-align: left;"><code>fvSolution</code></td>
+<td style="text-align: left;">Paramètres des solveurs linéaires (tolérance, préconditionneur) et des boucles PISO/SIMPLE.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.system.decomposeParDict</code></td>
+<td style="text-align: left;"><code>decomposeParDict</code></td>
+<td style="text-align: left;">Configuration de la décomposition du domaine pour le calcul parallèle.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.system.add_dict_file(...)</code></td>
+<td style="text-align: left;">Fichier personnalisé</td>
+<td style="text-align: left;">Permet d'ajouter n'importe quel dictionnaire OpenFOAM supplémentaire.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Utilitaires Intégrés :</strong></p>
+<p><code>foampilot</code> permet également d'exécuter des utilitaires OpenFOAM directement via l'objet <code>solver.system</code> :</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Méthode</th>
+<th style="text-align: left;">Utilitaire OpenFOAM</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>solver.system.run_topoSet()</code></td>
+<td style="text-align: left;"><code>topoSet</code></td>
+<td style="text-align: left;">Crée des ensembles de cellules et de faces pour le post-traitement ou le raffinement.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.system.run_createPatch()</code></td>
+<td style="text-align: left;"><code>createPatch</code></td>
+<td style="text-align: left;">Modifie ou crée des patchs de conditions limites après le maillage.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.system.write_functions_file()</code></td>
+<td style="text-align: left;"><code>functions</code></td>
+<td style="text-align: left;">Crée le fichier <code>system/functions</code> pour le post-traitement en cours de simulation (ex: <code>fieldAverage</code>).</td>
+</tr>
+</tbody>
+</table>
+<p>Après la modification, il est impératif d'appeler la méthode <code>write()</code> sur l'objet parent pour générer le fichier OpenFOAM mis à jour :</p>
+<p>```python</p>
+<h1 id="genere-le-fichier-constanttransportproperties">Génère le fichier constant/transportProperties</h1>
+<p>solver.constant.write() </p>
+<h1 id="genere-le-fichier-systemcontroldict">Génère le fichier system/controlDict</h1>
+<p>solver.system.write() 
+```</p>
+<h4 id="ajout-dun-patch">Ajout d'un Patch</h4>
+<p>L'ajout d'un patch se fait principalement lors de la phase de maillage (voir Section 2).</p>
+<ul>
+<li><strong>Avec <code>blockMesh</code> (<code>classy_blocks</code>) :</strong> Le patch est défini sur une face géométrique :
+    ```python
+    shapes[-1].set_end_patch("monNouveauPatch")
+    ```</li>
+<li><strong>Avec <code>gmsh</code> ou <code>snappyHexMesh</code> :</strong> Le patch est défini dans les fichiers de configuration du maillage.</li>
+</ul>
+<p>Une fois le maillage généré, le nouveau patch est automatiquement reconnu par OpenFOAM. Il suffit ensuite d'appliquer une condition limite à ce patch via <code>solver.boundary.apply_condition_with_wildcard(pattern="monNouveauPatch", ...)</code> comme décrit ci-dessus.
+```</p>
+<h2 id="4-mise-en-place-de-system-et-constant-avec-pyfluid">4. Mise en Place de <code>system</code> et <code>constant</code> avec <code>pyfluid</code></h2>
+<p>Le module <code>pyfluid</code> (ou la classe <code>FluidMechanics</code> de <code>foampilot.utilities.fluids_theory</code>) est essentiel pour définir les propriétés physiques du fluide et les constantes du cas OpenFOAM.</p>
+<h3 id="41-definition-des-constantes-physiques-avec-fluidmechanics">4.1. Définition des Constantes Physiques avec <code>FluidMechanics</code></h3>
+<p>La classe <code>FluidMechanics</code> permet de calculer les propriétés d'un fluide (comme la viscosité cinématique <span class="arithmatex">\(\nu\)</span>) en fonction de la température et de la pression, en utilisant des données physiques intégrées.</p>
+<p>```python
+from foampilot.utilities.fluids_theory import FluidMechanics
+from foampilot.utilities.manageunits import Quantity</p>
+<h1 id="1-creer-une-instance-de-fluidmechanics-pour-leau-a-20c-29315-k">1. Créer une instance de FluidMechanics pour l'eau à 20°C (293.15 K)</h1>
+<p>fluid_mech = FluidMechanics(
+    FluidMechanics.get_available_fluids()['Water'],
+    temperature=Quantity(293.15, "K"),
+    pressure=Quantity(101325, "Pa")
+)</p>
+<h1 id="2-recuperer-les-proprietes">2. Récupérer les propriétés</h1>
+<p>properties = fluid_mech.get_fluid_properties()
+kinematic_viscosity = properties['kinematic_viscosity']</p>
+<h1 id="3-injecter-la-propriete-dans-le-dictionnaire-constanttransportproperties">3. Injecter la propriété dans le dictionnaire constant/transportProperties</h1>
+<p>solver.constant.transportProperties.nu = kinematic_viscosity</p>
+<h1 id="4-ecrire-les-repertoires-system-et-constant">4. Écrire les répertoires system et constant</h1>
+<p>solver.system.write()
+solver.constant.write()
+```</p>
+<p>Cette approche garantit que les constantes physiques sont définies de manière cohérente et basée sur des données physiques fiables, et qu'elles sont correctement formatées pour le fichier <code>constant/transportProperties</code>.</p>
+<p><strong>Fichiers du Répertoire <code>constant</code> Gérés par <code>foampilot</code> :</strong></p>
+<p>L'objet <code>solver.constant</code> expose plusieurs attributs pour gérer les fichiers de ce répertoire :</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Attribut</th>
+<th style="text-align: left;">Fichier OpenFOAM Correspondant</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>solver.constant.transportProperties</code></td>
+<td style="text-align: left;"><code>transportProperties</code></td>
+<td style="text-align: left;">Propriétés de transport (viscosité, diffusivité) pour les fluides incompressibles.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.constant.physicalProperties</code></td>
+<td style="text-align: left;"><code>physicalProperties</code></td>
+<td style="text-align: left;">Propriétés physiques (densité, chaleur spécifique) pour les fluides compressibles.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.constant.turbulenceProperties</code></td>
+<td style="text-align: left;"><code>turbulenceProperties</code></td>
+<td style="text-align: left;">Configuration du modèle de turbulence.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.constant.gravity</code></td>
+<td style="text-align: left;"><code>g</code></td>
+<td style="text-align: left;">Vecteur de gravité. Activé via <code>solver.with_gravity = True</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.constant.pRef</code></td>
+<td style="text-align: left;"><code>pRef</code></td>
+<td style="text-align: left;">Point de référence pour la pression (pour les cas compressibles).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.constant.radiation</code></td>
+<td style="text-align: left;"><code>radiationProperties</code></td>
+<td style="text-align: left;">Propriétés de rayonnement. Activé via <code>solver.constant.enable_radiation()</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>solver.constant.fvmodels</code></td>
+<td style="text-align: left;"><code>fvModels</code></td>
+<td style="text-align: left;">Modèles de volume fini (utilisé pour le rayonnement).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note sur la Gravité :</strong> L'activation de la gravité (<code>solver.with_gravity = True</code>) entraîne la création du fichier <code>constant/g</code> et, si nécessaire, le remplacement du champ de pression <code>p</code> par <code>p_rgh</code> dans les fichiers de conditions initiales, conformément aux pratiques OpenFOAM pour les cas avec gravité.</p>
+<h2 id="5-lancement-du-solveur">5. Lancement du Solveur</h2>
+<p>Le lancement de la simulation est géré par la méthode <code>run_simulation()</code> de l'objet <code>Solver</code>.</p>
+<h3 id="51-lancement-sequentiel">5.1. Lancement Séquentiel</h3>
+<p>Le lancement par défaut est séquentiel :</p>
+<p>```python</p>
+<h1 id="execute-le-solveur-configure-par-exemple-simplefoam">Exécute le solveur configuré (par exemple, simpleFoam)</h1>
+<p>solver.run_simulation()
+```</p>
+<h3 id="52-lancement-en-parallele">5.2. Lancement en Parallèle</h3>
+<p>Pour les maillages volumineux, le calcul parallèle est indispensable. <code>foampilot</code> intègre la gestion du parallélisme, qui nécessite généralement deux étapes : la décomposition du domaine et l'exécution parallèle.</p>
+<p>```python</p>
+<h1 id="1-decomposition-du-domaine-utilise-lutilitaire-openfoam-decomposepar">1. Décomposition du domaine (utilise l'utilitaire OpenFOAM decomposePar)</h1>
+<h1 id="le-nombre-de-curs-cores-est-specifie-ici">Le nombre de cœurs (cores) est spécifié ici</h1>
+<p>solver.decompose_domain(cores=4) </p>
+<h1 id="2-execution-du-solveur-en-parallele-utilise-mpirun">2. Exécution du solveur en parallèle (utilise mpirun)</h1>
+<p>solver.run_simulation(parallel=True)</p>
+<h1 id="3-reconstruction-du-domaine-apres-la-simulation-utilise-reconstructpar">3. Reconstruction du domaine après la simulation (utilise reconstructPar)</h1>
+<p>solver.reconstruct_domain()
+```</p>
+<p><strong>Note :</strong> La méthode <code>decompose_domain</code> configure le dictionnaire <code>system/decomposeParDict</code> et exécute l'utilitaire. L'utilisateur peut modifier le <code>decomposeParDict</code> via <code>solver.system.decomposeParDict</code> avant l'exécution pour ajuster la méthode de décomposition (par exemple, <code>scotch</code>, <code>simple</code>, <code>hierarchical</code>).</p>
+<h2 id="6-post-traitement-avec-pyvista">6. Post-Traitement avec <code>pyvista</code></h2>
+<p>Le post-traitement est géré par la classe <code>postprocess.FoamPostProcessing</code>, qui utilise la librairie <strong><code>pyvista</code></strong> pour la visualisation 3D et l'analyse des données.</p>
+<h3 id="61-flux-de-travail-de-post-traitement">6.1. Flux de Travail de Post-Traitement</h3>
+<ol>
+<li><strong>Conversion des Résultats :</strong> Les résultats OpenFOAM sont d'abord convertis au format VTK (lisible par <code>pyvista</code>) via l'utilitaire <code>foamToVTK</code>.</li>
+<li><strong>Chargement des Données :</strong> Les données sont chargées dans des objets <code>pyvista</code> (<code>PolyData</code> ou <code>UnstructuredGrid</code>).</li>
+<li><strong>Analyse et Visualisation :</strong> Utilisation des fonctions de <code>foampilot</code> ou directement de <code>pyvista</code> pour l'analyse.</li>
+</ol>
+<p>```python
+from foampilot import postprocess
+import pyvista as pv</p>
+<h1 id="1-initialisation-et-conversion">1. Initialisation et conversion</h1>
+<p>foam_post = postprocess.FoamPostProcessing(case_path=current_path)
+foam_post.foamToVTK()</p>
+<h1 id="2-chargement-du-dernier-pas-de-temps">2. Chargement du dernier pas de temps</h1>
+<p>time_steps = foam_post.get_all_time_steps()
+if time_steps:
+    latest_time_step = time_steps[-1]
+    structure = foam_post.load_time_step(latest_time_step)
+    cell_mesh = structure["cell"] # Le maillage des cellules</p>
+<h1 id="3-visualisation-exemple-de-trace-de-contour-de-pression">3. Visualisation (Exemple de tracé de contour de pression)</h1>
+<p>pl_contour = pv.Plotter(off_screen=True)
+pl_contour.add_mesh(cell_mesh, scalars='p', show_scalar_bar=True)
+foam_post.export_plot(pl_contour, current_path / "contour_plot.png")
+```</p>
+<h3 id="62-detail-des-possibilites-de-post-traitement">6.2. Détail des Possibilités de Post-Traitement</h3>
+<p><code>foampilot</code> et <code>pyvista</code> offrent une gamme étendue de possibilités :</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Fonctionnalité</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Méthode <code>foampilot</code> / <code>pyvista</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Visualisation de Tranches</strong></td>
+<td style="text-align: left;">Afficher les champs de données (U, p, T) sur un plan de coupe.</td>
+<td style="text-align: left;"><code>foam_post.plot_slice(...)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tracé de Contours</strong></td>
+<td style="text-align: left;">Visualiser les lignes ou surfaces d'isovaleur d'un champ (ex: pression).</td>
+<td style="text-align: left;"><code>pl.add_mesh(..., scalars='p')</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Visualisation de Vecteurs</strong></td>
+<td style="text-align: left;">Afficher le champ de vitesse (U) sous forme de flèches (glyphs).</td>
+<td style="text-align: left;"><code>cell_mesh.glyph(orient='U', ...)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Analyse de Tourbillons</strong></td>
+<td style="text-align: left;">Calculer le critère Q ou la vorticité pour identifier les structures tourbillonnaires.</td>
+<td style="text-align: left;"><code>foam_post.calculate_q_criterion(...)</code>, <code>foam_post.calculate_vorticity(...)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Statistiques de Maillage</strong></td>
+<td style="text-align: left;">Obtenir des métriques de qualité du maillage (non-orthogonalité, aspect ratio).</td>
+<td style="text-align: left;"><code>foam_post.get_mesh_statistics(...)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Statistiques de Champ</strong></td>
+<td style="text-align: left;">Calculer les valeurs min/max/moyenne/écart-type d'un champ sur une région.</td>
+<td style="text-align: left;"><code>foam_post.get_region_statistics(...)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Export de Données</strong></td>
+<td style="text-align: left;">Exporter les données de champ (U, p) vers des formats externes (CSV, JSON).</td>
+<td style="text-align: left;"><code>foam_post.export_region_data_to_csv(...)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Animation</strong></td>
+<td style="text-align: left;">Créer des animations à partir des différents pas de temps.</td>
+<td style="text-align: left;">Fonctions <code>pyvista</code> pour l'enregistrement vidéo.</td>
+</tr>
+<tr>
+<td style="text-align: left;">```</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-rapport-en-latex-avec-latex_pdf">7. Rapport en LaTeX avec <code>latex_pdf</code></h2>
+<p>L'une des fonctionnalités les plus puissantes de <code>foampilot</code> est sa capacité à générer automatiquement un rapport de simulation structuré au format PDF, en utilisant le module <code>latex_pdf</code>.</p>
+<h3 id="71-fonctionnement-du-module-latex_pdf">7.1. Fonctionnement du Module <code>latex_pdf</code></h3>
+<p>Le module <code>latex_pdf</code> est une surcouche qui permet de construire un document LaTeX en Python, sans avoir à écrire directement le code LaTeX. Il est particulièrement adapté pour intégrer des résultats de simulation (statistiques, figures, tableaux).</p>
+<p><strong>Étapes :</strong>
+1.  <strong>Collecte des Données :</strong> Les données de post-traitement (statistiques, chemins des images générées par <code>pyvista</code>) sont collectées et sauvegardées (souvent au format JSON ou CSV).
+2.  <strong>Initialisation du Document :</strong> Création de l'objet <code>LatexDocument</code>.
+3.  <strong>Ajout de Contenu :</strong> Utilisation des méthodes de l'objet pour ajouter des sections, des tableaux, des figures, etc.
+4.  <strong>Génération du PDF :</strong> Compilation du document LaTeX en PDF.</p>
+<h3 id="72-detail-des-possibilites-de-latex_pdf">7.2. Détail des Possibilités de <code>latex_pdf</code></h3>
+<p>Le module offre des méthodes pour structurer le rapport et intégrer les résultats :</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Méthode</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Utilisation Typique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>LatexDocument(...)</code></strong></td>
+<td style="text-align: left;">Initialise le document avec titre, auteur et nom de fichier.</td>
+<td style="text-align: left;">Début du script de rapport.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>add_title()</code></strong></td>
+<td style="text-align: left;">Ajoute la page de titre.</td>
+<td style="text-align: left;">Après l'initialisation.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>add_toc()</code></strong></td>
+<td style="text-align: left;">Ajoute la table des matières.</td>
+<td style="text-align: left;">Après la page de titre.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>add_abstract(...)</code></strong></td>
+<td style="text-align: left;">Ajoute un résumé du rapport.</td>
+<td style="text-align: left;">Introduction du rapport.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>add_section(...)</code></strong></td>
+<td style="text-align: left;">Ajoute une nouvelle section ou sous-section.</td>
+<td style="text-align: left;">Structuration du rapport.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>add_table(...)</code></strong></td>
+<td style="text-align: left;">Intègre un tableau de données (ex: statistiques de maillage).</td>
+<td style="text-align: left;">Présentation des données numériques.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>add_figure(...)</code></strong></td>
+<td style="text-align: left;">Intègre une image (ex: visualisation <code>pyvista</code>).</td>
+<td style="text-align: left;">Présentation des résultats visuels.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>add_appendix(...)</code></strong></td>
+<td style="text-align: left;">Ajoute une annexe.</td>
+<td style="text-align: left;">Pour les données brutes ou les fichiers exportés.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>generate_document(...)</code></strong></td>
+<td style="text-align: left;">Compile le document LaTeX en PDF.</td>
+<td style="text-align: left;">Fin du script de rapport.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="73-exemple-dintegration-de-resultats">7.3. Exemple d'Intégration de Résultats</h3>
+<p>L'exemple <code>run_exemple2.py</code> montre comment les statistiques et les figures sont intégrées :</p>
+<p>```python</p>
+<h1 id="chargement-des-statistiques-json">Chargement des statistiques JSON</h1>
+<p>stats_file = current_path / "all_stats.json"
+with open(stats_file, "r") as f:
+    stats = json.load(f)</p>
+<p>doc = latex_pdf.LatexDocument(
+    title="Simulation Report: Muffler Flow Case",
+    author="Automated Report",
+    filename="simulation_report",
+    output_dir=current_path
+)</p>
+<h1 id="ajout-des-sections">... ajout des sections ...</h1>
+<h1 id="ajout-dun-tableau-de-statistiques">Ajout d'un tableau de statistiques</h1>
+<p>mesh_stats = stats.get("mesh_stats", {})
+mesh_table_data = [[k, v] for k, v in mesh_stats.items()]
+doc.add_table(
+    mesh_table_data,
+    headers=["Statistic", "Value"],
+    caption="Mesh Quality Statistics"
+)</p>
+<h1 id="ajout-des-figures-generees-par-pyvista">Ajout des figures générées par pyvista</h1>
+<p>for img_name in ["slice_plot.png", "contour_plot.png", "vector_plot.png", "mesh_style_plot.png"]:
+    img_path = current_path / img_name
+    if img_path.exists():
+        doc.add_figure(str(img_path), caption=img_name.replace("_", " ").title(), width="0.7\textwidth")</p>
+<h1 id="generation-finale">Génération finale</h1>
+<p>doc.generate_document(output_format="pdf")
+```</p>
+<p>Cette capacité permet de garantir une <strong>traçabilité</strong> et une <strong>reproductibilité</strong> complètes des résultats de simulation, en générant un livrable professionnel directement à partir du script de simulation.
+```</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1403 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/fr/example/simplecar/detailled_example/">
+      
+      
+        <link rel="prev" href="../../muffler/detailled_example_muffler/">
+      
+      
+      
+        
+          <link rel="alternate" href="../../../../example/simplecar/detailled_example/" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="fr">
+        
+          <link rel="alternate" href="../../../../zh/example/simplecar/detailled_example/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Étude de cas silencieux - FoamPilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#explication-de-lexemple-openfoam-python" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="../../../" title="FoamPilot Documentation" class="md-header__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FoamPilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Étude de cas silencieux
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sélectionner la langue">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../../example/simplecar/detailled_example/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../../zh/example/simplecar/detailled_example/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stevendaix/foampilot" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Onglets" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../install_openfoam/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../presentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Présentation de FOAMPilot
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../fluids_theory/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide théorique
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../user_documentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide utilisateur
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../dev/dev_index/" class="md-tabs__link">
+          
+  
+  
+  Partie développement
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../presentation_example/" class="md-tabs__link">
+          
+  
+  
+  Partie exemples
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../" title="FoamPilot Documentation" class="md-nav__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FoamPilot Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stevendaix/foampilot" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../install_openfoam/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenFOAM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../presentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Présentation de FOAMPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../fluids_theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide théorique
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide utilisateur
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/dev_index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/dev_intro_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/dev_detailed_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules détailés de FoamPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/manage_quantity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestion des quantités
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie exemples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie exemples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentation_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../muffler/detailled_example_muffler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-definition-du-chemin-du-cas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Définition du chemin du cas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-proprietes-du-fluide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Propriétés du fluide
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-initialisation-du-solveur" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Initialisation du solveur
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-generation-du-maillage-blockmesh-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Génération du maillage (blockMesh JSON)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-function-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Function Objects
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Function Objects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fieldaverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FieldAverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference-pressure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference Pressure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtimecontrol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunTimeControl
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-manipulation-des-dictionnaires-patches-toposet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Manipulation des dictionnaires : Patches &amp; topoSet
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Manipulation des dictionnaires : Patches &amp; topoSet">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#createpatchdict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        createPatchDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#toposetdict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        topoSetDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-conditions-aux-limites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Conditions aux limites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-execution-de-la-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Exécution de la simulation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-post-traitement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Post-traitement
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="explication-de-lexemple-openfoam-python">Explication de l'exemple OpenFOAM Python</h1>
+<p>Ce document explique en détail un script Python qui configure, exécute et post-traite un cas CFD incompressible en utilisant le framework <strong>FoamPilot</strong>. L'exemple est basé sur le tutoriel OpenFOAM suivant :</p>
+<p><a href="https://develop.openfoam.com/Development/openfoam/-/tree/30d2e2d3cfd2c2f268dd987b413dbeffd63962eb/tutorials/incompressible/simpleFoam/simpleCar">Tutoriel SimpleCar (OpenFOAM)</a></p>
+<hr />
+<h2 id="1-definition-du-chemin-du-cas">1. Définition du chemin du cas</h2>
+<p>Le répertoire du cas est défini à l'aide de <code>Path</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="n">current_path</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;cases&quot;</span>
+</code></pre></div>
+<p>Cela garantit que tous les fichiers et dossiers générés sont organisés dans <code>cases</code> dans le répertoire courant.</p>
+<hr />
+<h2 id="2-proprietes-du-fluide">2. Propriétés du fluide</h2>
+<p>Nous définissons les propriétés du fluide avec l'API <code>FluidMechanics</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="n">available_fluids</span> <span class="o">=</span> <span class="n">FluidMechanics</span><span class="o">.</span><span class="n">get_available_fluids</span><span class="p">()</span>
+<span class="n">fluid</span> <span class="o">=</span> <span class="n">FluidMechanics</span><span class="p">(</span>
+    <span class="n">available_fluids</span><span class="p">[</span><span class="s2">&quot;Air&quot;</span><span class="p">],</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">293.15</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">),</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">101325</span><span class="p">,</span> <span class="s2">&quot;Pa&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">nu</span> <span class="o">=</span> <span class="n">fluid</span><span class="o">.</span><span class="n">get_fluid_properties</span><span class="p">()[</span><span class="s2">&quot;kinematic_viscosity&quot;</span><span class="p">]</span>
+</code></pre></div>
+<ul>
+<li><code>get_available_fluids()</code> fournit la liste des fluides prédéfinis.  </li>
+<li><code>FluidMechanics</code> permet de définir la température et la pression.  </li>
+<li>La viscosité cinématique (<code>nu</code>) est extraite pour la configuration du solveur.</li>
+</ul>
+<hr />
+<h2 id="3-initialisation-du-solveur">3. Initialisation du solveur</h2>
+<div class="highlight"><pre><span></span><code><span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span><span class="n">current_path</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">compressible</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">with_gravity</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">transportProperties</span><span class="o">.</span><span class="n">nu</span> <span class="o">=</span> <span class="n">nu</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</code></pre></div>
+<ul>
+<li>Le solveur est configuré en mode incompressible.  </li>
+<li>La gravité est désactivée.  </li>
+<li>La viscosité est définie dans <code>transportProperties</code>.  </li>
+<li>Les dossiers <code>system</code> et <code>constant</code> sont créés et écrits.</li>
+</ul>
+<hr />
+<h2 id="4-generation-du-maillage-blockmesh-json">4. Génération du maillage (blockMesh JSON)</h2>
+<div class="highlight"><pre><span></span><code><span class="n">data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;block_mesh.json&quot;</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">Meshing</span><span class="p">(</span><span class="n">current_path</span><span class="p">,</span> <span class="n">mesher</span><span class="o">=</span><span class="s2">&quot;blockMesh&quot;</span><span class="p">)</span>
+<span class="n">mesh</span><span class="o">.</span><span class="n">mesher</span><span class="o">.</span><span class="n">load_from_json</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+<span class="n">mesh</span><span class="o">.</span><span class="n">mesher</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">current_path</span> <span class="o">/</span> <span class="s2">&quot;system&quot;</span> <span class="o">/</span> <span class="s2">&quot;blockMeshDict&quot;</span><span class="p">)</span>
+<span class="n">mesh</span><span class="o">.</span><span class="n">mesher</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</code></pre></div>
+<ul>
+<li>L'objet <code>Meshing</code> gère la génération du maillage.  </li>
+<li><code>load_from_json()</code> charge la configuration du maillage (blocs, sommets, arêtes) à partir d’un fichier JSON.  </li>
+<li><code>write()</code> crée le fichier <code>blockMeshDict</code>.  </li>
+<li><code>run()</code> exécute <code>blockMesh</code> pour générer le maillage.  </li>
+</ul>
+<p>Cette approche permet de versionner et reproduire le maillage sans modification manuelle des dictionnaires OpenFOAM.</p>
+<hr />
+<h2 id="5-function-objects">5. Function Objects</h2>
+<h3 id="fieldaverage">FieldAverage</h3>
+<div class="highlight"><pre><span></span><code><span class="n">name_field</span><span class="p">,</span> <span class="n">field_average_dict</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">Functions</span><span class="o">.</span><span class="n">field_average</span><span class="p">(</span><span class="s2">&quot;fieldAverage&quot;</span><span class="p">)</span>
+<span class="n">utilities</span><span class="o">.</span><span class="n">Functions</span><span class="o">.</span><span class="n">write_function_field_average</span><span class="p">(</span><span class="n">name_field</span><span class="p">,</span> <span class="n">field_average_dict</span><span class="p">,</span> <span class="n">base_path</span><span class="o">=</span><span class="n">current_path</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s1">&#39;system&#39;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>Calcule la moyenne d’un champ (par ex. vitesse) sur un patch défini.  </li>
+<li>Ajoute la fonction à <code>system/controlDict</code>.</li>
+</ul>
+<h3 id="reference-pressure">Reference Pressure</h3>
+<div class="highlight"><pre><span></span><code><span class="n">name_field_ref</span><span class="p">,</span> <span class="n">reference_dict</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">Functions</span><span class="o">.</span><span class="n">reference_pressure</span><span class="p">(</span><span class="s2">&quot;referencePressure&quot;</span><span class="p">)</span>
+<span class="n">utilities</span><span class="o">.</span><span class="n">Functions</span><span class="o">.</span><span class="n">write_function_reference_pressure</span><span class="p">(</span><span class="n">name_field_ref</span><span class="p">,</span> <span class="n">reference_dict</span><span class="p">,</span> <span class="n">base_path</span><span class="o">=</span><span class="n">current_path</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s1">&#39;system&#39;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>Définit une pression de référence pour les simulations incompressibles.  </li>
+<li>Assure que la pression est unique.</li>
+</ul>
+<h3 id="runtimecontrol">RunTimeControl</h3>
+<div class="highlight"><pre><span></span><code><span class="n">conditions1</span> <span class="o">=</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>  <span class="c1"># critères d&#39;arrêt</span>
+<span class="n">name_field_rt1</span><span class="p">,</span> <span class="n">rt1_dict</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">Functions</span><span class="o">.</span><span class="n">run_time_control</span><span class="p">(</span><span class="s2">&quot;runTimeControl&quot;</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conditions1</span><span class="p">)</span>
+<span class="n">utilities</span><span class="o">.</span><span class="n">Functions</span><span class="o">.</span><span class="n">write_function_run_time_control</span><span class="p">(</span><span class="n">name_field</span><span class="o">=</span><span class="n">name_field_rt1</span><span class="p">,</span> <span class="n">name_condition</span><span class="o">=</span><span class="s2">&quot;runTimeControl1&quot;</span><span class="p">,</span> <span class="n">function_dict</span><span class="o">=</span><span class="n">rt1_dict</span><span class="p">,</span> <span class="n">base_path</span><span class="o">=</span><span class="n">current_path</span><span class="p">,</span> <span class="n">folder</span><span class="o">=</span><span class="s1">&#39;system&#39;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>Surveille la convergence ou d'autres critères.  </li>
+<li>Interrompt la simulation lorsque les conditions sont atteintes.</li>
+</ul>
+<p>Toutes les fonctions sont finalement écrites dans <code>system/functions</code>.</p>
+<hr />
+<h2 id="6-manipulation-des-dictionnaires-patches-toposet">6. Manipulation des dictionnaires : Patches &amp; topoSet</h2>
+<h3 id="createpatchdict">createPatchDict</h3>
+<div class="highlight"><pre><span></span><code><span class="n">patch_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;airIntake&quot;</span><span class="p">]</span>
+<span class="n">patches_dict</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">dictonnary</span><span class="o">.</span><span class="n">dict_tools</span><span class="o">.</span><span class="n">create_patches_dict</span><span class="p">(</span><span class="n">patch_names</span><span class="p">)</span>
+<span class="n">create_patch_dict_file</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">dictonnary</span><span class="o">.</span><span class="n">OpenFOAMDictAddFile</span><span class="p">(</span><span class="n">object_name</span><span class="o">=</span><span class="s1">&#39;createPatchDict&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">patches_dict</span><span class="p">)</span>
+<span class="n">create_patch_dict_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;createPatchDict&quot;</span><span class="p">,</span> <span class="n">current_path</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>Définit de nouveaux patches à partir de la géométrie existante.  </li>
+<li>Écrit dans <code>createPatchDict</code> pour exécution ultérieure.</li>
+</ul>
+<h3 id="toposetdict">topoSetDict</h3>
+<div class="highlight"><pre><span></span><code><span class="n">actions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">dictonnary</span><span class="o">.</span><span class="n">dict_tools</span><span class="o">.</span><span class="n">create_action</span><span class="p">(</span><span class="o">...</span><span class="p">),</span>
+    <span class="o">...</span>
+<span class="p">]</span>
+<span class="n">actions_dict</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">dictonnary</span><span class="o">.</span><span class="n">dict_tools</span><span class="o">.</span><span class="n">create_actions_dict</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+<span class="n">create_topo_set_dict_file</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">dictonnary</span><span class="o">.</span><span class="n">OpenFOAMDictAddFile</span><span class="p">(</span><span class="n">object_name</span><span class="o">=</span><span class="s1">&#39;topoSetDict&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">actions_dict</span><span class="p">)</span>
+<span class="n">create_topo_set_dict_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;topoSetDict&quot;</span><span class="p">,</span> <span class="n">current_path</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">run_topoSet</span><span class="p">()</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">run_createPatch</span><span class="p">()</span>
+</code></pre></div>
+<ul>
+<li>Crée des <code>cellSets</code>, <code>faceSets</code> ou <code>cellZoneSets</code>.  </li>
+<li><code>topoSet</code> permet de sélectionner des parties du maillage selon des boîtes ou des patches.  </li>
+<li><code>createPatch</code> ajoute des faces aux patches.  </li>
+<li>Automatisation de la préparation du maillage pour des zones spécialisées (ex. zones poreuses).</li>
+</ul>
+<hr />
+<h2 id="7-conditions-aux-limites">7. Conditions aux limites</h2>
+<div class="highlight"><pre><span></span><code><span class="n">solver</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">initialize_boundary</span><span class="p">()</span>
+
+<span class="n">solver</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">apply_condition_with_wildcard</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;inlet&quot;</span><span class="p">,</span> <span class="n">condition_type</span><span class="o">=</span><span class="s2">&quot;velocityInlet&quot;</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="p">(</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)),</span> <span class="n">turbulence_intensity</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+
+<span class="n">solver</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">apply_condition_with_wildcard</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;outlet&quot;</span><span class="p">,</span> <span class="n">condition_type</span><span class="o">=</span><span class="s2">&quot;pressureOutlet&quot;</span><span class="p">)</span>
+
+<span class="n">solver</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">apply_condition_with_wildcard</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;airIntake&quot;</span><span class="p">,</span> <span class="n">condition_type</span><span class="o">=</span><span class="s2">&quot;velocityInlet&quot;</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="p">(</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">1.2</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)),</span> <span class="n">turbulence_intensity</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+
+<span class="n">solver</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">apply_condition_with_wildcard</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;walls&quot;</span><span class="p">,</span> <span class="n">condition_type</span><span class="o">=</span><span class="s2">&quot;wall&quot;</span><span class="p">)</span>
+
+<span class="n">solver</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">write_boundary_conditions</span><span class="p">()</span>
+</code></pre></div>
+<ul>
+<li>Les jokers permettent d’appliquer une condition à plusieurs patches.  </li>
+<li>Gère les entrées de vitesse, sorties de pression et parois.  </li>
+<li>L’écriture génère les fichiers <code>0/</code> nécessaires à OpenFOAM.</li>
+</ul>
+<hr />
+<h2 id="8-execution-de-la-simulation">8. Exécution de la simulation</h2>
+<div class="highlight"><pre><span></span><code><span class="n">solver</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">()</span>
+</code></pre></div>
+<ul>
+<li>Exécute le solveur (ex. <code>simpleFoam</code>) avec tous les réglages et le maillage appliqué.</li>
+</ul>
+<hr />
+<h2 id="9-post-traitement">9. Post-traitement</h2>
+<div class="highlight"><pre><span></span><code><span class="n">residuals_post</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">ResidualsPost</span><span class="p">(</span><span class="n">current_path</span> <span class="o">/</span> <span class="s2">&quot;log.incompressibleFluid&quot;</span><span class="p">)</span>
+<span class="n">residuals_post</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">export_csv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">export_json</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">export_png</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">export_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>Traite les résidus pour l’analyse de convergence.  </li>
+<li>Exporte les données au format CSV, JSON, PNG et HTML pour reporting.</li>
+</ul>
+<hr />
+<p><strong>Fin de l’exemple</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate"], "search": "../../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

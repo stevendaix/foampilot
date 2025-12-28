@@ -1,0 +1,2921 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/fr/dev/dev_detailed_documentation/">
+      
+      
+        <link rel="prev" href="../dev_intro_documentation/">
+      
+      
+        <link rel="next" href="../manage_quantity/">
+      
+      
+        
+          <link rel="alternate" href="../../../dev/dev_detailed_documentation/" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="fr">
+        
+          <link rel="alternate" href="../../../zh/dev/dev_detailed_documentation/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Modules détailés de FoamPilot - FoamPilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#introduction" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="../../" title="FoamPilot Documentation" class="md-header__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FoamPilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Modules détailés de FoamPilot
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sélectionner la langue">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../dev/dev_detailed_documentation/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../zh/dev/dev_detailed_documentation/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stevendaix/foampilot" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Onglets" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../install_openfoam/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../presentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Présentation de FOAMPilot
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../fluids_theory/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide théorique
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../user_documentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide utilisateur
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../dev_index/" class="md-tabs__link">
+          
+  
+  
+  Partie développement
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../example/presentation_example/" class="md-tabs__link">
+          
+  
+  
+  Partie exemples
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="FoamPilot Documentation" class="md-nav__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FoamPilot Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stevendaix/foampilot" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install_openfoam/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenFOAM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Présentation de FOAMPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fluids_theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide théorique
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide utilisateur
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_intro_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules détailés de FoamPilot
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules détailés de FoamPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-du-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture du module
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture du module">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#foampilotbase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.base
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotboundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.boundaries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotcommons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.commons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotconstant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.constant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotmesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.mesh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotpostprocess" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.postprocess
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotsolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.solver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotsystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotutilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.utilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utilisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utilisation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exemples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exemples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ameliorations-et-contributions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Améliorations et Contributions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Améliorations et Contributions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#foampilotbasemeshingmeshing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.base.meshing.Meshing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotbaseopenfoamfileopenfoamfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.base.openFOAMFile.OpenFOAMFile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotboundariesboundaries_dictboundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.boundaries.boundaries_dict.Boundary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotcommonsread_polymeshboundaryfilehandler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.commons.read_polymesh.BoundaryFileHandler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotconstantconstantdirectoryconstantdirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.constant.constantDirectory.ConstantDirectory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotconstanttransportpropertiesfiletransportpropertiesfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.constant.transportPropertiesFile.TransportPropertiesFile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotconstantturbulencepropertiesfileturbulencepropertiesfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.constant.turbulencePropertiesFile.TurbulencePropertiesFile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotmeshblockmeshfileblockmeshfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.mesh.BlockMeshFile.BlockMeshFile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotmeshtest_snappymeshstlanalyzer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.mesh.test_snappymesh.STLAnalyzer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotmeshtest_snappymeshsnappyhexmesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.mesh.test_snappymesh.SnappyHexMesh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotpostprocessopenfoam_pyvistafoampostprocessing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.postprocess.openfoam_pyvista.FoamPostProcessing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotreportlatex_pdflatexdocument" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.report.latex_pdf.LatexDocument
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotsolverincompressible_fluidincompressiblefluid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.solver.incompressible_fluid.incompressibleFluid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotsystemsystemdirectorysystemdirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.system.SystemDirectory.SystemDirectory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotsystemcontroldictfilecontroldictfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.system.controlDictFile.ControlDictFile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotsystemfvschemesfilefvschemesfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.system.fvSchemesFile.FvSchemesFile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotsystemfvsolutionfilefvsolutionfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.system.fvSolutionFile.FvSolutionFile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotutilitiesdictonnaryopenfoamdictaddfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.utilities.dictonnary.OpenFOAMDictAddFile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotutilitiesdictonnarydict_tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.utilities.dictonnary.dict_tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotutilitiesepw_weather_readerweatherfileepw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.utilities.epw_weather_reader.WeatherFileEPW
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotutilitiesfluids_theoryfluidmechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.utilities.fluids_theory.FluidMechanics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotutilitiesmanageunitsquantity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.utilities.manageunits.Quantity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foampilotutilitiesstl_analyzerstlanalyzer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        foampilot.utilities.stl_analyzer.STLAnalyzer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../manage_quantity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestion des quantités
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie exemples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie exemples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../example/presentation_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../example/muffler/detailled_example_muffler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../example/simplecar/detailled_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Modules détailés de FoamPilot</h1>
+
+<ul>
+<li><a href="#architecture-du-module">Architecture du module</a></li>
+<li><a href="#foampilotbase">foampilot.base</a></li>
+<li><a href="#foampilotboundaries">foampilot.boundaries</a></li>
+<li><a href="#foampilotcommons">foampilot.commons</a></li>
+<li><a href="#foampilotconstant">foampilot.constant</a></li>
+<li><a href="#foampilotmesh">foampilot.mesh</a></li>
+<li><a href="#foampilotpostprocess">foampilot.postprocess</a></li>
+<li><a href="#foampilotreport">foampilot.report</a></li>
+<li><a href="#foampilotsolver">foampilot.solver</a></li>
+<li><a href="#foampilotsystem">foampilot.system</a></li>
+<li><a href="#foampilotutilities">foampilot.utilities</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#utilisation">Utilisation</a></li>
+<li><a href="#exemples">Exemples</a></li>
+<li><a href="#améliorations-et-contributions">Améliorations et Contributions</a></li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p><code>foampilot</code> est une plateforme Python qui simplifie et automatise le processus de configuration, d'exécution et de post-traitement des simulations OpenFOAM. Elle permet aux utilisateurs de définir l'intégralité de leur workflow de simulation en Python, offrant une reproductibilité accrue et un gain de temps significatif.</p>
+<h2 id="architecture-du-module">Architecture du module</h2>
+<p>Le module <code>foampilot</code> est structuré en plusieurs sous-modules, chacun gérant un aspect spécifique du workflow OpenFOAM.</p>
+<h3 id="foampilotbase">foampilot.base</h3>
+<p>Ce sous-module contient les classes de base pour la gestion des fichiers OpenFOAM et les opérations de maillage.</p>
+<h3 id="foampilotboundaries">foampilot.boundaries</h3>
+<p>Gère la définition et la manipulation des conditions aux limites.</p>
+<h3 id="foampilotcommons">foampilot.commons</h3>
+<p>Contient des utilitaires communs, notamment pour la lecture des fichiers de maillage.</p>
+<h3 id="foampilotconstant">foampilot.constant</h3>
+<p>Gère le répertoire <code>constant</code> d'OpenFOAM, y compris les propriétés de transport et de turbulence.</p>
+<h3 id="foampilotmesh">foampilot.mesh</h3>
+<p>Contient les classes pour la création et la gestion des maillages, notamment <code>blockMesh</code>.</p>
+<h3 id="foampilotpostprocess">foampilot.postprocess</h3>
+<p>Fournit des outils pour le post-traitement des résultats de simulation, y compris la visualisation avec PyVista.</p>
+<h3 id="foampilotreport">foampilot.report</h3>
+<p>Gère la génération de rapports automatiques, par exemple au format PDF.</p>
+<h3 id="foampilotsolver">foampilot.solver</h3>
+<p>Contient les classes pour l'exécution des solveurs OpenFOAM, comme <code>incompressibleFluid</code>.</p>
+<h3 id="foampilotsystem">foampilot.system</h3>
+<p>Gère le répertoire <code>system</code> d'OpenFOAM, y compris les fichiers <code>controlDict</code>, <code>fvSchemes</code> et <code>fvSolution</code>.</p>
+<h3 id="foampilotutilities">foampilot.utilities</h3>
+<p>Ce sous-module regroupe diverses fonctions utilitaires.</p>
+<h2 id="installation">Installation</h2>
+<p>Pour installer <code>foampilot</code>, clonez le dépôt GitHub et installez les dépendances nécessaires :</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/stevendaix/foampilot.git
+<span class="nb">cd</span><span class="w"> </span>foampilot
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span><span class="c1"># (Assurez-vous que ce fichier existe ou créez-le)</span>
+</code></pre></div>
+<h2 id="utilisation">Utilisation</h2>
+<p>(Cette section sera complétée avec des exemples de code et des explications détaillées sur l'utilisation des différentes classes et fonctions du module.)</p>
+<h2 id="exemples">Exemples</h2>
+<p>(Cette section présentera des exemples concrets d'utilisation du module pour des cas de simulation typiques.)</p>
+<h2 id="ameliorations-et-contributions">Améliorations et Contributions</h2>
+<p>(Cette section décrira comment contribuer au projet et les améliorations futures envisagées.)</p>
+<h3 id="foampilotbasemeshingmeshing"><code>foampilot.base.meshing.Meshing</code></h3>
+<p>La classe <code>Meshing</code> gère le processus de maillage pour un cas OpenFOAM. Elle permet de configurer et d'exécuter <code>blockMesh</code>.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">Meshing</span><span class="p">(</span><span class="n">path_case</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>path_case</code> (str ou Path): Le chemin vers le répertoire du cas OpenFOAM.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>add_file(file_name, file_content)</code>:
+  Ajoute un fichier additionnel au processus de maillage.</li>
+<li><code>file_name</code> (str): Le nom du fichier à ajouter.</li>
+<li>
+<p><code>file_content</code> (dict): Le contenu du fichier.</p>
+</li>
+<li>
+<p><code>load_from_json(json_path)</code>:
+  Charge la configuration du maillage à partir d'un fichier JSON et met à jour <code>blockMeshDict</code>.</p>
+</li>
+<li>
+<p><code>json_path</code> (str ou Path): Le chemin vers le fichier JSON.</p>
+</li>
+<li>
+<p><code>write()</code>:
+  Écrit les fichiers dans leurs répertoires respectifs au sein du répertoire <code>system</code>.</p>
+</li>
+<li>
+<p><code>run_blockMesh()</code>:
+  Exécute la commande <code>blockMesh</code> dans le chemin du cas spécifié et enregistre la sortie.</p>
+</li>
+<li><strong>Lève:</strong> <code>FileNotFoundError</code>, <code>NotADirectoryError</code>, <code>RuntimeError</code> en cas d'échec.</li>
+</ul>
+<h3 id="foampilotbaseopenfoamfileopenfoamfile"><code>foampilot.base.openFOAMFile.OpenFOAMFile</code></h3>
+<p><code>OpenFOAMFile</code> est une classe de base pour la création et la gestion des fichiers de configuration OpenFOAM. Elle gère l'en-tête standard <code>FoamFile</code> et l'écriture des attributs.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">OpenFOAMFile</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="o">**</span><span class="n">attributes</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>object_name</code> (str): Le nom de l'objet pour l'en-tête du fichier OpenFOAM.</li>
+<li><code>**attributes</code>: Arguments mots-clés arbitraires représentant les attributs spécifiques du fichier.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>write(filepath)</code>:
+  Écrit le contenu du fichier OpenFOAM dans le chemin spécifié.</li>
+<li><code>filepath</code> (str ou Path): Le chemin vers le fichier à écrire.</li>
+</ul>
+<h3 id="foampilotboundariesboundaries_dictboundary"><code>foampilot.boundaries.boundaries_dict.Boundary</code></h3>
+<p>La classe <code>Boundary</code> gère les conditions aux limites pour les simulations OpenFOAM. Elle permet de définir et de manipuler les conditions aux limites pour divers champs (vitesse, pression, paramètres de turbulence).</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">Boundary</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">turbulence_model</span><span class="o">=</span><span class="s2">&quot;kEpsilon&quot;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>parent</code>: L'objet parent du cas OpenFOAM.</li>
+<li><code>turbulence_model</code> (str): Le modèle de turbulence à utiliser (par défaut : "kEpsilon").</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>load_boundary_names(case_path)</code>:
+  Charge les noms et types des limites à partir du fichier <code>polyMesh/boundary</code>.</li>
+<li><code>case_path</code> (Path): Le chemin vers le répertoire du cas OpenFOAM.</li>
+<li><strong>Retourne:</strong> Un dictionnaire mappant les noms des patchs à leurs types.</li>
+<li>
+<p><strong>Lève:</strong> <code>FileNotFoundError</code> si le fichier de limites n'existe pas.</p>
+</li>
+<li>
+<p><code>initialize_boundary()</code>:
+  Initialise les champs de limites avec les noms des patchs et applique automatiquement les conditions de paroi.</p>
+</li>
+<li>
+<p><code>apply_condition_with_wildcard(field, pattern, condition)</code>:
+  Applique une condition à toutes les limites correspondant à un motif.</p>
+</li>
+<li><code>field</code>: Le champ auquel appliquer la condition (par exemple, "U", "p").</li>
+<li><code>pattern</code>: Motif d'expression régulière pour faire correspondre les noms des limites.</li>
+<li>
+<p><code>condition</code>: Dictionnaire contenant les paramètres de la condition aux limites.</p>
+</li>
+<li>
+<p><code>set_velocity_inlet(pattern, velocity, turbulence_intensity=None)</code>:
+  Définit une condition aux limites d'entrée de vitesse.</p>
+</li>
+<li><code>pattern</code>: Motif d'expression régulière.</li>
+<li><code>velocity</code>: Tuple de 3 objets <code>Quantity</code> (u, v, w) représentant les composantes de vitesse.</li>
+<li><code>turbulence_intensity</code> (float, optionnel): Intensité de turbulence entre 0 et 1.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si les unités de vitesse sont incorrectes.</p>
+</li>
+<li>
+<p><code>set_pressure_inlet(pattern, pressure, turbulence_intensity=None)</code>:
+  Définit une condition aux limites d'entrée de pression.</p>
+</li>
+<li><code>pattern</code>: Motif d'expression régulière.</li>
+<li><code>pressure</code>: Valeur de pression en tant qu'objet <code>Quantity</code>.</li>
+<li><code>turbulence_intensity</code> (float, optionnel): Intensité de turbulence entre 0 et 1.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si les unités de pression sont incorrectes.</p>
+</li>
+<li>
+<p><code>set_pressure_outlet(pattern, velocity)</code>:
+  Définit une condition aux limites de sortie de pression.</p>
+</li>
+<li><code>pattern</code>: Motif d'expression régulière.</li>
+<li>
+<p><code>velocity</code>: Tuple de 3 objets <code>Quantity</code> (u, v, w) représentant les composantes de vitesse.</p>
+</li>
+<li>
+<p><code>set_mass_flow_inlet(pattern, mass_flow_rate, density)</code>:
+  Définit une condition aux limites d'entrée de débit massique.</p>
+</li>
+<li><code>pattern</code>: Motif d'expression régulière.</li>
+<li><code>mass_flow_rate</code>: Débit massique en tant qu'objet <code>Quantity</code>.</li>
+<li><code>density</code>: Densité en tant qu'objet <code>Quantity</code>.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si les unités sont incorrectes.</p>
+</li>
+<li>
+<p><code>set_wall(pattern, friction=True, velocity=None)</code>:
+  Définit une condition aux limites de paroi.</p>
+</li>
+<li><code>pattern</code>: Motif d'expression régulière.</li>
+<li><code>friction</code> (bool): Si <code>True</code> (par défaut), utilise la condition de non-glissement. Si <code>False</code>, utilise la condition de glissement.</li>
+<li>
+<p><code>velocity</code> (tuple, optionnel): Tuple de 3 objets <code>Quantity</code> pour une paroi à vitesse fixe.</p>
+</li>
+<li>
+<p><code>set_symmetry(pattern)</code>:
+  Définit une condition aux limites de symétrie (vide).</p>
+</li>
+<li>
+<p><code>pattern</code>: Motif d'expression régulière.</p>
+</li>
+<li>
+<p><code>set_no_friction_wall(pattern)</code>:
+  Définit une condition aux limites de paroi sans frottement (glissement).</p>
+</li>
+<li>
+<p><code>pattern</code>: Motif d'expression régulière.</p>
+</li>
+<li>
+<p><code>get_wall_function(field, vel_cond)</code>:
+  Obtient la fonction de paroi appropriée pour un champ donné.</p>
+</li>
+<li><code>field</code> (str): Le nom du champ ("k", "epsilon" ou "omega").</li>
+<li><code>vel_cond</code> (bool): Indique si une condition de vitesse est appliquée.</li>
+<li>
+<p><strong>Retourne:</strong> Un dictionnaire contenant les paramètres de la fonction de paroi.</p>
+</li>
+<li>
+<p><code>set_uniform_normal_fixed_value_all_fields(patch_pattern, mode="intakeType3", ref_value=1.2)</code>:
+  Définit la condition <code>uniformNormalFixedValue</code> ou <code>surfaceNormalFixedValue</code> sur tous les champs.</p>
+</li>
+<li><code>patch_pattern</code>: Motif d'expression régulière.</li>
+<li><code>mode</code> (str): Type de condition à appliquer.</li>
+<li><code>ref_value</code> (float): Valeur de référence pour la condition.</li>
+<li><strong>Lève:</strong> <code>ValueError</code> si le mode est invalide.</li>
+</ul>
+<h3 id="foampilotcommonsread_polymeshboundaryfilehandler"><code>foampilot.commons.read_polymesh.BoundaryFileHandler</code></h3>
+<p>La classe <code>BoundaryFileHandler</code> gère les fichiers <code>boundary</code> d'OpenFOAM situés dans <code>constant/polyMesh/</code>. Elle fournit des utilitaires pour analyser, mettre à jour et écrire le dictionnaire <code>boundary</code> qui définit les patchs de maillage dans OpenFOAM.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">BoundaryFileHandler</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">all_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>base_path</code> (str ou Path): Chemin vers le répertoire racine du cas OpenFOAM (doit contenir <code>constant/polyMesh/boundary</code>).</li>
+<li><code>all_data</code> (bool, optionnel): Si <code>True</code>, tous les attributs des patchs sont extraits (nFaces, startFace, etc.). Par défaut à <code>False</code>.</li>
+<li><strong>Lève:</strong> <code>FileNotFoundError</code> si le fichier <code>boundary</code> n'existe pas.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>comment_remover(text)</code>:
+  Supprime les commentaires de ligne (<code>//</code>) et de bloc (<code>/* */</code>) d'un texte tout en préservant les littéraux de chaîne.</li>
+<li><code>text</code> (str): Texte d'entrée duquel les commentaires doivent être supprimés.</li>
+<li>
+<p><strong>Retourne:</strong> Le texte avec les commentaires supprimés.</p>
+</li>
+<li>
+<p><code>parse_boundary_file(all_data)</code>:
+  Analyse un fichier <code>boundary</code> d'OpenFOAM et extrait les patchs.</p>
+</li>
+<li><code>all_data</code> (bool): Si <code>True</code>, extrait les attributs détaillés des patchs.</li>
+<li>
+<p><strong>Retourne:</strong> Un dictionnaire contenant les patchs et leurs attributs.</p>
+</li>
+<li>
+<p><code>write_boundary_file(data=None)</code>:
+  Écrit les données de patch dans le fichier <code>boundary</code> d'OpenFOAM.</p>
+</li>
+<li>
+<p><code>data</code> (dict, optionnel): Dictionnaire contenant les données de patch à écrire. Si <code>None</code>, utilise <code>self.data</code>.</p>
+</li>
+<li>
+<p><code>update_patch(patch_name, patch_data)</code>:
+  Met à jour ou ajoute un patch dans les données de limite.</p>
+</li>
+<li><code>patch_name</code> (str): Nom du patch à mettre à jour ou à ajouter.</li>
+<li><code>patch_data</code> (dict): Dictionnaire d'attributs pour le patch.</li>
+</ul>
+<h3 id="foampilotconstantconstantdirectoryconstantdirectory"><code>foampilot.constant.constantDirectory.ConstantDirectory</code></h3>
+<p>La classe <code>ConstantDirectory</code> représente le répertoire <code>constant</code> dans un cas OpenFOAM, qui contient des fichiers tels que <code>transportProperties</code> et <code>turbulenceProperties</code>.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">ConstantDirectory</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>parent</code>: L'objet parent du cas OpenFOAM.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>write()</code>:
+  Écrit les fichiers à leurs emplacements respectifs dans le répertoire <code>constant</code>.</li>
+</ul>
+<h3 id="foampilotconstanttransportpropertiesfiletransportpropertiesfile"><code>foampilot.constant.transportPropertiesFile.TransportPropertiesFile</code></h3>
+<p>La classe <code>TransportPropertiesFile</code> représente le fichier de configuration OpenFOAM <code>transportProperties</code>. Ce fichier définit le modèle de transport et les propriétés du fluide, telles que la viscosité, nécessaires aux simulations CFD.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">TransportPropertiesFile</span><span class="p">(</span><span class="n">transportModel</span><span class="o">=</span><span class="s2">&quot;Newtonian&quot;</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="s2">&quot;1e-05&quot;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>transportModel</code> (str, optionnel): Le modèle de transport utilisé dans la simulation (par défaut : <code>"Newtonian"</code>).</li>
+<li><code>nu</code> (str, optionnel): La viscosité cinématique (m²/s) sous forme de chaîne de caractères (par défaut : <code>"1e-05"</code>).</li>
+</ul>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Cette classe hérite de <code>foampilot.base.openFOAMFile.OpenFOAMFile</code>.</li>
+<li>Les paramètres sont stockés au format dictionnaire OpenFOAM.</li>
+</ul>
+<h3 id="foampilotconstantturbulencepropertiesfileturbulencepropertiesfile"><code>foampilot.constant.turbulencePropertiesFile.TurbulencePropertiesFile</code></h3>
+<p>La classe <code>TurbulencePropertiesFile</code> représente un fichier de configuration OpenFOAM <code>turbulenceProperties</code>. Cette classe permet de configurer les modèles de turbulence, le type de simulation et les paramètres associés.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>AVAILABLE_MODELS</code> (dict): Dictionnaire mappant les noms de modèles conviviaux aux codes OpenFOAM internes.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">TurbulencePropertiesFile</span><span class="p">(</span><span class="n">simulationType</span><span class="o">=</span><span class="s2">&quot;RAS&quot;</span><span class="p">,</span> <span class="n">RASModel</span><span class="o">=</span><span class="s2">&quot;k-epsilon&quot;</span><span class="p">,</span> <span class="n">turbulence</span><span class="o">=</span><span class="s2">&quot;on&quot;</span><span class="p">,</span> <span class="n">printCoeffs</span><span class="o">=</span><span class="s2">&quot;on&quot;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>simulationType</code> (str, optionnel): Le type de simulation de turbulence (par défaut : <code>"RAS"</code>).</li>
+<li><code>RASModel</code> (str, optionnel): Le modèle de turbulence à utiliser. Doit être dans <code>AVAILABLE_MODELS</code> ou un modèle personnalisé (par défaut : <code>"k-epsilon"</code>).</li>
+<li><code>turbulence</code> (str, optionnel): Indique si la turbulence est activée (<code>"on"</code>/<code>"off"</code>) (par défaut : <code>"on"</code>).</li>
+<li><code>printCoeffs</code> (str, optionnel): Indique s'il faut imprimer les coefficients du modèle (<code>"on"</code>/<code>"off"</code>) (par défaut : <code>"on"</code>).</li>
+</ul>
+<p><strong>Méthodes de classe:</strong></p>
+<ul>
+<li><code>add_turbulence_model(model_name, model_code)</code>:
+  Ajoute un nouveau modèle de turbulence au dictionnaire des modèles disponibles.</li>
+<li><code>model_name</code> (str): Nom convivial pour le modèle.</li>
+<li><code>model_code</code> (str): Code interne pour le modèle dans OpenFOAM.</li>
+</ul>
+<h3 id="foampilotmeshblockmeshfileblockmeshfile"><code>foampilot.mesh.BlockMeshFile.BlockMeshFile</code></h3>
+<p>La classe <code>BlockMeshFile</code> représente le fichier <code>blockMeshDict</code> dans OpenFOAM. Elle permet de construire, modifier et exporter ce fichier qui définit la topologie du maillage pour les simulations OpenFOAM.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>scale</code> (float): Facteur d'échelle appliqué au maillage.</li>
+<li><code>vertices</code> (list de listes): Liste des coordonnées des sommets (x, y, z).</li>
+<li><code>blocks</code> (list): Liste des définitions de blocs.</li>
+<li><code>edges</code> (list): Liste des définitions d'arêtes.</li>
+<li><code>defaultPatch</code> (dict): Définition du patch par défaut.</li>
+<li><code>boundary</code> (dict): Dictionnaire des patchs de limite et de leurs conditions.</li>
+<li><code>mergePatchPairs</code> (list de tuples): Liste des paires de patchs à fusionner.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">BlockMeshFile</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blocks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">defaultPatch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mergePatchPairs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>scale</code> (float, optionnel): Facteur d'échelle du maillage (par défaut : 1).</li>
+<li><code>vertices</code> (list de listes, optionnel): Liste des sommets, chacun sous la forme <code>[x, y, z]</code> (par défaut : liste vide).</li>
+<li><code>blocks</code> (list, optionnel): Liste des définitions de blocs (par défaut : liste vide).</li>
+<li><code>edges</code> (list, optionnel): Liste des arêtes (par défaut : liste vide).</li>
+<li><code>defaultPatch</code> (dict, optionnel): Définition du patch par défaut (par défaut : dictionnaire vide).</li>
+<li><code>boundary</code> (dict, optionnel): Définitions des limites, par exemple <code>{"inlet": {"type": "patch", "faces": [...]}}</code>.</li>
+<li><code>mergePatchPairs</code> (list de tuples, optionnel): Liste des paires de patchs à fusionner (par défaut : liste vide).</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>load_from_json(json_path)</code>:
+  Charge une configuration <code>blockMeshDict</code> à partir d'un fichier JSON.</li>
+<li><code>json_path</code> (str): Chemin vers le fichier de configuration JSON.</li>
+<li>
+<p><strong>Lève:</strong> <code>FileNotFoundError</code> si le fichier JSON n'existe pas, <code>KeyError</code> si la structure du fichier JSON est invalide ou si des clés requises sont manquantes.</p>
+</li>
+<li>
+<p><code>write(file_path)</code>:
+  Écrit le contenu de <code>blockMeshDict</code> dans un fichier.</p>
+</li>
+<li><code>file_path</code> (Path): Chemin de destination du fichier <code>blockMeshDict</code>.</li>
+</ul>
+<h3 id="foampilotmeshtest_snappymeshstlanalyzer"><code>foampilot.mesh.test_snappymesh.STLAnalyzer</code></h3>
+<p>La classe <code>STLAnalyzer</code> est conçue pour analyser les fichiers STL, extraire des informations géométriques et préparer les données pour le maillage.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">STLAnalyzer</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>filename</code> (Path): Chemin vers le fichier STL.</li>
+</ul>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>filename</code> (Path): Chemin vers le fichier STL.</li>
+<li><code>mesh</code> (pv.PolyData): Objet maillage PyVista représentant le contenu du fichier STL.</li>
+<li><code>reader</code> (pyvista.reader): L'objet lecteur utilisé pour lire le fichier STL.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>load()</code>:
+  Charge le maillage à partir du fichier STL.</li>
+<li>
+<p><strong>Retourne:</strong> <code>pv.PolyData</code> : Objet maillage PyVista.</p>
+</li>
+<li>
+<p><code>get_max_dim()</code>:
+  Retourne la dimension maximale du maillage STL basée sur la boîte englobante.</p>
+</li>
+<li>
+<p><strong>Retourne:</strong> <code>float</code> : Dimension maximale.</p>
+</li>
+<li>
+<p><code>get_min_dim()</code>:
+  Retourne la dimension minimale du maillage STL basée sur la boîte englobante.</p>
+</li>
+<li>
+<p><strong>Retourne:</strong> <code>float</code> : Dimension minimale.</p>
+</li>
+<li>
+<p><code>calc_domain_size(sizeFactor=1.0)</code>:
+  Calcule la taille du domaine basée sur la boîte englobante STL et un facteur de taille.</p>
+</li>
+<li><code>sizeFactor</code> (float): Facteur pour redimensionner le domaine.</li>
+<li>
+<p><strong>Retourne:</strong> <code>tuple</code> : Taille du domaine dans chaque dimension.</p>
+</li>
+<li>
+<p><code>get_info()</code>:
+  Obtient des informations sur le maillage, y compris les dimensions max/min et la taille du domaine.</p>
+</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire contenant des informations sur le maillage.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le maillage n'a pas été chargé.</p>
+</li>
+<li>
+<p><code>extract_features()</code>:
+  Exécute <code>surfaceFeatureExtract</code> pour générer le fichier <code>.eMesh</code> avec les caractéristiques des arêtes.</p>
+</li>
+<li>
+<p><code>get_center_of_mass()</code>:
+  Calcule le centre de masse du maillage STL.</p>
+</li>
+<li><strong>Retourne:</strong> <code>tuple</code> : Coordonnées du centre de masse (x, y, z).</li>
+<li><strong>Lève:</strong> <code>ValueError</code> si le maillage n'a pas été chargé.</li>
+</ul>
+<h3 id="foampilotmeshtest_snappymeshsnappyhexmesh"><code>foampilot.mesh.test_snappymesh.SnappyHexMesh</code></h3>
+<p>La classe <code>SnappyHexMesh</code> est utilisée pour configurer et générer le fichier <code>snappyHexMeshDict</code> basé sur la géométrie STL.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">SnappyHexMesh</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">stl_file</span><span class="p">,</span> <span class="n">castellatedMesh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">snap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">addLayers</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>base_path</code> (Path): Chemin vers le répertoire du cas OpenFOAM.</li>
+<li><code>stl_file</code> (Path): Chemin vers le fichier de géométrie STL.</li>
+<li><code>castellatedMesh</code> (bool): Active la structure de maillage <code>castellated</code> initiale (par défaut : <code>True</code>).</li>
+<li><code>snap</code> (bool): Active la projection du maillage sur la surface STL (par défaut : <code>True</code>).</li>
+<li><code>addLayers</code> (bool): Active l'ajout de couches limites (par défaut : <code>False</code>).</li>
+</ul>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>base_path</code> (Path): Chemin vers le répertoire du cas OpenFOAM.</li>
+<li><code>stl_file</code> (Path): Chemin vers le fichier STL.</li>
+<li><code>snappy_hex_mesh_dict_path</code> (Path): Chemin vers le fichier <code>snappyHexMeshDict</code>.</li>
+<li><code>locationInMesh</code> (tuple): Coordonnées d'un point à l'intérieur du maillage.</li>
+<li><code>castellatedMesh</code> (bool): Indique si le maillage <code>castellated</code> est activé.</li>
+<li><code>snap</code> (bool): Indique si le <code>snap</code> est activé.</li>
+<li><code>addLayers</code> (bool): Indique si l'ajout de couches est activé.</li>
+<li><code>geometry</code> (dict): Définition de la géométrie pour <code>snappyHexMesh</code>.</li>
+<li><code>castellatedMeshControls</code> (dict): Contrôles pour le maillage <code>castellated</code>.</li>
+<li><code>snapControls</code> (dict): Contrôles pour l'étape de <code>snap</code>.</li>
+<li><code>addLayersControls</code> (dict): Contrôles pour l'ajout de couches limites.</li>
+<li><code>meshQualityControls</code> (dict): Contrôles de qualité du maillage.</li>
+<li><code>debugFlags</code> (list): Drapeaux de débogage.</li>
+<li><code>writeFlags</code> (list): Drapeaux d'écriture.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>add_feature(feature_file, level)</code>:
+  Ajoute un fichier d'arêtes de caractéristique (extrait avec <code>surfaceFeatureExtract</code>) pour affiner les arêtes de la géométrie.</li>
+<li><code>feature_file</code> (str): Chemin vers le fichier <code>.eMesh</code>.</li>
+<li>
+<p><code>level</code> (int): Niveau de raffinement pour les caractéristiques d'arêtes.</p>
+</li>
+<li>
+<p><code>add_refinement_region(name, mode, levels)</code>:
+  Ajoute une région de raffinement spécifique.</p>
+</li>
+<li><code>name</code> (str): Nom de la région dans la géométrie.</li>
+<li><code>mode</code> (str): Mode de raffinement (par exemple, <code>'inside'</code>, <code>'outside'</code>).</li>
+<li>
+<p><code>levels</code> (tuple): Niveaux de raffinement pour la région (par exemple, <code>((1, 2))</code>).</p>
+</li>
+<li>
+<p><code>add_layer(surface, n_surface_layers)</code>:
+  Définit le nombre de couches de maillage autour d'une surface spécifique.</p>
+</li>
+<li><code>surface</code> (str): Nom de la surface.</li>
+<li>
+<p><code>n_surface_layers</code> (int): Nombre de couches de surface.</p>
+</li>
+<li>
+<p><code>write_snappyHexMeshDict()</code>:
+  Génère le fichier <code>snappyHexMeshDict</code> avec les options définies pour <code>snappyHexMesh</code>.</p>
+</li>
+</ul>
+<h3 id="foampilotpostprocessopenfoam_pyvistafoampostprocessing"><code>foampilot.postprocess.openfoam_pyvista.FoamPostProcessing</code></h3>
+<p>La classe <code>FoamPostProcessing</code> est une classe de post-traitement pour les cas OpenFOAM. Elle permet de convertir les données OpenFOAM en fichiers VTK, de charger et de visualiser les maillages, et de calculer diverses quantités.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">FoamPostProcessing</span><span class="p">(</span><span class="n">case_path</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="o">=</span><span class="s2">&quot;VTK&quot;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>case_path</code> (str): Chemin vers le répertoire du cas OpenFOAM.</li>
+<li><code>vtk_dir</code> (str): Nom du répertoire pour la sortie VTK (par défaut : <code>"VTK"</code>).</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>check_case()</code>:
+  Vérifie si le chemin du cas OpenFOAM existe et est un répertoire.</li>
+<li>
+<p><strong>Lève:</strong> <code>FileNotFoundError</code> si le chemin n'existe pas ou n'est pas un répertoire.</p>
+</li>
+<li>
+<p><code>foamToVTK(all_regions=False, ascii=False, constant=False, latest_time=False, fields=None, no_boundary=False, no_internal=False)</code>:
+  Convertit le cas OpenFOAM en fichiers VTK à l'aide de <code>foamToVTK</code>.</p>
+</li>
+<li><code>all_regions</code> (bool): Convertit toutes les régions (par défaut : <code>False</code>).</li>
+<li><code>ascii</code> (bool): Exporte en format ASCII (par défaut : <code>False</code>).</li>
+<li><code>constant</code> (bool): Exporte les champs constants (par défaut : <code>False</code>).</li>
+<li><code>latest_time</code> (bool): Exporte uniquement le dernier pas de temps (par défaut : <code>False</code>).</li>
+<li><code>fields</code> (list ou str): Champs à exporter (par défaut : <code>None</code>, tous les champs).</li>
+<li><code>no_boundary</code> (bool): N'exporte pas les limites (par défaut : <code>False</code>).</li>
+<li><code>no_internal</code> (bool): N'exporte pas le maillage interne (par défaut : <code>False</code>).</li>
+<li>
+<p><strong>Lève:</strong> <code>RuntimeError</code> si <code>foamToVTK</code> échoue.</p>
+</li>
+<li>
+<p><code>list_time_steps()</code>:
+  Retourne une liste triée des pas de temps disponibles basée sur les fichiers VTK dans le répertoire principal.</p>
+</li>
+<li>
+<p><strong>Retourne:</strong> <code>list</code> : Liste des pas de temps.</p>
+</li>
+<li>
+<p><code>get_structure(time_step=None)</code>:
+  Construit un dictionnaire avec le maillage principal (cellule) et toutes les limites trouvées automatiquement dans le dossier VTK.</p>
+</li>
+<li><code>time_step</code> (int, optionnel): Le pas de temps à charger. Si <code>None</code>, le dernier pas de temps est utilisé.</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire contenant le maillage des cellules et les maillages des limites.</li>
+<li>
+<p><strong>Lève:</strong> <code>FileNotFoundError</code> si aucun fichier VTK n'est trouvé ou si le fichier de cellule n'existe pas.</p>
+</li>
+<li>
+<p><code>load_time_step(time_step)</code>:
+  Charge les données VTK pour un pas de temps spécifique.</p>
+</li>
+<li><code>time_step</code> (int): Le pas de temps à charger.</li>
+<li>
+<p><strong>Retourne:</strong> <code>dict</code> : Dictionnaire contenant le maillage des cellules et les maillages des limites.</p>
+</li>
+<li>
+<p><code>get_all_time_steps()</code>:
+  Retourne tous les pas de temps disponibles.</p>
+</li>
+<li>
+<p><strong>Retourne:</strong> <code>list</code> : Liste de tous les pas de temps.</p>
+</li>
+<li>
+<p><code>plot_slice(structure=None, plane="z", scalars="U", opacity=0.25)</code>:
+  Génère un tracé de tranche à partir du dictionnaire de structure donné.</p>
+</li>
+<li><code>structure</code> (dict, optionnel): Dictionnaire de structure du maillage. Si <code>None</code>, lève une <code>RuntimeError</code>.</li>
+<li><code>plane</code> (str): Le plan de la tranche ("x", "y" ou "z") (par défaut : <code>"z"</code>).</li>
+<li><code>scalars</code> (str): Le champ scalaire à afficher (par défaut : <code>"U"</code>).</li>
+<li>
+<p><code>opacity</code> (float): L'opacité du maillage (par défaut : <code>0.25</code>).</p>
+</li>
+<li>
+<p><code>plot_contour(mesh, scalars, is_filled=True, opacity=1.0)</code>:
+  Génère un tracé de contour.</p>
+</li>
+<li><code>mesh</code>: L'objet maillage PyVista.</li>
+<li><code>scalars</code> (str): Le champ scalaire à afficher.</li>
+<li><code>is_filled</code> (bool): Si <code>True</code>, le contour est rempli (par défaut : <code>True</code>).</li>
+<li>
+<p><code>opacity</code> (float): L'opacité du tracé (par défaut : <code>1.0</code>).</p>
+</li>
+<li>
+<p><code>plot_vectors(mesh, vectors, scale=1.0, color='blue')</code>:
+  Génère un tracé de vecteurs.</p>
+</li>
+<li><code>mesh</code>: L'objet maillage PyVista.</li>
+<li><code>vectors</code> (str): Le champ vectoriel à afficher.</li>
+<li><code>scale</code> (float): Facteur d'échelle pour les vecteurs (par défaut : <code>1.0</code>).</li>
+<li><code>color</code> (str): Couleur des vecteurs (par défaut : <code>"blue"</code>).</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le champ vectoriel n'est pas trouvé.</p>
+</li>
+<li>
+<p><code>plot_streamlines(mesh, vectors, n_points=100, max_time=10.0)</code>:
+  Génère des lignes de courant.</p>
+</li>
+<li><code>mesh</code>: L'objet maillage PyVista.</li>
+<li><code>vectors</code> (str): Le champ vectoriel à afficher.</li>
+<li><code>n_points</code> (int): Nombre de points de départ pour les lignes de courant (par défaut : <code>100</code>).</li>
+<li>
+<p><code>max_time</code> (float): Temps maximal pour le calcul des lignes de courant (par défaut : <code>10.0</code>).</p>
+</li>
+<li>
+<p><code>plot_mesh_style(mesh, style='surface', show_edges=False, color='white', opacity=1.0)</code>:
+  Visualise le maillage avec différents styles.</p>
+</li>
+<li><code>mesh</code>: L'objet maillage PyVista.</li>
+<li><code>style</code> (str): Style de visualisation (<code>'surface'</code>, <code>'wireframe'</code>, etc.) (par défaut : <code>'surface'</code>).</li>
+<li><code>show_edges</code> (bool): Affiche les arêtes (par défaut : <code>False</code>).</li>
+<li><code>color</code> (str): Couleur du maillage (par défaut : <code>'white'</code>).</li>
+<li>
+<p><code>opacity</code> (float): Opacité du maillage (par défaut : <code>1.0</code>).</p>
+</li>
+<li>
+<p><code>calculate_q_criterion(mesh, velocity_field='U')</code>:
+  Calcule le critère Q.</p>
+</li>
+<li><code>mesh</code>: L'objet maillage PyVista.</li>
+<li><code>velocity_field</code> (str): Le champ de vitesse (par défaut : <code>'U'</code>).</li>
+<li><strong>Retourne:</strong> Le maillage avec le critère Q ajouté aux données de points.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le champ de vitesse n'est pas trouvé.</p>
+</li>
+<li>
+<p><code>calculate_vorticity(mesh, velocity_field='U')</code>:
+  Calcule la vorticité.</p>
+</li>
+<li><code>mesh</code>: L'objet maillage PyVista.</li>
+<li><code>velocity_field</code> (str): Le champ de vitesse (par défaut : <code>'U'</code>).</li>
+<li><strong>Retourne:</strong> Le maillage avec la vorticité ajoutée aux données de points.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le champ de vitesse n'est pas trouvé.</p>
+</li>
+<li>
+<p><code>export_plot(plotter, filename, image_format="png")</code>:
+  Exporte le tracé actuel vers un fichier image.</p>
+</li>
+<li><code>plotter</code>: L'objet de traçage (par exemple, <code>pyvista.Plotter</code>).</li>
+<li><code>filename</code> (Path): Nom du fichier (avec ou sans extension).</li>
+<li>
+<p><code>image_format</code> (str): Format de l'image (par défaut : <code>"png"</code>).</p>
+</li>
+<li>
+<p><code>create_animation(scalars, filename, image_format='gif', fps=10)</code>:
+  Crée une animation à travers les pas de temps.</p>
+</li>
+<li><code>scalars</code> (str): Le champ scalaire à animer.</li>
+<li><code>filename</code> (str): Nom du fichier de sortie de l'animation.</li>
+<li><code>image_format</code> (str): Format de l'image (par défaut : <code>'gif'</code>).</li>
+<li><code>fps</code> (int): Images par seconde (par défaut : <code>10</code>).</li>
+<li>
+<p><strong>Lève:</strong> <code>FileNotFoundError</code> si aucun fichier VTK n'est trouvé pour l'animation.</p>
+</li>
+<li>
+<p><code>get_scalar_statistics(mesh, scalar_field)</code>:
+  Calcule les statistiques (moyenne, écart-type, min, max) pour un champ scalaire.</p>
+</li>
+<li><code>mesh</code>: L'objet maillage PyVista.</li>
+<li><code>scalar_field</code> (str): Le champ scalaire.</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire des statistiques.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le champ scalaire n'est pas trouvé.</p>
+</li>
+<li>
+<p><code>get_time_series_data(scalar_field, point_coordinates)</code>:
+  Extrait les données de série temporelle pour un champ scalaire à un point spécifique.</p>
+</li>
+<li><code>scalar_field</code> (str): Le champ scalaire.</li>
+<li><code>point_coordinates</code> (list): Coordonnées du point.</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire contenant les pas de temps et les données de série temporelle.</li>
+<li>
+<p><strong>Lève:</strong> <code>FileNotFoundError</code> si aucun fichier VTK n'est trouvé pour l'analyse de série temporelle, <code>ValueError</code> si le champ scalaire n'est pas trouvé.</p>
+</li>
+<li>
+<p><code>get_mesh_statistics(mesh)</code>:
+  Retourne les statistiques sur le maillage lui-même (par exemple, nombre de points, cellules).</p>
+</li>
+<li><code>mesh</code>: L'objet maillage PyVista.</li>
+<li>
+<p><strong>Retourne:</strong> <code>dict</code> : Dictionnaire des statistiques du maillage.</p>
+</li>
+<li>
+<p><code>get_region_statistics(structure, region_name, scalar_field)</code>:
+  Calcule les statistiques pour un champ scalaire dans une région spécifique (cellule ou limite).</p>
+</li>
+<li><code>structure</code>: Dictionnaire de structure du maillage.</li>
+<li><code>region_name</code> (str): Nom de la région ("cell" ou nom de la limite).</li>
+<li><code>scalar_field</code> (str): Le champ scalaire.</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire des statistiques de la région.</li>
+<li><strong>Lève:</strong> <code>ValueError</code> si la région ou le champ scalaire n'est pas trouvé.</li>
+</ul>
+<h3 id="foampilotreportlatex_pdflatexdocument"><code>foampilot.report.latex_pdf.LatexDocument</code></h3>
+<p>La classe <code>LatexDocument</code> facilite la création de documents LaTeX, y compris l'ajout de sections, de figures, de tableaux et la génération de PDF.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">LatexDocument</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">author</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>title</code> (str): Le titre du document.</li>
+<li><code>author</code> (str): L'auteur du document.</li>
+<li><code>filename</code> (str): Le nom de base du fichier de sortie (sans extension).</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li>
+<p><code>add_title()</code>:
+  Ajoute la page de titre au document.</p>
+</li>
+<li>
+<p><code>add_toc()</code>:
+  Ajoute la table des matières au document.</p>
+</li>
+<li>
+<p><code>add_section(title, content)</code>:
+  Ajoute une nouvelle section au document.</p>
+</li>
+<li><code>title</code> (str): Le titre de la section.</li>
+<li>
+<p><code>content</code> (str): Le contenu de la section.</p>
+</li>
+<li>
+<p><code>add_subsection(title, content)</code>:
+  Ajoute une nouvelle sous-section au document.</p>
+</li>
+<li><code>title</code> (str): Le titre de la sous-section.</li>
+<li>
+<p><code>content</code> (str): Le contenu de la sous-section.</p>
+</li>
+<li>
+<p><code>add_unnumbered_section(title, content)</code>:
+  Ajoute une section non numérotée au document.</p>
+</li>
+<li><code>title</code> (str): Le titre de la section non numérotée.</li>
+<li>
+<p><code>content</code> (str): Le contenu de la section.</p>
+</li>
+<li>
+<p><code>add_abstract(content)</code>:
+  Ajoute un résumé au document.</p>
+</li>
+<li>
+<p><code>content</code> (str): Le contenu du résumé.</p>
+</li>
+<li>
+<p><code>add_list(items, ordered=False)</code>:
+  Ajoute une liste (ordonnée ou non) au document.</p>
+</li>
+<li><code>items</code> (list): Une liste de chaînes de caractères pour les éléments de la liste.</li>
+<li>
+<p><code>ordered</code> (bool): Si <code>True</code>, la liste est ordonnée (par défaut : <code>False</code>).</p>
+</li>
+<li>
+<p><code>add_math(equation)</code>:
+  Ajoute une équation mathématique au document.</p>
+</li>
+<li>
+<p><code>equation</code> (str): Chaîne formatée LaTeX représentant l'équation.</p>
+</li>
+<li>
+<p><code>add_figure(image_path, caption=None, width=\'0.8\\textwidth\')</code>:
+  Ajoute une figure au document avec une légende et une largeur optionnelles.</p>
+</li>
+<li><code>image_path</code> (str): Chemin vers le fichier image.</li>
+<li><code>caption</code> (str, optionnel): Légende de l'image.</li>
+<li>
+<p><code>width</code> (str): Largeur de l'image (par défaut : <code>\'0.8\\textwidth\'</code>).</p>
+</li>
+<li>
+<p>`add_table(data, headers=None, caption=\</p>
+</li>
+</ul>
+<p>,
+  col_align="c", multicol_data=None, multirow_data=None)<code>:
+  Ajoute un tableau avec support pour</code>MultiColumn<code>et</code>MultiRow<code>.
+  -</code>data<code>(list de listes): Les données du tableau.
+  -</code>headers<code>(list, optionnel): Les en-têtes de colonnes.
+  -</code>caption<code>(str): Légende du tableau.
+  -</code>col_align<code>(str): Alignement des colonnes (par défaut :</code>"c"<code>pour centré).
+  -</code>multicol_data<code>(dict, optionnel): Dictionnaire pour les cellules</code>MultiColumn<code>.
+  -</code>multirow_data<code>(dict, optionnel): Dictionnaire pour les cellules</code>MultiRow`.</p>
+<ul>
+<li><code>dataframe_to_latex(dataframe, caption="", label="")</code>:
+  Convertit un <code>pandas.DataFrame</code> en une chaîne de caractères de tableau LaTeX.</li>
+<li><code>dataframe</code> (pd.DataFrame): Le DataFrame à convertir.</li>
+<li><code>caption</code> (str): Légende du tableau.</li>
+<li><code>label</code> (str): Étiquette pour référencer le tableau.</li>
+<li>
+<p><strong>Retourne:</strong> <code>str</code> : Une chaîne de caractères de tableau LaTeX.</p>
+</li>
+<li>
+<p><code>add_dataframe_table(dataframe, caption="", label="")</code>:
+  Ajoute un <code>pandas.DataFrame</code> en tant que tableau LaTeX au document.</p>
+</li>
+<li><code>dataframe</code> (pd.DataFrame): Le DataFrame à ajouter.</li>
+<li><code>caption</code> (str): Légende du tableau.</li>
+<li>
+<p><code>label</code> (str): Étiquette pour référencer le tableau.</p>
+</li>
+<li>
+<p><code>add_bibliography(bib_path)</code>:
+  Ajoute une bibliographie au document.</p>
+</li>
+<li>
+<p><code>bib_path</code> (str): Chemin vers le fichier <code>.bib</code>.</p>
+</li>
+<li>
+<p><code>add_environment(env_name, content)</code>:
+  Ajoute un environnement LaTeX personnalisé.</p>
+</li>
+<li><code>env_name</code> (str): Nom de l'environnement.</li>
+<li>
+<p><code>content</code> (str): Contenu de l'environnement.</p>
+</li>
+<li>
+<p><code>add_appendix(title, content)</code>:
+  Ajoute une annexe au document.</p>
+</li>
+<li><code>title</code> (str): Titre de l'annexe.</li>
+<li>
+<p><code>content</code> (str): Contenu de l'annexe.</p>
+</li>
+<li>
+<p><code>add_package(package_name, options=None)</code>:
+  Ajoute un package LaTeX au document.</p>
+</li>
+<li><code>package_name</code> (str): Nom du package.</li>
+<li>
+<p><code>options</code> (str, optionnel): Options du package.</p>
+</li>
+<li>
+<p><code>add_custom_preamble(command)</code>:
+  Ajoute une commande personnalisée au préambule LaTeX.</p>
+</li>
+<li>
+<p><code>command</code> (str): La commande LaTeX.</p>
+</li>
+<li>
+<p><code>generate_tex()</code>:
+  Génère le fichier <code>.tex</code>.</p>
+</li>
+<li>
+<p><code>generate_pdf()</code>:
+  Compile le fichier <code>.tex</code> en PDF.</p>
+</li>
+<li>
+<p><code>generate_document(output_format="pdf")</code>:
+  Génère le document au format spécifié (<code>'tex'</code> ou <code>'pdf'</code>).</p>
+</li>
+<li><code>output_format</code> (str): Format de sortie (par défaut : <code>"pdf"</code>).</li>
+</ul>
+<h3 id="foampilotsolverincompressible_fluidincompressiblefluid"><code>foampilot.solver.incompressible_fluid.incompressibleFluid</code></h3>
+<p>La classe <code>incompressibleFluid</code> représente un cas OpenFOAM configuré pour fonctionner avec le solveur <code>incompressibleFluid</code>. Elle organise la structure principale du répertoire de cas OpenFOAM en initialisant les composants clés : <code>system</code>, <code>constant</code> et les dictionnaires de conditions aux limites. Elle fournit également des fonctionnalités pour mettre à jour les paramètres spécifiques au cas et pour exécuter la simulation <code>incompressibleFluid</code>.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>case_path</code> (Path): Le chemin vers le répertoire du cas OpenFOAM.</li>
+<li><code>system</code> (SystemDirectory): Gère le dossier <code>system</code> et ses fichiers.</li>
+<li><code>constant</code> (ConstantDirectory): Gère le dossier <code>constant</code> et ses fichiers.</li>
+<li><code>boundary</code> (Boundary): Gère les dictionnaires de conditions aux limites.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">incompressibleFluid</span><span class="p">(</span><span class="n">path_case</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>path_case</code> (str ou Path): Chemin vers le répertoire du cas OpenFOAM.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li>
+<p><code>update_case_specific_attributes()</code>:
+  Met à jour ou définit les attributs spécifiques au cas <code>SimpleFoam</code>.</p>
+</li>
+<li>
+<p><code>run_simulation(log_filename="log.incompressibleFluid")</code>:
+  Exécute le solveur <code>incompressibleFluid</code> dans le répertoire du cas et écrit la sortie dans un fichier journal.</p>
+</li>
+<li><code>log_filename</code> (str): Nom du fichier journal (par défaut : <code>"log.incompressibleFluid"</code>).</li>
+<li><strong>Lève:</strong> <code>FileNotFoundError</code>, <code>NotADirectoryError</code>, <code>RuntimeError</code> en cas d'échec.</li>
+</ul>
+<h3 id="foampilotsystemsystemdirectorysystemdirectory"><code>foampilot.system.SystemDirectory.SystemDirectory</code></h3>
+<p>La classe <code>SystemDirectory</code> gère le répertoire <code>system</code> d'un cas OpenFOAM. Elle gère la création, la configuration et la gestion de tous les fichiers système dans un cas OpenFOAM, y compris <code>controlDict</code>, <code>fvSchemes</code> et <code>fvSolution</code>. Elle fournit également des méthodes pour exécuter des utilitaires OpenFOAM comme <code>topoSet</code> et <code>createPatch</code>.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>parent</code>: L'objet cas parent.</li>
+<li><code>controlDict</code> (ControlDictFile): Le gestionnaire de fichier <code>controlDict</code>.</li>
+<li><code>fvSchemes</code> (FvSchemesFile): Le gestionnaire de fichier <code>fvSchemes</code>.</li>
+<li><code>fvSolution</code> (FvSolutionFile): Le gestionnaire de fichier <code>fvSolution</code>.</li>
+<li><code>additional_files</code> (dict): Dictionnaire des fichiers système additionnels.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">SystemDirectory</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>parent</code>: L'objet cas parent qui possède ce répertoire système.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li>
+<p><code>write()</code>:
+  Écrit tous les fichiers système dans le répertoire du cas. Crée le répertoire système s'il n'existe pas et écrit <code>controlDict</code>, <code>fvSchemes</code>, <code>fvSolution</code> et tous les fichiers additionnels.</p>
+</li>
+<li>
+<p><code>add_dict_file(file_name, file_content)</code>:
+  Ajoute un fichier additionnel au répertoire système.</p>
+</li>
+<li><code>file_name</code> (str): Le nom du fichier à ajouter (par exemple, <code>\'transportProperties\'</code>).</li>
+<li>
+<p><code>file_content</code> (dict): Le contenu du fichier sous forme de dictionnaire.</p>
+</li>
+<li>
+<p><code>to_dict()</code>:
+  Convertit la configuration du répertoire système en un dictionnaire.</p>
+</li>
+<li>
+<p><strong>Retourne:</strong> <code>dict</code> : Un dictionnaire contenant les configurations de <code>controlDict</code>, <code>fvSchemes</code> et <code>fvSolution</code>.</p>
+</li>
+<li>
+<p><code>from_dict(config)</code>:
+  Charge la configuration du répertoire système à partir d'un dictionnaire.</p>
+</li>
+<li>
+<p><code>config</code> (dict): Dictionnaire contenant les configurations pour <code>controlDict</code>, <code>fvSchemes</code> et <code>fvSolution</code>.</p>
+</li>
+<li>
+<p><code>run_topoSet()</code>:
+  Exécute l'utilitaire <code>topoSet</code> dans le répertoire du cas.</p>
+</li>
+<li>
+<p><strong>Lève:</strong> <code>FileNotFoundError</code>, <code>NotADirectoryError</code>, <code>RuntimeError</code> en cas d'échec.</p>
+</li>
+<li>
+<p><code>run_createPatch(overwrite=True)</code>:
+  Exécute l'utilitaire <code>createPatch</code> dans le répertoire du cas.</p>
+</li>
+<li><code>overwrite</code> (bool): Indique s'il faut ajouter l'option <code>-overwrite</code> (par défaut : <code>True</code>).</li>
+<li>
+<p><strong>Lève:</strong> <code>FileNotFoundError</code>, <code>NotADirectoryError</code>, <code>RuntimeError</code> en cas d'échec.</p>
+</li>
+<li>
+<p><code>write_functions_file(includes=None, filename="functions")</code>:
+  Crée un fichier <code>functions</code> dans le répertoire système avec les inclusions données.</p>
+</li>
+<li><code>includes</code> (list, optionnel): Liste des fichiers de fonction à inclure (par défaut : <code>["fieldAverage", "referencePressure", "runTimeControls"]</code>).</li>
+<li><code>filename</code> (str): Nom du fichier à créer (par défaut : <code>"functions"</code>).</li>
+</ul>
+<h3 id="foampilotsystemcontroldictfilecontroldictfile"><code>foampilot.system.controlDictFile.ControlDictFile</code></h3>
+<p>La classe <code>ControlDictFile</code> représente le fichier <code>controlDict</code> dans OpenFOAM. Elle gère la création et la manipulation de ce fichier qui contrôle le comportement d'exécution d'une simulation OpenFOAM.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>application</code> (str): L'application OpenFOAM à exécuter (par exemple, <code>"simpleFoam"</code>).</li>
+<li><code>startFrom</code> (str): Option de temps de début (<code>"startTime"</code>, <code>"firstTime"</code>, <code>"latestTime"</code>).</li>
+<li><code>startTime</code> (float): Temps de simulation initial.</li>
+<li><code>stopAt</code> (str): Condition d'arrêt (<code>"endTime"</code>, <code>"writeNow"</code>, <code>"noWriteNow"</code>, <code>"nextWrite"</code>).</li>
+<li><code>endTime</code> (float): Temps de simulation final.</li>
+<li><code>deltaT</code> (float): Taille du pas de temps.</li>
+<li><code>writeControl</code> (str): Méthode de contrôle d'écriture (<code>"timeStep"</code>, <code>"runTime"</code>, <code>"adjustableRunTime"</code>).</li>
+<li><code>writeInterval</code> (int): Intervalle entre l'écriture des résultats.</li>
+<li><code>purgeWrite</code> (int): Nombre de répertoires de temps à conserver.</li>
+<li><code>writeFormat</code> (str): Format de fichier pour la sortie (<code>"ascii"</code>, <code>"binary"</code>).</li>
+<li><code>writePrecision</code> (int): Précision pour les données de sortie.</li>
+<li><code>writeCompression</code> (str): Compression pour les fichiers de sortie (<code>"on"</code>, <code>"off"</code>).</li>
+<li><code>timeFormat</code> (str): Format de nommage du répertoire de temps (<code>"general"</code>, <code>"fixed"</code>, <code>"scientific"</code>).</li>
+<li><code>timePrecision</code> (int): Précision pour les noms de répertoire de temps.</li>
+<li><code>runTimeModifiable</code> (bool): Indique si le dictionnaire peut être modifié pendant l'exécution.</li>
+<li><code>functions</code> (dict): Dictionnaire des objets de fonction pour des contrôles d'exécution supplémentaires.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">ControlDictFile</span><span class="p">(</span><span class="n">application</span><span class="o">=</span><span class="s2">&quot;incompressibleFluid&quot;</span><span class="p">,</span> <span class="n">startFrom</span><span class="o">=</span><span class="s2">&quot;startTime&quot;</span><span class="p">,</span> <span class="n">startTime</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">stopAt</span><span class="o">=</span><span class="s2">&quot;endTime&quot;</span><span class="p">,</span> <span class="n">endTime</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">deltaT</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">writeControl</span><span class="o">=</span><span class="s2">&quot;timeStep&quot;</span><span class="p">,</span>
+                 <span class="n">writeInterval</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">purgeWrite</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">writeFormat</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">,</span> <span class="n">writePrecision</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+                 <span class="n">writeCompression</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="o">=</span><span class="s2">&quot;general&quot;</span><span class="p">,</span> <span class="n">timePrecision</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+                 <span class="n">runTimeModifiable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">functions</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>application</code>: Application du solveur OpenFOAM (par défaut : <code>"incompressibleFluid"</code>).</li>
+<li><code>startFrom</code>: Option de temps de début (par défaut : <code>"startTime"</code>).</li>
+<li><code>startTime</code>: Temps de simulation initial (par défaut : <code>0</code>).</li>
+<li><code>stopAt</code>: Condition d'arrêt (par défaut : <code>"endTime"</code>).</li>
+<li><code>endTime</code>: Temps de simulation final (par défaut : <code>5000</code>).</li>
+<li><code>deltaT</code>: Taille du pas de temps (par défaut : <code>1</code>).</li>
+<li><code>writeControl</code>: Méthode de contrôle d'écriture (par défaut : <code>"timeStep"</code>).</li>
+<li><code>writeInterval</code>: Intervalle d'écriture en pas de temps (par défaut : <code>100</code>).</li>
+<li><code>purgeWrite</code>: Nombre de répertoires de temps à conserver (par défaut : <code>10</code>).</li>
+<li><code>writeFormat</code>: Format de fichier de sortie (par défaut : <code>"ascii"</code>).</li>
+<li><code>writePrecision</code>: Précision de sortie (par défaut : <code>6</code>).</li>
+<li><code>writeCompression</code>: Compression de sortie (par défaut : <code>"off"</code>).</li>
+<li><code>timeFormat</code>: Format du répertoire de temps (par défaut : <code>"general"</code>).</li>
+<li><code>timePrecision</code>: Précision du répertoire de temps (par défaut : <code>6</code>).</li>
+<li><code>runTimeModifiable</code>: Autoriser la modification à l'exécution (par défaut : <code>True</code>).</li>
+<li><code>functions</code>: Dictionnaire des objets de fonction (par défaut : <code>None</code> -&gt; dictionnaire vide).</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>to_dict()</code>:
+  Convertit les paramètres <code>controlDict</code> en un dictionnaire.</li>
+<li>
+<p><strong>Retourne:</strong> <code>dict</code> : Un dictionnaire contenant tous les paramètres <code>controlDict</code> avec leurs valeurs actuelles.</p>
+</li>
+<li>
+<p><code>from_dict(config)</code>:
+  Crée une instance <code>ControlDictFile</code> à partir d'un dictionnaire de configuration.</p>
+</li>
+<li><code>config</code> (dict): Dictionnaire contenant les paramètres <code>controlDict</code>.</li>
+<li><strong>Retourne:</strong> <code>ControlDictFile</code> : Une nouvelle instance initialisée avec les valeurs fournies ou par défaut.</li>
+</ul>
+<h3 id="foampilotsystemfvschemesfilefvschemesfile"><code>foampilot.system.fvSchemesFile.FvSchemesFile</code></h3>
+<p>La classe <code>FvSchemesFile</code> représente le fichier <code>fvSchemes</code> dans OpenFOAM. Elle gère la création et la manipulation de ce fichier qui définit les schémas numériques utilisés dans une simulation OpenFOAM.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>ddtSchemes</code> (dict): Configuration des schémas de dérivée temporelle.</li>
+<li><code>gradSchemes</code> (dict): Configuration des schémas de gradient.</li>
+<li><code>divSchemes</code> (dict): Configuration des schémas de divergence.</li>
+<li><code>laplacianSchemes</code> (dict): Configuration des schémas laplaciens.</li>
+<li><code>interpolationSchemes</code> (dict): Configuration des schémas d'interpolation.</li>
+<li><code>snGradSchemes</code> (dict): Configuration des schémas de gradient normal de surface.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">FvSchemesFile</span><span class="p">(</span><span class="n">ddtSchemes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradSchemes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">divSchemes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">laplacianSchemes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interpolationSchemes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">snGradSchemes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>ddtSchemes</code>: Schémas de dérivée temporelle (par défaut : <code>{"default": "steadyState"}</code>).</li>
+<li><code>gradSchemes</code>: Schémas de gradient (par défaut : <code>{"default": "Gauss linear"}</code>).</li>
+<li><code>divSchemes</code>: Schémas de divergence (par défaut : <code>{"default": "none", "div(phi,U)": "bounded Gauss upwind", "turbulence": "bounded Gauss upwind", "div(phi,k)": "$turbulence", "div(phi,epsilon)": "$turbulence", "div((nuEff*dev2(T(grad(U)))))": "Gauss linear"}</code>).</li>
+<li><code>laplacianSchemes</code>: Schémas laplaciens (par défaut : <code>{"default": "Gauss linear corrected"}</code>).</li>
+<li><code>interpolationSchemes</code>: Schémas d'interpolation (par défaut : <code>{"default": "linear"}</code>).</li>
+<li><code>snGradSchemes</code>: Schémas de gradient normal de surface (par défaut : <code>{"default": "corrected"}</code>).</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>to_dict()</code>:
+  Convertit la configuration des schémas en un dictionnaire.</li>
+<li>
+<p><strong>Retourne:</strong> <code>dict</code> : Un dictionnaire contenant tous les schémas avec leur configuration actuelle.</p>
+</li>
+<li>
+<p><code>from_dict(config)</code>:
+  Crée une instance <code>FvSchemesFile</code> à partir d'un dictionnaire de configuration.</p>
+</li>
+<li><code>config</code> (dict): Dictionnaire contenant la configuration des schémas.</li>
+<li><strong>Retourne:</strong> <code>FvSchemesFile</code> : Une nouvelle instance initialisée avec les schémas fournis.</li>
+</ul>
+<h3 id="foampilotsystemfvsolutionfilefvsolutionfile"><code>foampilot.system.fvSolutionFile.FvSolutionFile</code></h3>
+<p>La classe <code>FvSolutionFile</code> représente le fichier <code>fvSolution</code> dans OpenFOAM. Elle gère la création et la manipulation de ce fichier qui définit les algorithmes de résolution et les contrôles du solveur pour une simulation OpenFOAM.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>solvers</code> (dict): Dictionnaire contenant les paramètres du solveur pour chaque champ.</li>
+<li><code>SIMPLE</code> (dict): Paramètres de contrôle de l'algorithme SIMPLE.</li>
+<li><code>relaxationFactors</code> (dict): Facteurs de sous-relaxation pour les champs et les équations.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">FvSolutionFile</span><span class="p">(</span><span class="n">solvers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">SIMPLE</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relaxationFactors</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>solvers</code>: Dictionnaire des configurations de solveur pour chaque champ (par défaut : configuration détaillée pour <code>p</code>, <code>U</code>, <code>k</code>, <code>epsilon</code>, <code>R</code>, <code>nuTilda</code>).</li>
+<li><code>SIMPLE</code>: Paramètres de l'algorithme SIMPLE (par défaut : <code>{"nNonOrthogonalCorrectors": "0", "residualControl": {"p": "1e-2", "U": "1e-4", "k": "1e-4", "epsilon": "1e-4"}}</code>).</li>
+<li><code>relaxationFactors</code>: Facteurs de sous-relaxation (par défaut : <code>{"fields": {"p": "0.3"}, "equations": {"U": "0.7", "k": "0.7", "epsilon": "0.7"}}</code>).</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>to_dict()</code>:
+  Convertit la configuration du solveur en un dictionnaire.</li>
+<li>
+<p><strong>Retourne:</strong> <code>dict</code> : Un dictionnaire contenant tous les paramètres du solveur avec leur configuration actuelle.</p>
+</li>
+<li>
+<p><code>from_dict(config)</code>:
+  Crée une instance <code>FvSolutionFile</code> à partir d'un dictionnaire de configuration.</p>
+</li>
+<li><code>config</code> (dict): Dictionnaire contenant la configuration du solveur.</li>
+<li><strong>Retourne:</strong> <code>FvSolutionFile</code> : Une nouvelle instance initialisée avec les configurations fournies.</li>
+</ul>
+<h3 id="foampilotutilitiesdictonnaryopenfoamdictaddfile"><code>foampilot.utilities.dictonnary.OpenFOAMDictAddFile</code></h3>
+<p>La classe <code>OpenFOAMDictAddFile</code> est une classe de base pour les fichiers de configuration OpenFOAM. Elle gère l'en-tête standard <code>FoamFile</code> et l'écriture des attributs, y compris la gestion des dictionnaires imbriqués et des listes.</p>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">OpenFOAMDictAddFile</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="o">**</span><span class="n">attributes</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>object_name</code> (str): Le nom de l'objet pour l'en-tête du fichier OpenFOAM.</li>
+<li><code>**attributes</code>: Arguments mots-clés arbitraires représentant les attributs spécifiques du fichier.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>_write_attributes(file, attributes, indent_level=0)</code>:
+  Écrit les attributs dans le fichier avec une indentation appropriée. Gère les cas spéciaux comme les boîtes (<code>box</code>) et les listes.</li>
+<li><code>file</code> (objet fichier): L'objet fichier dans lequel écrire.</li>
+<li><code>attributes</code> (dict): Les attributs à écrire.</li>
+<li>
+<p><code>indent_level</code> (int): Le niveau d'indentation actuel.</p>
+</li>
+<li>
+<p><code>write(name_dict, base_path, folder='system')</code>:
+  Écrit le fichier OpenFOAM dans le chemin spécifié.</p>
+</li>
+<li><code>name_dict</code> (str): Le nom du dictionnaire à écrire.</li>
+<li><code>base_path</code> (str ou Path): Le chemin de base du répertoire du cas OpenFOAM.</li>
+<li><code>folder</code> (str): Le sous-répertoire où écrire le fichier (par défaut : <code>'system'</code>).</li>
+</ul>
+<h3 id="foampilotutilitiesdictonnarydict_tools"><code>foampilot.utilities.dictonnary.dict_tools</code></h3>
+<p>La classe <code>dict_tools</code> fournit des méthodes statiques pour créer des dictionnaires de configuration OpenFOAM, notamment pour les patchs et les actions <code>topoSetDict</code>.</p>
+<p><strong>Méthodes statiques:</strong></p>
+<ul>
+<li><code>create_patches_dict(patch_names, construct_from="set", point_sync=False)</code>:
+  Crée un dictionnaire pour plusieurs patchs dans OpenFOAM.</li>
+<li><code>patch_names</code> (list): Liste des noms des patchs à créer.</li>
+<li><code>construct_from</code> (str): Méthode de construction (<code>'patches'</code> ou <code>'set'</code>).</li>
+<li><code>point_sync</code> (bool): Indique si la synchronisation des points est activée.</li>
+<li>
+<p><strong>Retourne:</strong> <code>dict</code> : Dictionnaire représentant la configuration des patchs.</p>
+</li>
+<li>
+<p><code>create_action(name, action_type, action, source, **kwargs)</code>:
+  Crée une action pour <code>topoSetDict</code>.</p>
+</li>
+<li><code>name</code> (str): Nom de l'action.</li>
+<li><code>action_type</code> (str): Type de l'action (par exemple, <code>'cellSet'</code>, <code>'faceSet'</code>).</li>
+<li><code>action</code> (str): Type d'action (par exemple, <code>'new'</code>, <code>'subset'</code>).</li>
+<li><code>source</code> (str): Source de l'action (par exemple, <code>'boxToCell'</code>, <code>'patchToFace'</code>).</li>
+<li><code>**kwargs</code>: Autres attributs optionnels pour l'action.</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire représentant l'action.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le type d'action ou l'action est invalide.</p>
+</li>
+<li>
+<p><code>create_actions_dict(actions)</code>:
+  Crée un dictionnaire pour les actions dans <code>topoSetDict</code>.</p>
+</li>
+<li><code>actions</code> (list): Liste des dictionnaires représentant chaque action.</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire représentant les actions.</li>
+</ul>
+<h3 id="foampilotutilitiesepw_weather_readerweatherfileepw"><code>foampilot.utilities.epw_weather_reader.WeatherFileEPW</code></h3>
+<p>La classe <code>WeatherFileEPW</code> gère les fichiers EnergyPlus Weather (EPW). Elle fournit des fonctionnalités pour lire, écrire, analyser et visualiser les données climatiques.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>headers</code> (dict): Dictionnaire stockant les en-têtes du fichier EPW.</li>
+<li><code>dataframe</code> (pd.DataFrame): DataFrame contenant les données climatiques.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">WeatherFileEPW</span><span class="p">()</span>
+</code></pre></div>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>read(fp)</code>:
+  Lit les en-têtes et les données climatiques d'un fichier EPW.</li>
+<li>
+<p><code>fp</code> (str): Chemin du fichier EPW à lire.</p>
+</li>
+<li>
+<p><code>_read_headers(fp)</code>:
+  Lit les en-têtes d'un fichier EPW.</p>
+</li>
+<li><code>fp</code> (str): Chemin du fichier EPW.</li>
+<li>
+<p><strong>Retourne:</strong> <code>dict</code> : Dictionnaire contenant les informations d'en-tête.</p>
+</li>
+<li>
+<p><code>_read_data(fp)</code>:
+  Lit les données climatiques d'un fichier EPW dans un DataFrame.</p>
+</li>
+<li><code>fp</code> (str): Chemin du fichier EPW.</li>
+<li>
+<p><strong>Retourne:</strong> <code>pd.DataFrame</code> : DataFrame contenant les données climatiques.</p>
+</li>
+<li>
+<p><code>_first_row_with_climate_data(fp)</code>:
+  Trouve la première ligne du fichier EPW qui contient des données climatiques.</p>
+</li>
+<li><code>fp</code> (str): Chemin du fichier EPW.</li>
+<li>
+<p><strong>Retourne:</strong> <code>int</code> : Index de la ligne où les données climatiques commencent.</p>
+</li>
+<li>
+<p><code>write(fp)</code>:
+  Écrit les en-têtes du fichier EPW et les données climatiques dans un nouveau fichier.</p>
+</li>
+<li>
+<p><code>fp</code> (str): Chemin du fichier EPW à enregistrer.</p>
+</li>
+<li>
+<p><code>analyze_temperature()</code>:
+  Calcule les statistiques pour la température de bulbe sec.</p>
+</li>
+<li><strong>Retourne:</strong> <code>pd.Series</code> : Résumé statistique de la température de bulbe sec.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si aucune donnée climatique n'a été chargée.</p>
+</li>
+<li>
+<p><code>analyze_humidity()</code>:
+  Calcule les statistiques pour l'humidité relative.</p>
+</li>
+<li><strong>Retourne:</strong> <code>pd.Series</code> : Résumé statistique de l'humidité relative.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si aucune donnée climatique n'a été chargée.</p>
+</li>
+<li>
+<p><code>plot_wind_rose()</code>:
+  Génère un graphique de rose des vents en utilisant la vitesse et la direction du vent.</p>
+</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si aucune donnée climatique n'a été chargée.</p>
+</li>
+<li>
+<p><code>get_header()</code>:
+  Retourne les en-têtes du fichier EPW.</p>
+</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire des en-têtes.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si les en-têtes n'ont pas été chargés.</p>
+</li>
+<li>
+<p><code>get_dataframe()</code>:
+  Retourne le DataFrame contenant les données climatiques.</p>
+</li>
+<li><strong>Retourne:</strong> <code>pd.DataFrame</code> : DataFrame des données climatiques.</li>
+<li><strong>Lève:</strong> <code>ValueError</code> si les données climatiques n'ont pas été chargées.</li>
+</ul>
+<h3 id="foampilotutilitiesfluids_theoryfluidmechanics"><code>foampilot.utilities.fluids_theory.FluidMechanics</code></h3>
+<p>La classe <code>FluidMechanics</code> est un calculateur complet de mécanique des fluides pour les applications CFD. Elle fournit des méthodes pour calculer les paramètres clés de la mécanique des fluides et les caractéristiques de la couche limite, essentiels pour le dimensionnement du maillage CFD et la configuration de la simulation.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>fluid_name</code> (FluidsList): Le fluide analysé (à partir de l'énumération <code>FluidsList</code>).</li>
+<li><code>temperature</code> (Quantity): Température du fluide avec unités.</li>
+<li><code>pressure</code> (Quantity): Pression du fluide avec unités.</li>
+<li><code>velocity</code> (Quantity): Vitesse d'écoulement caractéristique avec unités.</li>
+<li><code>characteristic_length</code> (Quantity): Échelle de longueur pertinente pour les nombres sans dimension.</li>
+<li><code>fluid</code>: Objet <code>PyFluids Fluid</code> initialisé avec l'état actuel.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">FluidMechanics</span><span class="p">(</span><span class="n">fluid_name</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">velocity</span><span class="p">,</span> <span class="n">characteristic_length</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>fluid_name</code>: Type de fluide de l'énumération <code>FluidsList</code> (par exemple, <code>FluidsList.Water</code>).</li>
+<li><code>temperature</code>: Température du fluide (par exemple, <code>Quantity(300, 'K')</code>).</li>
+<li><code>pressure</code>: Pression du fluide (par exemple, <code>Quantity(101325, 'Pa')</code>).</li>
+<li><code>velocity</code>: Vitesse d'écoulement caractéristique (par exemple, <code>Quantity(2, 'm/s')</code>).</li>
+<li><code>characteristic_length</code>: Échelle de longueur pertinente (par exemple, diamètre du tuyau).</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>get_fluid_properties(temperature)</code>:
+  Récupère les propriétés fondamentales du fluide à la température spécifiée.</li>
+<li><code>temperature</code>: Température à laquelle évaluer les propriétés.</li>
+<li>
+<p><strong>Retourne:</strong> <code>tuple</code> : (densité [kg/m³], viscosité dynamique [Pa·s], conductivité thermique [W/(m·K)], chaleur spécifique [J/(kg·K)]).</p>
+</li>
+<li>
+<p><code>calculate_reynolds()</code>:
+  Calcule le nombre de Reynolds pour les conditions d'écoulement actuelles.</p>
+</li>
+<li>
+<p><strong>Retourne:</strong> <code>float</code> : Nombre de Reynolds (Re = ρvL/μ).</p>
+</li>
+<li>
+<p><code>calculate_y_plus(wall_shear_stress)</code>:
+  Calcule la valeur y+ (distance à la paroi sans dimension) pour la modélisation de la turbulence.</p>
+</li>
+<li><code>wall_shear_stress</code>: Contrainte de cisaillement à la paroi avec unités.</li>
+<li>
+<p><strong>Retourne:</strong> <code>float</code> : Valeur y+ (y+ = τ_w·L/μ).</p>
+</li>
+<li>
+<p><code>calculate_prandtl()</code>:
+  Calcule le nombre de Prandtl pour l'état actuel du fluide.</p>
+</li>
+<li>
+<p><strong>Retourne:</strong> <code>float</code> : Nombre de Prandtl (Pr = μ·c_p/k).</p>
+</li>
+<li>
+<p><code>calculate_thermal_expansion_coefficient(temperature1, temperature2, density1, density2, density_ave)</code>:
+  Calcule le coefficient de dilatation thermique (β) en utilisant des différences finies.</p>
+</li>
+<li><code>temperature1</code>: Premier point de température.</li>
+<li><code>temperature2</code>: Deuxième point de température.</li>
+<li><code>density1</code>: Densité à <code>temperature1</code>.</li>
+<li><code>density2</code>: Densité à <code>temperature2</code>.</li>
+<li><code>density_ave</code>: Densité moyenne entre les deux points.</li>
+<li>
+<p><strong>Retourne:</strong> <code>float</code> : Coefficient de dilatation thermique [1/K].</p>
+</li>
+<li>
+<p><code>calculate_rayleigh(temperature1, temperature2)</code>:
+  Calcule le nombre de Rayleigh pour l'analyse de la convection naturelle.</p>
+</li>
+<li><code>temperature1</code>: Température de la paroi froide.</li>
+<li><code>temperature2</code>: Température de la paroi chaude.</li>
+<li>
+<p><strong>Retourne:</strong> <code>float</code> : Nombre de Rayleigh (Ra = g·β·ΔT·L³/(ν·α)).</p>
+</li>
+<li>
+<p><code>characteristic_thickness_turbulent()</code>:
+  Estime l'épaisseur de la couche limite turbulente en utilisant une corrélation empirique.</p>
+</li>
+<li>
+<p><strong>Retourne:</strong> <code>Quantity</code> : Épaisseur de la couche limite avec unités (δ = 0.37L/Re^(1/5)).</p>
+</li>
+<li>
+<p><code>calculate_layers_for_cell_size(target_cell_size, expansion_ratio=1.2)</code>:
+  Calcule le nombre de cellules de couche limite nécessaires pour atteindre la taille cible.</p>
+</li>
+<li><code>target_cell_size</code>: Taille de cellule souhaitée au bord de la couche limite.</li>
+<li><code>expansion_ratio</code>: Rapport de croissance entre les couches adjacentes (par défaut : <code>1.2</code>).</li>
+<li><strong>Retourne:</strong> <code>int</code> : Nombre de couches requises.</li>
+<li><strong>Lève:</strong> <code>ValueError</code> si l'épaisseur de la couche limite est non positive.</li>
+</ul>
+<h3 id="foampilotutilitiesmanageunitsquantity"><code>foampilot.utilities.manageunits.Quantity</code></h3>
+<p>La classe <code>Quantity</code> est un wrapper pour les quantités Pint afin de gérer les valeurs avec des unités physiques. Elle fournit une interface pratique pour stocker des valeurs avec des unités, les convertir dans d'autres unités et les afficher.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>quantity</code> (pint.Quantity): La quantité avec sa valeur numérique et son unité associée.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">Quantity</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>value</code> (float): La valeur numérique de la quantité.</li>
+<li><code>unit</code> (str): L'unité sous forme de chaîne de caractères (par exemple, <code>"m/s"</code>, <code>"Pa"</code>, <code>"kg"</code>).</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>set_quantity(value, unit)</code>:
+  Met à jour la quantité avec une nouvelle valeur et unité.</li>
+<li><code>value</code> (float): La nouvelle valeur numérique.</li>
+<li>
+<p><code>unit</code> (str): La nouvelle unité associée.</p>
+</li>
+<li>
+<p><code>get_in(target_unit)</code>:
+  Convertit la quantité en une unité spécifiée et retourne sa valeur.</p>
+</li>
+<li><code>target_unit</code> (str): L'unité cible pour la conversion (par exemple, <code>"ft/s"</code>, <code>"inch"</code>, <code>"psi"</code>).</li>
+<li>
+<p><strong>Retourne:</strong> <code>float</code> : La valeur numérique convertie dans l'unité cible.</p>
+</li>
+<li>
+<p><code>__repr__()</code>:
+  Retourne une représentation textuelle de la quantité.</p>
+</li>
+<li><strong>Retourne:</strong> <code>str</code> : La valeur numérique avec son unité (par exemple, <code>"10.0 m/s"</code>).</li>
+</ul>
+<h3 id="foampilotutilitiesstl_analyzerstlanalyzer"><code>foampilot.utilities.stl_analyzer.STLAnalyzer</code></h3>
+<p>La classe <code>STLAnalyzer</code> est conçue pour analyser et traiter les fichiers STL (Stereolithography). Elle fournit des méthodes pour charger des fichiers STL, extraire des propriétés géométriques, effectuer des requêtes spatiales et calculer des paramètres liés au maillage pour les simulations CFD.</p>
+<p><strong>Attributs:</strong></p>
+<ul>
+<li><code>filename</code> (Path): Objet <code>Path</code> pointant vers le fichier STL.</li>
+<li><code>mesh</code> (pv.PolyData): Objet maillage PyVista contenant la géométrie STL chargée.</li>
+<li><code>reader</code> (pyvista.reader): Objet lecteur pour le fichier STL.</li>
+</ul>
+<p><strong>Constructeur:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">STLAnalyzer</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li><code>filename</code> (Path): Objet <code>Path</code> pointant vers le fichier STL à analyser.</li>
+</ul>
+<p><strong>Méthodes:</strong></p>
+<ul>
+<li><code>load()</code>:
+  Charge et retourne le fichier STL en tant que maillage PyVista.</li>
+<li>
+<p><strong>Retourne:</strong> <code>pv.PolyData</code> : L'objet maillage chargé.</p>
+</li>
+<li>
+<p><code>get_info()</code>:
+  Obtient des informations géométriques de base sur le maillage chargé.</p>
+</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire contenant les propriétés du maillage, y compris le nombre de points, de cellules, les dimensions, la surface et le volume.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le maillage n'a pas encore été chargé.</p>
+</li>
+<li>
+<p><code>is_point_inside(point)</code>:
+  Vérifie si un point 3D se trouve à l'intérieur du maillage STL fermé.</p>
+</li>
+<li><code>point</code> (tuple): Coordonnées (x, y, z) du point à tester.</li>
+<li><strong>Retourne:</strong> <code>bool</code> : <code>True</code> si le point est à l'intérieur du maillage, <code>False</code> sinon.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le maillage n'a pas encore été chargé.</p>
+</li>
+<li>
+<p><code>get_center_of_mass()</code>:
+  Calcule le centre de masse du maillage STL.</p>
+</li>
+<li><strong>Retourne:</strong> <code>tuple</code> : Coordonnées (x, y, z) du centre de masse.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le maillage n'a pas encore été chargé.</p>
+</li>
+<li>
+<p><code>get_curvature()</code>:
+  Calcule les valeurs de courbure moyenne et gaussienne pour le maillage.</p>
+</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire contenant <code>Mean_Curvature</code> et <code>Gaussian_Curvature</code>.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le maillage n'a pas encore été chargé.</p>
+</li>
+<li>
+<p><code>get_smallest_curvature()</code>:
+  Trouve la valeur de courbure moyenne minimale dans le maillage.</p>
+</li>
+<li><strong>Retourne:</strong> <code>float</code> : La plus petite valeur de courbure moyenne.</li>
+<li>
+<p><strong>Lève:</strong> <code>ValueError</code> si le maillage n'a pas encore été chargé.</p>
+</li>
+<li>
+<p><code>calc_mesh_settings(stlBoundingBox, nu=1e-6, rho=1000., U=1.0, maxCellSize=0.5, sizeFactor=1.0, expansion_ratio=1.5, onGround=False, internalFlow=False, refinement=1, nLayers=5, halfModel=False, thicknessRatio=0.3)</code>:
+  Calcule les paramètres de génération de maillage pour les simulations CFD basées sur la géométrie STL.</p>
+</li>
+<li><code>stlBoundingBox</code> (tuple): Boîte englobante du STL (xmin, xmax, ymin, ymax, zmin, zmax).</li>
+<li><code>nu</code> (float): Viscosité cinématique (par défaut : <code>1e-6</code>).</li>
+<li><code>rho</code> (float): Densité (par défaut : <code>1000.</code>).</li>
+<li><code>U</code> (float): Vitesse caractéristique (par défaut : <code>1.0</code>).</li>
+<li><code>maxCellSize</code> (float): Taille maximale des cellules (par défaut : <code>0.5</code>).</li>
+<li><code>sizeFactor</code> (float): Multiplicateur de la taille du domaine (par défaut : <code>1.0</code>).</li>
+<li><code>expansion_ratio</code> (float): Rapport d'expansion de la couche limite (par défaut : <code>1.5</code>).</li>
+<li><code>onGround</code> (bool): Indique si l'objet est au sol (affecte le domaine) (par défaut : <code>False</code>).</li>
+<li><code>internalFlow</code> (bool): Indique si le flux est interne (affecte le dimensionnement des cellules) (par défaut : <code>False</code>).</li>
+<li><code>refinement</code> (int): Niveau de raffinement (0=grossier, 1=moyen, 2=fin) (par défaut : <code>1</code>).</li>
+<li><code>nLayers</code> (int): Nombre de couches limites (par défaut : <code>5</code>).</li>
+<li><code>halfModel</code> (bool): Indique si un demi-modèle est utilisé (symétrie) (par défaut : <code>False</code>).</li>
+<li><code>thicknessRatio</code> (float): Rapport d'épaisseur de la couche finale (par défaut : <code>0.3</code>).</li>
+<li><strong>Retourne:</strong> <code>dict</code> : Dictionnaire contenant tous les paramètres de maillage calculés, y compris les dimensions du domaine, le nombre de cellules, les paramètres de taille de cellule, les niveaux de raffinement et les paramètres de modélisation de la turbulence.</li>
+</ul>
+<h2 id="conclusion">Conclusion</h2>
+<p>Ce document fournit une documentation complète du module <code>foampilot</code>, couvrant ses principaux sous-modules et classes. Le module <code>foampilot</code> est conçu pour faciliter la configuration, l'exécution et le post-traitement des simulations OpenFOAM, en offrant des outils pour la gestion du maillage, la définition des conditions aux limites, la configuration des solveurs et l'analyse des résultats.</p>
+<p>Les améliorations apportées à ce module visent à renforcer sa robustesse, sa convivialité et sa capacité à gérer des cas de simulation complexes. En particulier, l'ajout de validations d'entrée et d'une meilleure gestion des erreurs contribue à une expérience utilisateur plus fiable.</p>
+<p>Pour toute question ou contribution, veuillez vous référer au dépôt GitHub original : <a href="https://github.com/stevendaix/foampilot">https://github.com/stevendaix/foampilot</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate"], "search": "../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
