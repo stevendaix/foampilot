@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#test" class="md-skip">
+        <a href="#foampilot" class="md-skip">
           跳转至
         </a>
       
@@ -464,6 +464,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -480,6 +498,69 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#foampilot_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么创建 foampilot？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        我是谁？
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        人工智能的作用
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        项目目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -987,8 +1068,64 @@
   
 
 
-<h1 id="test">test</h1>
-<p>::: src.foampilot.constant.constantDirectory</p>
+<h1 id="foampilot">关于 foampilot</h1>
+<h2 id="foampilot_1">为什么创建 foampilot？</h2>
+<p>foampilot 的想法源于 <strong>OpenFOAM 的学习曲线陡峭</strong>。<br />
+它的文件结构和众多字典文件对于理解、验证和维护来说可能很复杂，尤其是在需要快速迭代的工程环境中。</p>
+<p>我意识到一个 <strong>Python 面向对象的封装层</strong> 可以提供帮助：<br />
+- 将信息集中在易读的 Python 文件中，<br />
+- 清晰地反映 OpenFOAM 工程的结构，<br />
+- 减少手动编辑字典时容易出现的错误。</p>
+<p>使用 Python 工具，可以 <strong>协调整个 CFD 工作流程</strong>。<br />
+foampilot 的目标是提供一个 <strong>开源 CFD 平台</strong>，覆盖完整的仿真周期：
+- 几何建模，
+- 网格生成，
+- 求解器配置与运行，
+- 后处理，
+- 报告生成。</p>
+<hr />
+<h2 id="_1">我是谁？</h2>
+<p>我叫 <strong>Steven Daix</strong>，从事 CFD 工作已有 <strong>20 年以上</strong>。</p>
+<p>我在多个行业积累了经验：
+- 核工业，
+- 汽车，
+- 石油与天然气，
+- 建筑与施工，</p>
+<p>曾在各种规模的公司工作过，从初创企业到大型集团，包括工程咨询公司。</p>
+<p>我主要使用 <strong>Fluent (ANSYS)</strong> 和 <strong>STAR-CCM+</strong>。<br />
+我的经验涵盖多种项目，包括：
+- 建筑物内的热气流研究，
+- 博物馆温度优化，
+- 搅拌玻璃罐的混合实验，
+- 拖拉机发动机罩下的空气热分析，
+- 工业工艺优化，例如卫生纸干燥（趣闻！）</p>
+<p>在工程办公室中，使用 OpenFOAM 进行快速检查和紧急请求一直很困难，这阻碍了免费工具的实际应用。</p>
+<p>这促使我在业余时间开发 <strong>foampilot</strong>，基于我在 CFD 的经验，以及我希望使用 OpenFOAM 的方式。</p>
+<hr />
+<h2 id="_2">人工智能的作用</h2>
+<p>foampilot 的开发 <strong>得到了多种 AI 工具的协助</strong>，包括：
+- ChatGPT，
+- Gemini，
+- Mistral，
+- DeepSeek，
+- Manus。</p>
+<p>这些 AI 工具用于 <strong>辅助</strong>：
+- 代码结构优化，
+- 概念澄清，
+- 文档改进，
+- 表述和教学清晰化。</p>
+<p>所有技术选择、架构、CFD 概念和项目愿景都由 <strong>我的专业 CFD 经验</strong> 驱动。<br />
+AI 仅作为 <strong>生产力加速器和顾问</strong>，而非替代工程知识。</p>
+<hr />
+<h2 id="_3">项目目标</h2>
+<p>foampilot 旨在提供 <strong>清晰、可复现且自动化的 Python 接口</strong> 来操作 OpenFOAM，使得：
+- CFD 研究更可靠，
+- 更容易审查和验证，
+- 提高 OpenFOAM 在工业环境中的可访问性，
+- 同时保持对核心 CFD 和 OpenFOAM 概念的忠实。</p>
+<blockquote>
+<p>foampilot 首先是一个工程师项目，由用户为用户设计。</p>
+</blockquote>
 
 
 
