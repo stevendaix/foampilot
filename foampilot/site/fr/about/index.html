@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#test" class="md-skip">
+        <a href="#a-propos-de-foampilot" class="md-skip">
           Aller au contenu
         </a>
       
@@ -464,6 +464,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -480,6 +498,69 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pourquoi-creer-foampilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pourquoi créer foampilot ?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qui-suisje" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qui suis‑je ?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#role-de-lintelligence-artificielle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rôle de l’intelligence artificielle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objectif-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objectif du projet
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -987,8 +1068,64 @@
   
 
 
-<h1 id="test">test</h1>
-<p>::: src.foampilot.constant.constantDirectory</p>
+<h1 id="a-propos-de-foampilot">À propos de foampilot</h1>
+<h2 id="pourquoi-creer-foampilot">Pourquoi créer foampilot ?</h2>
+<p>L’idée initiale est née du constat que <strong>le coût d’apprentissage d’OpenFOAM est élevé</strong>.<br />
+Sa structure, organisée autour de nombreux dossiers et fichiers dictionnaires, peut être difficile à appréhender, à vérifier et à maintenir, en particulier dans un contexte de bureau d’études où les délais sont courts et les itérations fréquentes.</p>
+<p>J’ai donc envisagé qu’une <strong>surcouche Python orientée objet</strong> pourrait faciliter cette compréhension :<br />
+- centraliser l’information dans des fichiers Python lisibles,<br />
+- refléter explicitement la structure d’un cas OpenFOAM,<br />
+- réduire les erreurs liées à la manipulation manuelle des dictionnaires.</p>
+<p>Grâce à l’écosystème Python, il devient possible de <strong>piloter l’ensemble de la chaîne CFD</strong>.<br />
+L’objectif de foampilot est ainsi de proposer une <strong>plateforme open‑source de calcul CFD</strong>, couvrant tout le cycle de simulation :
+- création de la géométrie,
+- génération du maillage,
+- configuration et exécution du solveur,
+- post‑traitement,
+- génération de rapports.</p>
+<hr />
+<h2 id="qui-suisje">Qui suis‑je ?</h2>
+<p>Je me nomme <strong>Steven Daix</strong> et je pratique la CFD depuis plus de <strong>20 ans</strong>.</p>
+<p>J’ai travaillé dans différents secteurs d’activité :
+- nucléaire,
+- automobile,
+- oil &amp; gas,
+- bâtiment,</p>
+<p>au sein de structures de tailles variées, allant de la startup aux grands groupes, en passant par des bureaux d’études.</p>
+<p>Je suis principalement utilisateur de <strong>Fluent (ANSYS)</strong> et <strong>STAR‑CCM+</strong>.<br />
+Mon expérience couvre des projets très divers, notamment :
+- études de tirage thermique dans des bâtiments,
+- optimisation thermique dans des musées,
+- mélange dans des bains de verre agités,
+- études aérodynamiques sous capot de tracteur,
+- optimisation de procédés industriels, comme le séchage de papier toilette (fun fact).</p>
+<p>La difficulté d’intégrer OpenFOAM dans un contexte de bureau d’études — notamment pour les vérifications rapides et les demandes urgentes — m’a longtemps empêché d’utiliser des outils open‑source en production.</p>
+<p>C’est dans ce contexte que j’ai décidé de développer <strong>foampilot</strong>, sur mon temps libre, en m’appuyant sur mon expérience CFD et sur la manière dont j’aurais souhaité utiliser OpenFOAM au quotidien.</p>
+<hr />
+<h2 id="role-de-lintelligence-artificielle">Rôle de l’intelligence artificielle</h2>
+<p>Le développement de foampilot a été <strong>assisté par plusieurs outils d’intelligence artificielle</strong>, notamment :
+- ChatGPT,
+- Gemini,
+- Mistral,
+- DeepSeek,
+- Manus.</p>
+<p>Ces IA ont été utilisées comme <strong>outils d’assistance</strong> pour :
+- la structuration du code,
+- la clarification de concepts,
+- l’amélioration de la documentation,
+- la reformulation et la pédagogie.</p>
+<p>Les choix techniques, l’architecture globale, les concepts CFD et la vision du projet restent <strong>guidés par mon expérience d’ingénieur CFD</strong>.<br />
+Les IA sont ici des <strong>accélérateurs de réflexion et de productivité</strong>, et non des substituts à l’expertise métier.</p>
+<hr />
+<h2 id="objectif-du-projet">Objectif du projet</h2>
+<p>L’objectif de foampilot est de proposer une <strong>interface Python claire, reproductible et automatisée</strong> pour OpenFOAM, permettant :
+- de fiabiliser les études CFD,
+- de faciliter les audits et vérifications,
+- de rendre OpenFOAM plus accessible en environnement industriel,
+- tout en restant fidèle aux concepts fondamentaux de la CFD et d’OpenFOAM.</p>
+<blockquote>
+<p>foampilot est avant tout un projet d’ingénieur, conçu par un utilisateur pour des utilisateurs.</p>
+</blockquote>
 
 
 

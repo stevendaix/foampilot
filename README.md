@@ -1,5 +1,5 @@
 <!-- Logo -->
-<img src="foampilot/images/logo.png" alt="FoamPilot Logo" width="150">
+<img src="foampilot/images/logo.png" alt="FoamPilot Logo" width="250">
 
 # foampilot 🚀
 

@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#test" class="md-skip">
+        <a href="#about-foampilot" class="md-skip">
           Skip to content
         </a>
       
@@ -464,6 +464,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -480,6 +498,69 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-create-foampilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why create foampilot?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-am-i" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who am I?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#role-of-artificial-intelligence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role of Artificial Intelligence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -987,8 +1068,64 @@
   
 
 
-<h1 id="test">test</h1>
-<p>::: src.foampilot.constant.constantDirectory</p>
+<h1 id="about-foampilot">About foampilot</h1>
+<h2 id="why-create-foampilot">Why create foampilot?</h2>
+<p>The idea behind foampilot arose from the <strong>high learning curve of OpenFOAM</strong>.<br />
+Its structure, organized around many folders and dictionary files, can be complex to understand, verify, and maintain—especially in a fast-paced engineering office where quick iterations are required.</p>
+<p>I realized that a <strong>Python object-oriented wrapper</strong> could help by:<br />
+- centralizing information in readable Python files,<br />
+- explicitly reflecting the structure of an OpenFOAM case,<br />
+- reducing errors associated with manual dictionary editing.</p>
+<p>Using Python tools, it becomes possible to <strong>orchestrate the entire CFD workflow</strong>.<br />
+foampilot aims to provide an <strong>open-source CFD platform</strong>, covering the full simulation cycle:
+- geometry creation,
+- mesh generation,
+- solver configuration and execution,
+- post-processing,
+- report generation.</p>
+<hr />
+<h2 id="who-am-i">Who am I?</h2>
+<p>My name is <strong>Steven Daix</strong>, and I have been working in CFD for over <strong>20 years</strong>.</p>
+<p>I have experience across different industries:
+- nuclear,
+- automotive,
+- oil &amp; gas,
+- building and construction,</p>
+<p>in companies of various sizes, from startups to large corporations, including engineering consultancies.</p>
+<p>I am primarily a user of <strong>Fluent (ANSYS)</strong> and <strong>STAR-CCM+</strong>.<br />
+My experience spans diverse projects, including:
+- thermal draft studies in buildings,
+- temperature optimization in museums,
+- mixing in stirred glass baths,
+- aerothermal studies under a tractor hood,
+- industrial process optimization, such as toilet paper drying (fun fact!).</p>
+<p>The difficulty of using OpenFOAM in an engineering office—for quick checks and urgent requests—has long prevented me from relying on free tools in production.</p>
+<p>This motivated me to develop <strong>foampilot</strong> in my free time, based on my CFD experience and the way I wanted to work with OpenFOAM.</p>
+<hr />
+<h2 id="role-of-artificial-intelligence">Role of Artificial Intelligence</h2>
+<p>The development of foampilot has been <strong>assisted by several AI tools</strong>, including:
+- ChatGPT,
+- Gemini,
+- Mistral,
+- DeepSeek,
+- Manus.</p>
+<p>These AI tools were used as <strong>support tools</strong> for:
+- code structuring,
+- concept clarification,
+- documentation improvement,
+- phrasing and pedagogical clarity.</p>
+<p>All technical choices, architecture, CFD concepts, and project vision remain <strong>driven by my professional CFD expertise</strong>.<br />
+The AIs are <strong>productivity accelerators and advisors</strong>, not substitutes for engineering knowledge.</p>
+<hr />
+<h2 id="project-goal">Project Goal</h2>
+<p>foampilot aims to provide a <strong>clear, reproducible, and automated Python interface</strong> for OpenFOAM, enabling:
+- reliable CFD studies,
+- easier auditing and verification,
+- increased accessibility of OpenFOAM in industrial environments,
+- all while staying faithful to core CFD and OpenFOAM concepts.</p>
+<blockquote>
+<p>foampilot is, above all, an engineer’s project, designed by a user for users.</p>
+</blockquote>
 
 
 
