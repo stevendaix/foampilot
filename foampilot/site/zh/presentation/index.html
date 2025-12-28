@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#vue-densemble-conceptuelle-et-theorique-du-module-foampilot" class="md-skip">
+        <a href="#foampilot" class="md-skip">
           跳转至
         </a>
       
@@ -629,10 +629,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-foampilotsolver-le-cur-de-la-physique-et-de-la-numerique" class="md-nav__link">
+  <a href="#1-foampilotsolver" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. foampilot.solver : Le Cœur de la Physique et de la Numérique
+        1. foampilot.solver：物理和数值核心
       
     </span>
   </a>
@@ -640,10 +640,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-foampilotconstant-la-definition-du-milieu-physique" class="md-nav__link">
+  <a href="#2-foampilotconstant" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. foampilot.constant : La Définition du Milieu Physique
+        2. foampilot.constant：物理介质定义
       
     </span>
   </a>
@@ -651,10 +651,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-foampilotsystem-le-controle-numerique-et-temporel" class="md-nav__link">
+  <a href="#3-foampilotsystem" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. foampilot.system : Le Contrôle Numérique et Temporel
+        3. foampilot.system：数值和时间控制
       
     </span>
   </a>
@@ -662,10 +662,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-foampilotmesh-le-maillage" class="md-nav__link">
+  <a href="#4-foampilotmesh" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. foampilot.mesh : Le maillage
+        4. foampilot.mesh：网格生成
       
     </span>
   </a>
@@ -673,10 +673,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-foampilotboundaries-les-conditions-aux-limites-physiques" class="md-nav__link">
+  <a href="#5-foampilotboundaries" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. foampilot.boundaries : Les Conditions aux Limites Physiques
+        5. foampilot.boundaries：物理边界条件
       
     </span>
   </a>
@@ -684,10 +684,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-foampilotpostprocess-et-foampilotreport-lanalyse-des-resultats" class="md-nav__link">
+  <a href="#6-foampilotpostprocess-foampilotreport" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. foampilot.postprocess et foampilot.report : L'Analyse des Résultats
+        6. foampilot.postprocess 和 foampilot.report：结果分析
       
     </span>
   </a>
@@ -695,10 +695,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-foampilotutilities-et-foampilotcommons-les-outils-transversaux" class="md-nav__link">
+  <a href="#7-foampilotutilities-foampilotcommons" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. foampilot.utilities et foampilot.commons : Les Outils Transversaux
+        7. foampilot.utilities 和 foampilot.commons：跨模块工具
       
     </span>
   </a>
@@ -1101,191 +1101,191 @@
   
 
 
-<h1 id="vue-densemble-conceptuelle-et-theorique-du-module-foampilot">Vue d'Ensemble Conceptuelle et Théorique du Module foampilot</h1>
-<p>Le module <code>foampilot</code> est conçu comme une surcouche Python orientée objet pour la plateforme de simulation de mécanique des fluides numérique (CFD) <strong>OpenFOAM</strong>. Son objectif principal est d'abstraire la complexité de la configuration des cas OpenFOAM, qui repose traditionnellement sur des fichiers de dictionnaire textuels, en offrant une interface de programmation (API) Python intuitive et robuste.</p>
-<p>L'architecture de <code>foampilot</code> reflète fidèlement la structure d'un cas OpenFOAM, chaque sous-module gérant un aspect fondamental de la simulation.</p>
-<h2 id="1-foampilotsolver-le-cur-de-la-physique-et-de-la-numerique">1. foampilot.solver : Le Cœur de la Physique et de la Numérique</h2>
-<p>Le sous-module <code>solver</code> est le centre de contrôle de la simulation. Il ne se contente pas d'exécuter un solveur OpenFOAM ; il gère la <strong>sélection dynamique du solveur</strong> en fonction des propriétés physiques et numériques définies par l'utilisateur.</p>
+<h1 id="foampilot">foampilot 模块的概念和理论概述</h1>
+<p><code>foampilot</code> 模块被设计为一个面向对象的 Python 层，用于计算流体力学 (CFD) 平台 <strong>OpenFOAM</strong>。它的主要目的是将传统依赖文本字典文件的 OpenFOAM 案例配置复杂性抽象化，提供一个直观且强大的 Python 编程接口（API）。</p>
+<p><code>foampilot</code> 的架构与 OpenFOAM 案例结构紧密对应，每个子模块管理模拟的基本方面。</p>
+<h2 id="1-foampilotsolver">1. foampilot.solver：物理和数值核心</h2>
+<p><code>solver</code> 子模块是模拟的核心控制。它不仅运行 OpenFOAM 求解器，还根据用户定义的物理和数值属性处理 <strong>动态求解器选择</strong>。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM 概念</th>
+<th style="text-align: left;">foampilot 中的作用</th>
+<th style="text-align: left;">理论说明</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Solveur</strong> (e.g., <code>simpleFoam</code>, <code>pimpleFoam</code>)</td>
-<td style="text-align: left;"><strong>Classe <code>Solver</code></strong></td>
-<td style="text-align: left;">La classe <code>Solver</code> agit comme un <strong>gestionnaire de solveur intelligent</strong>. En modifiant des propriétés booléennes (ex: <code>compressible</code>, <code>transient</code>, <code>is_vof</code>), elle sélectionne automatiquement le solveur OpenFOAM approprié qui correspond aux équations physiques à résoudre (Navier-Stokes pour fluide incompressible, équations d'état pour compressible, etc.).</td>
+<td style="text-align: left;"><strong>求解器</strong></td>
+<td style="text-align: left;"><strong><code>Solver</code> 类</strong></td>
+<td style="text-align: left;">作为 <strong>智能求解器管理器</strong>。通过修改布尔属性（如 <code>compressible</code>、<code>transient</code>、<code>is_vof</code>），它会自动选择对应的 OpenFOAM 求解器，解决所需的物理方程（不可压流的 Navier-Stokes 方程、可压流方程等）。</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Configuration Physique</strong></td>
-<td style="text-align: left;"><strong>Propriétés du <code>Solver</code></strong></td>
-<td style="text-align: left;">Permet de définir la nature du problème (stationnaire vs. transitoire, mono-phase vs. multi-phase VOF, avec ou sans gravité/énergie). Cette abstraction garantit que l'utilisateur n'a pas à se soucier du nom exact du solveur OpenFOAM, mais uniquement de la physique du problème.</td>
+<td style="text-align: left;"><strong>物理配置</strong></td>
+<td style="text-align: left;"><strong>Solver 属性</strong></td>
+<td style="text-align: left;">定义问题类型（稳态或瞬态，单相或多相 VOF，有无重力/能量）。这种抽象保证用户只需关注问题的物理，而无需关心具体的 OpenFOAM 求解器名称。</td>
 </tr>
 </tbody>
 </table>
-<h2 id="2-foampilotconstant-la-definition-du-milieu-physique">2. foampilot.constant : La Définition du Milieu Physique</h2>
-<p>Le sous-module <code>constant</code> est dédié à la gestion du répertoire <code>constant</code> d'OpenFOAM, qui contient les propriétés du milieu et du maillage.</p>
+<h2 id="2-foampilotconstant">2. foampilot.constant：物理介质定义</h2>
+<p><code>constant</code> 子模块管理 OpenFOAM 的 <code>constant</code> 目录，包含流体属性和网格信息。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM 概念</th>
+<th style="text-align: left;">foampilot 中的作用</th>
+<th style="text-align: left;">理论说明</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Propriétés du Fluide</strong></td>
-<td style="text-align: left;"><strong>Classes <code>transportProperties</code>, <code>physicalProperties</code></strong></td>
-<td style="text-align: left;">Ces classes permettent de définir les propriétés essentielles du fluide (viscosité cinématique <span class="arithmatex">\(\nu\)</span>, densité <span class="arithmatex">\(\rho\)</span>, chaleur spécifique <span class="arithmatex">\(C_p\)</span>, etc.). Elles sont cruciales pour la fermeture des équations de Navier-Stokes et la modélisation des transferts.</td>
+<td style="text-align: left;"><strong>流体属性</strong></td>
+<td style="text-align: left;"><strong><code>transportProperties</code>, <code>physicalProperties</code> 类</strong></td>
+<td style="text-align: left;">定义流体的基本属性（运动粘度 <span class="arithmatex">\(\nu\)</span>、密度 <span class="arithmatex">\(\rho\)</span>、比热 <span class="arithmatex">\(C_p\)</span> 等）。这些属性对于封闭 Navier-Stokes 方程和传输建模至关重要。</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Modèle de Turbulence</strong></td>
-<td style="text-align: left;"><strong>Classe <code>turbulenceProperties</code></strong></td>
-<td style="text-align: left;">Gère la sélection et la configuration des modèles de turbulence (ex: <span class="arithmatex">\(k-\epsilon\)</span>, <span class="arithmatex">\(k-\omega\)</span> SST). Théoriquement, ces modèles ajoutent des équations de transport pour modéliser les effets de la turbulence sur l'écoulement, en fermant le système d'équations RANS (Reynolds-Averaged Navier-Stokes).</td>
+<td style="text-align: left;"><strong>湍流模型</strong></td>
+<td style="text-align: left;"><strong><code>turbulenceProperties</code> 类</strong></td>
+<td style="text-align: left;">管理湍流模型的选择和配置（如 <span class="arithmatex">\(k-\epsilon\)</span>、<span class="arithmatex">\(k-\omega\)</span> SST）。这些模型通过增加输运方程来模拟湍流效应，封闭 RANS（雷诺平均 Navier-Stokes）方程系统。</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Gravité</strong></td>
-<td style="text-align: left;"><strong>Classe <code>gravityFile</code></strong></td>
-<td style="text-align: left;">Permet d'activer et de définir le vecteur de gravité <span class="arithmatex">\(\mathbf{g}\)</span>, essentiel pour les simulations de flottabilité (Boussinesq) ou les écoulements à surface libre.</td>
+<td style="text-align: left;"><strong>重力</strong></td>
+<td style="text-align: left;"><strong><code>gravityFile</code> 类</strong></td>
+<td style="text-align: left;">可激活并定义重力向量 <span class="arithmatex">\(\mathbf{g}\)</span>，在浮力（Boussinesq）或自由表面流模拟中至关重要。</td>
 </tr>
 </tbody>
 </table>
-<h2 id="3-foampilotsystem-le-controle-numerique-et-temporel">3. foampilot.system : Le Contrôle Numérique et Temporel</h2>
-<p>Le sous-module <code>system</code> gère le répertoire <code>system</code> d'OpenFOAM, qui dicte la manière dont les équations sont discrétisées et résolues.</p>
+<h2 id="3-foampilotsystem">3. foampilot.system：数值和时间控制</h2>
+<p><code>system</code> 子模块管理 OpenFOAM 的 <code>system</code> 目录，该目录决定方程的离散和求解方式。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM 概念</th>
+<th style="text-align: left;">foampilot 中的作用</th>
+<th style="text-align: left;">理论说明</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Contrôle de la Simulation</strong></td>
-<td style="text-align: left;"><strong>Classe <code>controlDictFile</code></strong></td>
-<td style="text-align: left;">Définit les paramètres temporels (pas de temps <span class="arithmatex">\(\Delta t\)</span>, temps de début/fin), les fréquences d'écriture des résultats, et les fonctions d'exécution (ex: <code>runTimeControl</code> pour l'arrêt automatique).</td>
+<td style="text-align: left;"><strong>模拟控制</strong></td>
+<td style="text-align: left;"><strong><code>controlDictFile</code> 类</strong></td>
+<td style="text-align: left;">定义时间参数（时间步长 <span class="arithmatex">\(\Delta t\)</span>、起始/结束时间）、结果写入频率，以及执行函数（如自动停止的 <code>runTimeControl</code>）。</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Schémas Numériques</strong></td>
-<td style="text-align: left;"><strong>Classe <code>fvSchemesFile</code></strong></td>
-<td style="text-align: left;">Gère la discrétisation des termes de l'équation (dérivées temporelles, termes de convection, termes de diffusion). Le choix des schémas (ex: Euler pour le temps, <code>upwind</code> ou <code>Gauss linear</code> pour la convection) impacte directement la stabilité et la précision de la solution numérique.</td>
+<td style="text-align: left;"><strong>数值格式</strong></td>
+<td style="text-align: left;"><strong><code>fvSchemesFile</code> 类</strong></td>
+<td style="text-align: left;">管理方程项的离散（时间导数、对流项、扩散项）。数值格式选择（如时间欧拉法，对流使用 <code>upwind</code> 或 <code>Gauss linear</code>）直接影响数值稳定性和精度。</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Solveurs Algébriques</strong></td>
-<td style="text-align: left;"><strong>Classe <code>fvSolutionFile</code></strong></td>
-<td style="text-align: left;">Configure les solveurs matriciels utilisés pour résoudre les systèmes d'équations linéaires résultant de la discrétisation (ex: <code>PCG</code> pour la pression, <code>BiCGStab</code> pour la vitesse). Il définit également les critères de convergence (tolérance) et les stratégies de sous-relaxation.</td>
+<td style="text-align: left;"><strong>代数求解器</strong></td>
+<td style="text-align: left;"><strong><code>fvSolutionFile</code> 类</strong></td>
+<td style="text-align: left;">配置离散后线性方程系统的矩阵求解器（如压力使用 <code>PCG</code>，速度使用 <code>BiCGStab</code>）。同时定义收敛准则（容差）和欠松弛策略。</td>
 </tr>
 </tbody>
 </table>
-<h2 id="4-foampilotmesh-le-maillage">4. foampilot.mesh : Le maillage</h2>
-<p>Le sous-module <code>mesh</code> est responsable de la création du maillage, la discrétisation spatiale du domaine de calcul.</p>
+<h2 id="4-foampilotmesh">4. foampilot.mesh：网格生成</h2>
+<p><code>mesh</code> 子模块负责网格创建，即计算域的空间离散化。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM 概念</th>
+<th style="text-align: left;">foampilot 中的作用</th>
+<th style="text-align: left;">理论说明</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Maillage Structuré</strong></td>
-<td style="text-align: left;"><strong>Classe <code>BlockMeshFile</code></strong></td>
-<td style="text-align: left;">Abstraction de l'utilitaire <code>blockMesh</code> d'OpenFOAM. Il permet de définir la géométrie du domaine par blocs hexaédriques, une méthode efficace pour les géométries simples ou paramétrables.</td>
+<td style="text-align: left;"><strong>结构化网格</strong></td>
+<td style="text-align: left;"><strong><code>BlockMeshFile</code> 类</strong></td>
+<td style="text-align: left;">封装 OpenFOAM 的 <code>blockMesh</code> 工具。通过六面体块定义域几何，是处理简单或参数化几何的高效方法。</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Maillage Non-Structuré</strong></td>
-<td style="text-align: left;"><strong>Classes <code>gmsh_mesher</code>, <code>snappymesh</code></strong></td>
-<td style="text-align: left;">Ces classes gèrent l'intégration avec des outils de maillage plus avancés (<code>Gmsh</code>, <code>snappyHexMesh</code>) pour les géométries complexes importées (ex: fichiers STL). Elles préparent les fichiers de configuration nécessaires à ces utilitaires.</td>
+<td style="text-align: left;"><strong>非结构化网格</strong></td>
+<td style="text-align: left;"><strong><code>gmsh_mesher</code>, <code>snappymesh</code> 类</strong></td>
+<td style="text-align: left;">处理复杂几何（如 STL 文件）与高级网格工具（<code>Gmsh</code>、<code>snappyHexMesh</code>）的集成，并生成这些工具所需的配置文件。</td>
 </tr>
 </tbody>
 </table>
-<h2 id="5-foampilotboundaries-les-conditions-aux-limites-physiques">5. foampilot.boundaries : Les Conditions aux Limites Physiques</h2>
-<p>Le sous-module <code>boundaries</code> est essentiel pour définir l'interaction du fluide avec son environnement.</p>
+<h2 id="5-foampilotboundaries">5. foampilot.boundaries：物理边界条件</h2>
+<p><code>boundaries</code> 子模块用于定义流体与环境的交互。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM 概念</th>
+<th style="text-align: left;">foampilot 中的作用</th>
+<th style="text-align: left;">理论说明</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Conditions aux Limites</strong></td>
-<td style="text-align: left;"><strong>Classe <code>Boundary</code></strong></td>
-<td style="text-align: left;">Gère la définition des conditions aux limites pour chaque champ physique (<span class="arithmatex">\(\mathbf{U}\)</span>, <span class="arithmatex">\(p\)</span>, <span class="arithmatex">\(k\)</span>, <span class="arithmatex">\(\epsilon\)</span>, etc.) sur les patchs du maillage. Théoriquement, ces conditions sont nécessaires pour fournir les informations manquantes aux frontières du domaine, permettant la résolution unique des équations aux dérivées partielles.</td>
+<td style="text-align: left;"><strong>边界条件</strong></td>
+<td style="text-align: left;"><strong><code>Boundary</code> 类</strong></td>
+<td style="text-align: left;">管理每个物理场 (<span class="arithmatex">\(\mathbf{U}\)</span>, <span class="arithmatex">\(p\)</span>, <span class="arithmatex">\(k\)</span>, <span class="arithmatex">\(\epsilon\)</span> 等) 在网格 patch 上的边界条件。理论上，这些条件提供缺失边界信息，确保偏微分方程的唯一解。</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Types de Conditions</strong></td>
-<td style="text-align: left;"><strong>Méthodes de <code>Boundary</code></strong></td>
-<td style="text-align: left;">Offre des méthodes spécifiques pour les conditions physiques courantes : <code>set_velocity_inlet</code> (Dirichlet pour la vitesse), <code>set_pressure_outlet</code> (Neumann pour la pression), <code>set_wall</code> (non-glissement ou glissement), etc.</td>
+<td style="text-align: left;"><strong>条件类型</strong></td>
+<td style="text-align: left;"><strong><code>Boundary</code> 方法</strong></td>
+<td style="text-align: left;">提供常用物理条件方法：<code>set_velocity_inlet</code>（速度 Dirichlet），<code>set_pressure_outlet</code>（压力 Neumann），<code>set_wall</code>（无滑或滑动）等。</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Fonctions de Paroi</strong></td>
-<td style="text-align: left;"><strong>Intégration automatique</strong></td>
-<td style="text-align: left;">La classe <code>Boundary</code> intègre la logique pour appliquer les fonctions de paroi (Wall Functions) appropriées pour les modèles de turbulence, permettant de modéliser la couche limite sans nécessiter un maillage extrêmement fin près des parois.</td>
+<td style="text-align: left;"><strong>壁面函数</strong></td>
+<td style="text-align: left;"><strong>自动集成</strong></td>
+<td style="text-align: left;">为湍流模型自动应用适当的壁面函数，实现边界层模拟，无需极细壁面网格。</td>
 </tr>
 </tbody>
 </table>
-<h2 id="6-foampilotpostprocess-et-foampilotreport-lanalyse-des-resultats">6. foampilot.postprocess et foampilot.report : L'Analyse des Résultats</h2>
-<p>Ces sous-modules gèrent la phase finale de la simulation : l'extraction, l'analyse et la présentation des données.</p>
+<h2 id="6-foampilotpostprocess-foampilotreport">6. foampilot.postprocess 和 foampilot.report：结果分析</h2>
+<p>这些子模块管理模拟后的数据提取、分析和展示。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Sous-module</th>
-<th style="text-align: left;">Rôle Conceptuel</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">子模块</th>
+<th style="text-align: left;">概念角色</th>
+<th style="text-align: left;">理论说明</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><strong><code>postprocess</code></strong></td>
-<td style="text-align: left;"><strong>Visualisation et Analyse</strong></td>
-<td style="text-align: left;">Utilise des bibliothèques comme <strong>PyVista</strong> pour charger les résultats OpenFOAM (fichiers VTK) et effectuer des opérations de post-traitement courantes (tranches, contours, vecteurs, lignes de courant). Il permet de visualiser les champs physiques et d'extraire des quantités dérivées (ex: critère Q, vorticité).</td>
+<td style="text-align: left;"><strong>可视化和分析</strong></td>
+<td style="text-align: left;">使用 <strong>PyVista</strong> 加载 OpenFOAM 结果 (VTK 文件) 并进行常用后处理（切片、等值线、矢量、流线）。可视化物理场并提取派生量（如 Q 准则、涡度）。</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong><code>report</code></strong></td>
-<td style="text-align: left;"><strong>Génération de Rapports</strong></td>
-<td style="text-align: left;">Automatise la création de rapports de simulation structurés (ex: PDF). Il agrège les données clés (paramètres d'entrée, résidus de convergence, images de post-traitement) pour garantir la traçabilité et la reproductibilité des résultats.</td>
+<td style="text-align: left;"><strong>报告生成</strong></td>
+<td style="text-align: left;">自动生成结构化模拟报告（如 PDF），整合关键数据（输入参数、收敛残差、后处理图像），保证可追溯性和可重复性。</td>
 </tr>
 </tbody>
 </table>
-<h2 id="7-foampilotutilities-et-foampilotcommons-les-outils-transversaux">7. foampilot.utilities et foampilot.commons : Les Outils Transversaux</h2>
-<p>Ces modules fournissent des fonctionnalités de support essentielles à l'ensemble du framework.</p>
+<h2 id="7-foampilotutilities-foampilotcommons">7. foampilot.utilities 和 foampilot.commons：跨模块工具</h2>
+<p>这些模块为整个框架提供支持功能。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Sous-module</th>
-<th style="text-align: left;">Rôle Conceptuel</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">子模块</th>
+<th style="text-align: left;">概念角色</th>
+<th style="text-align: left;">理论说明</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><strong><code>utilities.manageunits</code></strong></td>
-<td style="text-align: left;"><strong>Gestion des Unités</strong></td>
-<td style="text-align: left;">Utilise la classe <code>Quantity</code> pour garantir la cohérence dimensionnelle des entrées. C'est une pratique essentielle en physique et en ingénierie pour éviter les erreurs de conversion et rendre le code indépendant du système d'unités utilisé (SI, impérial, etc.).</td>
+<td style="text-align: left;"><strong>单位管理</strong></td>
+<td style="text-align: left;">使用 <code>Quantity</code> 类确保输入的量纲一致。这在物理和工程中至关重要，可避免单位转换错误，并使代码独立于使用的单位制（SI、英制等）。</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong><code>utilities.dictonnary</code></strong></td>
-<td style="text-align: left;"><strong>Manipulation des Dictionnaires OpenFOAM</strong></td>
-<td style="text-align: left;">Fournit des outils pour créer et manipuler des structures de données complexes qui correspondent aux fichiers de dictionnaire OpenFOAM (ex: <code>topoSetDict</code>, <code>createPatchDict</code>).</td>
+<td style="text-align: left;"><strong>OpenFOAM 字典处理</strong></td>
+<td style="text-align: left;">提供创建和操作复杂数据结构的工具，匹配 OpenFOAM 字典文件（如 <code>topoSetDict</code>、<code>createPatchDict</code>）。</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong><code>commons</code></strong></td>
-<td style="text-align: left;"><strong>Utilitaires Génériques</strong></td>
-<td style="text-align: left;">Contient des fonctions pour la sérialisation des classes, la lecture des fichiers de maillage (<code>polyMesh/boundary</code>), et d'autres opérations de bas niveau nécessaires à l'interfaçage avec le format de fichier OpenFOAM.</td>
+<td style="text-align: left;"><strong>通用工具</strong></td>
+<td style="text-align: left;">包含类序列化、网格文件读取（<code>polyMesh/boundary</code>）及其他底层操作，实现与 OpenFOAM 文件格式接口。</td>
 </tr>
 </tbody>
 </table>
-<p>Ce document fournit une vue d'ensemble de la manière dont <code>foampilot</code> structure et gère les concepts fondamentaux de la simulation OpenFOAM, en les traduisant en une architecture Python modulaire et intuitive.</p>
+<p>本文概述了 <code>foampilot</code> 如何将 OpenFOAM 模拟的基本概念结构化并映射到模块化、直观的 Python 架构中。</p>
 
 
 

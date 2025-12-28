@@ -1,92 +1,91 @@
-# Documentation de Prise en Main pour Développeurs : Module `foampilot`
+# 开发者快速入门文档：`foampilot` 模块
 
+## 1. 介绍
 
-## 1. Introduction
+`foampilot` 模块旨在简化和自动化基于 **OpenFOAM** 的模拟案例的创建、配置、执行和后处理。它提供了一个面向对象的 Python 接口，用于管理复杂的 OpenFOAM 配置文件，使开发者能够专注于问题的物理和几何，而不必关注字典语法。
 
-Le module `foampilot` est conçu pour simplifier et automatiser la création, la configuration, l'exécution et le post-traitement des cas de simulation basés sur **OpenFOAM**. Il offre une interface orientée objet en Python pour gérer les fichiers de configuration complexes d'OpenFOAM, permettant aux développeurs de se concentrer sur la physique et la géométrie du problème plutôt que sur la syntaxe des dictionnaires.
+本文档旨在提供代码结构的详细概览，以便更好地理解和参与项目。
 
-Cette documentation a pour but de fournir une vue d'ensemble détaillée de la structure du code pour faciliter la compréhension et la contribution au projet.
+## 2. 关键概念与架构
 
-## 2. Concepts Clés et Architecture
+`foampilot` 的架构紧密模仿标准 OpenFOAM 案例的结构，该案例通常分为三个主要目录：`constant`、`system` 和初始时间目录 (`0`)。
 
-L'architecture de `foampilot` est étroitement calquée sur la structure d'un cas OpenFOAM standard, qui est divisé en trois répertoires principaux : `constant`, `system`, et le répertoire du temps initial (`0`).
+### 核心类：`Solver`
 
-### La Classe Centrale : `Solver`
+`Solver` 类（`foampilot.solver.Solver`）是模块的核心协调者。它封装整个模拟案例，并提供对 `constant` 和 `system` 目录的访问，以及边界条件管理。
 
-La classe `Solver` (`foampilot.solver.Solver`) est l'orchestrateur central du module. Elle encapsule l'ensemble du cas de simulation et fournit des points d'accès aux configurations des répertoires `constant` et `system`, ainsi qu'à la gestion des conditions aux limites.
+初始化时，`Solver` 实例会自动创建管理配置文件所需的对象：
 
-Lors de l'initialisation, une instance de `Solver` crée automatiquement les objets nécessaires pour gérer les fichiers de configuration :
+* `solver.constant`：`ConstantDirectory` 的实例，用于管理 `constant` 目录下的文件。
+* `solver.system`：`SystemDirectory` 的实例，用于管理 `system` 目录下的文件。
+* `solver.boundary`：`Boundary` 的实例，用于管理边界条件。
 
-*   `solver.constant` : Une instance de `ConstantDirectory` pour gérer les fichiers du répertoire `constant`.
-*   `solver.system` : Une instance de `SystemDirectory` pour gérer les fichiers du répertoire `system`.
-*   `solver.boundary` : Une instance de `Boundary` pour gérer les conditions aux limites.
+## 3. 代码结构详解
 
-## 3. Structure Détaillée du Code
+`foampilot` 核心逻辑位于 `foampilot/foampilot/src/foampilot` 目录中。该目录按功能划分为子模块，每个子模块负责 OpenFOAM 案例管理的特定方面。
 
-Le cœur de la logique de `foampilot` se trouve dans le répertoire `foampilot/foampilot/src/foampilot`. Ce répertoire est organisé en sous-modules logiques, chacun responsable d'un aspect spécifique de la gestion des cas OpenFOAM.
-
-| Répertoire Source | Description | Classes Clés (Exemples) |
+| 源目录 | 描述 | 关键类（示例） |
 | :--- | :--- | :--- |
-| `base` | Classes de base et utilitaires pour la manipulation des fichiers OpenFOAM. | `Meshing`, `OpenFOAMFile` |
-| `solver` | Contient la classe principale `Solver` et la logique d'exécution de la simulation. | `Solver`, `BaseSolver` |
-| `constant` | Gestion des fichiers de configuration dans le répertoire `constant`. | `ConstantDirectory`, `transportPropertiesFile`, `turbulencePropertiesFile` |
-| `system` | Gestion des fichiers de configuration dans le répertoire `system`. | `SystemDirectory`, `controlDictFile`, `fvSchemesFile`, `fvSolutionFile` |
-| `boundaries` | Définition et application des conditions aux limites. | `Boundary`, `boundaries_conditions_config` |
-| `mesh` | Outils de maillage, y compris l'intégration avec `classy_blocks` et `snappyHexMesh`. | `BlockMeshFile`, `Meshing`, `gmsh_mesher` |
-| `utilities` | Fonctions et classes utilitaires non spécifiques à OpenFOAM (unités, propriétés des fluides, etc.). | `Quantity`, `FluidMechanics`, `manageunits` |
-| `postprocess` | Classes pour l'analyse des résultats, la visualisation (via `pyvista`) et l'extraction de données. | `FoamPostProcessing`, `ResidualsPost` |
+| `base` | OpenFOAM 文件处理的基础类和工具。 | `Meshing`, `OpenFOAMFile` |
+| `solver` | 包含主 `Solver` 类和模拟执行逻辑。 | `Solver`, `BaseSolver` |
+| `constant` | 管理 `constant` 目录下的配置文件。 | `ConstantDirectory`, `transportPropertiesFile`, `turbulencePropertiesFile` |
+| `system` | 管理 `system` 目录下的配置文件。 | `SystemDirectory`, `controlDictFile`, `fvSchemesFile`, `fvSolutionFile` |
+| `boundaries` | 定义并应用边界条件。 | `Boundary`, `boundaries_conditions_config` |
+| `mesh` | 网格工具，包括与 `classy_blocks` 和 `snappyHexMesh` 的集成。 | `BlockMeshFile`, `Meshing`, `gmsh_mesher` |
+| `utilities` | 非 OpenFOAM 特定的工具函数和类（单位、流体属性等）。 | `Quantity`, `FluidMechanics`, `manageunits` |
+| `postprocess` | 结果分析、可视化（通过 `pyvista`）和数据提取的类。 | `FoamPostProcessing`, `ResidualsPost` |
 
-## 4. Mécanismes Internes pour les Développeurs
+## 4. 开发者内部机制
 
-Pour une contribution efficace, il est crucial de comprendre comment `foampilot` traduit les objets Python en fichiers OpenFOAM et gère la complexité des configurations.
+为了高效贡献，理解 `foampilot` 如何将 Python 对象转换为 OpenFOAM 文件以及如何管理复杂配置至关重要。
 
-### 4.1. Le Mécanisme d'Écriture des Fichiers (`OpenFOAMFile`)
+### 4.1 文件写入机制 (`OpenFOAMFile`)
 
-Le cœur de la sérialisation des données réside dans la classe de base `OpenFOAMFile` (`foampilot/foampilot/src/foampilot/base/openFOAMFile.py`).
+数据序列化的核心在于基类 `OpenFOAMFile`（`foampilot/foampilot/src/foampilot/base/openFOAMFile.py`）。
 
-*   **Héritage et Attributs :** Chaque fichier de configuration OpenFOAM (comme `transportPropertiesFile` ou `controlDictFile`) hérite de `OpenFOAMFile`. Les paramètres de configuration sont stockés dans l'attribut `self.attributes` de l'instance.
-*   **Accès Dynamique :** La surcharge des méthodes magiques `__getattr__` et `__setattr__` permet d'accéder et de modifier les paramètres directement comme des attributs de l'objet (ex: `solver.constant.transportProperties.nu = ...`), même si ces paramètres sont stockés dans le dictionnaire `self.attributes`.
-*   **Sérialisation (`write_file`) :** La méthode `write_file` parcourt récursivement le dictionnaire `self.attributes` et utilise la méthode interne `_format_value` pour convertir les types de données Python (booléens, nombres, tuples, et surtout `Quantity`) en la syntaxe spécifique d'OpenFOAM (ex: `true`/`false`, listes entre parenthèses).
+* **继承与属性**：每个 OpenFOAM 配置文件（如 `transportPropertiesFile` 或 `controlDictFile`）都继承自 `OpenFOAMFile`。配置参数存储在实例属性 `self.attributes` 中。
+* **动态访问**：重载魔法方法 `__getattr__` 和 `__setattr__` 允许直接通过对象属性访问和修改参数（如 `solver.constant.transportProperties.nu = ...`），即使它们存储在 `self.attributes` 字典中。
+* **序列化 (`write_file`)**：`write_file` 方法递归遍历 `self.attributes`，并使用内部 `_format_value` 方法将 Python 数据类型（布尔值、数字、元组，尤其是 `Quantity`）转换为 OpenFOAM 特定语法（如 `true`/`false`，括号列表）。
 
-### 4.2. Gestion des Unités et des Dimensions (`Quantity`)
+### 4.2 单位与维度管理 (`Quantity`)
 
-La classe `Quantity` (`foampilot/foampilot/src/foampilot/utilities/manageunits.py`) est un *wrapper* autour de la librairie `pint` et est essentielle pour assurer la cohérence physique.
+`Quantity` 类（`foampilot/foampilot/src/foampilot/utilities/manageunits.py`）是 `pint` 库的封装，用于保证物理一致性。
 
-*   **Rôle :** Elle stocke une valeur numérique avec son unité physique (ex: `Quantity(10, "m/s")`).
-*   **Conversion Automatique :** Lors de l'écriture dans un fichier OpenFOAM, la méthode `_format_value` de `OpenFOAMFile` vérifie si la valeur est une instance de `Quantity`. Si c'est le cas, elle utilise la méthode `get_in(target_unit)` pour convertir la valeur dans l'unité attendue par OpenFOAM (définie dans `OpenFOAMFile.DEFAULT_UNITS`), garantissant que toutes les valeurs écrites sont dans le système d'unités de base d'OpenFOAM.
-*   **Dimensions OpenFOAM :** La méthode `to_openfoam_dimensions()` utilise les capacités de `pint` pour dériver le vecteur de dimensions OpenFOAM (M, L, T, Θ, N, J, A) à partir de l'unité, ce qui est crucial pour la génération des en-têtes de fichiers de champs (ex: `U`, `p`).
+* **作用**：存储带有物理单位的数值（如 `Quantity(10, "m/s")`）。
+* **自动转换**：写入 OpenFOAM 文件时，`OpenFOAMFile._format_value` 会检查值是否为 `Quantity` 实例。如果是，则使用 `get_in(target_unit)` 将其转换为 OpenFOAM 期望的单位（由 `OpenFOAMFile.DEFAULT_UNITS` 定义），确保所有写入值使用 OpenFOAM 基本单位。
+* **OpenFOAM 维度**：`to_openfoam_dimensions()` 方法使用 `pint` 推导 OpenFOAM 维度向量 (M, L, T, Θ, N, J, A)，这对于生成场文件头（如 `U`, `p`）非常关键。
 
-### 4.3. Orchestration du Solveur et des Champs (`Solver` et `CaseFieldsManager`)
+### 4.3 求解器与场协调 (`Solver` 和 `CaseFieldsManager`)
 
-La classe `Solver` délègue la gestion des champs à la classe `CaseFieldsManager` (`foampilot/foampilot/src/foampilot/base/cases_variables.py`).
+`Solver` 类将场管理委托给 `CaseFieldsManager`（`foampilot/foampilot/src/foampilot/base/cases_variables.py`）。
 
-*   **Sélection du Solveur :** La classe `Solver` (`foampilot/foampilot/src/foampilot/solver/solver.py`) utilise des propriétés booléennes (ex: `self.compressible`, `self.with_gravity`, `self.is_vof`) pour déterminer le type de simulation. La méthode interne `_update_solver()` sélectionne le solveur OpenFOAM approprié (ex: `incompressibleFluid`, `compressibleVoF`) et met à jour l'instance de `BaseSolver`.
-*   **Gestion des Champs :** `CaseFieldsManager` utilise ces mêmes propriétés pour générer dynamiquement la liste des champs physiques nécessaires (ex: `U`, `p`, `k`, `epsilon`, `T`).
-    *   Si `self.with_gravity` est vrai, le champ de pression devient `p_rgh`.
-    *   Si un modèle de turbulence est défini, les champs associés (`k`, `epsilon`, `omega`, `nut`) sont ajoutés.
-    *   Cette liste de champs est ensuite utilisée par la classe `Boundary` pour initialiser les conditions aux limites pour *tous* les champs requis.
+* **求解器选择**：`Solver`（`foampilot/foampilot/src/foampilot/solver/solver.py`）使用布尔属性（如 `self.compressible`、`self.with_gravity`、`self.is_vof`）来确定模拟类型。内部 `_update_solver()` 方法选择合适的 OpenFOAM 求解器（如 `incompressibleFluid`, `compressibleVoF`）并更新 `BaseSolver` 实例。
+* **场管理**：`CaseFieldsManager` 使用这些属性动态生成所需物理场列表（如 `U`, `p`, `k`, `epsilon`, `T`）。
+    * 如果 `self.with_gravity` 为真，则压力场变为 `p_rgh`。
+    * 如果定义了湍流模型，则添加相关字段（`k`, `epsilon`, `omega`, `nut`）。
+    * 此字段列表随后由 `Boundary` 用于初始化 *所有* 必需字段的边界条件。
 
-### 4.4. Gestion Avancée des Conditions aux Limites (`Boundary`)
+### 4.4 高级边界条件管理 (`Boundary`)
 
-La classe `Boundary` (`foampilot/foampilot/src/foampilot/boundaries/boundaries_dict.py`) est responsable de la traduction des conditions physiques en configurations OpenFOAM.
+`Boundary` 类（`foampilot/foampilot/src/foampilot/boundaries/boundaries_dict.py`）将物理边界条件翻译为 OpenFOAM 配置。
 
-*   **Configuration Centralisée :** Elle utilise un dictionnaire de configuration (`BOUNDARY_CONDITIONS_CONFIG`) qui mappe les types de conditions physiques (ex: `"velocityInlet"`) aux configurations OpenFOAM requises pour chaque champ (U, p, k, etc.), en fonction du modèle de turbulence sélectionné.
-*   **Application par *Wildcard* :** La méthode `apply_condition_with_wildcard(pattern, condition_type, **kwargs)` permet d'appliquer une condition à tous les patchs dont le nom correspond à une expression régulière (`pattern`).
-*   **Résolution des Conditions :** Pour chaque champ, la méthode `_resolve_field_config` détermine la configuration OpenFOAM finale. Par exemple, pour une condition de paroi (`wall`), elle choisit entre `noSlip` ou `slip` en fonction des arguments fournis, et applique les fonctions de paroi (`wallFunction`) appropriées pour les champs de turbulence (k, epsilon, etc.) en utilisant le dictionnaire `WALL_FUNCTIONS`.
-*   **Génération des Fichiers :** La méthode `write_boundary_conditions()` itère sur tous les champs gérés par `CaseFieldsManager` et utilise `OpenFOAMFile.write_boundary_file` pour générer les fichiers de conditions aux limites dans le répertoire `0/`.
+* **集中配置**：使用配置字典 (`BOUNDARY_CONDITIONS_CONFIG`) 将物理条件类型（如 `"velocityInlet"`）映射到每个场（U, p, k 等）所需的 OpenFOAM 配置，根据选定的湍流模型。
+* **通配符应用**：`apply_condition_with_wildcard(pattern, condition_type, **kwargs)` 可将条件应用于匹配正则表达式 (`pattern`) 的所有 patch。
+* **条件解析**：对每个场，`_resolve_field_config` 确定最终 OpenFOAM 配置。例如，对于墙面条件，选择 `noSlip` 或 `slip`，并为湍流字段使用 `WALL_FUNCTIONS` 字典应用适当的 wall function。
+* **文件生成**：`write_boundary_conditions()` 遍历 `CaseFieldsManager` 管理的所有字段，并使用 `OpenFOAMFile.write_boundary_file` 在 `0/` 目录生成边界条件文件。
 
-## 5. Flux de Travail du Développeur (Basé sur `run_exemple2.py`)
+## 5. 开发者工作流程（基于 `muffler.py`）
 
-L'exemple d'utilisation illustre le flux de travail typique pour un développeur utilisant `foampilot` :
+以下示例展示了开发者使用 `foampilot` 的典型工作流程：
 
-| Étape | Description | Classes et Méthodes Clés |
+| 步骤 | 描述 | 关键类与方法 |
 | :--- | :--- | :--- |
-| **1. Initialisation** | Définir le répertoire de travail et initialiser le solveur. | `Solver(path)`, `FluidMechanics` |
-| **2. Configuration Physique** | Déterminer les propriétés du fluide et les appliquer aux fichiers de configuration. | `FluidMechanics.get_fluid_properties()`, `solver.constant.transportProperties.nu = ...` |
-| **3. Maillage** | Définir la géométrie et le maillage (souvent via l'intégration `classy_blocks`) et générer le `blockMeshDict`. | `classy_blocks.Cylinder`, `cb.Mesh()`, `Meshing(path, mesher="blockMesh")` |
-| **4. Conditions aux Limites** | Initialiser et appliquer les conditions aux limites aux patchs définis par le maillage. | `solver.boundary.initialize_boundary()`, `solver.boundary.apply_condition_with_wildcard()` |
-| **5. Écriture des Fichiers** | Générer tous les fichiers de configuration OpenFOAM sur le disque. | `solver.system.write()`, `solver.constant.write()`, `solver.boundary.write_boundary_conditions()` |
-| **6. Exécution** | Lancer la simulation OpenFOAM. | `solver.run_simulation()` |
-| **7. Post-traitement** | Analyser les résultats, générer des visualisations et des rapports. | `FoamPostProcessing`, `ResidualsPost`, `latex_pdf.LatexDocument` |
+| **1. 初始化** | 设置工作目录并初始化求解器。 | `Solver(path)`, `FluidMechanics` |
+| **2. 物理配置** | 确定流体属性并应用到配置文件。 | `FluidMechanics.get_fluid_properties()`, `solver.constant.transportProperties.nu = ...` |
+| **3. 网格** | 定义几何和网格（通常通过 `classy_blocks` 集成）并生成 `blockMeshDict`。 | `classy_blocks.Cylinder`, `cb.Mesh()`, `Meshing(path, mesher="blockMesh")` |
+| **4. 边界条件** | 初始化并将边界条件应用于网格定义的 patch。 | `solver.boundary.initialize_boundary()`, `solver.boundary.apply_condition_with_wildcard()` |
+| **5. 写入文件** | 在磁盘上生成所有 OpenFOAM 配置文件。 | `solver.system.write()`, `solver.constant.write()`, `solver.boundary.write_boundary_conditions()` |
+| **6. 执行** | 运行 OpenFOAM 模拟。 | `solver.run_simulation()` |
+| **7. 后处理** | 分析结果，生成可视化和报告。 | `FoamPostProcessing`, `ResidualsPost`, `latex_pdf.LatexDocument` |
 
-Ce flux de travail met en évidence la manière dont les différents modules de `foampilot` s'articulent pour fournir une abstraction complète du processus de simulation OpenFOAM. Pour contribuer, un développeur doit comprendre comment les classes de chaque module interagissent avec l'objet central `Solver` et comment elles traduisent les commandes Python en syntaxe de dictionnaire OpenFOAM.
+该工作流程展示了各个 `foampilot` 模块如何协作，为 OpenFOAM 模拟提供完整抽象。要有效贡献，开发者必须理解每个模块类如何与核心 `Solver` 对象交互，以及如何将 Python 命令转换为 OpenFOAM 字典语法。

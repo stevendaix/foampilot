@@ -7,7 +7,7 @@
 # === Garde les fichiers essentiels ===
 !pyproject.toml
 !LICENSE*
-!README.md
+!README*.md
 !readme.md
 !run_*
 !cas_test/

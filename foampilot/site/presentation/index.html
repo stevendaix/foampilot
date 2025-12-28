@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#vue-densemble-conceptuelle-et-theorique-du-module-foampilot" class="md-skip">
+        <a href="#conceptual-and-theoretical-overview-of-the-foampilot-module" class="md-skip">
           Skip to content
         </a>
       
@@ -629,10 +629,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-foampilotsolver-le-cur-de-la-physique-et-de-la-numerique" class="md-nav__link">
+  <a href="#1-foampilotsolver-the-core-of-physics-and-numerics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. foampilot.solver : Le Cœur de la Physique et de la Numérique
+        1. foampilot.solver: The Core of Physics and Numerics
       
     </span>
   </a>
@@ -640,10 +640,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-foampilotconstant-la-definition-du-milieu-physique" class="md-nav__link">
+  <a href="#2-foampilotconstant-definition-of-the-physical-medium" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. foampilot.constant : La Définition du Milieu Physique
+        2. foampilot.constant: Definition of the Physical Medium
       
     </span>
   </a>
@@ -651,10 +651,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-foampilotsystem-le-controle-numerique-et-temporel" class="md-nav__link">
+  <a href="#3-foampilotsystem-numerical-and-temporal-control" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. foampilot.system : Le Contrôle Numérique et Temporel
+        3. foampilot.system: Numerical and Temporal Control
       
     </span>
   </a>
@@ -662,10 +662,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-foampilotmesh-le-maillage" class="md-nav__link">
+  <a href="#4-foampilotmesh-mesh-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. foampilot.mesh : Le maillage
+        4. foampilot.mesh: Mesh Generation
       
     </span>
   </a>
@@ -673,10 +673,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-foampilotboundaries-les-conditions-aux-limites-physiques" class="md-nav__link">
+  <a href="#5-foampilotboundaries-physical-boundary-conditions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. foampilot.boundaries : Les Conditions aux Limites Physiques
+        5. foampilot.boundaries: Physical Boundary Conditions
       
     </span>
   </a>
@@ -684,10 +684,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-foampilotpostprocess-et-foampilotreport-lanalyse-des-resultats" class="md-nav__link">
+  <a href="#6-foampilotpostprocess-and-foampilotreport-result-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. foampilot.postprocess et foampilot.report : L'Analyse des Résultats
+        6. foampilot.postprocess and foampilot.report: Result Analysis
       
     </span>
   </a>
@@ -695,10 +695,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-foampilotutilities-et-foampilotcommons-les-outils-transversaux" class="md-nav__link">
+  <a href="#7-foampilotutilities-and-foampilotcommons-cross-cutting-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. foampilot.utilities et foampilot.commons : Les Outils Transversaux
+        7. foampilot.utilities and foampilot.commons: Cross-Cutting Tools
       
     </span>
   </a>
@@ -1101,191 +1101,191 @@
   
 
 
-<h1 id="vue-densemble-conceptuelle-et-theorique-du-module-foampilot">Vue d'Ensemble Conceptuelle et Théorique du Module foampilot</h1>
-<p>Le module <code>foampilot</code> est conçu comme une surcouche Python orientée objet pour la plateforme de simulation de mécanique des fluides numérique (CFD) <strong>OpenFOAM</strong>. Son objectif principal est d'abstraire la complexité de la configuration des cas OpenFOAM, qui repose traditionnellement sur des fichiers de dictionnaire textuels, en offrant une interface de programmation (API) Python intuitive et robuste.</p>
-<p>L'architecture de <code>foampilot</code> reflète fidèlement la structure d'un cas OpenFOAM, chaque sous-module gérant un aspect fondamental de la simulation.</p>
-<h2 id="1-foampilotsolver-le-cur-de-la-physique-et-de-la-numerique">1. foampilot.solver : Le Cœur de la Physique et de la Numérique</h2>
-<p>Le sous-module <code>solver</code> est le centre de contrôle de la simulation. Il ne se contente pas d'exécuter un solveur OpenFOAM ; il gère la <strong>sélection dynamique du solveur</strong> en fonction des propriétés physiques et numériques définies par l'utilisateur.</p>
+<h1 id="conceptual-and-theoretical-overview-of-the-foampilot-module">Conceptual and Theoretical Overview of the foampilot Module</h1>
+<p>The <code>foampilot</code> module is designed as an object-oriented Python layer for the computational fluid dynamics (CFD) platform <strong>OpenFOAM</strong>. Its main purpose is to abstract the complexity of OpenFOAM case configuration, which traditionally relies on text-based dictionary files, by providing an intuitive and robust Python programming interface (API).</p>
+<p>The architecture of <code>foampilot</code> closely mirrors the structure of an OpenFOAM case, with each submodule managing a fundamental aspect of the simulation.</p>
+<h2 id="1-foampilotsolver-the-core-of-physics-and-numerics">1. foampilot.solver: The Core of Physics and Numerics</h2>
+<p>The <code>solver</code> submodule is the central control of the simulation. It does not just run an OpenFOAM solver; it handles <strong>dynamic solver selection</strong> based on physical and numerical properties defined by the user.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM Concept</th>
+<th style="text-align: left;">Role in foampilot</th>
+<th style="text-align: left;">Theoretical Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Solveur</strong> (e.g., <code>simpleFoam</code>, <code>pimpleFoam</code>)</td>
-<td style="text-align: left;"><strong>Classe <code>Solver</code></strong></td>
-<td style="text-align: left;">La classe <code>Solver</code> agit comme un <strong>gestionnaire de solveur intelligent</strong>. En modifiant des propriétés booléennes (ex: <code>compressible</code>, <code>transient</code>, <code>is_vof</code>), elle sélectionne automatiquement le solveur OpenFOAM approprié qui correspond aux équations physiques à résoudre (Navier-Stokes pour fluide incompressible, équations d'état pour compressible, etc.).</td>
+<td style="text-align: left;"><strong>Solver</strong></td>
+<td style="text-align: left;"><strong><code>Solver</code> Class</strong></td>
+<td style="text-align: left;">Acts as an <strong>intelligent solver manager</strong>. By modifying boolean properties (e.g., <code>compressible</code>, <code>transient</code>, <code>is_vof</code>), it automatically selects the appropriate OpenFOAM solver corresponding to the physical equations to solve (Navier-Stokes for incompressible flow, equation of state for compressible flow, etc.).</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Configuration Physique</strong></td>
-<td style="text-align: left;"><strong>Propriétés du <code>Solver</code></strong></td>
-<td style="text-align: left;">Permet de définir la nature du problème (stationnaire vs. transitoire, mono-phase vs. multi-phase VOF, avec ou sans gravité/énergie). Cette abstraction garantit que l'utilisateur n'a pas à se soucier du nom exact du solveur OpenFOAM, mais uniquement de la physique du problème.</td>
+<td style="text-align: left;"><strong>Physical Configuration</strong></td>
+<td style="text-align: left;"><strong>Solver Properties</strong></td>
+<td style="text-align: left;">Defines the problem type (steady vs. transient, single-phase vs. multiphase VOF, with or without gravity/energy). This abstraction ensures that the user does not need to worry about the exact OpenFOAM solver name, only the physics of the problem.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="2-foampilotconstant-la-definition-du-milieu-physique">2. foampilot.constant : La Définition du Milieu Physique</h2>
-<p>Le sous-module <code>constant</code> est dédié à la gestion du répertoire <code>constant</code> d'OpenFOAM, qui contient les propriétés du milieu et du maillage.</p>
+<h2 id="2-foampilotconstant-definition-of-the-physical-medium">2. foampilot.constant: Definition of the Physical Medium</h2>
+<p>The <code>constant</code> submodule manages OpenFOAM's <code>constant</code> directory, which contains fluid and mesh properties.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM Concept</th>
+<th style="text-align: left;">Role in foampilot</th>
+<th style="text-align: left;">Theoretical Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Propriétés du Fluide</strong></td>
-<td style="text-align: left;"><strong>Classes <code>transportProperties</code>, <code>physicalProperties</code></strong></td>
-<td style="text-align: left;">Ces classes permettent de définir les propriétés essentielles du fluide (viscosité cinématique <span class="arithmatex">\(\nu\)</span>, densité <span class="arithmatex">\(\rho\)</span>, chaleur spécifique <span class="arithmatex">\(C_p\)</span>, etc.). Elles sont cruciales pour la fermeture des équations de Navier-Stokes et la modélisation des transferts.</td>
+<td style="text-align: left;"><strong>Fluid Properties</strong></td>
+<td style="text-align: left;"><strong><code>transportProperties</code>, <code>physicalProperties</code> Classes</strong></td>
+<td style="text-align: left;">Define essential fluid properties (kinematic viscosity <span class="arithmatex">\(\nu\)</span>, density <span class="arithmatex">\(\rho\)</span>, specific heat <span class="arithmatex">\(C_p\)</span>, etc.). These are crucial for closing the Navier-Stokes equations and modeling transport phenomena.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Modèle de Turbulence</strong></td>
-<td style="text-align: left;"><strong>Classe <code>turbulenceProperties</code></strong></td>
-<td style="text-align: left;">Gère la sélection et la configuration des modèles de turbulence (ex: <span class="arithmatex">\(k-\epsilon\)</span>, <span class="arithmatex">\(k-\omega\)</span> SST). Théoriquement, ces modèles ajoutent des équations de transport pour modéliser les effets de la turbulence sur l'écoulement, en fermant le système d'équations RANS (Reynolds-Averaged Navier-Stokes).</td>
+<td style="text-align: left;"><strong>Turbulence Model</strong></td>
+<td style="text-align: left;"><strong><code>turbulenceProperties</code> Class</strong></td>
+<td style="text-align: left;">Handles the selection and configuration of turbulence models (e.g., <span class="arithmatex">\(k-\epsilon\)</span>, <span class="arithmatex">\(k-\omega\)</span> SST). These models add transport equations to account for turbulent effects, closing the RANS (Reynolds-Averaged Navier-Stokes) system.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Gravité</strong></td>
-<td style="text-align: left;"><strong>Classe <code>gravityFile</code></strong></td>
-<td style="text-align: left;">Permet d'activer et de définir le vecteur de gravité <span class="arithmatex">\(\mathbf{g}\)</span>, essentiel pour les simulations de flottabilité (Boussinesq) ou les écoulements à surface libre.</td>
+<td style="text-align: left;"><strong>Gravity</strong></td>
+<td style="text-align: left;"><strong><code>gravityFile</code> Class</strong></td>
+<td style="text-align: left;">Allows activation and definition of the gravity vector <span class="arithmatex">\(\mathbf{g}\)</span>, essential for buoyancy (Boussinesq) or free-surface flow simulations.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="3-foampilotsystem-le-controle-numerique-et-temporel">3. foampilot.system : Le Contrôle Numérique et Temporel</h2>
-<p>Le sous-module <code>system</code> gère le répertoire <code>system</code> d'OpenFOAM, qui dicte la manière dont les équations sont discrétisées et résolues.</p>
+<h2 id="3-foampilotsystem-numerical-and-temporal-control">3. foampilot.system: Numerical and Temporal Control</h2>
+<p>The <code>system</code> submodule manages OpenFOAM's <code>system</code> directory, which dictates how equations are discretized and solved.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM Concept</th>
+<th style="text-align: left;">Role in foampilot</th>
+<th style="text-align: left;">Theoretical Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Contrôle de la Simulation</strong></td>
-<td style="text-align: left;"><strong>Classe <code>controlDictFile</code></strong></td>
-<td style="text-align: left;">Définit les paramètres temporels (pas de temps <span class="arithmatex">\(\Delta t\)</span>, temps de début/fin), les fréquences d'écriture des résultats, et les fonctions d'exécution (ex: <code>runTimeControl</code> pour l'arrêt automatique).</td>
+<td style="text-align: left;"><strong>Simulation Control</strong></td>
+<td style="text-align: left;"><strong><code>controlDictFile</code> Class</strong></td>
+<td style="text-align: left;">Defines temporal parameters (time step <span class="arithmatex">\(\Delta t\)</span>, start/end time), result writing frequencies, and execution functions (e.g., <code>runTimeControl</code> for automatic stop).</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Schémas Numériques</strong></td>
-<td style="text-align: left;"><strong>Classe <code>fvSchemesFile</code></strong></td>
-<td style="text-align: left;">Gère la discrétisation des termes de l'équation (dérivées temporelles, termes de convection, termes de diffusion). Le choix des schémas (ex: Euler pour le temps, <code>upwind</code> ou <code>Gauss linear</code> pour la convection) impacte directement la stabilité et la précision de la solution numérique.</td>
+<td style="text-align: left;"><strong>Numerical Schemes</strong></td>
+<td style="text-align: left;"><strong><code>fvSchemesFile</code> Class</strong></td>
+<td style="text-align: left;">Handles discretization of equation terms (time derivatives, convection, diffusion). The choice of schemes (e.g., Euler for time, <code>upwind</code> or <code>Gauss linear</code> for convection) directly affects numerical stability and accuracy.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Solveurs Algébriques</strong></td>
-<td style="text-align: left;"><strong>Classe <code>fvSolutionFile</code></strong></td>
-<td style="text-align: left;">Configure les solveurs matriciels utilisés pour résoudre les systèmes d'équations linéaires résultant de la discrétisation (ex: <code>PCG</code> pour la pression, <code>BiCGStab</code> pour la vitesse). Il définit également les critères de convergence (tolérance) et les stratégies de sous-relaxation.</td>
+<td style="text-align: left;"><strong>Algebraic Solvers</strong></td>
+<td style="text-align: left;"><strong><code>fvSolutionFile</code> Class</strong></td>
+<td style="text-align: left;">Configures matrix solvers for linear systems resulting from discretization (e.g., <code>PCG</code> for pressure, <code>BiCGStab</code> for velocity). It also defines convergence criteria (tolerance) and under-relaxation strategies.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="4-foampilotmesh-le-maillage">4. foampilot.mesh : Le maillage</h2>
-<p>Le sous-module <code>mesh</code> est responsable de la création du maillage, la discrétisation spatiale du domaine de calcul.</p>
+<h2 id="4-foampilotmesh-mesh-generation">4. foampilot.mesh: Mesh Generation</h2>
+<p>The <code>mesh</code> submodule is responsible for mesh creation, i.e., spatial discretization of the computational domain.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM Concept</th>
+<th style="text-align: left;">Role in foampilot</th>
+<th style="text-align: left;">Theoretical Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Maillage Structuré</strong></td>
-<td style="text-align: left;"><strong>Classe <code>BlockMeshFile</code></strong></td>
-<td style="text-align: left;">Abstraction de l'utilitaire <code>blockMesh</code> d'OpenFOAM. Il permet de définir la géométrie du domaine par blocs hexaédriques, une méthode efficace pour les géométries simples ou paramétrables.</td>
+<td style="text-align: left;"><strong>Structured Mesh</strong></td>
+<td style="text-align: left;"><strong><code>BlockMeshFile</code> Class</strong></td>
+<td style="text-align: left;">Abstracts OpenFOAM's <code>blockMesh</code> utility. Allows defining the domain geometry using hexahedral blocks, an efficient method for simple or parameterized geometries.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Maillage Non-Structuré</strong></td>
-<td style="text-align: left;"><strong>Classes <code>gmsh_mesher</code>, <code>snappymesh</code></strong></td>
-<td style="text-align: left;">Ces classes gèrent l'intégration avec des outils de maillage plus avancés (<code>Gmsh</code>, <code>snappyHexMesh</code>) pour les géométries complexes importées (ex: fichiers STL). Elles préparent les fichiers de configuration nécessaires à ces utilitaires.</td>
+<td style="text-align: left;"><strong>Unstructured Mesh</strong></td>
+<td style="text-align: left;"><strong><code>gmsh_mesher</code>, <code>snappymesh</code> Classes</strong></td>
+<td style="text-align: left;">Handle integration with advanced meshing tools (<code>Gmsh</code>, <code>snappyHexMesh</code>) for complex geometries (e.g., STL files). They generate the necessary configuration files for these utilities.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="5-foampilotboundaries-les-conditions-aux-limites-physiques">5. foampilot.boundaries : Les Conditions aux Limites Physiques</h2>
-<p>Le sous-module <code>boundaries</code> est essentiel pour définir l'interaction du fluide avec son environnement.</p>
+<h2 id="5-foampilotboundaries-physical-boundary-conditions">5. foampilot.boundaries: Physical Boundary Conditions</h2>
+<p>The <code>boundaries</code> submodule is crucial to define the interaction of the fluid with its environment.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Concept OpenFOAM</th>
-<th style="text-align: left;">Rôle dans foampilot</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">OpenFOAM Concept</th>
+<th style="text-align: left;">Role in foampilot</th>
+<th style="text-align: left;">Theoretical Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Conditions aux Limites</strong></td>
-<td style="text-align: left;"><strong>Classe <code>Boundary</code></strong></td>
-<td style="text-align: left;">Gère la définition des conditions aux limites pour chaque champ physique (<span class="arithmatex">\(\mathbf{U}\)</span>, <span class="arithmatex">\(p\)</span>, <span class="arithmatex">\(k\)</span>, <span class="arithmatex">\(\epsilon\)</span>, etc.) sur les patchs du maillage. Théoriquement, ces conditions sont nécessaires pour fournir les informations manquantes aux frontières du domaine, permettant la résolution unique des équations aux dérivées partielles.</td>
+<td style="text-align: left;"><strong>Boundary Conditions</strong></td>
+<td style="text-align: left;"><strong><code>Boundary</code> Class</strong></td>
+<td style="text-align: left;">Manages boundary conditions for each physical field (<span class="arithmatex">\(\mathbf{U}\)</span>, <span class="arithmatex">\(p\)</span>, <span class="arithmatex">\(k\)</span>, <span class="arithmatex">\(\epsilon\)</span>, etc.) on mesh patches. Theoretically, these are necessary to provide missing information at domain boundaries, ensuring unique PDE solutions.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Types de Conditions</strong></td>
-<td style="text-align: left;"><strong>Méthodes de <code>Boundary</code></strong></td>
-<td style="text-align: left;">Offre des méthodes spécifiques pour les conditions physiques courantes : <code>set_velocity_inlet</code> (Dirichlet pour la vitesse), <code>set_pressure_outlet</code> (Neumann pour la pression), <code>set_wall</code> (non-glissement ou glissement), etc.</td>
+<td style="text-align: left;"><strong>Condition Types</strong></td>
+<td style="text-align: left;"><strong><code>Boundary</code> Methods</strong></td>
+<td style="text-align: left;">Provides methods for common physical conditions: <code>set_velocity_inlet</code> (Dirichlet for velocity), <code>set_pressure_outlet</code> (Neumann for pressure), <code>set_wall</code> (no-slip or slip), etc.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Fonctions de Paroi</strong></td>
-<td style="text-align: left;"><strong>Intégration automatique</strong></td>
-<td style="text-align: left;">La classe <code>Boundary</code> intègre la logique pour appliquer les fonctions de paroi (Wall Functions) appropriées pour les modèles de turbulence, permettant de modéliser la couche limite sans nécessiter un maillage extrêmement fin près des parois.</td>
+<td style="text-align: left;"><strong>Wall Functions</strong></td>
+<td style="text-align: left;"><strong>Automatic Integration</strong></td>
+<td style="text-align: left;">Integrates appropriate wall functions for turbulence models, allowing boundary layer modeling without an extremely fine mesh near walls.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="6-foampilotpostprocess-et-foampilotreport-lanalyse-des-resultats">6. foampilot.postprocess et foampilot.report : L'Analyse des Résultats</h2>
-<p>Ces sous-modules gèrent la phase finale de la simulation : l'extraction, l'analyse et la présentation des données.</p>
+<h2 id="6-foampilotpostprocess-and-foampilotreport-result-analysis">6. foampilot.postprocess and foampilot.report: Result Analysis</h2>
+<p>These submodules manage the post-simulation phase: data extraction, analysis, and presentation.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Sous-module</th>
-<th style="text-align: left;">Rôle Conceptuel</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">Submodule</th>
+<th style="text-align: left;">Conceptual Role</th>
+<th style="text-align: left;">Theoretical Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><strong><code>postprocess</code></strong></td>
-<td style="text-align: left;"><strong>Visualisation et Analyse</strong></td>
-<td style="text-align: left;">Utilise des bibliothèques comme <strong>PyVista</strong> pour charger les résultats OpenFOAM (fichiers VTK) et effectuer des opérations de post-traitement courantes (tranches, contours, vecteurs, lignes de courant). Il permet de visualiser les champs physiques et d'extraire des quantités dérivées (ex: critère Q, vorticité).</td>
+<td style="text-align: left;"><strong>Visualization and Analysis</strong></td>
+<td style="text-align: left;">Uses libraries like <strong>PyVista</strong> to load OpenFOAM results (VTK files) and perform standard post-processing operations (slices, contours, vectors, streamlines). Allows visualization of physical fields and derived quantities (e.g., Q criterion, vorticity).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong><code>report</code></strong></td>
-<td style="text-align: left;"><strong>Génération de Rapports</strong></td>
-<td style="text-align: left;">Automatise la création de rapports de simulation structurés (ex: PDF). Il agrège les données clés (paramètres d'entrée, résidus de convergence, images de post-traitement) pour garantir la traçabilité et la reproductibilité des résultats.</td>
+<td style="text-align: left;"><strong>Report Generation</strong></td>
+<td style="text-align: left;">Automates creation of structured simulation reports (e.g., PDF). Aggregates key data (input parameters, convergence residuals, post-processing images) for traceability and reproducibility.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="7-foampilotutilities-et-foampilotcommons-les-outils-transversaux">7. foampilot.utilities et foampilot.commons : Les Outils Transversaux</h2>
-<p>Ces modules fournissent des fonctionnalités de support essentielles à l'ensemble du framework.</p>
+<h2 id="7-foampilotutilities-and-foampilotcommons-cross-cutting-tools">7. foampilot.utilities and foampilot.commons: Cross-Cutting Tools</h2>
+<p>These modules provide essential supporting functionality for the entire framework.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Sous-module</th>
-<th style="text-align: left;">Rôle Conceptuel</th>
-<th style="text-align: left;">Description Théorique</th>
+<th style="text-align: left;">Submodule</th>
+<th style="text-align: left;">Conceptual Role</th>
+<th style="text-align: left;">Theoretical Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><strong><code>utilities.manageunits</code></strong></td>
-<td style="text-align: left;"><strong>Gestion des Unités</strong></td>
-<td style="text-align: left;">Utilise la classe <code>Quantity</code> pour garantir la cohérence dimensionnelle des entrées. C'est une pratique essentielle en physique et en ingénierie pour éviter les erreurs de conversion et rendre le code indépendant du système d'unités utilisé (SI, impérial, etc.).</td>
+<td style="text-align: left;"><strong>Unit Management</strong></td>
+<td style="text-align: left;">Uses the <code>Quantity</code> class to ensure dimensional consistency of inputs. This practice is essential in physics and engineering to avoid conversion errors and make the code unit-system independent (SI, Imperial, etc.).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong><code>utilities.dictonnary</code></strong></td>
-<td style="text-align: left;"><strong>Manipulation des Dictionnaires OpenFOAM</strong></td>
-<td style="text-align: left;">Fournit des outils pour créer et manipuler des structures de données complexes qui correspondent aux fichiers de dictionnaire OpenFOAM (ex: <code>topoSetDict</code>, <code>createPatchDict</code>).</td>
+<td style="text-align: left;"><strong>OpenFOAM Dictionary Handling</strong></td>
+<td style="text-align: left;">Provides tools to create and manipulate complex data structures corresponding to OpenFOAM dictionary files (e.g., <code>topoSetDict</code>, <code>createPatchDict</code>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong><code>commons</code></strong></td>
-<td style="text-align: left;"><strong>Utilitaires Génériques</strong></td>
-<td style="text-align: left;">Contient des fonctions pour la sérialisation des classes, la lecture des fichiers de maillage (<code>polyMesh/boundary</code>), et d'autres opérations de bas niveau nécessaires à l'interfaçage avec le format de fichier OpenFOAM.</td>
+<td style="text-align: left;"><strong>Generic Utilities</strong></td>
+<td style="text-align: left;">Contains functions for class serialization, reading mesh files (<code>polyMesh/boundary</code>), and other low-level operations necessary to interface with OpenFOAM file formats.</td>
 </tr>
 </tbody>
 </table>
-<p>Ce document fournit une vue d'ensemble de la manière dont <code>foampilot</code> structure et gère les concepts fondamentaux de la simulation OpenFOAM, en les traduisant en une architecture Python modulaire et intuitive.</p>
+<p>This document provides an overview of how <code>foampilot</code> structures and manages fundamental OpenFOAM simulation concepts, translating them into a modular and intuitive Python architecture.</p>
 
 
 

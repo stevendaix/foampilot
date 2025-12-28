@@ -1,9 +1,10 @@
+<!-- Logo -->
+![FoamPilot Logo](foampilot/images/logo.png)
+
 # foampilot 🚀
 
 🌍 **Languages:**  
 [English](README.md) | [Français](README.fr.md) | [中文](README.zh.md)
-
-# foampilot 🚀
 
 **foampilot** is a Python platform designed to *fully orchestrate OpenFOAM simulations*  
 using Python as the single source of truth — from case definition and meshing to execution,
@@ -84,7 +85,7 @@ OpenFOAM installation and system setup are documented separately.
 
 📘 Full documentation, including installation guides and detailed usage:
 
-**https://<your-username>.github.io/foampilot/**
+**https://stevendaix.github.io/foampilot/**
 
 The documentation includes:
 - OpenFOAM & WSL installation guides
