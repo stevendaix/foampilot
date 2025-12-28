@@ -1,0 +1,5 @@
+# Ignorer tout
+*
+!*.py
+!*.stl
+!.gitignore

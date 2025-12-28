@@ -13,19 +13,11 @@
 !cas_test/
 !test_*.py
 !temp**
+!examples/**
 # === Ignore les dossiers de build / metadata ===
 *.egg-info/
 __pycache__/
 
 
-# === Ignore les dossiers spécifiques à ton projet ===
-old/
-test/
-ref/
-document/
-tuto/
-exemple*/
-notebook*/
-*.ipynb
 
-*.step
+*.txt

@@ -1,0 +1,8 @@
+# === Ignore tout par défaut ===
+*
+
+# === Réautorise la navigation dans les dossiers ===
+!*
+
+
+!building**/
