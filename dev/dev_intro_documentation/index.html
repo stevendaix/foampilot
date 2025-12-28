@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#documentation-de-prise-en-main-pour-developpeurs-module-foampilot" class="md-skip">
+        <a href="#developer-quickstart-documentation-foampilot-module" class="md-skip">
           Skip to content
         </a>
       
@@ -806,22 +806,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-concepts-cles-et-architecture" class="md-nav__link">
+  <a href="#2-key-concepts-and-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Concepts Clés et Architecture
+        2. Key Concepts and Architecture
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Concepts Clés et Architecture">
+    <nav class="md-nav" aria-label="2. Key Concepts and Architecture">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#la-classe-centrale-solver" class="md-nav__link">
+  <a href="#central-class-solver" class="md-nav__link">
     <span class="md-ellipsis">
       
-        La Classe Centrale : Solver
+        Central Class: Solver
       
     </span>
   </a>
@@ -834,10 +834,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-structure-detaillee-du-code" class="md-nav__link">
+  <a href="#3-detailed-code-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Structure Détaillée du Code
+        3. Detailed Code Structure
       
     </span>
   </a>
@@ -845,22 +845,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-mecanismes-internes-pour-les-developpeurs" class="md-nav__link">
+  <a href="#4-internal-mechanisms-for-developers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Mécanismes Internes pour les Développeurs
+        4. Internal Mechanisms for Developers
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4. Mécanismes Internes pour les Développeurs">
+    <nav class="md-nav" aria-label="4. Internal Mechanisms for Developers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#41-le-mecanisme-decriture-des-fichiers-openfoamfile" class="md-nav__link">
+  <a href="#41-file-writing-mechanism-openfoamfile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.1. Le Mécanisme d'Écriture des Fichiers (OpenFOAMFile)
+        4.1. File Writing Mechanism (OpenFOAMFile)
       
     </span>
   </a>
@@ -868,10 +868,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#42-gestion-des-unites-et-des-dimensions-quantity" class="md-nav__link">
+  <a href="#42-unit-and-dimension-management-quantity" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.2. Gestion des Unités et des Dimensions (Quantity)
+        4.2. Unit and Dimension Management (Quantity)
       
     </span>
   </a>
@@ -879,10 +879,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#43-orchestration-du-solveur-et-des-champs-solver-et-casefieldsmanager" class="md-nav__link">
+  <a href="#43-solver-and-field-orchestration-solver-and-casefieldsmanager" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.3. Orchestration du Solveur et des Champs (Solver et CaseFieldsManager)
+        4.3. Solver and Field Orchestration (Solver and CaseFieldsManager)
       
     </span>
   </a>
@@ -890,10 +890,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#44-gestion-avancee-des-conditions-aux-limites-boundary" class="md-nav__link">
+  <a href="#44-advanced-boundary-condition-management-boundary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.4. Gestion Avancée des Conditions aux Limites (Boundary)
+        4.4. Advanced Boundary Condition Management (Boundary)
       
     </span>
   </a>
@@ -906,10 +906,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-flux-de-travail-du-developpeur-base-sur-run_exemple2py" class="md-nav__link">
+  <a href="#5-developer-workflow-based-on-mufflerpy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Flux de Travail du Développeur (Basé sur run_exemple2.py)
+        5. Developer Workflow (Based on muffler.py)
       
     </span>
   </a>
@@ -1151,157 +1151,157 @@
   
 
 
-<h1 id="documentation-de-prise-en-main-pour-developpeurs-module-foampilot">Documentation de Prise en Main pour Développeurs : Module <code>foampilot</code></h1>
+<h1 id="developer-quickstart-documentation-foampilot-module">Developer Quickstart Documentation: <code>foampilot</code> Module</h1>
 <h2 id="1-introduction">1. Introduction</h2>
-<p>Le module <code>foampilot</code> est conçu pour simplifier et automatiser la création, la configuration, l'exécution et le post-traitement des cas de simulation basés sur <strong>OpenFOAM</strong>. Il offre une interface orientée objet en Python pour gérer les fichiers de configuration complexes d'OpenFOAM, permettant aux développeurs de se concentrer sur la physique et la géométrie du problème plutôt que sur la syntaxe des dictionnaires.</p>
-<p>Cette documentation a pour but de fournir une vue d'ensemble détaillée de la structure du code pour faciliter la compréhension et la contribution au projet.</p>
-<h2 id="2-concepts-cles-et-architecture">2. Concepts Clés et Architecture</h2>
-<p>L'architecture de <code>foampilot</code> est étroitement calquée sur la structure d'un cas OpenFOAM standard, qui est divisé en trois répertoires principaux : <code>constant</code>, <code>system</code>, et le répertoire du temps initial (<code>0</code>).</p>
-<h3 id="la-classe-centrale-solver">La Classe Centrale : <code>Solver</code></h3>
-<p>La classe <code>Solver</code> (<code>foampilot.solver.Solver</code>) est l'orchestrateur central du module. Elle encapsule l'ensemble du cas de simulation et fournit des points d'accès aux configurations des répertoires <code>constant</code> et <code>system</code>, ainsi qu'à la gestion des conditions aux limites.</p>
-<p>Lors de l'initialisation, une instance de <code>Solver</code> crée automatiquement les objets nécessaires pour gérer les fichiers de configuration :</p>
+<p>The <code>foampilot</code> module is designed to simplify and automate the creation, configuration, execution, and post-processing of simulation cases based on <strong>OpenFOAM</strong>. It provides an object-oriented Python interface to manage complex OpenFOAM configuration files, allowing developers to focus on the physics and geometry of the problem rather than dictionary syntax.</p>
+<p>This documentation aims to give a detailed overview of the code structure to facilitate understanding and contribution to the project.</p>
+<h2 id="2-key-concepts-and-architecture">2. Key Concepts and Architecture</h2>
+<p>The architecture of <code>foampilot</code> closely mirrors the structure of a standard OpenFOAM case, which is divided into three main directories: <code>constant</code>, <code>system</code>, and the initial time directory (<code>0</code>).</p>
+<h3 id="central-class-solver">Central Class: <code>Solver</code></h3>
+<p>The <code>Solver</code> class (<code>foampilot.solver.Solver</code>) is the central orchestrator of the module. It encapsulates the entire simulation case and provides access points to the <code>constant</code> and <code>system</code> directories, as well as boundary condition management.</p>
+<p>Upon initialization, a <code>Solver</code> instance automatically creates objects needed to manage configuration files:</p>
 <ul>
-<li><code>solver.constant</code> : Une instance de <code>ConstantDirectory</code> pour gérer les fichiers du répertoire <code>constant</code>.</li>
-<li><code>solver.system</code> : Une instance de <code>SystemDirectory</code> pour gérer les fichiers du répertoire <code>system</code>.</li>
-<li><code>solver.boundary</code> : Une instance de <code>Boundary</code> pour gérer les conditions aux limites.</li>
+<li><code>solver.constant</code>: An instance of <code>ConstantDirectory</code> to manage files in the <code>constant</code> directory.</li>
+<li><code>solver.system</code>: An instance of <code>SystemDirectory</code> to manage files in the <code>system</code> directory.</li>
+<li><code>solver.boundary</code>: An instance of <code>Boundary</code> to manage boundary conditions.</li>
 </ul>
-<h2 id="3-structure-detaillee-du-code">3. Structure Détaillée du Code</h2>
-<p>Le cœur de la logique de <code>foampilot</code> se trouve dans le répertoire <code>foampilot/foampilot/src/foampilot</code>. Ce répertoire est organisé en sous-modules logiques, chacun responsable d'un aspect spécifique de la gestion des cas OpenFOAM.</p>
+<h2 id="3-detailed-code-structure">3. Detailed Code Structure</h2>
+<p>The core logic of <code>foampilot</code> is located in the <code>foampilot/foampilot/src/foampilot</code> directory. This directory is organized into logical submodules, each responsible for a specific aspect of OpenFOAM case management.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Répertoire Source</th>
+<th style="text-align: left;">Source Directory</th>
 <th style="text-align: left;">Description</th>
-<th style="text-align: left;">Classes Clés (Exemples)</th>
+<th style="text-align: left;">Key Classes (Examples)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><code>base</code></td>
-<td style="text-align: left;">Classes de base et utilitaires pour la manipulation des fichiers OpenFOAM.</td>
+<td style="text-align: left;">Base classes and utilities for OpenFOAM file handling.</td>
 <td style="text-align: left;"><code>Meshing</code>, <code>OpenFOAMFile</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>solver</code></td>
-<td style="text-align: left;">Contient la classe principale <code>Solver</code> et la logique d'exécution de la simulation.</td>
+<td style="text-align: left;">Contains the main <code>Solver</code> class and simulation execution logic.</td>
 <td style="text-align: left;"><code>Solver</code>, <code>BaseSolver</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>constant</code></td>
-<td style="text-align: left;">Gestion des fichiers de configuration dans le répertoire <code>constant</code>.</td>
+<td style="text-align: left;">Manages configuration files in the <code>constant</code> directory.</td>
 <td style="text-align: left;"><code>ConstantDirectory</code>, <code>transportPropertiesFile</code>, <code>turbulencePropertiesFile</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>system</code></td>
-<td style="text-align: left;">Gestion des fichiers de configuration dans le répertoire <code>system</code>.</td>
+<td style="text-align: left;">Manages configuration files in the <code>system</code> directory.</td>
 <td style="text-align: left;"><code>SystemDirectory</code>, <code>controlDictFile</code>, <code>fvSchemesFile</code>, <code>fvSolutionFile</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>boundaries</code></td>
-<td style="text-align: left;">Définition et application des conditions aux limites.</td>
+<td style="text-align: left;">Defines and applies boundary conditions.</td>
 <td style="text-align: left;"><code>Boundary</code>, <code>boundaries_conditions_config</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>mesh</code></td>
-<td style="text-align: left;">Outils de maillage, y compris l'intégration avec <code>classy_blocks</code> et <code>snappyHexMesh</code>.</td>
+<td style="text-align: left;">Mesh tools, including integration with <code>classy_blocks</code> and <code>snappyHexMesh</code>.</td>
 <td style="text-align: left;"><code>BlockMeshFile</code>, <code>Meshing</code>, <code>gmsh_mesher</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>utilities</code></td>
-<td style="text-align: left;">Fonctions et classes utilitaires non spécifiques à OpenFOAM (unités, propriétés des fluides, etc.).</td>
+<td style="text-align: left;">Utility functions and classes not specific to OpenFOAM (units, fluid properties, etc.).</td>
 <td style="text-align: left;"><code>Quantity</code>, <code>FluidMechanics</code>, <code>manageunits</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>postprocess</code></td>
-<td style="text-align: left;">Classes pour l'analyse des résultats, la visualisation (via <code>pyvista</code>) et l'extraction de données.</td>
+<td style="text-align: left;">Classes for result analysis, visualization (via <code>pyvista</code>), and data extraction.</td>
 <td style="text-align: left;"><code>FoamPostProcessing</code>, <code>ResidualsPost</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="4-mecanismes-internes-pour-les-developpeurs">4. Mécanismes Internes pour les Développeurs</h2>
-<p>Pour une contribution efficace, il est crucial de comprendre comment <code>foampilot</code> traduit les objets Python en fichiers OpenFOAM et gère la complexité des configurations.</p>
-<h3 id="41-le-mecanisme-decriture-des-fichiers-openfoamfile">4.1. Le Mécanisme d'Écriture des Fichiers (<code>OpenFOAMFile</code>)</h3>
-<p>Le cœur de la sérialisation des données réside dans la classe de base <code>OpenFOAMFile</code> (<code>foampilot/foampilot/src/foampilot/base/openFOAMFile.py</code>).</p>
+<h2 id="4-internal-mechanisms-for-developers">4. Internal Mechanisms for Developers</h2>
+<p>For effective contribution, it is essential to understand how <code>foampilot</code> translates Python objects into OpenFOAM files and manages complex configurations.</p>
+<h3 id="41-file-writing-mechanism-openfoamfile">4.1. File Writing Mechanism (<code>OpenFOAMFile</code>)</h3>
+<p>The core of data serialization lies in the base class <code>OpenFOAMFile</code> (<code>foampilot/foampilot/src/foampilot/base/openFOAMFile.py</code>).</p>
 <ul>
-<li><strong>Héritage et Attributs :</strong> Chaque fichier de configuration OpenFOAM (comme <code>transportPropertiesFile</code> ou <code>controlDictFile</code>) hérite de <code>OpenFOAMFile</code>. Les paramètres de configuration sont stockés dans l'attribut <code>self.attributes</code> de l'instance.</li>
-<li><strong>Accès Dynamique :</strong> La surcharge des méthodes magiques <code>__getattr__</code> et <code>__setattr__</code> permet d'accéder et de modifier les paramètres directement comme des attributs de l'objet (ex: <code>solver.constant.transportProperties.nu = ...</code>), même si ces paramètres sont stockés dans le dictionnaire <code>self.attributes</code>.</li>
-<li><strong>Sérialisation (<code>write_file</code>) :</strong> La méthode <code>write_file</code> parcourt récursivement le dictionnaire <code>self.attributes</code> et utilise la méthode interne <code>_format_value</code> pour convertir les types de données Python (booléens, nombres, tuples, et surtout <code>Quantity</code>) en la syntaxe spécifique d'OpenFOAM (ex: <code>true</code>/<code>false</code>, listes entre parenthèses).</li>
+<li><strong>Inheritance and Attributes:</strong> Each OpenFOAM configuration file (e.g., <code>transportPropertiesFile</code> or <code>controlDictFile</code>) inherits from <code>OpenFOAMFile</code>. Configuration parameters are stored in the instance attribute <code>self.attributes</code>.</li>
+<li><strong>Dynamic Access:</strong> Overriding magic methods <code>__getattr__</code> and <code>__setattr__</code> allows direct access and modification of parameters as object attributes (e.g., <code>solver.constant.transportProperties.nu = ...</code>), even if they are stored in the <code>self.attributes</code> dictionary.</li>
+<li><strong>Serialization (<code>write_file</code>):</strong> The <code>write_file</code> method recursively iterates over <code>self.attributes</code> and uses the internal <code>_format_value</code> method to convert Python data types (booleans, numbers, tuples, especially <code>Quantity</code>) into OpenFOAM-specific syntax (e.g., <code>true</code>/<code>false</code>, parenthesis-enclosed lists).</li>
 </ul>
-<h3 id="42-gestion-des-unites-et-des-dimensions-quantity">4.2. Gestion des Unités et des Dimensions (<code>Quantity</code>)</h3>
-<p>La classe <code>Quantity</code> (<code>foampilot/foampilot/src/foampilot/utilities/manageunits.py</code>) est un <em>wrapper</em> autour de la librairie <code>pint</code> et est essentielle pour assurer la cohérence physique.</p>
+<h3 id="42-unit-and-dimension-management-quantity">4.2. Unit and Dimension Management (<code>Quantity</code>)</h3>
+<p>The <code>Quantity</code> class (<code>foampilot/foampilot/src/foampilot/utilities/manageunits.py</code>) is a <em>wrapper</em> around the <code>pint</code> library and ensures physical consistency.</p>
 <ul>
-<li><strong>Rôle :</strong> Elle stocke une valeur numérique avec son unité physique (ex: <code>Quantity(10, "m/s")</code>).</li>
-<li><strong>Conversion Automatique :</strong> Lors de l'écriture dans un fichier OpenFOAM, la méthode <code>_format_value</code> de <code>OpenFOAMFile</code> vérifie si la valeur est une instance de <code>Quantity</code>. Si c'est le cas, elle utilise la méthode <code>get_in(target_unit)</code> pour convertir la valeur dans l'unité attendue par OpenFOAM (définie dans <code>OpenFOAMFile.DEFAULT_UNITS</code>), garantissant que toutes les valeurs écrites sont dans le système d'unités de base d'OpenFOAM.</li>
-<li><strong>Dimensions OpenFOAM :</strong> La méthode <code>to_openfoam_dimensions()</code> utilise les capacités de <code>pint</code> pour dériver le vecteur de dimensions OpenFOAM (M, L, T, Θ, N, J, A) à partir de l'unité, ce qui est crucial pour la génération des en-têtes de fichiers de champs (ex: <code>U</code>, <code>p</code>).</li>
+<li><strong>Purpose:</strong> Stores a numerical value with its physical unit (e.g., <code>Quantity(10, "m/s")</code>).</li>
+<li><strong>Automatic Conversion:</strong> When writing to an OpenFOAM file, <code>OpenFOAMFile._format_value</code> checks if the value is a <code>Quantity</code>. If so, it uses <code>get_in(target_unit)</code> to convert the value to the unit expected by OpenFOAM (defined in <code>OpenFOAMFile.DEFAULT_UNITS</code>), ensuring all written values are in OpenFOAM’s base units.</li>
+<li><strong>OpenFOAM Dimensions:</strong> The <code>to_openfoam_dimensions()</code> method uses <code>pint</code> to derive OpenFOAM’s dimension vector (M, L, T, Θ, N, J, A) from the unit, which is crucial for generating field file headers (e.g., <code>U</code>, <code>p</code>).</li>
 </ul>
-<h3 id="43-orchestration-du-solveur-et-des-champs-solver-et-casefieldsmanager">4.3. Orchestration du Solveur et des Champs (<code>Solver</code> et <code>CaseFieldsManager</code>)</h3>
-<p>La classe <code>Solver</code> délègue la gestion des champs à la classe <code>CaseFieldsManager</code> (<code>foampilot/foampilot/src/foampilot/base/cases_variables.py</code>).</p>
+<h3 id="43-solver-and-field-orchestration-solver-and-casefieldsmanager">4.3. Solver and Field Orchestration (<code>Solver</code> and <code>CaseFieldsManager</code>)</h3>
+<p>The <code>Solver</code> class delegates field management to the <code>CaseFieldsManager</code> class (<code>foampilot/foampilot/src/foampilot/base/cases_variables.py</code>).</p>
 <ul>
-<li><strong>Sélection du Solveur :</strong> La classe <code>Solver</code> (<code>foampilot/foampilot/src/foampilot/solver/solver.py</code>) utilise des propriétés booléennes (ex: <code>self.compressible</code>, <code>self.with_gravity</code>, <code>self.is_vof</code>) pour déterminer le type de simulation. La méthode interne <code>_update_solver()</code> sélectionne le solveur OpenFOAM approprié (ex: <code>incompressibleFluid</code>, <code>compressibleVoF</code>) et met à jour l'instance de <code>BaseSolver</code>.</li>
-<li><strong>Gestion des Champs :</strong> <code>CaseFieldsManager</code> utilise ces mêmes propriétés pour générer dynamiquement la liste des champs physiques nécessaires (ex: <code>U</code>, <code>p</code>, <code>k</code>, <code>epsilon</code>, <code>T</code>).<ul>
-<li>Si <code>self.with_gravity</code> est vrai, le champ de pression devient <code>p_rgh</code>.</li>
-<li>Si un modèle de turbulence est défini, les champs associés (<code>k</code>, <code>epsilon</code>, <code>omega</code>, <code>nut</code>) sont ajoutés.</li>
-<li>Cette liste de champs est ensuite utilisée par la classe <code>Boundary</code> pour initialiser les conditions aux limites pour <em>tous</em> les champs requis.</li>
+<li><strong>Solver Selection:</strong> <code>Solver</code> (<code>foampilot/foampilot/src/foampilot/solver/solver.py</code>) uses boolean properties (e.g., <code>self.compressible</code>, <code>self.with_gravity</code>, <code>self.is_vof</code>) to determine the simulation type. The internal <code>_update_solver()</code> method selects the appropriate OpenFOAM solver (e.g., <code>incompressibleFluid</code>, <code>compressibleVoF</code>) and updates the <code>BaseSolver</code> instance.</li>
+<li><strong>Field Management:</strong> <code>CaseFieldsManager</code> uses these properties to dynamically generate the list of required physical fields (e.g., <code>U</code>, <code>p</code>, <code>k</code>, <code>epsilon</code>, <code>T</code>).<ul>
+<li>If <code>self.with_gravity</code> is true, the pressure field becomes <code>p_rgh</code>.</li>
+<li>If a turbulence model is defined, associated fields (<code>k</code>, <code>epsilon</code>, <code>omega</code>, <code>nut</code>) are added.</li>
+<li>This field list is then used by <code>Boundary</code> to initialize boundary conditions for <em>all</em> required fields.</li>
 </ul>
 </li>
 </ul>
-<h3 id="44-gestion-avancee-des-conditions-aux-limites-boundary">4.4. Gestion Avancée des Conditions aux Limites (<code>Boundary</code>)</h3>
-<p>La classe <code>Boundary</code> (<code>foampilot/foampilot/src/foampilot/boundaries/boundaries_dict.py</code>) est responsable de la traduction des conditions physiques en configurations OpenFOAM.</p>
+<h3 id="44-advanced-boundary-condition-management-boundary">4.4. Advanced Boundary Condition Management (<code>Boundary</code>)</h3>
+<p>The <code>Boundary</code> class (<code>foampilot/foampilot/src/foampilot/boundaries/boundaries_dict.py</code>) translates physical boundary conditions into OpenFOAM configurations.</p>
 <ul>
-<li><strong>Configuration Centralisée :</strong> Elle utilise un dictionnaire de configuration (<code>BOUNDARY_CONDITIONS_CONFIG</code>) qui mappe les types de conditions physiques (ex: <code>"velocityInlet"</code>) aux configurations OpenFOAM requises pour chaque champ (U, p, k, etc.), en fonction du modèle de turbulence sélectionné.</li>
-<li><strong>Application par <em>Wildcard</em> :</strong> La méthode <code>apply_condition_with_wildcard(pattern, condition_type, **kwargs)</code> permet d'appliquer une condition à tous les patchs dont le nom correspond à une expression régulière (<code>pattern</code>).</li>
-<li><strong>Résolution des Conditions :</strong> Pour chaque champ, la méthode <code>_resolve_field_config</code> détermine la configuration OpenFOAM finale. Par exemple, pour une condition de paroi (<code>wall</code>), elle choisit entre <code>noSlip</code> ou <code>slip</code> en fonction des arguments fournis, et applique les fonctions de paroi (<code>wallFunction</code>) appropriées pour les champs de turbulence (k, epsilon, etc.) en utilisant le dictionnaire <code>WALL_FUNCTIONS</code>.</li>
-<li><strong>Génération des Fichiers :</strong> La méthode <code>write_boundary_conditions()</code> itère sur tous les champs gérés par <code>CaseFieldsManager</code> et utilise <code>OpenFOAMFile.write_boundary_file</code> pour générer les fichiers de conditions aux limites dans le répertoire <code>0/</code>.</li>
+<li><strong>Centralized Configuration:</strong> Uses a configuration dictionary (<code>BOUNDARY_CONDITIONS_CONFIG</code>) mapping physical condition types (e.g., <code>"velocityInlet"</code>) to required OpenFOAM configurations for each field (U, p, k, etc.) based on the selected turbulence model.</li>
+<li><strong>Wildcard Application:</strong> <code>apply_condition_with_wildcard(pattern, condition_type, **kwargs)</code> applies a condition to all patches matching a regular expression (<code>pattern</code>).</li>
+<li><strong>Condition Resolution:</strong> For each field, <code>_resolve_field_config</code> determines the final OpenFOAM configuration. For example, a wall condition selects between <code>noSlip</code> or <code>slip</code> and applies appropriate wall functions (<code>wallFunction</code>) for turbulence fields using the <code>WALL_FUNCTIONS</code> dictionary.</li>
+<li><strong>File Generation:</strong> <code>write_boundary_conditions()</code> iterates over all fields managed by <code>CaseFieldsManager</code> and uses <code>OpenFOAMFile.write_boundary_file</code> to generate boundary condition files in the <code>0/</code> directory.</li>
 </ul>
-<h2 id="5-flux-de-travail-du-developpeur-base-sur-run_exemple2py">5. Flux de Travail du Développeur (Basé sur <code>run_exemple2.py</code>)</h2>
-<p>L'exemple d'utilisation illustre le flux de travail typique pour un développeur utilisant <code>foampilot</code> :</p>
+<h2 id="5-developer-workflow-based-on-mufflerpy">5. Developer Workflow (Based on <code>muffler.py</code>)</h2>
+<p>This usage example illustrates a typical workflow for a developer using <code>foampilot</code>:</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Étape</th>
+<th style="text-align: left;">Step</th>
 <th style="text-align: left;">Description</th>
-<th style="text-align: left;">Classes et Méthodes Clés</th>
+<th style="text-align: left;">Key Classes and Methods</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>1. Initialisation</strong></td>
-<td style="text-align: left;">Définir le répertoire de travail et initialiser le solveur.</td>
+<td style="text-align: left;"><strong>1. Initialization</strong></td>
+<td style="text-align: left;">Set working directory and initialize solver.</td>
 <td style="text-align: left;"><code>Solver(path)</code>, <code>FluidMechanics</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>2. Configuration Physique</strong></td>
-<td style="text-align: left;">Déterminer les propriétés du fluide et les appliquer aux fichiers de configuration.</td>
+<td style="text-align: left;"><strong>2. Physical Configuration</strong></td>
+<td style="text-align: left;">Determine fluid properties and apply them to configuration files.</td>
 <td style="text-align: left;"><code>FluidMechanics.get_fluid_properties()</code>, <code>solver.constant.transportProperties.nu = ...</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>3. Maillage</strong></td>
-<td style="text-align: left;">Définir la géométrie et le maillage (souvent via l'intégration <code>classy_blocks</code>) et générer le <code>blockMeshDict</code>.</td>
+<td style="text-align: left;"><strong>3. Mesh</strong></td>
+<td style="text-align: left;">Define geometry and mesh (often via <code>classy_blocks</code> integration) and generate <code>blockMeshDict</code>.</td>
 <td style="text-align: left;"><code>classy_blocks.Cylinder</code>, <code>cb.Mesh()</code>, <code>Meshing(path, mesher="blockMesh")</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>4. Conditions aux Limites</strong></td>
-<td style="text-align: left;">Initialiser et appliquer les conditions aux limites aux patchs définis par le maillage.</td>
+<td style="text-align: left;"><strong>4. Boundary Conditions</strong></td>
+<td style="text-align: left;">Initialize and apply boundary conditions to mesh-defined patches.</td>
 <td style="text-align: left;"><code>solver.boundary.initialize_boundary()</code>, <code>solver.boundary.apply_condition_with_wildcard()</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>5. Écriture des Fichiers</strong></td>
-<td style="text-align: left;">Générer tous les fichiers de configuration OpenFOAM sur le disque.</td>
+<td style="text-align: left;"><strong>5. File Writing</strong></td>
+<td style="text-align: left;">Generate all OpenFOAM configuration files on disk.</td>
 <td style="text-align: left;"><code>solver.system.write()</code>, <code>solver.constant.write()</code>, <code>solver.boundary.write_boundary_conditions()</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>6. Exécution</strong></td>
-<td style="text-align: left;">Lancer la simulation OpenFOAM.</td>
+<td style="text-align: left;"><strong>6. Execution</strong></td>
+<td style="text-align: left;">Run the OpenFOAM simulation.</td>
 <td style="text-align: left;"><code>solver.run_simulation()</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>7. Post-traitement</strong></td>
-<td style="text-align: left;">Analyser les résultats, générer des visualisations et des rapports.</td>
+<td style="text-align: left;"><strong>7. Post-Processing</strong></td>
+<td style="text-align: left;">Analyze results, generate visualizations and reports.</td>
 <td style="text-align: left;"><code>FoamPostProcessing</code>, <code>ResidualsPost</code>, <code>latex_pdf.LatexDocument</code></td>
 </tr>
 </tbody>
 </table>
-<p>Ce flux de travail met en évidence la manière dont les différents modules de <code>foampilot</code> s'articulent pour fournir une abstraction complète du processus de simulation OpenFOAM. Pour contribuer, un développeur doit comprendre comment les classes de chaque module interagissent avec l'objet central <code>Solver</code> et comment elles traduisent les commandes Python en syntaxe de dictionnaire OpenFOAM.</p>
+<p>This workflow highlights how the different <code>foampilot</code> modules interact to provide a complete abstraction of the OpenFOAM simulation process. To contribute effectively, a developer must understand how each module class interacts with the central <code>Solver</code> object and how Python commands are translated into OpenFOAM dictionary syntax.</p>
 
 
 
