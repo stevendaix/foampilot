@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/about/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/about/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/about/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/about/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fluids_theory/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/fluids_theory/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/fluids_theory/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/fluids_theory/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/install_openfoam/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/install_openfoam/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/install_openfoam/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/install_openfoam/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/presentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/presentation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/presentation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/presentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/user_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/user_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/user_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/user_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/dev/dev_detailed_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_detailed_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_detailed_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_detailed_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/dev/dev_index/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_index/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_index/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_index/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/dev/dev_intro_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_intro_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_intro_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_intro_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/dev/manage_quantity/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/example/presentation_example/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/presentation_example/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/presentation_example/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/presentation_example/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/example/muffler/detailled_example_muffler/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/muffler/detailled_example_muffler/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/muffler/detailled_example_muffler/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/muffler/detailled_example_muffler/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/example/simplecar/detailled_example/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/simplecar/detailled_example/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/simplecar/detailled_example/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/simplecar/detailled_example/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/about/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/about/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/about/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/about/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/fluids_theory/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/fluids_theory/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/fluids_theory/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/fluids_theory/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/install_openfoam/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/install_openfoam/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/install_openfoam/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/install_openfoam/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/presentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/presentation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/presentation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/presentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/user_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/user_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/user_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/user_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/dev/dev_detailed_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_detailed_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_detailed_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_detailed_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/dev/dev_index/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_index/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_index/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_index/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/dev/dev_intro_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_intro_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_intro_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_intro_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/example/presentation_example/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/presentation_example/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/presentation_example/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/presentation_example/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/example/muffler/detailled_example_muffler/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/muffler/detailled_example_muffler/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/muffler/detailled_example_muffler/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/muffler/detailled_example_muffler/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/fr/example/simplecar/detailled_example/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/simplecar/detailled_example/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/simplecar/detailled_example/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/simplecar/detailled_example/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/about/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/about/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/about/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/about/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/fluids_theory/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/fluids_theory/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/fluids_theory/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/fluids_theory/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/install_openfoam/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/install_openfoam/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/install_openfoam/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/install_openfoam/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/presentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/presentation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/presentation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/presentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/user_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/user_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/user_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/user_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/dev/dev_detailed_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_detailed_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_detailed_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_detailed_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/dev/dev_index/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_index/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_index/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_index/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/dev/dev_intro_documentation/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_intro_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/dev_intro_documentation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_intro_documentation/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/example/presentation_example/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/presentation_example/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/presentation_example/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/presentation_example/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/example/muffler/detailled_example_muffler/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/muffler/detailled_example_muffler/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/muffler/detailled_example_muffler/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/muffler/detailled_example_muffler/"/>
+    </url>
+    <url>
+        <loc>https://stevendaix.github.io/foampilot/zh/example/simplecar/detailled_example/</loc>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/example/simplecar/detailled_example/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/example/simplecar/detailled_example/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/example/simplecar/detailled_example/"/>
+    </url>
+</urlset>

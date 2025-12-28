@@ -1,0 +1,1637 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/zh/fluids_theory/">
+      
+      
+        <link rel="prev" href="../presentation/">
+      
+      
+        <link rel="next" href="../user_documentation/">
+      
+      
+        
+          <link rel="alternate" href="../../fluids_theory/" hreflang="en">
+        
+          <link rel="alternate" href="../../fr/fluids_theory/" hreflang="fr">
+        
+          <link rel="alternate" href="./" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Guide théorique - FoamPilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../" title="FoamPilot Documentation" class="md-header__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FoamPilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Guide théorique
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../fluids_theory/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../fr/fluids_theory/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stevendaix/foampilot" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../install_openfoam/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../presentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Présentation de FOAMPilot
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide théorique
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../user_documentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide utilisateur
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dev/dev_index/" class="md-tabs__link">
+          
+  
+  
+  Partie développement
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../example/presentation_example/" class="md-tabs__link">
+          
+  
+  
+  Partie exemples
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="FoamPilot Documentation" class="md-nav__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FoamPilot Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stevendaix/foampilot" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install_openfoam/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenFOAM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../presentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Présentation de FOAMPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide théorique
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide théorique
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-cfd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. CFD 流体力学导论
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 流体力学中的无量纲数
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 流体力学中的无量纲数">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-re" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1. 雷诺数 (Re)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-pr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2. 普朗特数 (Pr)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-nu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3. 努塞尔数 (Nu)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-gr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4. 格拉晓夫数 (Gr)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-ra" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5. 瑞利数 (Ra)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-pe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6. 佩克莱数 (Pe)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 边界层计算
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 边界层计算">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-y" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. y+ 值
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2. 湍流边界层厚度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3. 网格尺寸确定的边界层单元数
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 压力损失计算
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 压力损失计算">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. 达西-威斯巴赫方程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-f" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. 摩擦系数 (\(f\))
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 传热计算
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 传热计算">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1. 对流传热系数
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.1. 对流传热系数">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#511" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.1. 平板 (外部流动)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#512" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.2. 圆柱体 (外部流动)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2. 热膨胀系数
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 流体属性和流动状态
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 流体属性和流动状态">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1. 基本流体属性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2. 流动状态确定
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3. 临界速度
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 输入验证和错误处理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 输入验证和错误处理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1. 正值验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2. 非零值验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3. 温度范围验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 参考文献
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide utilisateur
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_intro_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_detailed_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules détailés de FoamPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/manage_quantity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestion des quantités
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie exemples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie exemples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/presentation_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/muffler/detailled_example_muffler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/simplecar/detailled_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="_1">📚 流体力学理论文档</h1>
+<p>本文件提供了对 Python 类 <code>FluidMechanics</code> 中实现的流体力学原理的理论概述。它旨在作为用户和开发人员的综合指南，帮助他们理解计算流体动力学 (CFD) 应用库中所使用的基础物理和数学模型。</p>
+<h2 id="1-cfd">1. CFD 流体力学导论</h2>
+<p>流体力学是物理学的一个分支，研究流体（液体、气体和等离子体）的力学及其受力。它在航空、土木工程、气象学和生物医学工程等领域有着广泛的应用。在计算流体动力学 (CFD) 的背景下，流体力学原理被离散化并通过数值求解来模拟流体流动现象。<code>FluidMechanics</code> 类封装了设置和分析 CFD 模拟至关重要的几个基本概念和经验关联式，特别是关于网格生成和边界条件。</p>
+<p>CFD 模拟严重依赖于理解流体在各种尺度和条件下的行为。这包括表征流动状态、预测能量损失和分析传热机制。<code>FluidMechanics</code> 类提供了量化这些方面的工具，使工程师和研究人员更容易准备模拟输入并解释其结果。流体属性、流动参数和无量纲数的正确选择对于准确和稳定的 CFD 计算至关重要。</p>
+<hr />
+<h2 id="2">2. 流体力学中的无量纲数</h2>
+<p>无量纲数在流体力学中至关重要，因为它们允许对物理现象进行缩放，并提供对作用于流体上的不同力的相对重要性的洞察。它们在 CFD 中特别有用，用于比较不同的流动场景以及验证模拟结果与实验数据或解析解。<code>FluidMechanics</code> 类计算了几个关键的无量纲数，每个数都提供了关于流动状态的独特信息。</p>
+<h3 id="21-re">2.1. 雷诺数 (Re)</h3>
+<p>雷诺数是流体动力学中最重要、最常用的无量纲量之一，用于预测不同流体流动情况下的流动模式。它被定义为惯性力与粘性力之比，其公式为：</p>
+<div class="arithmatex">\[Re = \frac{\rho v L}{\mu}\]</div>
+<p>其中：
+* <span class="arithmatex">\(\rho\)</span> 是流体密度 (kg/m³)
+* <span class="arithmatex">\(v\)</span> 是特征流速 (m/s)
+* <span class="arithmatex">\(L\)</span> 是特征线性尺寸 (m)
+* <span class="arithmatex">\(\mu\)</span> 是流体的动力粘度 (Pa·s)</p>
+<p>对于内部流动（如管道流动），特征线性尺寸通常是管道直径。对于外部流动，它可以是平板的长度或圆柱体的直径。雷诺数有助于确定流动是层流、过渡流还是湍流。通常，对于管道流动，<span class="arithmatex">\(Re &lt; 2300\)</span> 表示层流，<span class="arithmatex">\(2300 \le Re \le 4000\)</span> 表示过渡流，而 <span class="arithmatex">\(Re &gt; 4000\)</span> 表示湍流 [1]。</p>
+<h3 id="22-pr">2.2. 普朗特数 (Pr)</h3>
+<p>普朗特数是一个无量纲数，近似于动量扩散率（运动粘度）与热扩散率之比。它用于表征水动力和热边界层的相对厚度。它被定义为：</p>
+<div class="arithmatex">\[Pr = \frac{\mu c_p}{k}\]</div>
+<p>其中：
+* <span class="arithmatex">\(\mu\)</span> 是动力粘度 (Pa·s)
+* <span class="arithmatex">\(c_p\)</span> 是定压比热容 (J/(kg·K))
+* <span class="arithmatex">\(k\)</span> 是热导率 (W/(m·K))</p>
+<p>对于气体，Pr 通常在 0.7-1.0 左右，表明动量和热量以相似的速率扩散。对于液体，Pr 可能有显著差异。例如，室温下的水 Pr 约为 7，意味着动量比热量扩散快得多 [2]。</p>
+<h3 id="23-nu">2.3. 努塞尔数 (Nu)</h3>
+<p>努塞尔数是对流传热与跨越边界的传导传热之比。它是一个无量纲的传热系数，量化了相对于流体层内传导而言，由于对流而增强的表面传热。它被定义为：</p>
+<div class="arithmatex">\[Nu = \frac{h L}{k}\]</div>
+<p>其中：
+* <span class="arithmatex">\(h\)</span> 是对流传热系数 (W/(m²·K))
+* <span class="arithmatex">\(L\)</span> 是特征长度 (m)
+* <span class="arithmatex">\(k\)</span> 是流体的热导率 (W/(m·K))</p>
+<p>更高的努塞尔数表示更有效的对流传热。对于纯传导，<span class="arithmatex">\(Nu = 1\)</span>。经验关联式常用于确定各种几何形状和流动条件下的努塞尔数 [3]。</p>
+<h3 id="24-gr">2.4. 格拉晓夫数 (Gr)</h3>
+<p>格拉晓夫数是流体动力学和传热中的一个无量纲数，近似于作用于流体上的浮力与粘性力之比。它主要用于自然对流问题，其中流体运动由温度变化引起的密度差异驱动。它被定义为：</p>
+<div class="arithmatex">\[Gr = \frac{g \beta \Delta T L^3}{\nu^2}\]</div>
+<p>其中：
+* <span class="arithmatex">\(g\)</span> 是重力加速度 (m/s²)
+* <span class="arithmatex">\(\beta\)</span> 是热膨胀系数 (1/K)
+* <span class="arithmatex">\(\Delta T\)</span> 是温差 (K)
+* <span class="arithmatex">\(L\)</span> 是特征长度 (m)
+* <span class="arithmatex">\(\nu\)</span> 是运动粘度 (m²/s)</p>
+<p>格拉晓夫数在自然对流中的作用类似于雷诺数在强制对流中的作用，它指示了浮力驱动流中从层流到湍流的转变 [4]。</p>
+<h3 id="25-ra">2.5. 瑞利数 (Ra)</h3>
+<p>瑞利数是与浮力驱动流（自然对流）相关的无量纲数。当瑞利数低于流体的临界值时，传热主要通过传导进行；当它超过临界值时，传热主要通过对流进行。它被定义为格拉晓夫数和普朗特数的乘积：</p>
+<div class="arithmatex">\[Ra = Gr \cdot Pr = \frac{g \beta \Delta T L^3}{\nu \alpha}\]</div>
+<p>其中：
+* <span class="arithmatex">\(\alpha\)</span> 是热扩散率 (m²/s)</p>
+<p>临界瑞利数因几何形状和边界条件而异。例如，对于从下方加热的水平流体层，当 <span class="arithmatex">\(Ra &gt; 1708\)</span> 时，对流通常开始 [5]。</p>
+<h3 id="26-pe">2.6. 佩克莱数 (Pe)</h3>
+<p>佩克莱数是与流体流动中输运现象研究相关的无量纲数。它被定义为物理量随流动平流（对流）的速率与由适当梯度驱动的同一物理量扩散速率之比。它由以下公式给出：</p>
+<div class="arithmatex">\[Pe = Re \cdot Pr\]</div>
+<p>其中：
+* <span class="arithmatex">\(Re\)</span> 是雷诺数
+* <span class="arithmatex">\(Pr\)</span> 是普朗特数</p>
+<p>或者，它可以表示为：</p>
+<div class="arithmatex">\[Pe = \frac{v L}{\alpha}\]</div>
+<p>其中：
+* <span class="arithmatex">\(v\)</span> 是流速 (m/s)
+* <span class="arithmatex">\(L\)</span> 是特征长度 (m)
+* <span class="arithmatex">\(\alpha\)</span> 是热扩散率 (m²/s)</p>
+<p>大的佩克莱数表示平流占主导地位，而小的佩克莱数则表明扩散更重要。该数在传热和传质问题中尤为重要 [6]。</p>
+<hr />
+<h2 id="3">3. 边界层计算</h2>
+<p>边界层是与固体表面相邻的薄层流体，其中粘性效应显著。理解和准确地建模边界层在 CFD 中至关重要，特别是对于预测阻力、升力和传热。<code>FluidMechanics</code> 类提供了估算边界层特征的工具，这对于 CFD 模拟中适当的网格生成至关重要。</p>
+<h3 id="31-y">3.1. y+ 值</h3>
+<p>y+ 值（读作 "y-plus"）是距壁面的无量纲距离，由粘性长度尺度归一化。它是湍流建模中的一个关键参数，特别是对于壁面约束流。y+ 值决定了不同湍流模型在壁面附近合适的网格划分策略。它被定义为：</p>
+<div class="arithmatex">\[y^+ = \frac{u_\tau y}{\nu}\]</div>
+<p>其中：
+* <span class="arithmatex">\(u_\tau\)</span> 是摩擦速度 (m/s)，定义为 <span class="arithmatex">\(\sqrt{\tau_w / \rho}\)</span>
+* <span class="arithmatex">\(y\)</span> 是距壁面的物理距离 (m)
+* <span class="arithmatex">\(\nu\)</span> 是运动粘度 (m²/s)
+* <span class="arithmatex">\(\tau_w\)</span> 是壁面剪切应力 (Pa)
+* <span class="arithmatex">\(\rho\)</span> 是流体密度 (kg/m³)</p>
+<p>对于许多湍流模型，第一个靠近壁面的单元中心应放置在一个特定的 y+ 范围内。<code>FluidMechanics</code> 类根据提供的壁面剪切应力和特征长度计算 y+ [7]。</p>
+<h3 id="32">3.2. 湍流边界层厚度</h3>
+<p>边界层厚度 (<span class="arithmatex">\(\delta\)</span>) 通常定义为流体速度达到自由流速度 99% 的距离。对于平板上的湍流边界层，经验关联式常用于估算其厚度。湍流的一个常用关联式是：</p>
+<div class="arithmatex">\[\delta \approx 0.37 L Re_L^{-1/5}\]</div>
+<p>其中：
+* <span class="arithmatex">\(L\)</span> 是特征长度 (m)
+* <span class="arithmatex">\(Re_L\)</span> 是基于特征长度的雷诺数</p>
+<p>此关联式为湍流边界层提供了合理的估计，但它是一个近似值 [8]。</p>
+<h3 id="33">3.3. 网格尺寸确定的边界层单元数</h3>
+<p>在 CFD 中，准确解析边界层需要足够数量的网格单元聚集在壁面附近。<code>FluidMechanics</code> 类提供了一种方法，用于估算在给定膨胀比下，达到边界层边缘目标单元尺寸所需的层数。此计算是迭代的，并确保网格从壁面到自由流区域平稳过渡。膨胀比决定了后续每个单元层厚度的增长量。典型的膨胀比在 1.1 到 1.3 之间 [9]。</p>
+<hr />
+<h2 id="4">4. 压力损失计算</h2>
+<p>流体流动系统中的压力损失是工程设计中的关键参数，影响泵的选型、能耗和整体系统效率。<code>FluidMechanics</code> 类包含一种计算内部流动压力损失的方法，特别是使用达西-威斯巴赫方程。</p>
+<h3 id="41-">4.1. 达西-威斯巴赫方程</h3>
+<p>达西-威斯巴赫方程是一个广泛使用的经验方程，它将沿给定长度管道的摩擦引起的沿程水头损失（或压力损失）与流体流动的平均速度联系起来。它适用于层流和湍流。压力损失 (<span class="arithmatex">\(\Delta P\)</span>) 由以下公式给出：</p>
+<div class="arithmatex">\[\Delta P = f \frac{L}{D} \frac{\rho v^2}{2}\]</div>
+<p>其中：
+* <span class="arithmatex">\(f\)</span> 是达西摩擦系数（无量纲）
+* <span class="arithmatex">\(L\)</span> 是管道长度 (m)
+* <span class="arithmatex">\(D\)</span> 是管道内径 (m)
+* <span class="arithmatex">\(\rho\)</span> 是流体密度 (kg/m³)
+* <span class="arithmatex">\(v\)</span> 是平均流速 (m/s)</p>
+<h3 id="42-f">4.2. 摩擦系数 (<span class="arithmatex">\(f\)</span>)</h3>
+<p>摩擦系数 (<span class="arithmatex">\(f\)</span>) 取决于流动状态（层流或湍流）和管道粗糙度。</p>
+<ul>
+<li>
+<p><strong>对于层流</strong> (<span class="arithmatex">\(Re &lt; 2300\)</span>)，摩擦系数仅是雷诺数的函数，由以下公式给出：</p>
+<div class="arithmatex">\[f = \frac{64}{Re}\]</div>
+</li>
+<li>
+<p><strong>对于湍流</strong> (<span class="arithmatex">\(Re \ge 2300\)</span>)，摩擦系数取决于雷诺数和管道的相对粗糙度 (<span class="arithmatex">\(\epsilon/D\)</span>)。<code>FluidMechanics</code> 类使用基于 Colebrook-White 方程的近似值，如 Swamee-Jain 方程，它具有显式形式且因其准确性和简单性而被广泛使用：</p>
+<div class="arithmatex">\[f = \frac{0.25}{\left[\log_{10}\left(\frac{\epsilon}{3.7D} + \frac{5.74}{Re^{0.9}}\right)\right]^2}\]</div>
+</li>
+</ul>
+<p>该方程适用于 <span class="arithmatex">\(Re &gt; 4000\)</span> 和大范围的相对粗糙度值 [10]。</p>
+<hr />
+<h2 id="5">5. 传热计算</h2>
+<p>传热是许多流体流动应用的一个基本方面，特别是在热系统设计和分析中。<code>FluidMechanics</code> 类提供了估算常见几何形状对流传热系数的方法，这对于计算热交换率至关重要。</p>
+<h3 id="51">5.1. 对流传热系数</h3>
+<p>对流传热发生在流体和固体表面之间，是由于传导和流体运动的综合效应。对流传热速率 (<span class="arithmatex">\(Q\)</span>) 通常由牛顿冷却定律表示：</p>
+<div class="arithmatex">\[Q = h A \Delta T\]</div>
+<p>其中：
+* <span class="arithmatex">\(h\)</span> 是对流传热系数 (W/(m²·K))
+* <span class="arithmatex">\(A\)</span> 是传热表面积 (m²)
+* <span class="arithmatex">\(\Delta T\)</span> 是表面与流体之间的温差 (K)</p>
+<p>对流传热系数 (<span class="arithmatex">\(h\)</span>) 不是流体的固有属性，而是取决于流体属性、流动条件（速度、流动状态）和表面几何形状。它通常通过涉及努塞尔数、雷诺数和普朗特数等无量纲数的经验关联式来确定。</p>
+<h4 id="511">5.1.1. 平板 (外部流动)</h4>
+<p>对于平板上的外部流动，对流传热系数取决于边界层是层流还是湍流。<code>FluidMechanics</code> 类使用常见的关联式进行估算：</p>
+<ul>
+<li>
+<p><strong>层流</strong> (<span class="arithmatex">\(Re_L &lt; 5 \times 10^5\)</span>)：
+    <span class="arithmatex">\(<span class="arithmatex">\(Nu_L = 0.664 Re_L^{0.5} Pr^{1/3}\)</span>\)</span></p>
+</li>
+<li>
+<p><strong>湍流</strong> (<span class="arithmatex">\(Re_L \ge 5 \times 10^5\)</span>)：
+    <span class="arithmatex">\(<span class="arithmatex">\(Nu_L = 0.0296 Re_L^{0.8} Pr^{1/3}\)</span>\)</span></p>
+</li>
+</ul>
+<p>一旦确定了努塞尔数 (<span class="arithmatex">\(Nu_L\)</span>)，对流传热系数 (<span class="arithmatex">\(h\)</span>) 就可以使用努塞尔数的定义计算：<span class="arithmatex">\(h = Nu_L \frac{k}{L}\)</span> [11]。</p>
+<h4 id="512">5.1.2. 圆柱体 (外部流动)</h4>
+<p>对于单个圆柱体上的外部流动，Churchill-Bernstein 方程是一个广泛使用的关联式，适用于大范围的雷诺数 (<span class="arithmatex">\(Re_D Pr &gt; 0.2\)</span>)。该方程提供了垂直于圆形圆柱体的流动的平均努塞尔数：</p>
+<div class="arithmatex">\[Nu_D = 0.3 + \frac{0.62 Re_D^{0.5} Pr^{1/3}}{\left[1 + (0.4/Pr)^{2/3}\right]^{0.25}} \left[1 + \left(\frac{Re_D}{282000}\right)^{0.5}\right]^{0.5}\]</div>
+<p>其中 <span class="arithmatex">\(Re_D\)</span> 是基于圆柱体直径的雷诺数。与平板类似，<span class="arithmatex">\(h\)</span> 然后计算为 <span class="arithmatex">\(h = Nu_D \frac{k}{D}\)</span> [12]。</p>
+<h3 id="52">5.2. 热膨胀系数</h3>
+<p>热膨胀系数 (<span class="arithmatex">\(\beta\)</span>) 量化了流体密度在恒定压力下随温度变化的变化程度。它是自然对流问题中的关键参数。对于理想气体，热膨胀系数就是绝对温度的倒数：<span class="arithmatex">\(\beta = 1/T\)</span> [13]。</p>
+<hr />
+<h2 id="6">6. 流体属性和流动状态</h2>
+<p>准确了解流体属性是进行任何流体力学分析的基础。<code>FluidMechanics</code> 类利用 <code>pyfluids</code> 库来访问广泛的流体属性，这些属性随后用于各种计算。此外，了解流动状态对于应用适当的模型和关联式至关重要。</p>
+<h3 id="61">6.1. 基本流体属性</h3>
+<p><code>FluidMechanics</code> 类可以检索给定温度和压力下流体的几个基本属性。这些包括：</p>
+<ul>
+<li><strong>密度 (<span class="arithmatex">\(\rho\)</span>)</strong>：单位体积质量 (kg/m³)。</li>
+<li><strong>动力粘度 (<span class="arithmatex">\(\mu\)</span>)</strong>：流体对剪切流动的阻力 (Pa·s)。</li>
+<li><strong>热导率 (<span class="arithmatex">\(k\)</span>)</strong>：材料传导热量的能力 (W/(m·K))。</li>
+<li><strong>比热容 (<span class="arithmatex">\(c_p\)</span>)</strong>：在恒定压力下将单位质量温度提高一度所需的吸热量 (J/(kg·K))。</li>
+<li><strong>比容 (<span class="arithmatex">\(v\)</span>)</strong>：流体体积与其质量之比 (m³/kg)，是密度的倒数。</li>
+</ul>
+<p>这些属性依赖于温度和压力，并从 <code>pyfluids</code> 库中检索 [14]。</p>
+<h3 id="62">6.2. 流动状态确定</h3>
+<p>流动状态描述了流体流动的一般行为，主要分为层流、过渡流或湍流。<code>FluidMechanics</code> 类根据计算出的雷诺数确定流动状态：</p>
+<ul>
+<li><strong>层流</strong>：发生在低雷诺数下（管道流通常 <span class="arithmatex">\(Re &lt; 2300\)</span>）。</li>
+<li><strong>过渡流</strong>：发生在中间雷诺数下（管道流通常 <span class="arithmatex">\(2300 \le Re \le 4000\)</span>）。</li>
+<li><strong>湍流</strong>：发生在高雷诺数下（管道流通常 <span class="arithmatex">\(Re &gt; 4000\)</span>）。</li>
+</ul>
+<p>了解流动状态对于在 CFD 模拟中选择正确的湍流模型至关重要 [15]。</p>
+<h3 id="63">6.3. 临界速度</h3>
+<p>临界速度是流体流动从层流过渡到湍流（反之亦然）的速度。对于内部管道流动，临界雷诺数约为 2300。临界速度 (<span class="arithmatex">\(v_c\)</span>) 可以计算为：</p>
+<div class="arithmatex">\[v_c = \frac{Re_{crit} \mu}{\rho D}\]</div>
+<p>其中 <span class="arithmatex">\(Re_{crit}\)</span> 是临界雷诺数（通常为 2300）[16]。</p>
+<hr />
+<h2 id="7">7. 输入验证和错误处理</h2>
+<p>稳健的输入验证和全面的错误处理对于任何计算工具的可靠性和可用性都至关重要。<code>FluidMechanics</code> 类纳入了几种验证方法，以确保输入参数具有物理意义并防止常见错误。</p>
+<h3 id="71">7.1. 正值验证</h3>
+<p>流体力学中的许多物理量，如压力、速度和特征长度，本质上必须是正值。<code>_validate_positive_quantity</code> 辅助方法确保传入的任何 <code>Quantity</code> 对象的值大于零。</p>
+<h3 id="72">7.2. 非零值验证</h3>
+<p>某些计算涉及除以流体属性，如动力粘度或热导率。<code>_validate_non_zero_quantity</code> 辅助方法检查关键 <code>Quantity</code> 对象的值是否非零，以防止除以零的数学错误。</p>
+<h3 id="73">7.3. 温度范围验证</h3>
+<p>温度必须以绝对温标（例如开尔文）表示且必须为正。<code>_validate_temperature_range</code> 辅助方法确保输入温度大于 0 开尔文，以保证计算的物理一致性 [17]。</p>
+<hr />
+<h2 id="8">8. 参考文献</h2>
+<p>[1] White, F. M. (2006). <em>Fluid Mechanics</em> (6th ed.). McGraw-Hill.</p>
+<p>[2] Incropera, F. P., DeWitt, D. P., Bergman, T. L., &amp; Lavine, A. S. (2007). <em>Fundamentals of Heat and Mass Transfer</em> (6th ed.). John Wiley &amp; Sons.</p>
+<p>[3] Cengel, Y. A., &amp; Ghajar, A. J. (2015). <em>Heat and Mass Transfer: Fundamentals and Applications</em> (5th ed.). McGraw-Hill Education.</p>
+<p>[4] Bejan, A. (2013). <em>Convection Heat Transfer</em> (4th ed.). John Wiley &amp; Sons.</p>
+<p>[5] Tritton, D. J. (1988). <em>Physical Fluid Dynamics</em> (2nd ed.). Oxford University Press.</p>
+<p>[6] Bird, R. B., Stewart, W. E., &amp; Lightfoot, E. N. (2007). <em>Transport Phenomena</em> (2nd ed.). John Wiley &amp; Sons.</p>
+<p>[7] Versteeg, H. K., &amp; Malalasekera, W. (2007). <em>An Introduction to Computational Fluid Dynamics: The Finite Volume Method</em> (2nd ed.). Pearson Education.</p>
+<p>[8] Schlichting, H., &amp; Gersten, K. (2017). <em>Boundary-Layer Theory</em> (9th ed.). Springer.</p>
+<p>[9] Blazek, J. (2015). <em>Computational Fluid Dynamics: Principles and Applications</em> (3rd ed.). Elsevier.</p>
+<p>[10] Munson, B. R., Young, D. F., &amp; Okiishi, T. H. (2009). <em>Fundamentals of Fluid Mechanics</em> (6th ed.). John Wiley &amp; Sons.</p>
+<p>[11] Kays, W. M., Crawford, M. E., &amp; Weigand, B. (2005). <em>Convective Heat and Mass Transfer</em> (4th ed.). McGraw-Hill.</p>
+<p>[12] Churchill, S. W., &amp; Bernstein, M. (1977). A Correlation for Forced Convection from Gases and Liquids to a Circular Cylinder in Crossflow. <em>Journal of Heat Transfer</em>, 99(2), 300-306.</p>
+<p>[13] Moran, M. J., Shapiro, H. N., Boettner, D. D., &amp; Bailey, M. B. (2014). <em>Fundamentals of Engineering Thermodynamics</em> (8th ed.). John Wiley &amp; Sons.</p>
+<p>[14] Lemmon, E. W., Bell, I. H., &amp; Huber, M. L. (2010). <em>NIST Standard Reference Database 23: Reference Fluid Thermodynamic and Transport Properties—REFPROP, Version 9.0</em> (Software). National Institute of Standards</p>
+<p>[15] Fox, R. W., Pritchard, P. J., &amp; McDonald, A. T. (2016). <em>Introduction to Fluid Mechanics</em> (9th ed.). John Wiley &amp; Sons.</p>
+<p>[16] Streeter, V. L., Wylie, E. B., &amp; Bedford, K. W. (1998). <em>Fluid Mechanics</em> (9th ed.). McGraw-Hill</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

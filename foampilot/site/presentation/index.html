@@ -1,0 +1,1347 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/presentation/">
+      
+      
+        <link rel="prev" href="../install_openfoam/">
+      
+      
+        <link rel="next" href="../fluids_theory/">
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../fr/presentation/" hreflang="fr">
+        
+          <link rel="alternate" href="../zh/presentation/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Présentation de FOAMPilot - FoamPilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#vue-densemble-conceptuelle-et-theorique-du-module-foampilot" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FoamPilot Documentation" class="md-header__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FoamPilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Présentation de FOAMPilot
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../fr/presentation/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../zh/presentation/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stevendaix/foampilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../install_openfoam/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Présentation de FOAMPilot
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../fluids_theory/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide théorique
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../user_documentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide utilisateur
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dev/dev_index/" class="md-tabs__link">
+          
+  
+  
+  Partie développement
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../example/presentation_example/" class="md-tabs__link">
+          
+  
+  
+  Partie exemples
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FoamPilot Documentation" class="md-nav__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FoamPilot Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stevendaix/foampilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install_openfoam/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenFOAM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Présentation de FOAMPilot
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Présentation de FOAMPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-foampilotsolver-le-cur-de-la-physique-et-de-la-numerique" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. foampilot.solver : Le Cœur de la Physique et de la Numérique
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-foampilotconstant-la-definition-du-milieu-physique" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. foampilot.constant : La Définition du Milieu Physique
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-foampilotsystem-le-controle-numerique-et-temporel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. foampilot.system : Le Contrôle Numérique et Temporel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-foampilotmesh-le-maillage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. foampilot.mesh : Le maillage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-foampilotboundaries-les-conditions-aux-limites-physiques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. foampilot.boundaries : Les Conditions aux Limites Physiques
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-foampilotpostprocess-et-foampilotreport-lanalyse-des-resultats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. foampilot.postprocess et foampilot.report : L'Analyse des Résultats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-foampilotutilities-et-foampilotcommons-les-outils-transversaux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. foampilot.utilities et foampilot.commons : Les Outils Transversaux
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fluids_theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide théorique
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide utilisateur
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_intro_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_detailed_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules détailés de FoamPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/manage_quantity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestion des quantités
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie exemples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie exemples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/presentation_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/muffler/detailled_example_muffler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/simplecar/detailled_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="vue-densemble-conceptuelle-et-theorique-du-module-foampilot">Vue d'Ensemble Conceptuelle et Théorique du Module foampilot</h1>
+<p>Le module <code>foampilot</code> est conçu comme une surcouche Python orientée objet pour la plateforme de simulation de mécanique des fluides numérique (CFD) <strong>OpenFOAM</strong>. Son objectif principal est d'abstraire la complexité de la configuration des cas OpenFOAM, qui repose traditionnellement sur des fichiers de dictionnaire textuels, en offrant une interface de programmation (API) Python intuitive et robuste.</p>
+<p>L'architecture de <code>foampilot</code> reflète fidèlement la structure d'un cas OpenFOAM, chaque sous-module gérant un aspect fondamental de la simulation.</p>
+<h2 id="1-foampilotsolver-le-cur-de-la-physique-et-de-la-numerique">1. foampilot.solver : Le Cœur de la Physique et de la Numérique</h2>
+<p>Le sous-module <code>solver</code> est le centre de contrôle de la simulation. Il ne se contente pas d'exécuter un solveur OpenFOAM ; il gère la <strong>sélection dynamique du solveur</strong> en fonction des propriétés physiques et numériques définies par l'utilisateur.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Concept OpenFOAM</th>
+<th style="text-align: left;">Rôle dans foampilot</th>
+<th style="text-align: left;">Description Théorique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Solveur</strong> (e.g., <code>simpleFoam</code>, <code>pimpleFoam</code>)</td>
+<td style="text-align: left;"><strong>Classe <code>Solver</code></strong></td>
+<td style="text-align: left;">La classe <code>Solver</code> agit comme un <strong>gestionnaire de solveur intelligent</strong>. En modifiant des propriétés booléennes (ex: <code>compressible</code>, <code>transient</code>, <code>is_vof</code>), elle sélectionne automatiquement le solveur OpenFOAM approprié qui correspond aux équations physiques à résoudre (Navier-Stokes pour fluide incompressible, équations d'état pour compressible, etc.).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Configuration Physique</strong></td>
+<td style="text-align: left;"><strong>Propriétés du <code>Solver</code></strong></td>
+<td style="text-align: left;">Permet de définir la nature du problème (stationnaire vs. transitoire, mono-phase vs. multi-phase VOF, avec ou sans gravité/énergie). Cette abstraction garantit que l'utilisateur n'a pas à se soucier du nom exact du solveur OpenFOAM, mais uniquement de la physique du problème.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-foampilotconstant-la-definition-du-milieu-physique">2. foampilot.constant : La Définition du Milieu Physique</h2>
+<p>Le sous-module <code>constant</code> est dédié à la gestion du répertoire <code>constant</code> d'OpenFOAM, qui contient les propriétés du milieu et du maillage.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Concept OpenFOAM</th>
+<th style="text-align: left;">Rôle dans foampilot</th>
+<th style="text-align: left;">Description Théorique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Propriétés du Fluide</strong></td>
+<td style="text-align: left;"><strong>Classes <code>transportProperties</code>, <code>physicalProperties</code></strong></td>
+<td style="text-align: left;">Ces classes permettent de définir les propriétés essentielles du fluide (viscosité cinématique <span class="arithmatex">\(\nu\)</span>, densité <span class="arithmatex">\(\rho\)</span>, chaleur spécifique <span class="arithmatex">\(C_p\)</span>, etc.). Elles sont cruciales pour la fermeture des équations de Navier-Stokes et la modélisation des transferts.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Modèle de Turbulence</strong></td>
+<td style="text-align: left;"><strong>Classe <code>turbulenceProperties</code></strong></td>
+<td style="text-align: left;">Gère la sélection et la configuration des modèles de turbulence (ex: <span class="arithmatex">\(k-\epsilon\)</span>, <span class="arithmatex">\(k-\omega\)</span> SST). Théoriquement, ces modèles ajoutent des équations de transport pour modéliser les effets de la turbulence sur l'écoulement, en fermant le système d'équations RANS (Reynolds-Averaged Navier-Stokes).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Gravité</strong></td>
+<td style="text-align: left;"><strong>Classe <code>gravityFile</code></strong></td>
+<td style="text-align: left;">Permet d'activer et de définir le vecteur de gravité <span class="arithmatex">\(\mathbf{g}\)</span>, essentiel pour les simulations de flottabilité (Boussinesq) ou les écoulements à surface libre.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-foampilotsystem-le-controle-numerique-et-temporel">3. foampilot.system : Le Contrôle Numérique et Temporel</h2>
+<p>Le sous-module <code>system</code> gère le répertoire <code>system</code> d'OpenFOAM, qui dicte la manière dont les équations sont discrétisées et résolues.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Concept OpenFOAM</th>
+<th style="text-align: left;">Rôle dans foampilot</th>
+<th style="text-align: left;">Description Théorique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Contrôle de la Simulation</strong></td>
+<td style="text-align: left;"><strong>Classe <code>controlDictFile</code></strong></td>
+<td style="text-align: left;">Définit les paramètres temporels (pas de temps <span class="arithmatex">\(\Delta t\)</span>, temps de début/fin), les fréquences d'écriture des résultats, et les fonctions d'exécution (ex: <code>runTimeControl</code> pour l'arrêt automatique).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Schémas Numériques</strong></td>
+<td style="text-align: left;"><strong>Classe <code>fvSchemesFile</code></strong></td>
+<td style="text-align: left;">Gère la discrétisation des termes de l'équation (dérivées temporelles, termes de convection, termes de diffusion). Le choix des schémas (ex: Euler pour le temps, <code>upwind</code> ou <code>Gauss linear</code> pour la convection) impacte directement la stabilité et la précision de la solution numérique.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Solveurs Algébriques</strong></td>
+<td style="text-align: left;"><strong>Classe <code>fvSolutionFile</code></strong></td>
+<td style="text-align: left;">Configure les solveurs matriciels utilisés pour résoudre les systèmes d'équations linéaires résultant de la discrétisation (ex: <code>PCG</code> pour la pression, <code>BiCGStab</code> pour la vitesse). Il définit également les critères de convergence (tolérance) et les stratégies de sous-relaxation.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-foampilotmesh-le-maillage">4. foampilot.mesh : Le maillage</h2>
+<p>Le sous-module <code>mesh</code> est responsable de la création du maillage, la discrétisation spatiale du domaine de calcul.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Concept OpenFOAM</th>
+<th style="text-align: left;">Rôle dans foampilot</th>
+<th style="text-align: left;">Description Théorique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Maillage Structuré</strong></td>
+<td style="text-align: left;"><strong>Classe <code>BlockMeshFile</code></strong></td>
+<td style="text-align: left;">Abstraction de l'utilitaire <code>blockMesh</code> d'OpenFOAM. Il permet de définir la géométrie du domaine par blocs hexaédriques, une méthode efficace pour les géométries simples ou paramétrables.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Maillage Non-Structuré</strong></td>
+<td style="text-align: left;"><strong>Classes <code>gmsh_mesher</code>, <code>snappymesh</code></strong></td>
+<td style="text-align: left;">Ces classes gèrent l'intégration avec des outils de maillage plus avancés (<code>Gmsh</code>, <code>snappyHexMesh</code>) pour les géométries complexes importées (ex: fichiers STL). Elles préparent les fichiers de configuration nécessaires à ces utilitaires.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-foampilotboundaries-les-conditions-aux-limites-physiques">5. foampilot.boundaries : Les Conditions aux Limites Physiques</h2>
+<p>Le sous-module <code>boundaries</code> est essentiel pour définir l'interaction du fluide avec son environnement.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Concept OpenFOAM</th>
+<th style="text-align: left;">Rôle dans foampilot</th>
+<th style="text-align: left;">Description Théorique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Conditions aux Limites</strong></td>
+<td style="text-align: left;"><strong>Classe <code>Boundary</code></strong></td>
+<td style="text-align: left;">Gère la définition des conditions aux limites pour chaque champ physique (<span class="arithmatex">\(\mathbf{U}\)</span>, <span class="arithmatex">\(p\)</span>, <span class="arithmatex">\(k\)</span>, <span class="arithmatex">\(\epsilon\)</span>, etc.) sur les patchs du maillage. Théoriquement, ces conditions sont nécessaires pour fournir les informations manquantes aux frontières du domaine, permettant la résolution unique des équations aux dérivées partielles.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Types de Conditions</strong></td>
+<td style="text-align: left;"><strong>Méthodes de <code>Boundary</code></strong></td>
+<td style="text-align: left;">Offre des méthodes spécifiques pour les conditions physiques courantes : <code>set_velocity_inlet</code> (Dirichlet pour la vitesse), <code>set_pressure_outlet</code> (Neumann pour la pression), <code>set_wall</code> (non-glissement ou glissement), etc.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Fonctions de Paroi</strong></td>
+<td style="text-align: left;"><strong>Intégration automatique</strong></td>
+<td style="text-align: left;">La classe <code>Boundary</code> intègre la logique pour appliquer les fonctions de paroi (Wall Functions) appropriées pour les modèles de turbulence, permettant de modéliser la couche limite sans nécessiter un maillage extrêmement fin près des parois.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6-foampilotpostprocess-et-foampilotreport-lanalyse-des-resultats">6. foampilot.postprocess et foampilot.report : L'Analyse des Résultats</h2>
+<p>Ces sous-modules gèrent la phase finale de la simulation : l'extraction, l'analyse et la présentation des données.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Sous-module</th>
+<th style="text-align: left;">Rôle Conceptuel</th>
+<th style="text-align: left;">Description Théorique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>postprocess</code></strong></td>
+<td style="text-align: left;"><strong>Visualisation et Analyse</strong></td>
+<td style="text-align: left;">Utilise des bibliothèques comme <strong>PyVista</strong> pour charger les résultats OpenFOAM (fichiers VTK) et effectuer des opérations de post-traitement courantes (tranches, contours, vecteurs, lignes de courant). Il permet de visualiser les champs physiques et d'extraire des quantités dérivées (ex: critère Q, vorticité).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>report</code></strong></td>
+<td style="text-align: left;"><strong>Génération de Rapports</strong></td>
+<td style="text-align: left;">Automatise la création de rapports de simulation structurés (ex: PDF). Il agrège les données clés (paramètres d'entrée, résidus de convergence, images de post-traitement) pour garantir la traçabilité et la reproductibilité des résultats.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-foampilotutilities-et-foampilotcommons-les-outils-transversaux">7. foampilot.utilities et foampilot.commons : Les Outils Transversaux</h2>
+<p>Ces modules fournissent des fonctionnalités de support essentielles à l'ensemble du framework.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Sous-module</th>
+<th style="text-align: left;">Rôle Conceptuel</th>
+<th style="text-align: left;">Description Théorique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>utilities.manageunits</code></strong></td>
+<td style="text-align: left;"><strong>Gestion des Unités</strong></td>
+<td style="text-align: left;">Utilise la classe <code>Quantity</code> pour garantir la cohérence dimensionnelle des entrées. C'est une pratique essentielle en physique et en ingénierie pour éviter les erreurs de conversion et rendre le code indépendant du système d'unités utilisé (SI, impérial, etc.).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>utilities.dictonnary</code></strong></td>
+<td style="text-align: left;"><strong>Manipulation des Dictionnaires OpenFOAM</strong></td>
+<td style="text-align: left;">Fournit des outils pour créer et manipuler des structures de données complexes qui correspondent aux fichiers de dictionnaire OpenFOAM (ex: <code>topoSetDict</code>, <code>createPatchDict</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>commons</code></strong></td>
+<td style="text-align: left;"><strong>Utilitaires Génériques</strong></td>
+<td style="text-align: left;">Contient des fonctions pour la sérialisation des classes, la lecture des fichiers de maillage (<code>polyMesh/boundary</code>), et d'autres opérations de bas niveau nécessaires à l'interfaçage avec le format de fichier OpenFOAM.</td>
+</tr>
+</tbody>
+</table>
+<p>Ce document fournit une vue d'ensemble de la manière dont <code>foampilot</code> structure et gère les concepts fondamentaux de la simulation OpenFOAM, en les traduisant en une architecture Python modulaire et intuitive.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1634 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/fluids_theory/">
+      
+      
+        <link rel="prev" href="../presentation/">
+      
+      
+        <link rel="next" href="../user_documentation/">
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../fr/fluids_theory/" hreflang="fr">
+        
+          <link rel="alternate" href="../zh/fluids_theory/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Guide théorique - FoamPilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#theoretical-documentation-for-fluidmechanics" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FoamPilot Documentation" class="md-header__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FoamPilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Guide théorique
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../fr/fluids_theory/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../zh/fluids_theory/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stevendaix/foampilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../install_openfoam/" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../presentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Présentation de FOAMPilot
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide théorique
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../user_documentation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Guide utilisateur
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dev/dev_index/" class="md-tabs__link">
+          
+  
+  
+  Partie développement
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../example/presentation_example/" class="md-tabs__link">
+          
+  
+  
+  Partie exemples
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FoamPilot Documentation" class="md-nav__button md-logo" aria-label="FoamPilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FoamPilot Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stevendaix/foampilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    FoamPilot
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install_openfoam/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenFOAM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../presentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Présentation de FOAMPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide théorique
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide théorique
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-introduction-to-fluid-mechanics-for-cfd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Introduction to Fluid Mechanics for CFD
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-dimensionless-numbers-in-fluid-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Dimensionless Numbers in Fluid Mechanics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Dimensionless Numbers in Fluid Mechanics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-reynolds-number-re" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1. Reynolds Number (Re)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-prandtl-number-pr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2. Prandtl Number (Pr)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-nusselt-number-nu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3. Nusselt Number (Nu)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-grashof-number-gr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4. Grashof Number (Gr)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-rayleigh-number-ra" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5. Rayleigh Number (Ra)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-peclet-number-pe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6. Peclet Number (Pe)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-boundary-layer-calculations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Boundary Layer Calculations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Boundary Layer Calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-y-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. y+ Value
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-turbulent-boundary-layer-thickness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2. Turbulent Boundary Layer Thickness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-number-of-boundary-layer-cells-for-mesh-sizing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3. Number of Boundary Layer Cells for Mesh Sizing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pressure-loss-calculations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pressure Loss Calculations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Pressure Loss Calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-darcy-weisbach-equation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. Darcy-Weisbach Equation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-friction-factor-f" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. Friction Factor (f)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-heat-transfer-calculations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Heat Transfer Calculations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Heat Transfer Calculations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-convective-heat-transfer-coefficient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1. Convective Heat Transfer Coefficient
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.1. Convective Heat Transfer Coefficient">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#511-flat-plate-external-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.1. Flat Plate (External Flow)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#512-cylinder-external-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.2. Cylinder (External Flow)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-thermal-expansion-coefficient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2. Thermal Expansion Coefficient
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-fluid-properties-and-flow-regimes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Fluid Properties and Flow Regimes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Fluid Properties and Flow Regimes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-fundamental-fluid-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1. Fundamental Fluid Properties
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-flow-regime-determination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2. Flow Regime Determination
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-critical-velocity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3. Critical Velocity
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-input-validation-and-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Input Validation and Error Handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Input Validation and Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-positive-quantity-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1. Positive Quantity Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-non-zero-quantity-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2. Non-Zero Quantity Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-temperature-range-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3. Temperature Range Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide utilisateur
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie développement
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie développement
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_intro_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/dev_detailed_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules détailés de FoamPilot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/manage_quantity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gestion des quantités
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partie exemples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Partie exemples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/presentation_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/muffler/detailled_example_muffler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../example/simplecar/detailled_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude de cas silencieux
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="theoretical-documentation-for-fluidmechanics">Theoretical Documentation for FluidMechanics</h1>
+<p>This document provides a theoretical overview of the fluid mechanics principles implemented in the <code>FluidMechanics</code> Python class. It aims to serve as a comprehensive guide for users and developers seeking to understand the underlying physics and mathematical models used in the library for Computational Fluid Dynamics (CFD) applications.</p>
+<h2 id="1-introduction-to-fluid-mechanics-for-cfd">1. Introduction to Fluid Mechanics for CFD</h2>
+<p>Fluid mechanics is the branch of physics concerned with the mechanics of fluids (liquids, gases, and plasmas) and the forces on them. It has a wide range of applications, including aeronautics, civil engineering, meteorology, and biomedical engineering. In the context of Computational Fluid Dynamics (CFD), fluid mechanics principles are discretized and solved numerically to simulate fluid flow phenomena. The <code>FluidMechanics</code> class encapsulates several fundamental concepts and empirical correlations crucial for setting up and analyzing CFD simulations, particularly concerning mesh generation and boundary conditions.</p>
+<p>CFD simulations rely heavily on understanding the behavior of fluids at various scales and conditions. This includes characterizing the flow regime, predicting energy losses, and analyzing heat transfer mechanisms. The <code>FluidMechanics</code> class provides tools to quantify these aspects, making it easier for engineers and researchers to prepare their simulation inputs and interpret their results. The proper selection of fluid properties, flow parameters, and dimensionless numbers is paramount for accurate and stable CFD computations.</p>
+<h2 id="2-dimensionless-numbers-in-fluid-mechanics">2. Dimensionless Numbers in Fluid Mechanics</h2>
+<p>Dimensionless numbers are crucial in fluid mechanics as they allow for the scaling of physical phenomena and provide insights into the relative importance of different forces acting on a fluid. They are particularly useful in CFD for comparing different flow scenarios and validating simulation results against experimental data or analytical solutions. The <code>FluidMechanics</code> class calculates several key dimensionless numbers, each providing unique information about the flow.</p>
+<h3 id="21-reynolds-number-re">2.1. Reynolds Number (Re)</h3>
+<p>The Reynolds number is one of the most important dimensionless quantities in fluid dynamics, used to predict flow patterns in different fluid flow situations. It is defined as the ratio of inertial forces to viscous forces and is given by the formula:</p>
+<div class="arithmatex">\[Re = \frac{\rho v L}{\mu}\]</div>
+<p>Where:
+- <span class="arithmatex">\(\rho\)</span> is the fluid density (kg/m³)
+- <span class="arithmatex">\(v\)</span> is the characteristic flow velocity (m/s)
+- <span class="arithmatex">\(L\)</span> is the characteristic linear dimension (m)
+- <span class="arithmatex">\(\mu\)</span> is the dynamic viscosity of the fluid (Pa·s)</p>
+<p>For internal flows, such as pipe flow, the characteristic linear dimension is typically the pipe diameter. For external flows, it could be the length of a plate or the diameter of a cylinder. The Reynolds number helps determine whether the flow is laminar, transitional, or turbulent. Generally, for pipe flow, <span class="arithmatex">\(Re &lt; 2300\)</span> indicates laminar flow, <span class="arithmatex">\(2300 \le Re \le 4000\)</span> indicates transitional flow, and <span class="arithmatex">\(Re &gt; 4000\)</span> indicates turbulent flow [1].</p>
+<h3 id="22-prandtl-number-pr">2.2. Prandtl Number (Pr)</h3>
+<p>The Prandtl number is a dimensionless number approximating the ratio of momentum diffusivity (kinematic viscosity) to thermal diffusivity. It is used to characterize the relative thickness of the hydrodynamic and thermal boundary layers. It is defined as:</p>
+<div class="arithmatex">\[Pr = \frac{\mu c_p}{k}\]</div>
+<p>Where:
+- <span class="arithmatex">\(\mu\)</span> is the dynamic viscosity (Pa·s)
+- <span class="arithmatex">\(c_p\)</span> is the specific heat capacity at constant pressure (J/(kg·K))
+- <span class="arithmatex">\(k\)</span> is the thermal conductivity (W/(m·K))</p>
+<p>For gases, Pr is typically around 0.7-1.0, indicating that momentum and heat diffuse at similar rates. For liquids, Pr can vary significantly. For example, water at room temperature has a Pr of about 7, meaning momentum diffuses much faster than heat [2].</p>
+<h3 id="23-nusselt-number-nu">2.3. Nusselt Number (Nu)</h3>
+<p>The Nusselt number is the ratio of convective to conductive heat transfer across a boundary. It is a dimensionless heat transfer coefficient that quantifies the enhancement of heat transfer from a surface due to convection relative to conduction across the fluid layer. It is defined as:</p>
+<div class="arithmatex">\[Nu = \frac{h L}{k}\]</div>
+<p>Where:
+- <span class="arithmatex">\(h\)</span> is the convective heat transfer coefficient (W/(m²·K))
+- <span class="arithmatex">\(L\)</span> is the characteristic length (m)
+- <span class="arithmatex">\(k\)</span> is the thermal conductivity of the fluid (W/(m·K))</p>
+<p>A higher Nusselt number indicates more effective convective heat transfer. For pure conduction, <span class="arithmatex">\(Nu = 1\)</span>. Empirical correlations are often used to determine the Nusselt number for various geometries and flow conditions [3].</p>
+<h3 id="24-grashof-number-gr">2.4. Grashof Number (Gr)</h3>
+<p>The Grashof number is a dimensionless number in fluid dynamics and heat transfer that approximates the ratio of the buoyancy force to the viscous force acting on a fluid. It is primarily used in natural convection problems, where fluid motion is driven by density differences due to temperature variations. It is defined as:</p>
+<div class="arithmatex">\[Gr = \frac{g \beta \Delta T L^3}{\nu^2}\]</div>
+<p>Where:
+- <span class="arithmatex">\(g\)</span> is the acceleration due to gravity (m/s²)
+- <span class="arithmatex">\(\beta\)</span> is the thermal expansion coefficient (1/K)
+- <span class="arithmatex">\(\Delta T\)</span> is the temperature difference (K)
+- <span class="arithmatex">\(L\)</span> is the characteristic length (m)
+- <span class="arithmatex">\(\nu\)</span> is the kinematic viscosity (m²/s)</p>
+<p>The Grashof number plays a similar role in natural convection as the Reynolds number does in forced convection, indicating the transition from laminar to turbulent flow in buoyancy-driven flows [4].</p>
+<h3 id="25-rayleigh-number-ra">2.5. Rayleigh Number (Ra)</h3>
+<p>The Rayleigh number is a dimensionless number associated with buoyancy-driven flow (natural convection). When the Rayleigh number is below a critical value for a fluid, heat transfer is primarily by conduction; when it exceeds the critical value, heat transfer is primarily by convection. It is defined as the product of the Grashof number and the Prandtl number:</p>
+<div class="arithmatex">\[Ra = Gr \cdot Pr = \frac{g \beta \Delta T L^3}{\nu \alpha}\]</div>
+<p>Where:
+- <span class="arithmatex">\(\alpha\)</span> is the thermal diffusivity (m²/s)</p>
+<p>The critical Rayleigh number varies depending on the geometry and boundary conditions. For example, for a horizontal fluid layer heated from below, convection typically begins when <span class="arithmatex">\(Ra &gt; 1708\)</span> [5].</p>
+<h3 id="26-peclet-number-pe">2.6. Peclet Number (Pe)</h3>
+<p>The Peclet number is a dimensionless number relevant in the study of transport phenomena in fluid flows. It is defined as the ratio of the rate of advection of a physical quantity by the flow to the rate of diffusion of the same quantity driven by an appropriate gradient. It is given by:</p>
+<div class="arithmatex">\[Pe = Re \cdot Pr\]</div>
+<p>Where:
+- <span class="arithmatex">\(Re\)</span> is the Reynolds number
+- <span class="arithmatex">\(Pr\)</span> is the Prandtl number</p>
+<p>Alternatively, it can be expressed as:</p>
+<div class="arithmatex">\[Pe = \frac{v L}{\alpha}\]</div>
+<p>Where:
+- <span class="arithmatex">\(v\)</span> is the flow velocity (m/s)
+- <span class="arithmatex">\(L\)</span> is the characteristic length (m)
+- <span class="arithmatex">\(\alpha\)</span> is the thermal diffusivity (m²/s)</p>
+<p>A large Peclet number indicates that advection dominates diffusion, while a small Peclet number suggests that diffusion is more significant. This number is particularly important in heat and mass transfer problems [6].</p>
+<h2 id="3-boundary-layer-calculations">3. Boundary Layer Calculations</h2>
+<p>Boundary layers are thin layers of fluid adjacent to solid surfaces where viscous effects are significant. Understanding and accurately modeling boundary layers are critical in CFD, especially for predicting drag, lift, and heat transfer. The <code>FluidMechanics</code> class provides tools to estimate boundary layer characteristics, which are essential for proper mesh generation in CFD simulations.</p>
+<h3 id="31-y-value">3.1. y+ Value</h3>
+<p>The y+ (pronounced "y-plus") value is a dimensionless distance from the wall, normalized by the viscous length scale. It is a crucial parameter in turbulence modeling, particularly for wall-bounded flows. The y+ value determines the appropriate meshing strategy near the wall for different turbulence models. It is defined as:</p>
+<div class="arithmatex">\[y^+ = \frac{u_\tau y}{\nu}\]</div>
+<p>Where:
+- <span class="arithmatex">\(u_\tau\)</span> is the friction velocity (m/s), defined as <span class="arithmatex">\(\sqrt{\tau_w / \rho}\)</span>
+- <span class="arithmatex">\(y\)</span> is the physical distance from the wall (m)
+- <span class="arithmatex">\(\nu\)</span> is the kinematic viscosity (m²/s)
+- <span class="arithmatex">\(\tau_w\)</span> is the wall shear stress (Pa)
+- <span class="arithmatex">\(\rho\)</span> is the fluid density (kg/m³)</p>
+<p>For many turbulence models, the first cell center from the wall should be placed within a specific y+ range (e.g., y+ &lt; 1 for low-Reynolds number models or y+ between 30 and 300 for wall-function approaches). The <code>FluidMechanics</code> class calculates y+ based on the provided wall shear stress and characteristic length, which can be interpreted as the distance from the wall for a given y+ value if rearranged [7].</p>
+<h3 id="32-turbulent-boundary-layer-thickness">3.2. Turbulent Boundary Layer Thickness</h3>
+<p>The boundary layer thickness (<span class="arithmatex">\(\delta\)</span>) is typically defined as the distance from the wall where the fluid velocity reaches 99% of the free-stream velocity. For turbulent boundary layers over a flat plate, empirical correlations are often used to estimate its thickness. One common correlation for turbulent flow is:</p>
+<div class="arithmatex">\[\delta \approx 0.37 L Re_L^{-1/5}\]</div>
+<p>Where:
+- <span class="arithmatex">\(L\)</span> is the characteristic length (m)
+- <span class="arithmatex">\(Re_L\)</span> is the Reynolds number based on the characteristic length</p>
+<p>This correlation provides a reasonable estimate for turbulent boundary layers but is an approximation and may not be accurate for all flow conditions or geometries [8].</p>
+<h3 id="33-number-of-boundary-layer-cells-for-mesh-sizing">3.3. Number of Boundary Layer Cells for Mesh Sizing</h3>
+<p>In CFD, accurately resolving the boundary layer requires a sufficient number of mesh cells clustered near the wall. The <code>FluidMechanics</code> class provides a method to estimate the number of layers needed to reach a target cell size at the edge of the boundary layer, given an expansion ratio. This calculation is iterative and ensures that the mesh transitions smoothly from the wall to the free-stream region. The expansion ratio dictates how much each successive cell layer grows in thickness. A typical expansion ratio is between 1.1 and 1.3 [9].</p>
+<h2 id="4-pressure-loss-calculations">4. Pressure Loss Calculations</h2>
+<p>Pressure loss in fluid flow systems is a critical parameter in engineering design, affecting pump sizing, energy consumption, and overall system efficiency. The <code>FluidMechanics</code> class includes a method for calculating pressure loss in internal flows, specifically using the Darcy-Weisbach equation.</p>
+<h3 id="41-darcy-weisbach-equation">4.1. Darcy-Weisbach Equation</h3>
+<p>The Darcy-Weisbach equation is a widely used empirical equation that relates the head loss (or pressure loss) due to friction along a given length of pipe to the average velocity of the fluid flow. It is applicable for both laminar and turbulent flows. The pressure loss (<span class="arithmatex">\(\Delta P\)</span>) is given by:</p>
+<div class="arithmatex">\[\Delta P = f \frac{L}{D} \frac{\rho v^2}{2}\]</div>
+<p>Where:
+- <span class="arithmatex">\(f\)</span> is the Darcy friction factor (dimensionless)
+- <span class="arithmatex">\(L\)</span> is the length of the pipe (m)
+- <span class="arithmatex">\(D\)</span> is the internal diameter of the pipe (m)
+- <span class="arithmatex">\(\rho\)</span> is the fluid density (kg/m³)
+- <span class="arithmatex">\(v\)</span> is the average flow velocity (m/s)</p>
+<h3 id="42-friction-factor-f">4.2. Friction Factor (f)</h3>
+<p>The friction factor (<span class="arithmatex">\(f\)</span>) depends on the flow regime (laminar or turbulent) and the pipe roughness. </p>
+<p>For <strong>laminar flow</strong> (<span class="arithmatex">\(Re &lt; 2300\)</span>), the friction factor is solely a function of the Reynolds number and is given by:</p>
+<div class="arithmatex">\[f = \frac{64}{Re}\]</div>
+<p>For <strong>turbulent flow</strong> (<span class="arithmatex">\(Re \ge 2300\)</span>), the friction factor depends on both the Reynolds number and the relative roughness of the pipe (<span class="arithmatex">\(\epsilon/D\)</span>, where <span class="arithmatex">\(\epsilon\)</span> is the absolute roughness). There are several empirical correlations for the turbulent friction factor. The <code>FluidMechanics</code> class uses an approximation based on the Colebrook-White equation, such as the Swamee-Jain equation, which is explicit and widely used for its accuracy and simplicity:</p>
+<div class="arithmatex">\[f = \frac{0.25}{\left[\log_{10}\left(\frac{\epsilon}{3.7D} + \frac{5.74}{Re^{0.9}}\right)\right]^2}\]</div>
+<p>This equation is valid for <span class="arithmatex">\(Re &gt; 4000\)</span> and a wide range of relative roughness values. For the transitional regime (<span class="arithmatex">\(2300 \le Re \le 4000\)</span>), the flow behavior is complex and often unpredictable, and simplified models may not capture the full physics. However, for practical engineering purposes, the laminar or turbulent correlations are often extended into this region or a linear interpolation is used [10].</p>
+<h2 id="5-heat-transfer-calculations">5. Heat Transfer Calculations</h2>
+<p>Heat transfer is a fundamental aspect of many fluid flow applications, particularly in thermal systems design and analysis. The <code>FluidMechanics</code> class provides methods to estimate convective heat transfer coefficients for common geometries, which are crucial for calculating heat exchange rates.</p>
+<h3 id="51-convective-heat-transfer-coefficient">5.1. Convective Heat Transfer Coefficient</h3>
+<p>Convective heat transfer occurs between a fluid and a solid surface due to the combined effects of conduction and fluid motion. The rate of convective heat transfer (<span class="arithmatex">\(Q\)</span>) is typically expressed by Newton's Law of Cooling:</p>
+<div class="arithmatex">\[Q = h A \Delta T\]</div>
+<p>Where:
+- <span class="arithmatex">\(h\)</span> is the convective heat transfer coefficient (W/(m²·K))
+- <span class="arithmatex">\(A\)</span> is the heat transfer surface area (m²)
+- <span class="arithmatex">\(\Delta T\)</span> is the temperature difference between the surface and the fluid (K)</p>
+<p>The convective heat transfer coefficient (<span class="arithmatex">\(h\)</span>) is not a property of the fluid but depends on the fluid properties, flow conditions (velocity, flow regime), and the geometry of the surface. It is often determined using empirical correlations involving dimensionless numbers like the Nusselt, Reynolds, and Prandtl numbers.</p>
+<h4 id="511-flat-plate-external-flow">5.1.1. Flat Plate (External Flow)</h4>
+<p>For external flow over a flat plate, the convective heat transfer coefficient depends on whether the boundary layer is laminar or turbulent. The <code>FluidMechanics</code> class uses common correlations for this estimation:</p>
+<ul>
+<li><strong>Laminar Flow</strong> (<span class="arithmatex">\(Re_L &lt; 5 \times 10^5\)</span>):</li>
+</ul>
+<div class="arithmatex">\[Nu_L = 0.664 Re_L^{0.5} Pr^{1/3}\]</div>
+<ul>
+<li><strong>Turbulent Flow</strong> (<span class="arithmatex">\(Re_L \ge 5 \times 10^5\)</span>):</li>
+</ul>
+<div class="arithmatex">\[Nu_L = 0.0296 Re_L^{0.8} Pr^{1/3}\]</div>
+<p>Once the Nusselt number (<span class="arithmatex">\(Nu_L\)</span>) is determined, the convective heat transfer coefficient (<span class="arithmatex">\(h\)</span>) can be calculated using the definition of the Nusselt number: <span class="arithmatex">\(h = Nu_L \frac{k}{L}\)</span>, where <span class="arithmatex">\(k\)</span> is the thermal conductivity of the fluid and <span class="arithmatex">\(L\)</span> is the characteristic length (length of the plate) [11].</p>
+<h4 id="512-cylinder-external-flow">5.1.2. Cylinder (External Flow)</h4>
+<p>For external flow across a single cylinder, the Churchill-Bernstein equation is a widely used correlation for a wide range of Reynolds numbers (<span class="arithmatex">\(Re_D Pr &gt; 0.2\)</span>). This equation provides the average Nusselt number for flow normal to a circular cylinder:</p>
+<div class="arithmatex">\[Nu_D = 0.3 + \frac{0.62 Re_D^{0.5} Pr^{1/3}}{\left[1 + (0.4/Pr)^{2/3}\right]^{0.25}} \left[1 + \left(\frac{Re_D}{282000}\right)^{0.5}\right]^{0.5}\]</div>
+<p>Where <span class="arithmatex">\(Re_D\)</span> is the Reynolds number based on the cylinder diameter. Similar to the flat plate, <span class="arithmatex">\(h\)</span> is then calculated as <span class="arithmatex">\(h = Nu_D \frac{k}{D}\)</span>, where <span class="arithmatex">\(D\)</span> is the cylinder diameter [12].</p>
+<h3 id="52-thermal-expansion-coefficient">5.2. Thermal Expansion Coefficient</h3>
+<p>The thermal expansion coefficient (<span class="arithmatex">\(\beta\)</span>) quantifies how much the density of a fluid changes with temperature at constant pressure. It is a crucial parameter in natural convection problems, as density variations drive the fluid motion. For liquids, it can be approximated using finite differences:</p>
+<div class="arithmatex">\[\beta = -\frac{1}{\rho_{avg}} \left(\frac{\Delta \rho}{\Delta T}\right)\]</div>
+<p>Where:
+- <span class="arithmatex">\(\rho_{avg}\)</span> is the average density over the temperature range
+- <span class="arithmatex">\(\Delta \rho\)</span> is the change in density
+- <span class="arithmatex">\(\Delta T\)</span> is the change in temperature</p>
+<p>For ideal gases, the thermal expansion coefficient is simply the inverse of the absolute temperature: <span class="arithmatex">\(\beta = 1/T\)</span> [13].</p>
+<h2 id="6-fluid-properties-and-flow-regimes">6. Fluid Properties and Flow Regimes</h2>
+<p>Accurate knowledge of fluid properties is fundamental to any fluid mechanics analysis. The <code>FluidMechanics</code> class leverages the <code>pyfluids</code> library to access a wide range of fluid properties, which are then used in various calculations. Furthermore, understanding the flow regime is crucial for applying appropriate models and correlations.</p>
+<h3 id="61-fundamental-fluid-properties">6.1. Fundamental Fluid Properties</h3>
+<p>The <code>FluidMechanics</code> class can retrieve several fundamental properties of a fluid at a given temperature and pressure. These include:</p>
+<ul>
+<li><strong>Density (<span class="arithmatex">\(\rho\)</span>)</strong>: Mass per unit volume (kg/m³). It is a measure of how much 'stuff' is packed into a given space. Density is crucial for calculating inertial forces and mass flow rates.</li>
+<li><strong>Dynamic Viscosity (<span class="arithmatex">\(\mu\)</span>)</strong>: A measure of a fluid's resistance to shear flow (Pa·s or kg/(m·s)). It represents the internal friction of a fluid. Viscosity is essential for understanding momentum transfer and energy dissipation in fluids.</li>
+<li><strong>Thermal Conductivity (<span class="arithmatex">\(k\)</span>)</strong>: A measure of a material's ability to conduct heat (W/(m·K)). It indicates how readily heat energy can be transferred through the fluid by conduction.</li>
+<li><strong>Specific Heat (<span class="arithmatex">\(c_p\)</span>)</strong>: The amount of heat per unit mass required to raise the temperature by one degree Celsius (or Kelvin) at constant pressure (J/(kg·K)). It is vital for energy balance calculations and heat transfer analysis.</li>
+<li><strong>Specific Volume (<span class="arithmatex">\(v\)</span>)</strong>: The ratio of the fluid's volume to its mass (m³/kg). It is the reciprocal of density and is often used in thermodynamic calculations.</li>
+</ul>
+<p>These properties are temperature and pressure-dependent and are retrieved from the <code>pyfluids</code> library, which provides robust and accurate data for various common fluids [14].</p>
+<h3 id="62-flow-regime-determination">6.2. Flow Regime Determination</h3>
+<p>The flow regime describes the general behavior of a fluid flow, primarily categorized as laminar, transitional, or turbulent. This classification is critical because the governing equations and empirical correlations used to describe fluid behavior differ significantly between these regimes. The <code>FluidMechanics</code> class determines the flow regime based on the calculated Reynolds number:</p>
+<ul>
+<li><strong>Laminar Flow</strong>: Occurs at low Reynolds numbers (typically <span class="arithmatex">\(Re &lt; 2300\)</span> for internal pipe flow). In this regime, fluid particles move in smooth, parallel layers with minimal mixing. Viscous forces dominate inertial forces.</li>
+<li><strong>Transitional Flow</strong>: Occurs at intermediate Reynolds numbers (typically <span class="arithmatex">\(2300 \le Re \le 4000\)</span> for internal pipe flow). This regime is characterized by an unsteady, oscillating flow that alternates between laminar and turbulent behavior. It is often difficult to predict and model accurately.</li>
+<li><strong>Turbulent Flow</strong>: Occurs at high Reynolds numbers (typically <span class="arithmatex">\(Re &gt; 4000\)</span> for internal pipe flow). In this regime, fluid particles move in chaotic, irregular patterns with significant mixing. Inertial forces dominate viscous forces, leading to higher friction and heat transfer rates.</li>
+</ul>
+<p>Understanding the flow regime is paramount for selecting the correct turbulence models in CFD simulations and for applying appropriate heat transfer and pressure loss correlations [15].</p>
+<h3 id="63-critical-velocity">6.3. Critical Velocity</h3>
+<p>The critical velocity is the velocity at which a fluid flow transitions from laminar to turbulent or vice versa. For internal pipe flow, this transition is typically associated with a critical Reynolds number of approximately 2300. The critical velocity (<span class="arithmatex">\(v_c\)</span>) can be calculated as:</p>
+<div class="arithmatex">\[v_c = \frac{Re_{crit} \mu}{\rho D}\]</div>
+<p>Where:
+- <span class="arithmatex">\(Re_{crit}\)</span> is the critical Reynolds number (typically 2300)
+- <span class="arithmatex">\(\mu\)</span> is the dynamic viscosity (Pa·s)
+- <span class="arithmatex">\(\rho\)</span> is the fluid density (kg/m³)
+- <span class="arithmatex">\(D\)</span> is the pipe diameter (m)</p>
+<p>This value is important for engineers to design systems that operate within a desired flow regime or to understand the conditions under which a transition might occur [16].</p>
+<h2 id="7-input-validation-and-error-handling">7. Input Validation and Error Handling</h2>
+<p>Robust input validation and comprehensive error handling are crucial for the reliability and usability of any computational tool. The <code>FluidMechanics</code> class incorporates several validation methods to ensure that input parameters are physically meaningful and to prevent common errors that could lead to incorrect results or program crashes. These validation checks are performed at the initialization of the class and within individual methods where specific conditions apply.</p>
+<h3 id="71-positive-quantity-validation">7.1. Positive Quantity Validation</h3>
+<p>Many physical quantities in fluid mechanics, such as pressure, velocity, and characteristic length, must inherently be positive. Attempting calculations with non-positive values for these parameters would lead to physically impossible or undefined results. The <code>_validate_positive_quantity</code> helper method ensures that any <code>Quantity</code> object passed to the class or its methods has a value greater than zero. If a non-positive value is detected, a <code>ValueError</code> is raised with an informative message, guiding the user to correct their input.</p>
+<h3 id="72-non-zero-quantity-validation">7.2. Non-Zero Quantity Validation</h3>
+<p>Certain calculations involve division by fluid properties like dynamic viscosity, thermal conductivity, or kinematic viscosity. If these properties were zero, the division would result in a mathematical error (division by zero), leading to a program crash. The <code>_validate_non_zero_quantity</code> helper method checks that critical <code>Quantity</code> objects, or their underlying numerical values, are not zero before they are used in such calculations. This prevents runtime errors and ensures the mathematical integrity of the computations. For instance, a fluid with zero viscosity would behave as a perfect fluid, which is a theoretical idealization not typically encountered in practical engineering problems where viscous effects are always present, however small.</p>
+<h3 id="73-temperature-range-validation">7.3. Temperature Range Validation</h3>
+<p>Temperature is a fundamental property that significantly influences fluid behavior. In many physical models and equations, particularly those involving ideal gas laws or thermodynamic properties, temperature must be expressed on an absolute scale (e.g., Kelvin) and must be positive. A temperature of 0 Kelvin (absolute zero) represents a state where particles have minimal kinetic energy, and many fluid properties become undefined or behave in ways not covered by standard models. Negative temperatures are physically impossible in this context. The <code>_validate_temperature_range</code> helper method ensures that the input temperature is greater than 0 Kelvin, preventing calculations based on unphysical temperature values and ensuring compatibility with the underlying <code>pyfluids</code> library, which relies on absolute temperature scales [17].</p>
+<p>By implementing these validation checks, the <code>FluidMechanics</code> class enhances its robustness, provides clearer feedback to the user in case of invalid inputs, and helps maintain the physical consistency of the calculated results. This proactive approach to error handling is essential for developing reliable and user-friendly engineering software.</p>
+<h2 id="8-references">8. References</h2>
+<p>[1] White, F. M. (2006). <em>Fluid Mechanics</em> (6th ed.). McGraw-Hill.</p>
+<p>[2] Incropera, F. P., DeWitt, D. P., Bergman, T. L., &amp; Lavine, A. S. (2007). <em>Fundamentals of Heat and Mass Transfer</em> (6th ed.). John Wiley &amp; Sons.</p>
+<p>[3] Cengel, Y. A., &amp; Ghajar, A. J. (2015). <em>Heat and Mass Transfer: Fundamentals and Applications</em> (5th ed.). McGraw-Hill Education.</p>
+<p>[4] Bejan, A. (2013). <em>Convection Heat Transfer</em> (4th ed.). John Wiley &amp; Sons.</p>
+<p>[5] Tritton, D. J. (1988). <em>Physical Fluid Dynamics</em> (2nd ed.). Oxford University Press.</p>
+<p>[6] Bird, R. B., Stewart, W. E., &amp; Lightfoot, E. N. (2007). <em>Transport Phenomena</em> (2nd ed.). John Wiley &amp; Sons.</p>
+<p>[7] Versteeg, H. K., &amp; Malalasekera, W. (2007). <em>An Introduction to Computational Fluid Dynamics: The Finite Volume Method</em> (2nd ed.). Pearson Education.</p>
+<p>[8] Schlichting, H., &amp; Gersten, K. (2017). <em>Boundary-Layer Theory</em> (9th ed.). Springer.</p>
+<p>[9] Blazek, J. (2015). <em>Computational Fluid Dynamics: Principles and Applications</em> (3rd ed.). Elsevier.</p>
+<p>[10] Munson, B. R., Young, D. F., &amp; Okiishi, T. H. (2009). <em>Fundamentals of Fluid Mechanics</em> (6th ed.). John Wiley &amp; Sons.</p>
+<p>[11] Kays, W. M., Crawford, M. E., &amp; Weigand, B. (2005). <em>Convective Heat and Mass Transfer</em> (4th ed.). McGraw-Hill.</p>
+<p>[12] Churchill, S. W., &amp; Bernstein, M. (1977). A Correlation for Forced Convection from Gases and Liquids to a Circular Cylinder in Crossflow. <em>Journal of Heat Transfer</em>, 99(2), 300-306.</p>
+<p>[13] Moran, M. J., Shapiro, H. N., Boettner, D. D., &amp; Bailey, M. B. (2014). <em>Fundamentals of Engineering Thermodynamics</em> (8th ed.). John Wiley &amp; Sons.</p>
+<p>[14] Lemmon, E. W., Bell, I. H., &amp; Huber, M. L. (2010). <em>NIST Standard Reference Database 23: Reference Fluid Thermodynamic and Transport Properties—REFPROP, Version 9.0</em> (Software). National Institute of Standards</p>
+<p>[15] Fox, R. W., Pritchard, P. J., &amp; McDonald, A. T. (2016). <em>Introduction to Fluid Mechanics</em> (9th ed.). John Wiley &amp; Sons.</p>
+<p>[16] Streeter, V. L., Wylie, E. B., &amp; Bedford, K. W. (1998). <em>Fluid Mechanics</em> (9th ed.). McGraw-Hill</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
