@@ -51,5 +51,6 @@ nav:
       - Modules détailés de FoamPilot : en/dev/dev_detailed_documentation.md
       - Gestion des quantités : en/dev/manage_quantity.md
   - Partie exemples:
-      - index: en/example/presntation_example.md
+      - index: en/example/presentation_example.md
       - Étude de cas silencieux : en/example/muffler/detailled_example_muffler.md
+      - Étude de cas silencieux : en/example/simplecar/detailled_example.md

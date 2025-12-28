@@ -2,6 +2,7 @@ from foampilot.base.openFOAMFile import OpenFOAMFile
 import json
 import os
 from pathlib import Path
+import subprocess
 
 class BlockMesher(OpenFOAMFile):
     """
@@ -61,34 +62,16 @@ class BlockMesher(OpenFOAMFile):
         self.boundary = boundary if boundary is not None else {}
         self.mergePatchPairs = mergePatchPairs if mergePatchPairs is not None else []
 
-        super().__init__(object_name="blockMeshDict", scale=self.scale,
-                         vertices=self.vertices, blocks=self.blocks,
-                         edges=self.edges, defaultPatch=self.defaultPatch,
-                         boundary=self.boundary, mergePatchPairs=self.mergePatchPairs)
+        super().__init__(object_name="blockMeshDict")
+
 
     def load_from_json(self, json_path: str):
-        """
-        Load a blockMeshDict configuration from a JSON file.
-
-        Parameters
-        ----------
-        json_path : str
-            Path to the JSON configuration file.
-
-        Raises
-        ------
-        FileNotFoundError
-            If the JSON file does not exist.
-        KeyError
-            If the JSON file structure is invalid or missing required keys.
-        """
         if not os.path.isfile(json_path):
-            raise FileNotFoundError(f"The file {json_path} does not exist.")
+            raise FileNotFoundError(json_path)
 
-        with open(json_path, 'r') as f:
+        with open(json_path) as f:
             data = json.load(f)
 
-        # Update attributes
         self.scale = data.get("scale", 1.0)
         self.vertices = data.get("vertices", [])
         self.blocks = data.get("blocks", [])
@@ -96,6 +79,12 @@ class BlockMesher(OpenFOAMFile):
         self.defaultPatch = data.get("defaultPatch", {})
         self.boundary = data.get("boundary", {})
         self.mergePatchPairs = data.get("mergePatchPairs", [])
+
+        # DEBUG OBLIGATOIRE
+        print("JSON loaded:")
+        print("vertices:", len(self.vertices))
+        print("blocks:", len(self.blocks))
+
 
     def write(self, file_path: Path):
         """

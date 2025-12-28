@@ -2,17 +2,17 @@
 
 from pathlib import Path
 from foampilot.solver import Solver
-from foampilot import Meshing, commons, utilities, postprocess
-from foampilot.utilities.fluids_theory import FluidMechanics
-from foampilot.utilities.manageunits import Quantity
+from foampilot import Meshing, commons, utilities, postprocess,latex_pdf, FluidMechanics , Quantity
 import classy_blocks as cb
 import numpy as np
 import json
 
+# exemple base : https://develop.openfoam.com/Development/openfoam/-/tree/30d2e2d3cfd2c2f268dd987b413dbeffd63962eb/tutorials/incompressible/simpleFoam/simpleCar
+
 # ------------------------------
 # 1. DEFINE CASE PATH
 # ------------------------------
-current_path = Path.cwd() 
+current_path = Path.cwd() / "cases"
 
 # ------------------------------
 # 2. FLUID PROPERTIES (modern API)
@@ -42,25 +42,111 @@ solver.constant.write()
 # ------------------------------
 # 4. MESH GENERATION (blockMesh JSON)
 # ------------------------------
-block_mesh_json = Path.cwd() / "data" / "block_mesh.json"
-with open(block_mesh_json) as f:
-    mesh_dict = json.load(f)
+# Load blockMesh configuration from a JSON file
+data_path = Path.cwd() / "block_mesh.json"
+mesh = Meshing(current_path,mesher="blockMesh")
 
-# Create ClassyBlocks Mesh
-mesh = cb.Mesh.from_dict(mesh_dict)
+mesh.mesher.load_from_json(data_path)
 
-# Default patch
-mesh.set_default_patch("walls", "wall")
+# Write the blockMeshDict file and run the meshing process
+mesh.mesher.write(file_path = current_path / "system" / "blockMeshDict")
+mesh.mesher.run()
 
-# Write blockMeshDict
-mesh.write(
-    current_path / "system" / "blockMeshDict",
-    current_path / "debug.vtk"
+# ------------------------------
+# 6. FUNCTION OBJECTS 
+# ------------------------------
+
+# --- 4. Adding functionObjects (fieldAverage, referencePressure, runTimeControl) ---
+# Example: add a fieldAverage function to system/controlDict
+name_field, field_average_dict = utilities.Functions.field_average("fieldAverage")
+utilities.Functions.write_function_field_average(name_field, field_average_dict, base_path=current_path, folder='system')
+
+# Example: add a reference pressure function
+name_field_ref, reference_dict = utilities.Functions.reference_pressure("referencePressure")
+utilities.Functions.write_function_reference_pressure(name_field_ref, reference_dict, base_path=current_path, folder='system')
+
+# Example: runTimeControl conditions (stopping criteria)
+conditions1 = {
+    "condition1": {
+        "type": "average",
+        "functionObject": "forceCoeffs1",
+        "fields": "(Cd)",
+        "tolerance": "1e-3",
+        "window": "20",
+        "windowType": "exact"
+    }
+}
+
+conditions2 = {
+    "condition1": {
+        "type": "maxDuration",
+        "duration": "100"
+    }
+}
+
+name_field_rt1, rt1_dict = utilities.Functions.run_time_control("runTimeControl", conditions=conditions1)
+utilities.Functions.write_function_run_time_control(
+    name_field=name_field_rt1,
+    name_condition="runTimeControl1",
+    function_dict=rt1_dict,
+    base_path=current_path,
+    folder='system'
 )
 
-# Run blockMesh
-mesher = Meshing(current_path, mesher="blockMesh")
-mesher.mesher.run()
+# Create the functions file in system
+solver.system.write_functions_file(includes=["fieldAverage", "runTimeControl"])
+
+# --- 5. Dictionary manipulation (patches & topoSet) ---
+# Define patch names for createPatchDict
+patch_names = ["airIntake"]
+patches_dict = utilities.dictonnary.dict_tools.create_patches_dict(patch_names)
+
+# Write createPatchDict file
+create_patch_dict_file = utilities.dictonnary.OpenFOAMDictAddFile(object_name='createPatchDict', **patches_dict)
+create_patch_dict_file.write("createPatchDict", current_path)
+
+# Define topoSet actions (to create cellSets, faceSets, etc.)
+actions = [
+    utilities.dictonnary.dict_tools.create_action(
+        name="porousCells",
+        action_type="cellSet",
+        action="new",
+        source="boxToCell",
+        box=[(2.05, 0.4, -1), (2.1, 0.85, 1)]
+    ),
+    utilities.dictonnary.dict_tools.create_action(
+        name="porousZone",
+        action_type="cellZoneSet",
+        action="new",
+        source="setToCellZone",
+        set="porousCells"
+    ),
+    utilities.dictonnary.dict_tools.create_action(
+        name="airIntake",
+        action_type="faceSet",
+        action="new",
+        source="patchToFace",
+        patch="body"
+    ),
+    utilities.dictonnary.dict_tools.create_action(
+        name="airIntake",
+        action_type="faceSet",
+        action="subset",
+        source="boxToFace",
+        box=[(2.6, 0.75, 0), (2.64, 0.8, 0.1)]
+    )
+]
+
+# Create topoSetDict and write it
+actions_dict = utilities.dictonnary.dict_tools.create_actions_dict(actions)
+create_topo_set_dict_file = utilities.dictonnary.OpenFOAMDictAddFile(object_name='topoSetDict', **actions_dict)
+create_topo_set_dict_file.write("topoSetDict", current_path)
+
+# Run topoSet and createPatch commands
+solver.system.run_topoSet()
+solver.system.run_createPatch()
+
+
 
 # ------------------------------
 # 5. BOUNDARY CONDITIONS (new API)
@@ -85,6 +171,19 @@ solver.boundary.apply_condition_with_wildcard(
     condition_type="pressureOutlet"
 )
 
+
+# Velocity inlet
+solver.boundary.apply_condition_with_wildcard(
+    pattern="airIntake",
+    condition_type="velocityInlet",
+    velocity=(
+        Quantity(1.2, "m/s"),
+        Quantity(0, "m/s"),
+        Quantity(0, "m/s")
+    ),
+    turbulence_intensity=0.05
+)
+
 # Walls
 solver.boundary.apply_condition_with_wildcard(
     pattern="walls",
@@ -94,50 +193,7 @@ solver.boundary.apply_condition_with_wildcard(
 # Write all boundary files
 solver.boundary.write_boundary_conditions()
 
-# ------------------------------
-# 6. FUNCTION OBJECTS (modern API)
-# ------------------------------
 
-# fieldAverage
-solver.system.add_function_object(
-    name="fieldAverage",
-    function_type="fieldAverage",
-    fields=["U", "p", "k"],
-    operation="average",
-    writeControl="timeStep",
-    writeInterval=10
-)
-
-# runTimeControl
-solver.system.add_function_object(
-    name="runTimeControl",
-    function_type="runTimeControl",
-    conditions=[
-        {
-            "type": "average",
-            "functionObject": "forceCoeffs",
-            "fields": "(Cd)",
-            "tolerance": 1e-3,
-            "window": 20
-        }
-    ]
-)
-
-solver.system.write_functions_file()
-
-# ------------------------------
-# 7. TOPOSET / CREATEPATCH (modern)
-# ------------------------------
-
-commons.OpenFOAM.run_tool(
-    "topoSet",
-    case_path=current_path
-)
-
-commons.OpenFOAM.run_tool(
-    "createPatch",
-    case_path=current_path
-)
 
 # ------------------------------
 # 8. RUN SIMULATION

@@ -1,237 +1,251 @@
+# 消声器 CFD 示例 – FoamPilot
 
-# Simulation CFD d'un silencieux à l'aide de FoamPilot et ClassyBlocks
+## 概述
 
-Ce document détaille un script Python utilisant les bibliothèques `foampilot`, `classy_blocks`, `pyvista` et `numpy` pour simuler un écoulement incompressible dans une géométrie de silencieux. Le script couvre la création de la géométrie, le maillage, la définition des conditions aux limites, la simulation et le post-traitement.
+此示例展示了使用 **FoamPilot** 和 **OpenFOAM** 完整的 **CFD 工作流程**，用于模拟消声器几何中的不可压缩流动。该示例可作为 **参考**，展示 FoamPilot 的工作理念：
 
----
+- 明确的物理建模（流体、单位）
+- 参数化几何与结构化网格
+- 边界条件的可靠管理
+- 自动化模拟执行
+- 高级后处理与可视化
+- 自动生成 PDF 报告
 
-## Table des matières
-1. [Introduction](#introduction)
-2. [Importation des bibliothèques](#importation-des-bibliothèques)
-3. [Initialisation du solveur et des répertoires](#initialisation-du-solveur-et-des-répertoires)
-4. [Définition de la géométrie](#définition-de-la-géométrie)
-5. [Génération du maillage](#génération-du-maillage)
-6. [Gestion des conditions aux limites](#gestion-des-conditions-aux-limites)
-7. [Exécution de la simulation](#exécution-de-la-simulation)
-8. [Post-traitement](#post-traitement)
-9. [Visualisation et analyse des résultats](#visualisation-et-analyse-des-résultats)
-10. [Conclusion](#conclusion)
+📁 **位置**：`examples/muffler`
 
 ---
 
-## Introduction
-Ce script automatise la création d'une géométrie de silencieux, génère un maillage adapté, définit les conditions aux limites, exécute une simulation CFD (Computational Fluid Dynamics) avec OpenFOAM via `foampilot`, et effectue un post-traitement des résultats à l'aide de `pyvista`.
+## 1. 前提条件
 
-Cet exemple est disponible dans exemple/muffler
+运行此示例前，请确保：
+
+- 已正确安装并配置 OpenFOAM
+- 已安装 FoamPilot
+- 已安装以下 Python 依赖：
+  - `classy_blocks`
+  - `pyvista`
+  - `numpy`
+  - `pandas`
 
 ---
 
-## Importation des bibliothèques
+## 2. 初始化案例
+
+定义工作目录并初始化 FoamPilot 求解器。
 
 ```python
-from foampilot import incompressibleFluid, Meshing, commons, utilities, postprocess
-import numpy as np
-import classy_blocks as cb
-import pyvista as pv
+from foampilot.solver import Solver
 from pathlib import Path
-from foampilot.utilities.manageunits import Quantity
+
+current_path = Path.cwd() / "cas_test"
+solver = Solver(current_path)
+
+solver.compressible = False
+solver.with_gravity = False
 ```
 
-- **foampilot** : Interface Python pour OpenFOAM, permettant de gérer les cas de simulation, le maillage, les conditions aux limites et le post-traitement.
-- **numpy** : Utilisé pour les calculs numériques et la manipulation de tableaux.
-- **classy_blocks** : Bibliothèque pour la création de géométries et de maillages structurés.
-- **pyvista** : Bibliothèque de visualisation 3D pour les maillages et les champs de résultats.
-- **Path** : Pour la gestion des chemins de fichiers.
-- **Quantity** : Pour la gestion des unités physiques.
+`Solver` 是核心对象，负责：
+
+- OpenFOAM 字典管理
+- 边界条件管理
+- 模拟执行
 
 ---
 
-## Initialisation du solveur et des répertoires
+## 3. 流体属性
+
+使用 FoamPilot 的 `FluidMechanics` API 明确定义流体。
 
 ```python
-current_path = Path.cwd() / 'exemple2'
-solver = incompressibleFluid(path_case=current_path)
-system_dir = solver.system.write()
-system_dir = solver.constant.write()
+from foampilot import FluidMechanics, Quantity
+
+available_fluids = FluidMechanics.get_available_fluids()
+
+fluid = FluidMechanics(
+    available_fluids["Water"],
+    temperature=Quantity(293.15, "K"),
+    pressure=Quantity(101325, "Pa")
+)
+
+properties = fluid.get_fluid_properties()
+nu = properties["kinematic_viscosity"]
+```
+
+将运动粘度注入 OpenFOAM 配置：
+
+```python
+solver.constant.transportProperties.nu = nu
+```
+
+---
+
+## 4. 写入 OpenFOAM 配置文件
+
+```python
+solver.system.write()
+solver.constant.write()
 solver.system.fvSchemes.to_dict()
 ```
 
-- `current_path` : Chemin vers le répertoire de travail où seront stockés les fichiers de la simulation.
-- `solver` : Instance du solveur pour un fluide incompressible.
-- `system_dir` : Écriture des répertoires `system` et `constant` nécessaires à OpenFOAM.
-- `fvSchemes.to_dict()` : Affiche les schémas numériques utilisés pour la simulation.
+FoamPilot 自动生成：
+
+- `controlDict`
+- `fvSchemes`
+- `fvSolution`
+- `transportProperties`
 
 ---
 
-## Définition de la géométrie
+## 5. 几何定义 (ClassyBlocks)
 
-### Paramètres géométriques
+### 5.1 几何参数
 
 ```python
-pipe_radius = 0.05      # Rayon du tuyau
-muffler_radius = 0.08   # Rayon du silencieux
-ref_length = 0.1        # Longueur de référence pour les segments
-cell_size = 0.015       # Taille uniforme des cellules du maillage
-shapes = []             # Liste pour stocker les formes géométriques
+pipe_radius = 0.05
+muffler_radius = 0.08
+ref_length = 0.1
+cell_size = 0.015
 ```
 
-### Création des formes géométriques
+### 5.2 构建几何
 
-1. **Cylindre d'entrée** :
-   ```python
-   shapes.append(cb.Cylinder([0, 0, 0], [3 * ref_length, 0, 0], [0, pipe_radius, 0]))
-   shapes[-1].chop_axial(start_size=cell_size)
-   shapes[-1].chop_radial(start_size=cell_size)
-   shapes[-1].chop_tangential(start_size=cell_size)
-   shapes[-1].set_start_patch("inlet")
-   ```
-   - Crée un cylindre de l'entrée, avec un maillage structuré axial, radial et tangentiel.
-   - La face de départ est nommée `"inlet"`.
+几何通过 **参数化形状序列** 构建：
 
-2. **Extension du cylindre** :
-   ```python
-   shapes.append(cb.Cylinder.chain(shapes[-1], ref_length))
-   shapes[-1].chop_axial(start_size=cell_size)
-   ```
+1. 入口管道（圆柱）
+2. 扩展环（消声器主体）
+3. 填充部分
+4. 90° 出口弯头
 
-3. **Anneau extrudé (début du silencieux)** :
-   ```python
-   shapes.append(cb.ExtrudedRing.expand(shapes[-1], muffler_radius - pipe_radius))
-   shapes[-1].chop_radial(start_size=cell_size)
-   ```
+入口圆柱示例：
 
-4. **Corps du silencieux** :
-   ```python
-   shapes.append(cb.ExtrudedRing.chain(shapes[-1], ref_length))
-   shapes[-1].chop_axial(start_size=cell_size)
-   ```
+```python
+import classy_blocks as cb
 
-5. **Fin du silencieux** :
-   ```python
-   shapes.append(cb.ExtrudedRing.chain(shapes[-1], ref_length))
-   shapes[-1].chop_axial(start_size=cell_size)
-   ```
+shapes = []
 
-6. **Remplissage de l'anneau** :
-   ```python
-   shapes.append(cb.Cylinder.fill(shapes[-1]))
-   shapes[-1].chop_radial(start_size=cell_size)
-   ```
+shapes.append(cb.Cylinder(
+    [0, 0, 0],
+    [3 * ref_length, 0, 0],
+    [0, pipe_radius, 0]
+))
 
-7. **Coudure (coude)** :
-   ```python
-   elbow_center = shapes[-1].sketch_2.center + np.array([0, 2 * muffler_radius, 0])
-   shapes.append(cb.Elbow.chain(shapes[-1], np.pi / 2, elbow_center, [0, 0, 1], pipe_radius))
-   shapes[-1].chop_axial(start_size=cell_size)
-   shapes[-1].set_end_patch("outlet")
-   ```
-   - Crée un coude à 90° et nomme la face de sortie `"outlet"`.
+shapes[-1].chop_axial(start_size=cell_size)
+shapes[-1].chop_radial(start_size=cell_size)
+shapes[-1].chop_tangential(start_size=cell_size)
+shapes[-1].set_start_patch("inlet")
+```
+
+通过在几何级别定义 patch，保证网格与边界条件一致。
 
 ---
 
-## Génération du maillage
+## 6. 网格生成
 
 ```python
 mesh = cb.Mesh()
 for shape in shapes:
     mesh.add(shape)
+
 mesh.set_default_patch("walls", "wall")
-mesh.write(current_path / "system" / "blockMeshDict", current_path / "debug.vtk")
+mesh.write(
+    current_path / "system" / "blockMeshDict",
+    current_path / "debug.vtk"
+)
 ```
 
-- `cb.Mesh()` : Initialise un objet maillage.
-- `mesh.add(shape)` : Ajoute chaque forme au maillage.
-- `set_default_patch("walls", "wall")` : Définit les surfaces non nommées comme des parois.
-- `mesh.write()` : Génère les fichiers `blockMeshDict` (pour OpenFOAM) et `debug.vtk` (pour la visualisation).
-
----
-
-## Exécution du maillage avec OpenFOAM
+使用 OpenFOAM 执行网格生成：
 
 ```python
-meshing = Meshing(path_case=current_path)
-meshing.run_blockMesh()
-```
+from foampilot import Meshing
 
-- `Meshing` : Classe pour exécuter l'outil `blockMesh` d'OpenFOAM.
-- `run_blockMesh()` : Génère le maillage à partir du fichier `blockMeshDict`.
+meshing = Meshing(current_path, mesher="blockMesh")
+meshing.mesher.run()
+```
 
 ---
 
-## Gestion des conditions aux limites
+## 7. 边界条件管理
 
-### Initialisation
+FoamPilot 提供通用 API，通过模式匹配设置边界条件：
 
 ```python
 solver.boundary.initialize_boundary()
 ```
 
-### Conditions aux limites
-
-1. **Vitesse d'entrée** :
-   ```python
-   solver.boundary.set_velocity_inlet(
-       pattern="inlet",
-       velocity=(Quantity(10,"m/s"), Quantity(0,"m/s"), Quantity(0,"m/s")),
-       turbulence_intensity=0.05
-   )
-   ```
-   - Vitesse d'entrée de 10 m/s selon l'axe x, avec une intensité turbulente de 5%.
-
-2. **Pression de sortie** :
-   ```python
-   solver.boundary.set_pressure_outlet(
-       pattern="outlet",
-       velocity=(Quantity(10,"m/s"), Quantity(0,"m/s"), Quantity(0,"m/s")),
-   )
-   ```
-
-3. **Paroi sans glissement** :
-   ```python
-   solver.boundary.set_wall(
-       pattern="walls",
-       velocity=(Quantity(0,"m/s"), Quantity(0,"m/s"), Quantity(0,"m/s"))
-   )
-   ```
-
-### Écriture des fichiers
+### 7.1 入口速度
 
 ```python
-fields = ["U", "p", "k", "epsilon", "nut"]
-for field in fields:
-    solver.boundary.write_boundary_file(field)
+solver.boundary.apply_condition_with_wildcard(
+    pattern="inlet",
+    condition_type="velocityInlet",
+    velocity=(
+        Quantity(10, "m/s"),
+        Quantity(0, "m/s"),
+        Quantity(0, "m/s")
+    ),
+    turbulence_intensity=0.05
+)
 ```
 
-- Génère les fichiers de conditions aux limites pour les champs de vitesse (`U`), pression (`p`), énergie cinétique turbulente (`k`), dissipation turbulente (`epsilon`) et viscosité turbulente (`nut`).
+### 7.2 出口压力
+
+```python
+solver.boundary.apply_condition_with_wildcard(
+    pattern="outlet",
+    condition_type="pressureOutlet"
+)
+```
+
+### 7.3 壁面
+
+```python
+solver.boundary.apply_condition_with_wildcard(
+    pattern="walls",
+    condition_type="wall"
+)
+```
+
+### 7.4 写入边界条件文件
+
+```python
+solver.boundary.write_boundary_conditions()
+```
 
 ---
 
-## Exécution de la simulation
+## 8. 模拟执行
 
 ```python
 solver.run_simulation()
 ```
 
-- Lance la simulation CFD avec les paramètres définis.
+FoamPilot 自动管理求解器、执行和日志记录。
 
 ---
 
-## Post-traitement des résidus
+## 9. 残差后处理
 
 ```python
-residuals_post = utilities.ResidualsPost(current_path / "log.incompressibleFluid")
-residuals_post.process(export_csv=True, export_json=True, export_png=True, export_html=True)
+from foampilot.utilities import ResidualsPost
+
+residuals = ResidualsPost(current_path / "log.incompressibleFluid")
+residuals.process(
+    export_csv=True,
+    export_json=True,
+    export_png=True,
+    export_html=True
+)
 ```
 
-- Extrait et exporte les résidus de la simulation dans différents formats.
-
 ---
 
-## Visualisation et analyse des résultats
+## 10. 结果可视化与分析
 
-### Chargement des résultats
+### 结果加载
 
 ```python
+from foampilot import postprocess
+
 foam_post = postprocess.FoamPostProcessing(case_path=current_path)
 foam_post.foamToVTK()
 time_steps = foam_post.get_all_time_steps()
@@ -241,89 +255,69 @@ cell_mesh = structure["cell"]
 boundaries = structure["boundaries"]
 ```
 
-- Convertit les résultats OpenFOAM au format VTK pour la visualisation.
-- Charge le dernier pas de temps et les maillages des cellules et des frontières.
+### 可视化
 
-### Visualisation
+- 切片 (slice)
+- 压力等值线
+- 速度矢量
+- 网格线框
 
-1. **Tranche (slice)** :
-   ```python
-   pl_slice = pv.Plotter(off_screen=True)
-   y_slice = cell_mesh.slice(normal='z')
-   pl_slice.add_mesh(y_slice, scalars='U', lighting=False, scalar_bar_args={'title': 'U'})
-   pl_slice.add_mesh(cell_mesh, color='w', opacity=0.25)
-   for name, mesh in boundaries.items():
-       pl_slice.add_mesh(mesh, opacity=0.5)
-   foam_post.export_plot(pl_slice, current_path / "slice_plot.png")
-   ```
+### 分析
 
-2. **Contours de pression** :
-   ```python
-   pl_contour = pv.Plotter(off_screen=True)
-   pl_contour.add_mesh(cell_mesh, scalars='p', show_scalar_bar=True)
-   foam_post.export_plot(pl_contour, current_path / "contour_plot.png")
-   ```
+- Q 判据
+- 涡量
+- 网格和字段统计
+- CSV / JSON 数据导出
+- 动画生成
 
-3. **Vecteurs de vitesse** :
-   ```python
-   pl_vectors = pv.Plotter(off_screen=True)
-   cell_mesh.set_active_vectors('U')
-   arrows = cell_mesh.glyph(orient='U', factor=0.001)
-   pl_vectors.add_mesh(arrows, color='blue')
-   foam_post.export_plot(pl_vectors, current_path / "vector_plot.png")
-   ```
-
-4. **Style de maillage** :
-   ```python
-   pl_mesh_style = pv.Plotter(off_screen=True)
-   pl_mesh_style.add_mesh(cell_mesh, style='wireframe', show_edges=True, color='red')
-   foam_post.export_plot(pl_mesh_style, current_path / "mesh_style_plot.png")
-   ```
-
-### Analyse
-
-1. **Critère Q** :
-   ```python
-   mesh_with_q = foam_post.calculate_q_criterion(mesh=cell_mesh, velocity_field="U")
-   ```
-
-2. **Vorticité** :
-   ```python
-   mesh_with_vorticity = foam_post.calculate_vorticity(mesh=cell_mesh, velocity_field="U")
-   ```
-
-3. **Statistiques** :
-   ```python
-   pressure_stats = foam_post.get_scalar_statistics(mesh=cell_mesh, scalar_field="p")
-   time_series = foam_post.get_time_series_data(scalar_field="p", point_coordinates=[0.0, 0.0, 0.0])
-   mesh_stats = foam_post.get_mesh_statistics(cell_mesh)
-   cell_region_stats = foam_post.get_region_statistics(structure, "cell", "U")
-   ```
-
-4. **Export des données** :
-   ```python
-   foam_post.export_region_data_to_csv(structure, "cell", ["U", "p"], current_path / "cell_data.csv")
-   foam_post.export_statistics_to_json(all_stats, current_path / "all_stats.json")
-   foam_post.create_animation(scalars='U', filename='animation_test.gif', fps=5)
-   ```
+```python
+foam_post.calculate_q_criterion(mesh=cell_mesh, velocity_field="U")
+foam_post.calculate_vorticity(mesh=cell_mesh, velocity_field="U")
+foam_post.create_animation(
+    scalars="U",
+    filename=current_path / "animation.gif",
+    fps=5
+)
+```
 
 ---
 
-## Conclusion
+## 11. 自动生成 PDF 报告
 
-Ce script illustre une chaîne complète de simulation CFD :
-- Création de géométrie et maillage structuré avec `classy_blocks`.
-- Simulation avec OpenFOAM via `foampilot`.
-- Post-traitement et visualisation avec `pyvista`.
+```python
+from foampilot import latex_pdf
 
-Les résultats incluent des visualisations 2D/3D, des statistiques sur les champs, et des animations. Le code est modulaire et peut être adapté à d'autres géométries ou conditions de simulation.
+doc = latex_pdf.LatexDocument(
+    title="仿真报告：消声器",
+    author="自动生成报告",
+    output_dir=current_path
+)
+
+doc.add_title()
+doc.add_toc()
+doc.add_abstract(
+    "本报告总结了消声器不可压缩流体 CFD 仿真结果。"
+)
+
+doc.generate_document(output_format="pdf")
+```
+
+报告包含：
+
+- 流体属性
+- 网格统计
+- 字段统计
+- 可视化图形
+- 数据附录
 
 ---
 
-## Pour aller plus loin
+## 12. 总结
 
-- **Personnalisation** : Modifier les paramètres géométriques ou les conditions aux limites pour étudier d'autres configurations.
-- **Optimisation** : Utiliser les résultats pour optimiser la géométrie du silencieux.
-- **Automatisation** : Intégrer ce script dans un pipeline de simulation plus large.
+该示例展示了完整的 **CFD 仿真链**：
 
----
+- 参数化几何与结构化网格 (classy_blocks)
+- 通过 FoamPilot 使用 OpenFOAM 进行 CFD 仿真
+- 高级后处理与可视化 (pyvista)
+- 自动化 PDF 报告生成
+

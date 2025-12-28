@@ -1,5 +1,5 @@
 # Ignorer tout
 *
-!*.py
-!*.stl
-!.gitignore
+# !*.py
+# !*.stl
+# !.gitignore

@@ -4,9 +4,8 @@
 
 - [关于](about.md)
 - [安装 OpenFOAM](install_openfoam.md)
-- [Présentation de FOAMPilot](presentation.md)
-- [Guide théorique sur les méthodes](fluids_theory.md)
-- [Guide utilisateur](user_documentation.md)
-- [Partie dévellopeur](dev/dev_index.md)
-- [Examples](example/presntation_example.md)
--
+- [FOAMPilot 介绍](presentation.md)
+- [流体力学理论指南](fluids_theory.md)
+- [用户指南](user_documentation.md)
+- [开发者部分](dev/dev_index.md)
+- [示例](example/presentation_example.md)

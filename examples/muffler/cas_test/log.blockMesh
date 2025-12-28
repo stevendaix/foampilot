@@ -1,4 +1,4 @@
-Running 'blockMesh' in: /home/steven/git_public/exemple2
+Running 'blockMesh' in: /home/steven/foampilot/examples/muffler/cas_test
 blockMesh executed successfully.
 /*---------------------------------------------------------------------------*\
   =========                 |
@@ -7,14 +7,14 @@ blockMesh executed successfully.
     \\  /    A nd           | Version:  13
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
-Build  : 13-65eda17ad4ca
+Build  : 13-cde978a97c93
 Exec   : blockMesh
-Date   : Sep 14 2025
-Time   : 16:02:29
-Host   : "DESKTOP-ORC4MQ9"
-PID    : 150362
+Date   : Dec 28 2025
+Time   : 15:50:56
+Host   : "MSI"
+PID    : 25795
 I/O    : uncollated
-Case   : /home/steven/git_public/exemple2
+Case   : /home/steven/foampilot/examples/muffler/cas_test
 nProcs : 1
 sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
 fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
@@ -24,7 +24,7 @@ allowSystemOperations : Allowing user-supplied system call operations
 Create time
 
 Deleting polyMesh directory
-    "/home/steven/git_public/exemple2/constant/polyMesh"
+    "/home/steven/foampilot/examples/muffler/cas_test/constant/polyMesh"
 Reading "blockMeshDict"
 
 Creating block mesh from
@@ -36,15 +36,13 @@ Creating topology patches
 
 Creating block mesh topology
 
-Check topology
+Basic statistics
+    Number of internal faces : 160
+    Number of boundary faces : 112
+    Number of defined boundary faces : 112
+    Number of undefined boundary faces : 0
 
-	Basic statistics
-		Number of internal faces : 160
-		Number of boundary faces : 112
-		Number of defined boundary faces : 112
-		Number of undefined boundary faces : 0
-	Checking patch -> block consistency
-
+Checking topology
 Creating block offsets
 Creating merge list .
 

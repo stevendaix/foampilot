@@ -1,12 +1,11 @@
-# Accueil
+# Home
 
-Bienvenue sur la documentation FoamPilot.
+Welcome to the FoamPilot documentation.
 
-- [À propos](about.md)
-- [Installation OpenFOAM](install_openfoam.md)
-- [Présentation de FOAMPilot](presentation.md)
-- [Guide théorique sur les méthodes](fluids_theory.md)
-- [Guide utilisateur](user_documentation.md)
-- [Partie dévellopeur](dev/dev_index.md)
-- [Examples](example/presntation_example.md)
--
+- [About](about.md)
+- [Install OpenFOAM](install_openfoam.md)
+- [FOAMPilot Presentation](presentation.md)
+- [Fluid Mechanics Theory Guide](fluids_theory.md)
+- [User Guide](user_documentation.md)
+- [Developer Section](dev/dev_index.md)
+- [Examples](example/presentation_example.md)

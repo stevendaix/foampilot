@@ -2,11 +2,9 @@
 
 # Import required libraries
 from foampilot.solver import Solver
-from foampilot import Meshing, commons, utilities, postprocess,latex_pdf
-from foampilot.utilities.fluids_theory import FluidMechanics
+from foampilot import Meshing, commons, utilities, postprocess,latex_pdf, FluidMechanics , Quantity
 import pyvista as pv
 from pathlib import Path
-from foampilot.utilities.manageunits import Quantity
 import numpy as np
 import classy_blocks as cb
 import json
@@ -18,7 +16,7 @@ current_path = Path.cwd() / 'cas_test'
 
 # List available fluids
 print("Available fluids:")
-available_fluids = FluidMechanics.get_available_fluids()
+available_fluids = utilities.FluidMechanics.get_available_fluids()
 for name in available_fluids:
     print(f"- {name}")
 
@@ -139,7 +137,7 @@ print("Successfully generated blockMeshDict and debug.vtk files in the case dire
 # Initialize meshing object and run blockMesh utility
 
 mesh = Meshing(current_path,mesher="blockMesh")
-mesh.mesher.run(current_path / "city_block_cfd_domain.step")
+mesh.mesher.run()
 
 # --- 3. Boundary Conditions Management ---
 
@@ -292,11 +290,6 @@ else:
     print("\nTest completed.")
 
 
-
-
-
-
-current_path = Path.cwd() / "exemple2"
 
 # Load statistics JSON
 stats_file = current_path / "all_stats.json"

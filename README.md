@@ -1,89 +1,108 @@
 # foampilot 🚀
 
+🌍 **Languages:**  
+[English](README.md) | [Français](README.fr.md) | [中文](README.zh.md)
 
-[English](#english) | [中文](#中文) | [Français](#french)
+# foampilot 🚀
 
----
+**foampilot** is a Python platform designed to *fully orchestrate OpenFOAM simulations*  
+using Python as the single source of truth — from case definition and meshing to execution,
+post-processing, and reporting.
 
-## English
-
-**foampilot** is a Python platform to fully control your OpenFOAM simulations:  
-everything is defined in Python files, from mesh generation to post-processing and automated reporting.
-
-### ✨ Main Features
-
-🔧 **100% Python configuration** – automatically generate your OpenFOAM files (`system`, `constant`, `0/…`) without manual editing.  
-
-📐 **Mesh management** – support for `blockMesh`, `snappyHexMesh`, and extensible to other meshing tools.  
-
-⚙️ **Automated execution** – run OpenFOAM solvers directly from Python.  
-
-📊 **Modern post-processing** – 3D visualization with PyVista, automatic PNG/animation export.  
-
-📝 **Automated reporting** – generate calculation notes in PDF or interactive dashboards with Streamlit.  
+It is intended for engineers and researchers who want **reproducible, scriptable,
+and maintainable CFD workflows**, without manually editing OpenFOAM dictionaries.
 
 ---
 
-### 🚀 Why foampilot?
+## Motivation
 
-✅ Control everything with a single language: Python.  
-✅ Easier and more reproducible case verification.  
-✅ Save time in preparation and analysis.  
-✅ Present results in a modern, professional way.  
+OpenFOAM is extremely powerful, but managing simulations often involves:
+- manual editing of multiple dictionary files,
+- fragile case duplication,
+- ad-hoc scripts for post-processing,
+- limited reproducibility across studies.
 
-
----
-## 中文
-
-foampilot 是一个基于 Python 的平台，可以完全控制您的 OpenFOAM 仿真：
-从网格生成到后处理和自动报告，一切都在 Python 文件中定义。
-
-### ✨ 主要功能
-
-🔧 100% Python 配置 —— 自动生成 OpenFOAM 文件（system、constant、0/…），无需手动编辑。
-
-📐 网格管理 —— 支持 blockMesh、snappyHexMesh，并可扩展至其他网格划分工具。
-
-⚙️ 自动化执行 —— 直接在 Python 中运行 OpenFOAM 求解器。
-
-📊 现代化后处理 —— 使用 PyVista 进行三维可视化，自动导出 PNG/动画。
-
-📝 自动化报告 —— 生成 PDF 计算说明或基于 Streamlit 的交互式仪表板。
-
-### 🚀 为什么选择 foampilot?
-
-✅ 只用一种语言（Python）即可完成所有工作。
-✅ 案例验证更简单、更可复现。
-✅ 在准备和分析过程中节省时间。
-✅ 以现代和专业的方式展示结果。
-
+**foampilot** addresses these issues by placing Python at the center of the workflow:
+OpenFOAM cases become *generated artifacts*, not manually maintained inputs.
 
 ---
-<a id="french"></a>
-## Français
 
-foampilot est une plateforme Python qui permet de piloter entièrement vos simulations OpenFOAM :
-tout est défini dans des fichiers Python, depuis la création du maillage jusqu’au post-traitement et à la génération de rapports.
+## Key Features
 
-### ✨ Fonctionnalités principales
+- **Python-first workflow**  
+  Define meshes, solvers, boundary conditions, and controls directly in Python.
 
-🔧 Configuration 100% Python : générez automatiquement vos fichiers OpenFOAM (system, constant, 0/…) sans édition manuelle.
+- **Automatic OpenFOAM case generation**  
+  Generate `system`, `constant`, and `0/` files programmatically, consistently, and reproducibly.
 
-📐 Gestion du maillage : support de blockMesh, snappyHexMesh et intégration possible d’autres mailleurs.
+- **Mesh orchestration**  
+  Native support for `blockMesh` and `snappyHexMesh`, with an extensible architecture.
 
-⚙️ Lancement automatisé : exécutez vos solveurs OpenFOAM directement depuis Python.
+- **Simulation control**  
+  Launch and manage OpenFOAM solvers directly from Python.
 
-📊 Post-traitement moderne : visualisation 3D avec PyVista, export automatique en PNG/animations.
+- **Modern post-processing**  
+  3D visualization with PyVista, automatic export of figures and animations.
 
-📝 Rapports automatiques : générez une note de calcul en PDF ou un dashboard interactif Streamlit pour présenter vos résultats.
+- **Automated reporting**  
+  Generate PDF calculation notes (LaTeX) or interactive dashboards (Streamlit).
 
+---
 
-### 🚀 Pourquoi foampilot ?
+## Design Philosophy
 
-✅ Un seul langage pour tout contrôler : Python.
+- Python is the **source of truth**
+- OpenFOAM dictionaries are **generated**, never manually edited
+- Reproducibility and traceability over GUI-driven workflows
+- Explicit, inspectable configurations
+- Designed for automation, parametric studies, and engineering workflows
 
-✅ Vérification plus simple et reproductible des cas.
+---
 
-✅ Gain de temps sur la préparation et l’analyse.
+## What foampilot is *not*
 
-✅ Résultats présentés de manière moderne et professionnelle.
+- Not a CFD solver  
+- Not a replacement for OpenFOAM  
+- Not a GUI-based tool  
+- Not intended to hide OpenFOAM concepts  
+
+foampilot assumes **basic familiarity with OpenFOAM and CFD**.
+
+---
+
+## Platform Support
+
+- **Linux** (native)
+- **Windows via WSL2** (recommended)
+- **macOS** (via official OpenFOAM builds)
+
+OpenFOAM installation and system setup are documented separately.
+
+---
+
+## Documentation
+
+📘 Full documentation, including installation guides and detailed usage:
+
+**https://<your-username>.github.io/foampilot/**
+
+The documentation includes:
+- OpenFOAM & WSL installation guides
+- Project structure and concepts
+- Meshing, solver control, and post-processing
+- Reporting and visualization workflows
+
+---
+
+## Project Status
+
+⚠️ **Status:** early-stage / beta
+
+The public API may evolve.
+Feedback, discussions, and contributions are welcome.
+
+---
+
+## License
+
+This project is released under the **MIT License**.
