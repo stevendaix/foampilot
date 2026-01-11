@@ -114,7 +114,54 @@ class SnappyMesher:
             "file": feature_file,
             "level": level
         })
+    # ----------------------
+    # SurfaceFeaturesDict
+    # ----------------------
+    def write_surface_features_dict(self, stl_list=None, included_angle=30):
+        """
+        Write system/surfaceFeaturesDict based on STL files
+        """
+        if stl_list is None:
+            stl_list = [f"{self.stl_file.stem}.stl"]
 
+        system_path = self.case_path / "system"
+        system_path.mkdir(exist_ok=True, parents=True)
+        dict_file = system_path / "surfaceFeaturesDict"
+
+        lines = [
+            "FoamFile",
+            "{",
+            "    version     2.0;",
+            "    format      ascii;",
+            "    class       dictionary;",
+            "    object      surfaceFeaturesDict;",
+            "}",
+            "",
+            "surfaces",
+            "("
+        ]
+        for stl in stl_list:
+            lines.append(f'    "{stl}"')
+        lines.append(");")
+        lines.append(f"\nincludedAngle   {included_angle};\n")
+
+        dict_file.write_text("\n".join(lines))
+        print(f"surfaceFeaturesDict written to {dict_file}")
+
+    # ----------------------
+    # Utilities
+    # ----------------------
+    def run_surface_feature_extract(self):
+        """
+        Runs surfaceFeatureExtract utility for the case.
+        """
+        cmd = ["surfaceFeatureExtract", "-case", str(self.case_path)]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print("Error running surfaceFeatureExtract:")
+            print(result.stderr)
+        else:
+            print("surfaceFeatureExtract finished successfully.")
     def add_refinement_region(self, name, mode, levels):
         """
         Adds a specific refinement region.
@@ -146,41 +193,50 @@ class SnappyMesher:
         # Write configuration data to snappyHexMeshDict in OpenFOAM format here.
         pass
 
+    def write(self):
+        """Writes all meshing-related configuration files to the disk.
 
-# Integrated Example
-if __name__ == "__main__":
-    # Path to the STL file
-    stl_file = Path.cwd() / "Chess_Pawn.stl"
-    
-    # Initialize STL Analyzer
-    analyzer = STLAnalyzer(stl_file)
-    mesh = analyzer.load()
+        This method triggers the `write` methods of the primary mesher 
+        (e.g., generating `blockMeshDict`) and then iterates through any 
+        `additional_files` to write them into the `system/` directory of the case.
 
-    # Compute dimensions and center for SnappyHexMesh configuration
-    max_dim = analyzer.get_max_dim()
-    center_of_mass = analyzer.get_center_of_mass()
+        Note:
+            Ensure that `self.case_path` is writable before calling this method.
+        """
+        # Write primary mesher files (blockMesh, snappy, gmsh)
+        # Note: In the original snippet, self.blockmesh and self.snappy 
+        # were called directly. Assuming these are handled by self.mesher:
+        if hasattr(self.mesher, 'write'):
+            self.mesher.write()
+        
+        # Write extra files to the system directory
+        system_path = self.case_path / "system"
+        system_path.mkdir(exist_ok=True)
+        
+        for fname, fcontent in self.additional_files.items():
+            fcontent.write(system_path / fname)
 
-    # Initialize SnappyHexMesh with base parameters
-    base_path = Path.cwd() / "openfoam_case"
-    snappy_hex_mesh = SnappyHexMesh(
-        base_path=base_path,
-        stl_file=stl_file,
-        castellatedMesh=True,
-        snap=True,
-        addLayers=True
-    )
-    
-    # Auto-configure SnappyHexMesh options
-    snappy_hex_mesh.locationInMesh = center_of_mass
-    snappy_hex_mesh.add_refinement_region("main_region", mode="inside", levels=((1, 2)))
-    snappy_hex_mesh.add_layer(surface=stl_file.stem, n_surface_layers=3)
+    def run(self):
+        """
+        Runs snappyHexMesh in the given OpenFOAM case.
+        """
+        case_path = Path(case_path)
 
-    # Automatically configure the domain size
-    domain_size = analyzer.calc_domain_size(sizeFactor=max_dim * 0.5)
-    print(f"Domain size: X={domain_size[0]}, Y={domain_size[1]}, Z={domain_size[2]}")
+        base_path = self.parent.case_path
+        log_file = base_path / "log.blockMesh"
 
-    # Write snappyHexMeshDict
-    snappy_hex_mesh.write_snappyHexMeshDict()
-    print("snappyHexMeshDict has been generated successfully.")
+        if not base_path.exists():
+            raise FileNotFoundError(f"The case path '{base_path}' does not exist.")
 
+        if not base_path.is_dir():
+            raise NotADirectoryError(f"The case path '{base_path}' is not a directory.")
 
+        cmd = ["snappyHexMesh", "-overwrite", "-case", str(case_path)]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print("Error running snappyHexMesh:")
+            print(result.stderr)
+        else:
+            print("snappyHexMesh finished successfully.")
+            print(result.stdout)

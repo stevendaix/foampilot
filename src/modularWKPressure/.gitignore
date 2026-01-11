@@ -1,0 +1,10 @@
+# === Ignore tout par défaut ===
+*
+
+
+# === Garde les fichiers essentiels ===
+!*.C
+!*.H
+!Make**
+!README*.md
+!.gitignore

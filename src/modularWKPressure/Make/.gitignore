@@ -1,0 +1,9 @@
+# === Ignore tout par défaut ===
+*
+
+# === Garde les fichiers essentiels ===
+!files
+!options
+!.gitignore
+
+

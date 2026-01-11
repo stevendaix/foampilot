@@ -46,7 +46,7 @@ class Meshing:
         elif mesher == "gmsh":
             self.mesher = GmshMesher(self)
         elif mesher == "snappy":
-            self.mesher = SnappyMesher(self)
+            self.mesher = SnappyMesher(self, stl_file='placeholder.stl')
         else:
             raise ValueError(f"Unknown mesher: {mesher}")
 
