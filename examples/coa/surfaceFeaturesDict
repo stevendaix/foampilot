@@ -1,0 +1,23 @@
+/*--------------------------------*- C++ -*----------------------------------*\\
+  ... (FoamFile Header) ...
+\\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeaturesDict;
+}
+
+surfaces
+(
+    "wall_aorta.stl"
+    "inlet.stl"
+    "outlet1.stl"
+    "outlet2.stl"
+    "outlet3.stl"
+    "outlet4.stl"
+);
+
+includedAngle   30;
+

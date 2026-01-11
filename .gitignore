@@ -14,6 +14,7 @@
 !test_*.py
 !temp**
 !examples/**
+!src/**
 # === Ignore les dossiers de build / metadata ===
 *.egg-info/
 __pycache__/

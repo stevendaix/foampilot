@@ -152,45 +152,65 @@ class BlockMesher(OpenFOAMFile):
             for pair in self.mergePatchPairs:
                 f.write(f"    ({pair[0]} {pair[1]});\n")
             f.write(");\n")
-
+            
     def run(self):
         """
-        Executes the blockMesh command in the specified case path and logs the output.
+        Executes surfaceFeatureExtract and snappyHexMesh for the case, logging outputs to files.
 
         Raises:
             FileNotFoundError: If the case path does not exist.
-            RuntimeError: If the blockMesh command fails.
+            RuntimeError: If any of the commands fail.
         """
-        base_path = self.parent.case_path
-        log_file = base_path / "log.blockMesh"
-
+        base_path = self.case_path
         if not base_path.exists():
             raise FileNotFoundError(f"The case path '{base_path}' does not exist.")
-
         if not base_path.is_dir():
             raise NotADirectoryError(f"The case path '{base_path}' is not a directory.")
 
+        # --- surfaceFeatureExtract ---
+        sfe_log = base_path / "log.surfaceFeatureExtract"
         try:
-            # Run blockMesh
-            with log_file.open("w") as f:
-                f.write(f"Running 'blockMesh' in: {base_path}\n")
+            with sfe_log.open("w") as f:
+                f.write(f"Running 'surfaceFeatureExtract' in: {base_path}\n")
                 result = subprocess.run(
-                    ["blockMesh"],
+                    ["surfaceFeatureExtract", "-case", str(base_path)],
                     cwd=base_path,
                     text=True,
                     capture_output=True,
                     check=True
                 )
-                f.write("blockMesh executed successfully.\n")
+                f.write("surfaceFeatureExtract executed successfully.\n")
                 f.write(result.stdout + "\n")
-                f.write(result.stderr + "\n")  # capture warnings/errors if any
-
+                f.write(result.stderr + "\n")
         except subprocess.CalledProcessError as e:
-            with log_file.open("a") as f:
-                f.write(f"Error executing blockMesh:\n{e.stderr}\n")
-            raise RuntimeError(f"blockMesh failed with error: {e.stderr}")
-
+            with sfe_log.open("a") as f:
+                f.write(f"Error executing surfaceFeatureExtract:\n{e.stderr}\n")
+            raise RuntimeError(f"surfaceFeatureExtract failed with error: {e.stderr}")
         except Exception as e:
-            with log_file.open("a") as f:
+            with sfe_log.open("a") as f:
+                f.write(f"Unexpected error: {str(e)}\n")
+            raise
+
+        # --- snappyHexMesh ---
+        snappy_log = base_path / "log.snappyHexMesh"
+        try:
+            with snappy_log.open("w") as f:
+                f.write(f"Running 'snappyHexMesh -overwrite' in: {base_path}\n")
+                result = subprocess.run(
+                    ["snappyHexMesh", "-overwrite", "-case", str(base_path)],
+                    cwd=base_path,
+                    text=True,
+                    capture_output=True,
+                    check=True
+                )
+                f.write("snappyHexMesh executed successfully.\n")
+                f.write(result.stdout + "\n")
+                f.write(result.stderr + "\n")
+        except subprocess.CalledProcessError as e:
+            with snappy_log.open("a") as f:
+                f.write(f"Error executing snappyHexMesh:\n{e.stderr}\n")
+            raise RuntimeError(f"snappyHexMesh failed with error: {e.stderr}")
+        except Exception as e:
+            with snappy_log.open("a") as f:
                 f.write(f"Unexpected error: {str(e)}\n")
             raise
