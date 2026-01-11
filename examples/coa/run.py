@@ -147,10 +147,30 @@ def setup_coa_case():
     solver.boundary.write_boundary_conditions()
     
     # Copy boundaryData for inlet
-    bd_src = Path("OpenFOAM-WK/tutorials/CoA_test/constant/boundaryData")
-    bd_dest = case_path / "constant" / "boundaryData"
-    if bd_src.exists():
-        shutil.copytree(bd_src, bd_dest, dirs_exist_ok=True)
+
+    # Charger ton CSV
+    df_csv = pd.read_csv("flowrate.csv")  # colonnes: Time, Flowrate
+
+    # Charger le maillage
+    integrator = CSVFoamIntegrator("CoA_test_foampilot")
+    df_patch = integrator.get_patch_dataframe("inlet")  # patch d'entrée
+
+    # Répliquer le CSV pour chaque point du patch
+    df_full = []
+    for _, row in df_csv.iterrows():
+        for _, p in df_patch.iterrows():
+            df_full.append({
+                "time": row["Time"],
+                "x": p["x"],
+                "y": p["y"],
+                "z": p["z"],
+                "Flowrate": row["Flowrate"]
+            })
+    df_full = pd.DataFrame(df_full)
+
+    # Exporter en boundaryData
+    integrator.export_to_boundary_data("inlet", df_full, "Flowrate")
+
 
     print(f"Case {case_path} has been set up successfully using the modern foampilot API.")
 
