@@ -59,8 +59,7 @@ def setup_coa_case():
     
     for stl_file in stl_src.glob("*.stl"):
         shutil.copy(stl_file, stl_dest)
-    for emesh_file in stl_src.glob("*.eMesh"):
-        shutil.copy(emesh_file, stl_dest)
+    
 
     # Initialize Meshing with snappy
     mesh = Meshing(case_path, mesher="snappy")
