@@ -5,7 +5,11 @@ from foampilot import Meshing, Quantity, FluidMechanics,Solver
 
 def setup_coa_case():
     # 1. DEFINE CASE PATH
+    current_path = Path.cwd()
     case_path = Path.cwd() / "CoA_test_foampilot"
+    csv_inlet_data = current_path/ "data" / "2FBPM120.csv"
+    stl_path = current_path/ "data"
+
     case_path.mkdir(parents=True, exist_ok=True)
 
     # 2. FLUID PROPERTIES
@@ -53,11 +57,11 @@ def setup_coa_case():
 
     # 5. MESH GENERATION (snappyHexMesh)
     # Copy STL files from the original tutorial
-    stl_src = Path("OpenFOAM-WK/tutorials/CoA_test/constant/triSurface")
+    
     stl_dest = case_path / "constant" / "triSurface"
     stl_dest.mkdir(parents=True, exist_ok=True)
     
-    for stl_file in stl_src.glob("*.stl"):
+    for stl_file in stl_path.glob("*.stl"):
         shutil.copy(stl_file, stl_dest)
     
 
@@ -148,7 +152,7 @@ def setup_coa_case():
     # Copy boundaryData for inlet
 
     # Charger ton CSV
-    df_csv = pd.read_csv("flowrate.csv")  # colonnes: Time, Flowrate
+    df_csv = pd.read_csv(csv_inlet_data)  # colonnes: Time, Flowrate
 
     # Charger le maillage
     integrator = CSVFoamIntegrator("CoA_test_foampilot")
