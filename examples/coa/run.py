@@ -1,15 +1,15 @@
 import os
 import shutil
-import pandas as pd  # ✅ AJOUTÉ
+import pandas as pd 
 from pathlib import Path
-from foampilot import Meshing, Quantity, FluidMechanics, Solver
-from foampilot.utilities. coupling_foam_csv import CSVFoamIntegrator  # ✅ AJOUTÉ
+from foampilot import Meshing, Quantity, FluidMechanics, Solver, CSVFoamIntegrator
+
 
 def setup_coa_case():
     # 1. DEFINE CASE PATH
     current_path = Path. cwd()
     case_path = Path. cwd() / "CoA_test_foampilot"
-    csv_inlet_data = current_path / "data" / "BPM120.csv"  # ✅ CORRIGÉ:  "2FBPM120" → "BPM120"
+    csv_inlet_data = current_path / "data" / "BPM120.csv"  
     stl_path = current_path / "data"
 
     case_path.mkdir(parents=True, exist_ok=True)
@@ -148,13 +148,13 @@ def setup_coa_case():
     # Write all boundary files (this creates the 0/ directory files)
     solver.boundary.write_boundary_conditions()
     
-    # ✅ SECTION BOUNDARYDATA CORRIGÉE
+    # SECTION BOUNDARYDATA 
     # Charger le CSV
     df_csv = pd.read_csv(csv_inlet_data)  # Colonnes: Time, Flowrate
 
     # Initialiser l'intégrateur et charger le maillage
     integrator = CSVFoamIntegrator(case_path)
-    integrator.load_mesh()  # ✅ AJOUTÉ:  Charger le maillage d'abord
+    integrator.load_mesh()  
     df_patch = integrator.get_patch_dataframe("inlet")  # Patch d'entrée
 
     # Répliquer le CSV pour chaque point du patch
@@ -166,7 +166,7 @@ def setup_coa_case():
                 "x": p["x"],
                 "y":  p["y"],
                 "z": p["z"],
-                "Flowrate": row["Flowrate"]  # ✅ Correspond au field_name
+                "Flowrate": row["Flowrate"]  
             })
     df_full = pd.DataFrame(df_full)
 

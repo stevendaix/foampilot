@@ -47,4 +47,4 @@ from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.commons.read_polymesh import BoundaryFileHandler
 from foampilot.report import latex_pdf
-from foampilot.utilities import Quantity, FluidMechanics
+from foampilot.utilities import Quantity, FluidMechanics, Functions, ResidualsPost, HumanGeometry, OpenFOAMDictAddFile, CSVFoamIntegrator,WeatherFileEPW
