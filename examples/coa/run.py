@@ -73,6 +73,12 @@ def setup_coa_case():
     
     # Configure snappyHexMeshDict
     snappy.locationInMesh = (-16.3177, -21.6838, -12.3357)
+
+    analyzer = STLAnalyzer(Path("wall_aorta.stl"))
+analyzer.load()
+
+location = analyzer.get_center_of_mass()
+
     snappy.geometry = {
         "wall_aorta": {"type": "triSurfaceMesh", "file": "wall_aorta. stl", "name": "wall_aorta"},
         "inlet": {"type": "triSurfaceMesh", "file": "inlet.stl", "name":  "inlet"},
