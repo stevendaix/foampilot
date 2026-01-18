@@ -183,6 +183,104 @@ class SnappyMesher:
         """
         self.addLayersControls["layers"][surface] = {"nSurfaceLayers": n_surface_layers}
 
+    def write_block_mesh_dict(
+    self,
+    padding: float = 0.2,
+    base_cell_size: float = None
+):
+    """
+    Generate a blockMeshDict that encloses the STL geometry.
+
+    Args:
+        padding (float): Relative padding added around the STL bounding box.
+                          0.2 means +20% in each direction.
+        base_cell_size (float): Target cell size. If None, estimated automatically.
+    """
+    stl_path = self.case_path / "constant" / "triSurface" / self.stl_file.name
+    if not stl_path.exists():
+        raise FileNotFoundError(f"STL not found at {stl_path}")
+
+    mesh = pv.read(stl_path)
+    xmin, xmax, ymin, ymax, zmin, zmax = mesh.bounds
+
+    # Expand bounding box
+    dx = xmax - xmin
+    dy = ymax - ymin
+    dz = zmax - zmin
+
+    xmin -= padding * dx
+    xmax += padding * dx
+    ymin -= padding * dy
+    ymax += padding * dy
+    zmin -= padding * dz
+    zmax += padding * dz
+
+    # Automatic cell size estimation
+    if base_cell_size is None:
+        base_cell_size = min(dx, dy, dz) / 20.0
+
+    nx = max(1, int((xmax - xmin) / base_cell_size))
+    ny = max(1, int((ymax - ymin) / base_cell_size))
+    nz = max(1, int((zmax - zmin) / base_cell_size))
+
+    system_path = self.case_path / "system"
+    system_path.mkdir(parents=True, exist_ok=True)
+    dict_path = system_path / "blockMeshDict"
+
+    lines = [
+        "FoamFile",
+        "{",
+        "    version     2.0;",
+        "    format      ascii;",
+        "    class       dictionary;",
+        "    location    \"system\";",
+        "    object      blockMeshDict;",
+        "}",
+        "",
+        "convertToMeters 1;",
+        "",
+        "vertices",
+        "(",
+        f"    ({xmin} {ymin} {zmin})",
+        f"    ({xmax} {ymin} {zmin})",
+        f"    ({xmax} {ymax} {zmin})",
+        f"    ({xmin} {ymax} {zmin})",
+        f"    ({xmin} {ymin} {zmax})",
+        f"    ({xmax} {ymin} {zmax})",
+        f"    ({xmax} {ymax} {zmax})",
+        f"    ({xmin} {ymax} {zmax})",
+        ");",
+        "",
+        "blocks",
+        "(",
+        f"    hex (0 1 2 3 4 5 6 7) ({nx} {ny} {nz}) simpleGrading (1 1 1)",
+        ");",
+        "",
+        "edges ();",
+        "",
+        "boundary",
+        "(",
+        "    domain",
+        "    {",
+        "        type patch;",
+        "        faces",
+        "        (",
+        "            (0 1 2 3)",
+        "            (4 5 6 7)",
+        "            (0 1 5 4)",
+        "            (1 2 6 5)",
+        "            (2 3 7 6)",
+        "            (3 0 4 7)",
+        "        );",
+        "    }",
+        ");",
+        "",
+        "mergePatchPairs ();"
+    ]
+
+    dict_path.write_text("\n".join(lines))
+    print(f"blockMeshDict written to {dict_path}")
+
     def write_snappyHexMeshDict(self):
         dict_path = self.case_path / "system" / "snappyHexMeshDict"
         self.case_path.joinpath("system").mkdir(parents=True, exist_ok=True)
@@ -299,25 +397,46 @@ class SnappyMesher:
         # Write surfaceFeaturesDict
         self.write_surface_features_dict()
 
-    def run(self):
-        """
-        Runs snappyHexMesh in the given OpenFOAM case.
-        """
-        base_path = self.case_path  # <- utilise directement l'attribut de la classe
-        log_file = base_path / "log.meshing"
+    def run_block_mesh(self):
+    """
+    Runs blockMesh for the case.
+    """
+    cmd = ["blockMesh", "-case", str(self.case_path)]
+    result = subprocess.run(cmd, capture_output=True, text=True)
 
-        if not base_path.exists():
-            raise FileNotFoundError(f"The case path '{base_path}' does not exist.")
+    if result.returncode != 0:
+        print("Error running blockMesh:")
+        print(result.stderr)
+        raise RuntimeError("blockMesh failed")
+    else:
+        print("blockMesh finished successfully.")
 
-        if not base_path.is_dir():
-            raise NotADirectoryError(f"The case path '{base_path}' is not a directory.")
+     def run(self):
+    """
+    Full meshing pipeline:
+    1. blockMesh
+    2. surfaceFeatureExtract
+    3. snappyHexMesh
+    """
 
-        cmd = ["snappyHexMesh", "-overwrite", "-case", str(base_path)]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            print("Error running snappyHexMesh:")
-            print(result.stderr)
-        else:
-            print("snappyHexMesh finished successfully.")
-            print(result.stdout)
+    if not self.case_path.exists():
+        raise FileNotFoundError(f"Case path '{self.case_path}' does not exist.")
+
+    # 1. blockMesh
+    self.write_block_mesh_dict()
+    self.run_block_mesh()
+
+    # 2. surfaceFeatureExtract
+    self.write_surface_features_dict()
+    self.run_surface_feature_extract()
+
+    # 3. snappyHexMesh
+    cmd = ["snappyHexMesh", "-overwrite", "-case", str(self.case_path)]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        print("Error running snappyHexMesh:")
+        print(result.stderr)
+        raise RuntimeError("snappyHexMesh failed")
+    else:
+        print("snappyHexMesh finished successfully.")
