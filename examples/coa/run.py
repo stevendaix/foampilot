@@ -108,6 +108,10 @@ location = analyzer.get_center_of_mass()
 
     # Generate surfaceFeaturesDict
     snappy.write_surface_features_dict(case_path, stl_files, included_angle=30)
+
+snappy = SnappyMesher(parent=mesh, stl_file="wall_aorta.stl")
+snappy.locationInMesh = analyzer.find_location_in_mesh()
+snappy.run()
     snappy.write_snappyHexMesh_dict(case_path)
     snappy.run()
 
