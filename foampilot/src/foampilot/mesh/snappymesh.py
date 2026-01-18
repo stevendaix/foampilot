@@ -28,7 +28,7 @@ class SnappyMesher:
         
         self.parent = parent                       
         self.case_path = parent.case_path 
-        self.snappy_hex_mesh_dict_path = self.base_path / "system" / "snappyHexMeshDict"
+        self.snappy_hex_mesh_dict_path = self.case_path / "system" / "snappyHexMeshDict"
         self.stl_file = Path(stl_file)
         
         self.locationInMesh = (0.1, 0.1, 0.1)
@@ -74,11 +74,7 @@ class SnappyMesher:
             "expansionRatio": 1.2,
             "finalLayerThickness": 0.5,
             "minThickness": 0.1,
-            "layers": {
-                self.stl_file.stem: {
-                    "nSurfaceLayers": 3
-                }
-            }
+            "layers": {}
         }
 
         self.meshQualityControls = {
@@ -162,6 +158,7 @@ class SnappyMesher:
             print(result.stderr)
         else:
             print("surfaceFeatureExtract finished successfully.")
+
     def add_refinement_region(self, name, mode, levels):
         """
         Adds a specific refinement region.
@@ -187,43 +184,127 @@ class SnappyMesher:
         self.addLayersControls["layers"][surface] = {"nSurfaceLayers": n_surface_layers}
 
     def write_snappyHexMeshDict(self):
-        """
-        Generate the snappyHexMeshDict file with the defined options for snappyHexMesh.
-        """
-        # Write configuration data to snappyHexMeshDict in OpenFOAM format here.
-        pass
+        dict_path = self.case_path / "system" / "snappyHexMeshDict"
+        self.case_path.joinpath("system").mkdir(parents=True, exist_ok=True)
+
+        lines = [
+            "FoamFile",
+            "{",
+            "    version     2.0;",
+            "    format      ascii;",
+            "    class       dictionary;",
+            "    location    \"system\";",
+            "    object      snappyHexMeshDict;",
+            "}",
+            "",
+            f"castellatedMesh {str(self.castellatedMesh).lower()};",
+            f"snap {str(self.snap).lower()};",
+            f"addLayers {str(self.addLayers).lower()};",
+            "",
+            "geometry",
+            "{"
+        ]
+
+        # Geometry
+        for name, geo in self.geometry.items():
+            stl_file = geo["file"] if "file" in geo else f"{name}.stl"
+            lines += [
+                f'    "{stl_file}"',
+                "    {",
+                f'        type {geo.get("type", "triSurfaceMesh")};',
+                f'        file "{stl_file}";',
+                f'        name {geo.get("name", name)};',
+                "    }"
+            ]
+        lines.append("};\n")
+
+        # CastellatedMeshControls
+        cm = self.castellatedMeshControls
+        lines.append("castellatedMeshControls")
+        lines.append("{")
+        for key in ["maxLocalCells","maxGlobalCells","minRefinementCells","maxLoadUnbalance","nCellsBetweenLevels"]:
+            if key in cm:
+                lines.append(f"    {key} {cm[key]};")
+        lines.append(f"    locationInMesh ({' '.join(map(str, self.locationInMesh))});")
+        # Features
+        lines.append("    features")
+        lines.append("    (")
+        for f in cm.get("features", []):
+            lines.append("        {")
+            lines.append(f'            file "{f["file"]}";')
+            lines.append(f'            level {f["level"]};')
+            lines.append("        }")
+        lines.append("    );")
+        # refinementSurfaces
+        lines.append("    refinementSurfaces")
+        lines.append("    {")
+        for surf, val in cm.get("refinementSurfaces", {}).items():
+            lines.append(f"        {surf} {{ level ({val['level'][0]} {val['level'][1]}); }}")
+        lines.append("    }")
+        # refinementRegions
+        lines.append("    refinementRegions")
+        lines.append("    {")
+        for reg, val in cm.get("refinementRegions", {}).items():
+            lines.append(f"        {reg} {{ mode {val['mode']}; levels ({val['levels'][0]} {val['levels'][1]}); }}")
+        lines.append("    }")
+        # Extra parameters
+        lines.append("    allowFreeStandingZoneFaces true;")
+        lines.append("    resolveFeatureAngle 30;")
+        lines.append("};\n")
+
+        # SnapControls
+        lines.append("snapControls")
+        lines.append("{")
+        for k,v in self.snapControls.items():
+            lines.append(f"    {k} {str(v).lower() if isinstance(v,bool) else v};")
+        lines.append("};\n")
+
+        # AddLayersControls
+        lines.append("addLayersControls")
+        lines.append("{")
+        for k,v in self.addLayersControls.items():
+            if k != "layers":
+                lines.append(f"    {k} {v};")
+        lines.append("    layers")
+        lines.append("    {")
+        for name, layer in self.addLayersControls.get("layers", {}).items():
+            lines.append(f'        "{name}"')
+            lines.append("        {")
+            lines.append(f'            nSurfaceLayers {layer["nSurfaceLayers"]};')
+            lines.append("        }")
+        lines.append("    }")
+        lines.append("};\n")
+
+        # MeshQualityControls
+        lines.append("meshQualityControls")
+        lines.append("{")
+        for k,v in self.meshQualityControls.items():
+            lines.append(f"    {k} {v};")
+        lines.append("};\n")
+
+        # debug / writeFlags / mergeTolerance
+        lines.append("debug 0;\n")
+        lines.append("writeFlags (scalarLevels layerSets layerFields);")
+        lines.append("mergeTolerance 1e-06;")
+
+        dict_path.write_text("\n".join(lines))
+        print(f"snappyHexMeshDict written to {dict_path}")
+
 
     def write(self):
-        """Writes all meshing-related configuration files to the disk.
+        """Write all SnappyHexMesh-related files."""
+        # Write snappyHexMeshDict
+        self.write_snappyHexMeshDict()
 
-        This method triggers the `write` methods of the primary mesher 
-        (e.g., generating `blockMeshDict`) and then iterates through any 
-        `additional_files` to write them into the `system/` directory of the case.
-
-        Note:
-            Ensure that `self.case_path` is writable before calling this method.
-        """
-        # Write primary mesher files (blockMesh, snappy, gmsh)
-        # Note: In the original snippet, self.blockmesh and self.snappy 
-        # were called directly. Assuming these are handled by self.mesher:
-        if hasattr(self.mesher, 'write'):
-            self.mesher.write()
-        
-        # Write extra files to the system directory
-        system_path = self.case_path / "system"
-        system_path.mkdir(exist_ok=True)
-        
-        for fname, fcontent in self.additional_files.items():
-            fcontent.write(system_path / fname)
+        # Write surfaceFeaturesDict
+        self.write_surface_features_dict()
 
     def run(self):
         """
         Runs snappyHexMesh in the given OpenFOAM case.
         """
-        case_path = Path(case_path)
-
-        base_path = self.parent.case_path
-        log_file = base_path / "log.blockMesh"
+        base_path = self.case_path  # <- utilise directement l'attribut de la classe
+        log_file = base_path / "log.meshing"
 
         if not base_path.exists():
             raise FileNotFoundError(f"The case path '{base_path}' does not exist.")
@@ -231,7 +312,7 @@ class SnappyMesher:
         if not base_path.is_dir():
             raise NotADirectoryError(f"The case path '{base_path}' is not a directory.")
 
-        cmd = ["snappyHexMesh", "-overwrite", "-case", str(case_path)]
+        cmd = ["snappyHexMesh", "-overwrite", "-case", str(base_path)]
         result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode != 0:

@@ -1,0 +1,17 @@
+FoamFile
+{
+    version     2.0;
+    format     ascii;
+    class     dictionary;
+    object     transportProperties;
+}
+
+transportModel BirdCarreau;
+rho 1060;
+BirdCarreauCoeffs
+{
+    nu0 3.77e-06;
+    nuInf 0.001;
+    k 0.01;
+    n 0.6;
+}

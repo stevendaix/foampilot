@@ -1,0 +1,32 @@
+FoamFile
+{
+    version     2.0;
+    format     ascii;
+    class     dictionary;
+    object     controlDict;
+}
+
+application incompressibleFluid;
+startFrom startTime;
+startTime 0;
+stopAt endTime;
+endTime 0.5;
+deltaT 1e-05;
+writeControl adjustableRunTime;
+writeInterval 0.01;
+purgeWrite 10;
+writeFormat ascii;
+writePrecision 6;
+writeCompression off;
+timeFormat general;
+timePrecision 6;
+runTimeModifiable true;
+adjustTimeStep true;
+maxCo 0.8;
+maxAlphaCo 1.2;
+maxDeltaT 0.001;
+minDeltaT 1e-07;
+libs 
+(
+"libmodularWKPressure.so" 
+);

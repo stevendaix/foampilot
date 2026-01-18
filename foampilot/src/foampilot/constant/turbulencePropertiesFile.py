@@ -1,78 +1,117 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
-from typing import Any
+from typing import Any, Optional
 from pathlib import Path
 
 
-
-
 class TurbulencePropertiesFile(OpenFOAMFile):
-    """
-    Represents an OpenFOAM `turbulenceProperties` configuration file.
 
-    This class allows setting up turbulence models, simulation type, 
-    and related parameters. It inherits from :class:`OpenFOAMFile`.
-
-    Attributes
-    ----------
-    AVAILABLE_MODELS : dict
-        Dictionary mapping user-friendly model names to internal OpenFOAM codes.
-    """
-
-    # Dictionary of available turbulence models
-    AVAILABLE_MODELS = {
+    AVAILABLE_RAS_MODELS = {
         "k-epsilon": "kEpsilon",
         "k-kl-omega": "kkLOmega",
         "SST": "kOmegaSST",
         "Realizable k-epsilon": "realizableKE",
         "RNG k-epsilon": "RNGkEpsilon",
         "Spalart-Allmaras": "SpalartAllmaras",
-        "v2-f": "v2f"
+        "v2-f": "v2f",
     }
 
-    def __init__(self, parent: Any, simulationType="RAS", RASModel="k-epsilon", turbulence="on", printCoeffs="on"):
+    AVAILABLE_LES_MODELS = {
+        # futur
+        # "Smagorinsky": "Smagorinsky",
+    }
+
+    def __init__(
+        self,
+        parent: Any,
+        simulationType: str = "RAS",
+        RASModel: Optional[str] = "k-epsilon",
+        LESModel: Optional[str] = None,
+        turbulence: str = "on",
+        printCoeffs: str = "on",
+    ):
         self.parent = parent
+
+        simulationType = simulationType.lower()
+
+        data = {
+            "object_name": "turbulenceProperties",
+            "simulationType": simulationType,
+        }
+
+        # ---- LAMINAR --------------------------------------------------
+        if simulationType == "laminar":
+            super().__init__(**data)
+            return
+
+        # ---- RAS ------------------------------------------------------
+        if simulationType == "ras":
+            if RASModel is None:
+                raise ValueError("RASModel must be provided when simulationType='RAS'")
+
+            model = self.AVAILABLE_RAS_MODELS.get(RASModel, RASModel)
+
+            data["RAS"] = {
+                "RASModel": model,
+                "turbulence": turbulence,
+                "printCoeffs": printCoeffs,
+            }
+
+            super().__init__(**data)
+            return
+
+        # ---- LES ------------------------------------------------------
+        if simulationType == "les":
+            if LESModel is None:
+                raise ValueError("LESModel must be provided when simulationType='LES'")
+
+            model = self.AVAILABLE_LES_MODELS.get(LESModel, LESModel)
+
+            data["LES"] = {
+                "LESModel": model,
+                "turbulence": turbulence,
+                "printCoeffs": printCoeffs,
+            }
+
+            super().__init__(**data)
+            return
+
+        raise ValueError(f"Unknown simulationType '{simulationType}'")
+
+    # -----------------------------------------------------------------
+    # EXTENSION API
+    # -----------------------------------------------------------------
+    @classmethod
+    def add_turbulence_model(
+        cls,
+        simulation_type: str,
+        model_name: str,
+        model_code: str,
+    ):
         """
-        Initialize a turbulenceProperties file.
+        Register a new turbulence model.
 
         Parameters
         ----------
-        simulationType : str, optional
-            The turbulence simulation type (default: "RAS").
-        RASModel : str, optional
-            The turbulence model to use. Must be in `AVAILABLE_MODELS` or a custom one (default: "k-epsilon").
-        turbulence : str, optional
-            Whether turbulence is enabled ("on"/"off") (default: "on").
-        printCoeffs : str, optional
-            Whether to print model coefficients ("on"/"off") (default: "on").
+        simulation_type : str
+            'RAS' or 'LES'
+        model_name : str
+            User-readable name.
+        model_code : str
+            OpenFOAM internal model identifier.
         """
-        # Check if the chosen model is in the available models
-        if RASModel in self.AVAILABLE_MODELS:
-            RASModel_internal = self.AVAILABLE_MODELS[RASModel]
-        else:
-            # Allow a custom non-standard model
-            print(f"Unknown RAS model '{RASModel}', it will be added as a custom model.")
-            RASModel_internal = RASModel
+        simulation_type = simulation_type.lower()
 
-        super().__init__(
-            object_name="turbulenceProperties",
-            simulationType=simulationType,
-            RAS={"RASModel": RASModel_internal, "turbulence": turbulence, "printCoeffs": printCoeffs}
+        if simulation_type == "ras":
+            cls.AVAILABLE_RAS_MODELS[model_name] = model_code
+            return
+
+        if simulation_type == "les":
+            cls.AVAILABLE_LES_MODELS[model_name] = model_code
+            return
+
+        raise ValueError(
+            "simulation_type must be 'RAS' or 'LES' (laminar has no models)"
         )
 
-    @classmethod
-    def add_turbulence_model(cls, model_name, model_code):
-        """
-        Adds a new turbulence model to the dictionary of available models.
-
-        Parameters
-        ----------
-        model_name : str
-            User-readable name for the model.
-        model_code : str
-            Internal code for the model in OpenFOAM.
-        """
-        cls.AVAILABLE_MODELS[model_name] = model_code
-
     def write(self, filepath: Path):
-        """Write the turbulenceProperties file."""
         self.write_file(filepath)

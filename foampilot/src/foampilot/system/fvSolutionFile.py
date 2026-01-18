@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Any, List
+from typing import Dict, Optional, Any, List, Tuple
 from foampilot.base.openFOAMFile import OpenFOAMFile
 
 class FvSolutionFile(OpenFOAMFile):
@@ -319,6 +319,69 @@ class FvSolutionFile(OpenFOAMFile):
 
         return relaxationFactors
 
+    def set_pimple(
+        self,
+        nOuterCorrectors: int = None,
+        nCorrectors: int = None,
+        nNonOrthogonalCorrectors: int = None,
+        pRefPoint: Tuple[float, float, float] = None,
+        pRefValue: float = None,
+        momentumPredictor: bool = None,
+        turbOnFinalIterOnly: bool = None,
+        correctorResidualControl: Optional[Dict[str, Dict[str, float]]] = None,
+        outerCorrectorResidualControl: Optional[Dict[str, Dict[str, float]]] = None,
+    ):
+        """Configure les paramètres avancés PIMPLE."""
+        if self.PIMPLE is None:
+            self.PIMPLE = self._init_pimple(None)
+            self.SIMPLE = None
+
+        if nOuterCorrectors is not None:
+            self.PIMPLE["nOuterCorrectors"] = str(nOuterCorrectors)
+        if nCorrectors is not None:
+            self.PIMPLE["nCorrectors"] = str(nCorrectors)
+        if nNonOrthogonalCorrectors is not None:
+            self.PIMPLE["nNonOrthogonalCorrectors"] = str(nNonOrthogonalCorrectors)
+        if pRefPoint is not None:
+            self.PIMPLE["pRefPoint"] = f"({pRefPoint[0]} {pRefPoint[1]} {pRefPoint[2]})"
+        if pRefValue is not None:
+            self.PIMPLE["pRefValue"] = str(pRefValue)
+        if momentumPredictor is not None:
+            self.PIMPLE["momentumPredictor"] = "true" if momentumPredictor else "false"
+        if turbOnFinalIterOnly is not None:
+            self.PIMPLE["turbOnFinalIterOnly"] = "true" if turbOnFinalIterOnly else "false"
+
+        # Corrector residual controls
+        if correctorResidualControl is not None:
+            self.PIMPLE["correctorResidualControl"] = {
+                k: { "tolerance": v["tolerance"], "relTol": v["relTol"] }
+                for k, v in correctorResidualControl.items()
+            }
+
+        if outerCorrectorResidualControl is not None:
+            self.PIMPLE["outerCorrectorResidualControl"] = {
+                k: { "tolerance": v["tolerance"], "relTol": v["relTol"] }
+                for k, v in outerCorrectorResidualControl.items()
+            }
+
+    def set_relaxation(
+        self,
+        fields: Optional[Dict[str, float]] = None,
+        equations: Optional[Dict[str, float]] = None
+    ):
+        """Configure les facteurs de relaxation."""
+        if not hasattr(self, "relaxationFactors") or self.relaxationFactors is None:
+            self.relaxationFactors = {"fields": {}, "equations": {}}
+
+        if fields is not None:
+            self.relaxationFactors["fields"].update(fields)
+        if equations is not None:
+            self.relaxationFactors["equations"].update(equations)
+
+    def set_cache(self, cache_list: Optional[List[str]] = None):
+        """Configure le bloc cache (ex: grad(U))."""
+        if cache_list:
+            self.attributes["cache"] = {name: "" for name in cache_list}
     # -------------------------
     # Export / Import (méthodes existantes)
     # -------------------------
