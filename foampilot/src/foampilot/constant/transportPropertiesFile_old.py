@@ -3,7 +3,6 @@ from foampilot.utilities.manageunits import Quantity
 from typing import Optional, Any, Dict, Union
 from pathlib import Path
 
-
 class NonNewtonianModels:
     """Modèles non-newtoniens OpenFOAM (section 7.3)."""
     NEWTONIAN = "Newtonian"
@@ -18,23 +17,24 @@ class NonNewtonianModels:
     def list_models(cls):
         return [v for k, v in cls.__dict__.items() if not k.startswith("_") and isinstance(v, str)]
 
-
 class TransportPropertiesFile(OpenFOAMFile):
     """
     OpenFOAM `transportProperties` file.
-    Support Newtonian and non-Newtonian models with dynamic configuration.
+    Support dynamic configuration based on:
+      - transport model (Newtonian, nonNewtonian, etc.)
+      - kinematic viscosity (nu)
+      - optional density (rho)
     """
+
     DEFAULT_UNITS = {
         "nu": "m^2/s",
         "rho": "kg/m^3",
-        "nu0": "m^2/s",
-        "nuInf": "m^2/s",
-        "k": "s",
-        "m": None,
-        "n": None,
-        "tau0": None,
-        "nuMin": "m^2/s",
-        "nuMax": "m^2/s",
+        "crossPowerLawCoeffs": {
+            "nu0": "m^2/s",
+            "nuInf": "m^2/s",
+            "m": None,
+            "n": None,
+        }
     }
 
     def __init__(
@@ -51,11 +51,13 @@ class TransportPropertiesFile(OpenFOAMFile):
         self._rho = self._to_quantity(rho, "rho") if rho is not None else None
         self.crossPowerLawCoeffs = self._process_coeffs(crossPowerLawCoeffs) if crossPowerLawCoeffs else None
 
-        # Configure les attributes pour l’écriture
+        self._validate_parameters()
         self._configure_attributes()
 
-        # Appel du parent sans passer attributes pour éviter l’effet de copie initiale
-        super().__init__(object_name="transportProperties")
+        if self.parent and hasattr(self.parent, "fields_manager"):
+            self._configure_from_fields()
+
+        super().__init__(object_name="transportProperties", **self.attributes)
 
     # ------------------ Properties ------------------
 
@@ -66,8 +68,7 @@ class TransportPropertiesFile(OpenFOAMFile):
     @nu.setter
     def nu(self, value):
         self._nu = self._to_quantity(value, "nu")
-        if self.transportModel == NonNewtonianModels.NEWTONIAN:
-            self.attributes["nu"] = self._nu.magnitude if isinstance(self._nu, Quantity) else float(self._nu)
+        self.attributes["nu"] = self._nu.magnitude if isinstance(self._nu, Quantity) else float(self._nu)
 
     @property
     def rho(self):
@@ -76,27 +77,7 @@ class TransportPropertiesFile(OpenFOAMFile):
     @rho.setter
     def rho(self, value):
         self._rho = self._to_quantity(value, "rho")
-        if self.transportModel == NonNewtonianModels.NEWTONIAN or self.transportModel != NonNewtonianModels.NEWTONIAN:
-            self.attributes["rho"] = self._rho.magnitude if isinstance(self._rho, Quantity) else float(self._rho)
-
-    # ------------------ Public Methods ------------------
-
-    def set_non_newtonian(
-        self,
-        model: str,
-        rho: Union[str, float, Quantity],
-        **coeffs: Union[str, float, Quantity]
-    ):
-        """Configure le fluide comme non-Newtonien."""
-        if model not in NonNewtonianModels.list_models():
-            raise ValueError(f"Unsupported non-Newtonian model: {model}")
-
-        self.transportModel = model
-        self.rho = self._to_quantity(rho, "rho")
-        self.crossPowerLawCoeffs = {k: self._to_quantity(v, k) for k, v in coeffs.items()}
-
-        # Mettre à jour les attributes pour OpenFOAM
-        self._configure_attributes()
+        self.attributes["rho"] = self._rho.magnitude if isinstance(self._rho, Quantity) else float(self._rho)
 
     # ------------------ Internal Methods ------------------
 
@@ -122,29 +103,42 @@ class TransportPropertiesFile(OpenFOAMFile):
                 processed[key] = float(value)
         return processed
 
+    def _validate_parameters(self):
+        if self.transportModel == NonNewtonianModels.NEWTONIAN:
+            return  # pas de validation spéciale
+        # Pour tous les non-newtoniens
+        if self._rho is None:
+            raise ValueError(f"Density (rho) is required for {self.transportModel} model")
+        if self.crossPowerLawCoeffs is None and self.transportModel in [
+            NonNewtonianModels.CROSS_POWER_LAW,
+            NonNewtonianModels.BIRD_CARREAU,
+            NonNewtonianModels.POWER_LAW,
+            NonNewtonianModels.HERSCHEL_BULKLEY,
+            NonNewtonianModels.CASSON,
+        ]:
+            raise ValueError(f"Coefficients are required for {self.transportModel} model")
+
     def _configure_attributes(self):
-        """Met à jour self.attributes selon le modèle et les coefficients."""
         self.attributes = {"transportModel": self.transportModel}
 
         if self.transportModel == NonNewtonianModels.NEWTONIAN:
-            # Newtonian
-            self.attributes["nu"] = self.nu.magnitude
+            self.attributes["nu"] = self.nu.magnitude if isinstance(self.nu, Quantity) else float(self.nu)
             if self.rho is not None:
-                self.attributes["rho"] = self.rho.magnitude
+                self.attributes["rho"] = self.rho.magnitude if isinstance(self.rho, Quantity) else float(self.rho)
         else:
             # Non-Newtonien
-            if self.rho is None:
-                raise ValueError(f"Density (rho) must be provided for non-Newtonian model {self.transportModel}")
-            self.attributes["rho"] = self.rho.magnitude
-
+            rho_value = self.rho.magnitude if isinstance(self.rho, Quantity) else float(self.rho)
+            self.attributes.update({
+                "transportModel": self.transportModel,
+                "rho": rho_value,
+            })
             if self.crossPowerLawCoeffs:
-                # Nom exact du dictionnaire attendu par OpenFOAM
-                coeffs_dict_name = f"{self.transportModel}Coeffs"
-                self.attributes[coeffs_dict_name] = {
+                self.attributes["crossPowerLawCoeffs"] = {
                     k: v.magnitude if isinstance(v, Quantity) else float(v)
                     for k, v in self.crossPowerLawCoeffs.items()
                 }
-                
+
+
     def _configure_from_fields(self):
         if not hasattr(self.parent, "fields_manager"):
             return
@@ -152,6 +146,8 @@ class TransportPropertiesFile(OpenFOAMFile):
         field_names = fields_manager.get_field_names()
         if "T" in field_names or "h" in field_names:
             pass  # future extensions
+
+    # ------------------ Public Methods ------------------
 
     def to_dict(self) -> Dict[str, Any]:
         return self.attributes

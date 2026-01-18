@@ -1,5 +1,5 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any,List,Tuple
 
 
 class ControlDictFile(OpenFOAMFile):
@@ -28,16 +28,25 @@ class ControlDictFile(OpenFOAMFile):
         timeFormat: str = "general",
         timePrecision: int = 6,
         runTimeModifiable: bool = True,
-        functions: Optional[Dict[str, Any]] = None
+        libs: Optional[List[str]] = None,
+        adaptiveTimeStep: Optional[Dict[str, Any]] = None,
+
+
     ):
-        # Initialize functions dictionary
-        if functions is None:
-            functions = {}
 
         # Retrieve solver name from parent if application not explicitly provided
         if application is None and parent is not None:
             # Assume parent has a property `solver_name` (from Solver class)
             application = getattr(parent, "solver_name", "incompressibleFluid")
+            
+        if libs is not None:
+            if isinstance(libs, str):
+                libs = [libs]
+            elif not all(isinstance(lib, str) for lib in libs):
+                raise TypeError("libs must be a list of strings")
+
+        self.libs = libs or []
+        self.adaptiveTimeStep = adaptiveTimeStep or {}
 
         # Call parent constructor with all parameters
         super().__init__(
@@ -57,7 +66,6 @@ class ControlDictFile(OpenFOAMFile):
             timeFormat=timeFormat,
             timePrecision=timePrecision,
             runTimeModifiable=runTimeModifiable,
-            functions=functions
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -80,7 +88,7 @@ class ControlDictFile(OpenFOAMFile):
             'timeFormat': self.timeFormat,
             'timePrecision': self.timePrecision,
             'runTimeModifiable': self.runTimeModifiable,
-            'functions': self.functions
+            "libs": self.libs
         }
 
     @classmethod
@@ -105,8 +113,54 @@ class ControlDictFile(OpenFOAMFile):
             timeFormat=config.get('timeFormat', "general"),
             timePrecision=config.get('timePrecision', 6),
             runTimeModifiable=config.get('runTimeModifiable', True),
-            functions=config.get('functions', {})
+            libs=config.get('libs',()),
         )
+    def add_library(self, lib_name: str):
+        """Add a library to the controlDict."""
+        if lib_name not in self.libs:
+            self.libs.append(lib_name)
+
+    def set_adaptive_time_step(
+        self,
+        adjustTimeStep: bool = True,
+        maxCo: float = 0.8,
+        maxAlphaCo: float = 1.2,
+        maxDeltaT: float = 0.001,
+        minDeltaT: float = 1e-7
+    ):
+        """Set adaptive time stepping parameters."""
+        self.adaptiveTimeStep = {
+            "adjustTimeStep": adjustTimeStep,
+            "maxCo": maxCo,
+            "maxAlphaCo": maxAlphaCo,
+            "maxDeltaT": maxDeltaT,
+            "minDeltaT": minDeltaT
+        }
+
     def write(self, filepath):
-        """Write the controlDict file."""
-        self.write_file(filepath)
+        """
+        Write the controlDict file with proper formatting for 'libs' and 'functions'.
+
+        Uses OpenFOAMFile.write_file() for all other attributes.
+        """
+        # Faire une copie temporaire des attributs
+        write_attrs = self.attributes.copy()
+
+        # Gestion adaptive time stepping
+        if self.adaptiveTimeStep:
+            write_attrs.update(self.adaptiveTimeStep)
+        # Gestion des libs
+        if self.libs:
+            includes_lib = "\n".join([f'"{fname}"' for fname in self.libs])
+            write_attrs["libs"] = f'\n(\n{includes_lib} \n)'
+
+
+        # Remplacer temporairement attributes
+        old_attrs = self.attributes
+        self.attributes = write_attrs
+
+        # Écrire le fichier via OpenFOAMFile
+        super().write_file(filepath)
+
+        # Restaurer attributes originaux
+        self.attributes = old_attrs

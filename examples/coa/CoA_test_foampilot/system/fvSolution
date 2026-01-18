@@ -1,0 +1,135 @@
+FoamFile
+{
+    version     2.0;
+    format     ascii;
+    class     dictionary;
+    object     fvSolution;
+}
+
+solvers
+{
+    p
+    {
+        solver GAMG;
+        tolerance 1e-06;
+        relTol 0.1;
+        smoother GaussSeidel;
+        nPreSweeps 0;
+        nPostSweeps 2;
+        cacheAgglomeration on;
+        agglomerator faceAreaPair;
+        nCellsInCoarsestLevel 10;
+        mergeLevels 1;
+    }
+    U
+    {
+        solver smoothSolver;
+        tolerance 1e-05;
+        relTol 0.1;
+        smoother symGaussSeidel;
+    }
+    k
+    {
+        solver smoothSolver;
+        tolerance 1e-05;
+        relTol 0.1;
+        smoother symGaussSeidel;
+    }
+    epsilon
+    {
+        solver smoothSolver;
+        tolerance 1e-05;
+        relTol 0.1;
+        smoother symGaussSeidel;
+    }
+    pFinal
+    {
+        $p ;
+        relTol 0;
+    }
+    UFinal
+    {
+        $U ;
+        relTol 0;
+    }
+    kFinal
+    {
+        $k ;
+        relTol 0;
+    }
+    epsilonFinal
+    {
+        $epsilon ;
+        relTol 0;
+    }
+}
+PIMPLE
+{
+    momentumPredictor true;
+    nOuterCorrectors 40;
+    nCorrectors 3;
+    nNonOrthogonalCorrectors 2;
+    pRefCell 0;
+    pRefValue 0;
+    pRefPoint (-0.013 -0.034 0.001);
+    turbOnFinalIterOnly false;
+    correctorResidualControl
+    {
+        p
+        {
+            tolerance 0.1;
+            relTol 0.1;
+        }
+        U
+        {
+            tolerance 0.01;
+            relTol 0.1;
+        }
+    }
+    outerCorrectorResidualControl
+    {
+        p
+        {
+            tolerance 0.01;
+            relTol 0.1;
+        }
+        U
+        {
+            tolerance 0.001;
+            relTol 0.1;
+        }
+        k
+        {
+            tolerance 0.001;
+            relTol 0.1;
+        }
+        epsilon
+        {
+            tolerance 0.001;
+            relTol 0.1;
+        }
+        omega
+        {
+            tolerance 0.001;
+            relTol 0.1;
+        }
+    }
+}
+relaxationFactors
+{
+    fields
+    {
+        p 0.2;
+    }
+    equations
+    {
+        U 0.3;
+        k 0.2;
+        epsilon 0.2;
+        omega 0.2;
+    }
+}
+cache
+{
+    grad(U) ;
+}

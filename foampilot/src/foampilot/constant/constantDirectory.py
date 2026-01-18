@@ -32,7 +32,6 @@ class ConstantDirectory:
 
         # Initialisation des fichiers constants
         self._transportProperties = TransportPropertiesFile(self.solver)
-        self._turbulenceProperties = TurbulencePropertiesFile(self.solver)
         self._physicalProperties = PhysicalPropertiesFile(self.solver)
         self._gravity = GravityFile(self.solver)
         self._pRef = PRefFile(self.solver)
@@ -88,7 +87,18 @@ class ConstantDirectory:
         constant_path.mkdir(parents=True, exist_ok=True)
 
         # Always write turbulence
-        self._turbulenceProperties.write(constant_path / "turbulenceProperties")
+        # --- Turbulence properties -----------------------------------------
+        simulationType, model = self.solver.get_turbulence_configuration()
+
+        turbulence = TurbulencePropertiesFile(
+            parent=self.solver,
+            simulationType=simulationType,
+            RASModel=model if simulationType == "RAS" else None,
+            LESModel=model if simulationType == "LES" else None,
+        )
+
+        turbulence.write(constant_path / "turbulenceProperties")
+
 
         # Transport / Physical
         if getattr(self.solver, "compressible", False):

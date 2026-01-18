@@ -118,6 +118,37 @@ class BaseSolver:
             return False
         return True
 
+    def get_turbulence_configuration(self):
+        """
+        Normalize turbulence configuration.
+
+        Returns
+        -------
+        simulationType : str
+            'laminar', 'RAS', or 'LES'
+        model : Optional[str]
+            Turbulence model name or None
+        """
+        # --- DEFAULT / LAMINAR ------------------------------------------
+        if self.turbulence_model is None:
+            return "laminar", None
+
+        if isinstance(self.turbulence_model, str):
+            model = self.turbulence_model.strip()
+
+            if model.lower() == "laminar":
+                return "laminar", None
+
+            # --- LES ------------------------------------------------------
+            if model.lower().startswith("les:"):
+                return "LES", model.split(":", 1)[1]
+
+            # --- RAS ------------------------------------------------------
+            return "RAS", model
+
+        raise ValueError(f"Invalid turbulence_model: {self.turbulence_model}")
+
+
     def run_simulation(self, nb_proc: int = 1, log_filename: str | None = None):
 
         # --- parallel execution ---
