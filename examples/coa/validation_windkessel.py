@@ -56,6 +56,17 @@ def diastolic_tau(t, p):
 
 
 
+# Load flow (Csc)
+flow_data = np.loadtxt("data_typec_q.csv", delimiter=",", skiprows=1)
+t_flow = flow_data[:, 0]
+q_flow = flow_data[:, 1] * 1e-6  # ml/s → m^3/s (IMPORTANT)
+
+# Load pressure (Csvp)
+pressure_data = np.loadtxt("data_typec_p.csv", delimiter=",", skiprows=1)
+t_p = pressure_data[:, 0]
+p_ref = pressure_data[:, 1]  # mmHg
+
+
 # Windkessel parameters (example)
 wk = Windkessel(
     t_flow=t_ref,
