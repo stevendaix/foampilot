@@ -30,6 +30,14 @@ class WindRose:
         """
         self.data = data
 
+
+def angular_distance(a: float, b: float) -> float:
+    """
+    Distance angulaire minimale entre deux directions (en degrés).
+    """
+    d = abs(a - b) % 360.0
+    return min(d, 360.0 - d)
+
 class WindCaseResult:
     def __init__(
         self,
@@ -93,10 +101,32 @@ class WindEnsemble:
         return results
 
 
+
+            
+
 class LawsonProcessor:
-    def __init__(self, ensemble: WindEnsemble, wind_rose: WindRose):
+    def __init__(
+        self,
+        ensemble: WindEnsemble,
+        wind_rose: WindRose,
+        sector_half_width: float = 15.0,
+    ):
         self.ensemble = ensemble
         self.wind_rose = wind_rose
+        self.sector_half_width = sector_half_width
+
+    def _wind_conditions_for_direction(self, direction_deg: float):
+        """
+        Regroupe les conditions météo dans le secteur angulaire
+        centré sur direction_deg.
+        """
+        conditions = []
+
+        for wd, wc_list in self.wind_rose.data.items():
+            if angular_distance(wd, direction_deg) <= self.sector_half_width:
+                conditions.extend(wc_list)
+
+        return conditions
 
     def compute_probability_map(self, threshold: float):
         prob = None
@@ -105,7 +135,9 @@ class LawsonProcessor:
             S = case.sensitivity
             mesh = case.mesh
 
-            for wc in self.wind_rose.data.get(direction, []):
+            wind_conditions = self._wind_conditions_for_direction(direction)
+
+            for wc in wind_conditions:
                 u_eq = S * wc["speed"]
                 exceed = (u_eq > threshold).astype(float) * wc["frequency"]
 
