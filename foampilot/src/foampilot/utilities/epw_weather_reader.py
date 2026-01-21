@@ -205,6 +205,94 @@ class WeatherFileEPW:
             return self.headers
         else:
             raise ValueError("Headers not loaded. Please read an EPW file first.")
+    def compute_wind_frequencies(
+    self,
+    direction_bin: float = 22.5,
+    speed_bins: list = None,
+    min_speed: float = 0.0,
+):
+    """
+    Compute wind frequency table from EPW data.
+
+    Parameters
+    ----------
+    direction_bin : float
+        Angular resolution for wind direction bins (deg).
+        Typical values: 30°, 22.5°, 15°.
+    speed_bins : list
+        Wind speed bins (m/s), e.g. [0, 2, 4, 6, 8, 10, 15].
+        If None, Lawson-relevant bins are used.
+    min_speed : float
+        Minimum wind speed to consider (filters calm winds).
+
+    Returns
+    -------
+    dict
+        Wind rose frequencies:
+        {
+            direction_deg: [
+                {"speed": speed_bin_center, "frequency": freq},
+                ...
+            ]
+        }
+    """
+    if self.dataframe.empty:
+        raise ValueError("No climate data loaded. Please read an EPW file first.")
+
+    df = self.dataframe.copy()
+
+    if speed_bins is None:
+        speed_bins = [0, 2, 4, 6, 8, 10, 15, 25]
+
+    # Filter calm winds
+    df = df[df["Wind Speed"] >= min_speed]
+
+    # Direction binning
+    df["Dir_bin"] = (
+        (df["Wind Direction"] / direction_bin).round() * direction_bin
+    ) % 360
+
+    # Speed binning
+    df["Speed_bin"] = pd.cut(
+        df["Wind Speed"],
+        bins=speed_bins,
+        right=False,
+        include_lowest=True,
+    )
+
+    total_count = len(df)
+    if total_count == 0:
+        raise ValueError("No wind data after filtering.")
+
+    freq_table = {}
+
+    grouped = df.groupby(["Dir_bin", "Speed_bin"]).size().reset_index(name="count")
+
+    for _, row in grouped.iterrows():
+        direction = float(row["Dir_bin"])
+        speed_interval = row["Speed_bin"]
+        count = row["count"]
+
+        speed_center = 0.5 * (speed_interval.left + speed_interval.right)
+        frequency = count / total_count
+
+        if direction not in freq_table:
+            freq_table[direction] = []
+
+        freq_table[direction].append(
+            {
+                "speed": float(speed_center),
+                "frequency": float(frequency),
+            }
+        )
+
+    return freq_table
+
+    def export_wind_frequencies(self, output_file: str, **kwargs):
+    freq = self.compute_wind_frequencies(**kwargs)
+    with open(output_file, "w") as f:
+        json.dump(freq, f, indent=4)
+
 
     def get_dataframe(self) -> pd.DataFrame:
         """
