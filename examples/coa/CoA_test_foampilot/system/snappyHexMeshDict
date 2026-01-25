@@ -116,10 +116,21 @@ snapControls
 addLayersControls
 {
     relativeSizes true;
+    nGrow 0;
     expansionRatio 1.2;
     finalLayerThickness 0.3;
     minThickness 0.1;
     featureAngle 60;
+    slipFeatureAngle 30;
+    nRelaxIter 5;
+    nSmoothNormals 1;
+    nSmoothSurfaceNormals 1;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedianAxisAngle 90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 50;
     layers
     {
         "wall_aorta"

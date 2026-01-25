@@ -20,49 +20,49 @@ FoamFile
     {
         type            patch;
         nFaces          12120;
-        startFace       304642;
+        startFace       355045;
     }
     wall_aorta
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          6031;
-        startFace       316762;
+        nFaces          5988;
+        startFace       367165;
     }
     inlet
     {
         type            wall;
         inGroups        List<word> 1(wall);
         nFaces          113;
-        startFace       322793;
+        startFace       373153;
     }
     outlet1
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          48;
-        startFace       322906;
+        nFaces          114;
+        startFace       373266;
     }
     outlet2
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          18;
-        startFace       322954;
+        nFaces          54;
+        startFace       373380;
     }
     outlet3
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          28;
-        startFace       322972;
+        nFaces          100;
+        startFace       373434;
     }
     outlet4
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          56;
-        startFace       323000;
+        nFaces          59;
+        startFace       373534;
     }
 )
 

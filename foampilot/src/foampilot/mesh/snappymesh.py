@@ -69,13 +69,37 @@ class SnappyMesher:
             "multiRegionFeatureSnap": False
         }
 
-        self.addLayersControls = {
 
+        self.addLayersControls = {
+            # --- REQUIRED (OF13) ---
             "relativeSizes": True,
+            "nGrow": 0,
+
+            # --- Thickness model ---
             "expansionRatio": 1.2,
-            "finalLayerThickness": 0.5,
+            "finalLayerThickness": 0.3,
             "minThickness": 0.1,
-            "featureAngle" : 60,
+
+            # --- Feature handling ---
+            "featureAngle": 60,
+            "slipFeatureAngle": 30,
+
+            # --- Smoothing / relaxation ---
+            "nRelaxIter": 5,
+            "nSmoothNormals": 1,
+            "nSmoothSurfaceNormals": 1,
+            "nSmoothThickness": 10,
+
+            # --- Quality / safety limits ---
+            "maxFaceThicknessRatio": 0.5,
+            "maxThicknessToMedialRatio": 0.3,
+            "minMedianAxisAngle": 90,
+
+            # --- Extrusion control ---
+            "nBufferCellsNoExtrude": 0,
+            "nLayerIter": 50,
+
+            # --- Per-surface layers ---
             "layers": {}
         }
 
