@@ -99,19 +99,23 @@ class TransportPropertiesFile(OpenFOAMFile):
         self._configure_attributes()
 
     # ------------------ Internal Methods ------------------
-
     def _to_ValueWithUnit(self, value: Union[str, ValueWithUnit, float], name: str) -> ValueWithUnit:
+        expected_unit = self.DEFAULT_UNITS.get(name)
+        
         if isinstance(value, ValueWithUnit):
-            expected_unit = self.DEFAULT_UNITS.get(name)
-            if expected_unit and not value.ValueWithUnit.check(expected_unit):
-                raise ValueError(f"{name} must have units compatible with {expected_unit}")
+            if expected_unit:
+                try:
+                    _ = value.get_in(expected_unit)
+                except Exception:
+                    raise ValueError(f"{name} must have units compatible with {expected_unit} (found {value.units})")
             return value
         else:
-            expected_unit = self.DEFAULT_UNITS.get(name)
             if expected_unit:
                 return ValueWithUnit(float(value), expected_unit)
             else:
-                return float(value)
+                return ValueWithUnit(float(value), "dimensionless")
+
+
 
     def _process_coeffs(self, coeffs: Dict[str, Union[str, ValueWithUnit, float]]) -> Dict[str, float]:
         processed = {}

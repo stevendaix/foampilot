@@ -2,7 +2,7 @@ import os
 import shutil
 import pandas as pd 
 from pathlib import Path
-from foampilot import Meshing, ValueWithUnit, FluidMechanics, Solver, CSVFoamIntegrator
+from foampilot import Meshing, ValueWithUnit, FluidMechanics, Solver, CSVFoamIntegrator,STLAnalyzer
 
 
 def setup_coa_case():
@@ -75,9 +75,9 @@ def setup_coa_case():
     snappy.locationInMesh = (-16.3177, -21.6838, -12.3357)
 
     analyzer = STLAnalyzer(Path("wall_aorta.stl"))
-analyzer.load()
+    analyzer.load()
 
-location = analyzer.get_center_of_mass()
+    location = analyzer.get_center_of_mass()
 
     snappy.geometry = {
         "wall_aorta": {"type": "triSurfaceMesh", "file": "wall_aorta. stl", "name": "wall_aorta"},
@@ -109,9 +109,9 @@ location = analyzer.get_center_of_mass()
     # Generate surfaceFeaturesDict
     snappy.write_surface_features_dict(case_path, stl_files, included_angle=30)
 
-snappy = SnappyMesher(parent=mesh, stl_file="wall_aorta.stl")
-snappy.locationInMesh = analyzer.find_location_in_mesh()
-snappy.run()
+    snappy.locationInMesh = analyzer.find_location_in_mesh()
+
+
     snappy.write_snappyHexMesh_dict(case_path)
     snappy.run()
 

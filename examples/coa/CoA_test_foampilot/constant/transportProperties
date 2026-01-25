@@ -6,12 +6,5 @@ FoamFile
     object     transportProperties;
 }
 
-transportModel BirdCarreau;
+nu 3.77358490566038e-06;
 rho 1060;
-BirdCarreauCoeffs
-{
-    nu0 3.77e-06;
-    nuInf 0.001;
-    k 0.01;
-    n 0.6;
-}

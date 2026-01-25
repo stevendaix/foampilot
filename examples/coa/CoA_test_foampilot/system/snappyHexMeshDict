@@ -13,10 +13,10 @@ addLayers true;
 
 geometry
 {
-    "wall_aorta. stl"
+    "wall_aorta.stl"
     {
         type triSurfaceMesh;
-        file "wall_aorta. stl";
+        file "wall_aorta.stl";
         name wall_aorta;
     }
     "inlet.stl"
@@ -57,31 +57,31 @@ castellatedMeshControls
     maxGlobalCells 2000000;
     minRefinementCells 10;
     nCellsBetweenLevels 3;
-    locationInMesh (-16.3177 -21.6838 -12.3357);
+    locationInMesh (-5.26212986298823 -5.0082523532853465 -11.366618242216465);
     features
     (
         {
-            file "wall_aorta. eMesh";
+            file "wall_aorta.eMesh";
             level 1;
         }
         {
-            file "inlet. eMesh";
+            file "inlet.eMesh";
             level 1;
         }
         {
-            file "outlet1. eMesh";
+            file "outlet1.eMesh";
             level 1;
         }
         {
-            file "outlet2. eMesh";
+            file "outlet2.eMesh";
             level 1;
         }
         {
-            file "outlet3. eMesh";
+            file "outlet3.eMesh";
             level 1;
         }
         {
-            file "outlet4. eMesh";
+            file "outlet4.eMesh";
             level 1;
         }
     );
@@ -115,10 +115,11 @@ snapControls
 
 addLayersControls
 {
-    relativeSizes True;
+    relativeSizes true;
     expansionRatio 1.2;
     finalLayerThickness 0.3;
     minThickness 0.1;
+    featureAngle 60;
     layers
     {
         "wall_aorta"
