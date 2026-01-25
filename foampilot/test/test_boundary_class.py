@@ -14,8 +14,8 @@ import warnings
 # Nous allons réutiliser le contenu de mock_config.py directement ici pour simplifier
 # l'exécution dans le sandbox, en supposant que les dépendances sont installées.
 
-class Quantity:
-    """Mock de la classe Quantity pour simuler les valeurs avec unités."""
+class ValueWithUnit:
+    """Mock de la classe ValueWithUnit pour simuler les valeurs avec unités."""
     def __init__(self, value, unit):
         self.value = value
         self.unit = unit
@@ -286,7 +286,7 @@ def mock_boundary_class():
          patch('foampilot.boundaries.boundaries_dict.WALL_FUNCTIONS', MOCK_WALL_FUNCTIONS), \
          patch('foampilot.boundaries.boundaries_dict.CONDITION_CALCULATORS', MOCK_CONDITION_CALCULATORS), \
          patch('foampilot.boundaries.boundaries_dict.OpenFOAMFile', MockOpenFOAMFile), \
-         patch('foampilot.boundaries.boundaries_dict.Quantity', Quantity):
+         patch('foampilot.boundaries.boundaries_dict.ValueWithUnit', ValueWithUnit):
         
         yield Boundary
         
@@ -386,7 +386,7 @@ class TestBoundary:
         boundary = setup_boundary_manager
         boundary.initialize_boundary()
         
-        velocity_in = (Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+        velocity_in = (ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
         boundary.apply_condition_with_wildcard(".*let", "velocityInlet", turbulence_intensity=0.05, velocity=velocity_in)
         
         # Vérifier que 'inlet' a la condition
@@ -411,7 +411,7 @@ class TestBoundary:
         boundary = setup_boundary_manager
         boundary.initialize_boundary()
         # turbulence_intensity=0.005 est en dehors de la plage [0.01, 0.1]
-        velocity_mock = (Quantity(1, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+        velocity_mock = (ValueWithUnit(1, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
         with pytest.raises(ValueError, match="Turbulence intensity must be between 0.01 and 0.1 for velocityInlet."):
             boundary.set_condition("inlet", "velocityInlet", turbulence_intensity=0.005, velocity=velocity_mock)
 
@@ -420,7 +420,7 @@ class TestBoundary:
         boundary = setup_boundary_manager
         boundary.initialize_boundary()
         
-        velocity_in = (Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+        velocity_in = (ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
         boundary.set_condition("inlet", "velocityInlet", turbulence_intensity=0.05, velocity=velocity_in)
         
         # Vérifier l'application de la condition 'withTurbulence'
@@ -443,7 +443,7 @@ class TestBoundary:
         boundary = mock_boundary_class(parent, fields_manager=fields_manager_sst, turbulence_model="kOmegaSST")
         boundary.initialize_boundary()
         
-        velocity_in = (Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+        velocity_in = (ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
         boundary.set_condition("inlet", "velocityInlet", turbulence_intensity=0.05, velocity=velocity_in)
         
         # Vérifier l'application de la condition pour omega
@@ -466,7 +466,7 @@ class TestBoundary:
         boundary = setup_boundary_manager
         
         field_config = MOCK_BOUNDARY_CONDITIONS_CONFIG["kEpsilon"]["wall"]["k"]
-        kwargs = {"velocity": (Quantity(1, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))}
+        kwargs = {"velocity": (ValueWithUnit(1, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))}
         
         resolved = boundary._resolve_field_config(field_config, kwargs)
         
@@ -502,8 +502,8 @@ class TestBoundary:
         """Test _format_config avec substitution de placeholder."""
         boundary = setup_boundary_manager
         config = {"type": "fixedValue", "value": "uniform (${velocity})", "other": 123}
-        # Simuler le formatage de Quantity
-        params = {"velocity": Quantity((10, 0, 0), "m/s"), "k_value": 0.5}
+        # Simuler le formatage de ValueWithUnit
+        params = {"velocity": ValueWithUnit((10, 0, 0), "m/s"), "k_value": 0.5}
         
         formatted = boundary._format_config(config, params)
         
@@ -522,7 +522,7 @@ class TestBoundary:
         boundary = mock_boundary_class(parent, fields_manager=fields_manager_thermal, turbulence_model="kEpsilon")
         boundary.initialize_boundary()
         
-        velocity_in = (Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+        velocity_in = (ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
         boundary.set_condition("inlet", "velocityInlet", turbulence_intensity=0.05, velocity=velocity_in)
         
         boundary.write_boundary_conditions()

@@ -85,7 +85,7 @@ class WeatherFileEPW:
             'Visibility', 'Ceiling Height', 'Present Weather Observation',
             'Present Weather Codes', 'Precipitable Water',
             'Aerosol Optical Depth', 'Snow Depth', 'Days Since Last Snowfall',
-            'Albedo', 'Liquid Precipitation Depth', 'Liquid Precipitation Quantity'
+            'Albedo', 'Liquid Precipitation Depth', 'Liquid Precipitation ValueWithUnit'
         ]
         first_row = self._first_row_with_climate_data(fp)
         return pd.read_csv(fp, skiprows=first_row, header=None, names=column_names)

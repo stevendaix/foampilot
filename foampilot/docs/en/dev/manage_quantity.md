@@ -1,29 +1,29 @@
 ```md
-# `Quantity` Class: Detailed Method Documentation
+# `ValueWithUnit` Class: Detailed Method Documentation
 
-This document provides a detailed explanation of each method of the `Quantity` class, designed to handle physical quantities with units.
+This document provides a detailed explanation of each method of the `ValueWithUnit` class, designed to handle physical quantities with units.
 
 ## Introduction
 
-The `Quantity` class is a wrapper around the Pint library, allowing manipulation of values associated with physical units. It facilitates unit conversion, display, serialization, and arithmetic operations.
+The `ValueWithUnit` class is a wrapper around the Pint library, allowing manipulation of values associated with physical units. It facilitates unit conversion, display, serialization, and arithmetic operations.
 
 ## Constructor
 
 ### Description
 
-The constructor initializes a new `Quantity` instance with a numeric value and a unit.
+The constructor initializes a new `ValueWithUnit` instance with a numeric value and a unit.
 
 - **Parameters**:
-  - `value`: Numeric value of the quantity.
+  - `value`: Numeric value of the ValueWithUnit.
   - `unit`: String representing the unit (e.g., "m/s", "Pa", "kg").
 
 ## Main Methods
 
-### `set_quantity`
+### `set_ValueWithUnit`
 
 #### Description
 
-Updates the value and unit of the quantity.
+Updates the value and unit of the ValueWithUnit.
 
 - **Parameters**:
   - `value`: New numeric value.
@@ -33,7 +33,7 @@ Updates the value and unit of the quantity.
 
 #### Description
 
-Converts the quantity to a target unit and returns its numeric value.
+Converts the ValueWithUnit to a target unit and returns its numeric value.
 
 - **Parameters**:
   - `target_unit`: Unit to convert to.
@@ -44,11 +44,11 @@ Converts the quantity to a target unit and returns its numeric value.
 
 #### Description
 
-Converts the quantity to a target unit and returns a new `Quantity` object.
+Converts the ValueWithUnit to a target unit and returns a new `ValueWithUnit` object.
 
 - **Parameters**:
   - `target_unit`: Unit to convert to.
-- **Returns**: A new `Quantity` object with the converted value.
+- **Returns**: A new `ValueWithUnit` object with the converted value.
 - **Exceptions**: Raises an error if conversion is not possible.
 
 ## Serialization
@@ -57,7 +57,7 @@ Converts the quantity to a target unit and returns a new `Quantity` object.
 
 #### Description
 
-Returns a dictionary representation of the quantity.
+Returns a dictionary representation of the ValueWithUnit.
 
 - **Returns**: A dictionary with keys `value` and `unit`.
 - **Example Output**: `{"value": 10.0, "unit": "meter / second"}`
@@ -66,21 +66,21 @@ Returns a dictionary representation of the quantity.
 
 #### Description
 
-Creates a `Quantity` object from a dictionary.
+Creates a `ValueWithUnit` object from a dictionary.
 
 - **Parameters**:
   - `data`: Dictionary containing `value` and `unit`.
-- **Returns**: A new `Quantity` object.
+- **Returns**: A new `ValueWithUnit` object.
 
 ### `from_pint`
 
 #### Description
 
-Creates a `Quantity` object from a Pint Quantity.
+Creates a `ValueWithUnit` object from a Pint ValueWithUnit.
 
 - **Parameters**:
-  - `pint_quantity`: Pint Quantity object.
-- **Returns**: A new `Quantity` object.
+  - `pint_ValueWithUnit`: Pint ValueWithUnit object.
+- **Returns**: A new `ValueWithUnit` object.
 
 ## Representation
 
@@ -95,20 +95,20 @@ Creates a `Quantity` object from a Pint Quantity.
 
 ### Description
 
-The class supports `+`, `-`, `*`, `/` operations with other `Quantity` objects or scalars.
+The class supports `+`, `-`, `*`, `/` operations with other `ValueWithUnit` objects or scalars.
 
-- **Addition (`__add__`)**: Adds two quantities or a quantity and a scalar.
-- **Subtraction (`__sub__`)**: Subtracts two quantities or a quantity and a scalar.
-- **Multiplication (`__mul__`)**: Multiplies two quantities or a quantity and a scalar.
-- **Division (`__truediv__`)**: Divides two quantities or a quantity and a scalar.
+- **Addition (`__add__`)**: Adds two quantities or a ValueWithUnit and a scalar.
+- **Subtraction (`__sub__`)**: Subtracts two quantities or a ValueWithUnit and a scalar.
+- **Multiplication (`__mul__`)**: Multiplies two quantities or a ValueWithUnit and a scalar.
+- **Division (`__truediv__`)**: Divides two quantities or a ValueWithUnit and a scalar.
 
-- **Returns**: A new `Quantity` object representing the result of the operation.
+- **Returns**: A new `ValueWithUnit` object representing the result of the operation.
 
 ## Usage Examples
 
 1. **Creating objects**:
-   - `speed = Quantity(10, "m/s")`
-   - `pressure = Quantity(101325, "Pa")`
+   - `speed = ValueWithUnit(10, "m/s")`
+   - `pressure = ValueWithUnit(101325, "Pa")`
 
 2. **Conversion**:
    - `speed.get_in("km/h")`
@@ -123,9 +123,9 @@ The class supports `+`, `-`, `*`, `/` operations with other `Quantity` objects o
    - `json_str = json.dumps(data, indent=2)`
 
 5. **Deserialization**:
-   - `speed_loaded = Quantity.from_dict(loaded_data["speed"])`
+   - `speed_loaded = ValueWithUnit.from_dict(loaded_data["speed"])`
 
 ## Conclusion
 
-The `Quantity` class simplifies handling physical quantities with units in Python, leveraging Pint for conversions and adding serialization and arithmetic capabilities.
+The `ValueWithUnit` class simplifies handling physical quantities with units in Python, leveraging Pint for conversions and adding serialization and arithmetic capabilities.
 ```

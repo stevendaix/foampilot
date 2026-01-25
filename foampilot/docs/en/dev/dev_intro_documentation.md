@@ -32,7 +32,7 @@ The core logic of `foampilot` is located in the `foampilot/foampilot/src/foampil
 | `system` | Manages configuration files in the `system` directory. | `SystemDirectory`, `controlDictFile`, `fvSchemesFile`, `fvSolutionFile` |
 | `boundaries` | Defines and applies boundary conditions. | `Boundary`, `boundaries_conditions_config` |
 | `mesh` | Mesh tools, including integration with `classy_blocks` and `snappyHexMesh`. | `BlockMeshFile`, `Meshing`, `gmsh_mesher` |
-| `utilities` | Utility functions and classes not specific to OpenFOAM (units, fluid properties, etc.). | `Quantity`, `FluidMechanics`, `manageunits` |
+| `utilities` | Utility functions and classes not specific to OpenFOAM (units, fluid properties, etc.). | `ValueWithUnit`, `FluidMechanics`, `manageunits` |
 | `postprocess` | Classes for result analysis, visualization (via `pyvista`), and data extraction. | `FoamPostProcessing`, `ResidualsPost` |
 
 ## 4. Internal Mechanisms for Developers
@@ -45,14 +45,14 @@ The core of data serialization lies in the base class `OpenFOAMFile` (`foampilot
 
 * **Inheritance and Attributes:** Each OpenFOAM configuration file (e.g., `transportPropertiesFile` or `controlDictFile`) inherits from `OpenFOAMFile`. Configuration parameters are stored in the instance attribute `self.attributes`.
 * **Dynamic Access:** Overriding magic methods `__getattr__` and `__setattr__` allows direct access and modification of parameters as object attributes (e.g., `solver.constant.transportProperties.nu = ...`), even if they are stored in the `self.attributes` dictionary.
-* **Serialization (`write_file`):** The `write_file` method recursively iterates over `self.attributes` and uses the internal `_format_value` method to convert Python data types (booleans, numbers, tuples, especially `Quantity`) into OpenFOAM-specific syntax (e.g., `true`/`false`, parenthesis-enclosed lists).
+* **Serialization (`write_file`):** The `write_file` method recursively iterates over `self.attributes` and uses the internal `_format_value` method to convert Python data types (booleans, numbers, tuples, especially `ValueWithUnit`) into OpenFOAM-specific syntax (e.g., `true`/`false`, parenthesis-enclosed lists).
 
-### 4.2. Unit and Dimension Management (`Quantity`)
+### 4.2. Unit and Dimension Management (`ValueWithUnit`)
 
-The `Quantity` class (`foampilot/foampilot/src/foampilot/utilities/manageunits.py`) is a *wrapper* around the `pint` library and ensures physical consistency.
+The `ValueWithUnit` class (`foampilot/foampilot/src/foampilot/utilities/manageunits.py`) is a *wrapper* around the `pint` library and ensures physical consistency.
 
-* **Purpose:** Stores a numerical value with its physical unit (e.g., `Quantity(10, "m/s")`).
-* **Automatic Conversion:** When writing to an OpenFOAM file, `OpenFOAMFile._format_value` checks if the value is a `Quantity`. If so, it uses `get_in(target_unit)` to convert the value to the unit expected by OpenFOAM (defined in `OpenFOAMFile.DEFAULT_UNITS`), ensuring all written values are in OpenFOAM’s base units.
+* **Purpose:** Stores a numerical value with its physical unit (e.g., `ValueWithUnit(10, "m/s")`).
+* **Automatic Conversion:** When writing to an OpenFOAM file, `OpenFOAMFile._format_value` checks if the value is a `ValueWithUnit`. If so, it uses `get_in(target_unit)` to convert the value to the unit expected by OpenFOAM (defined in `OpenFOAMFile.DEFAULT_UNITS`), ensuring all written values are in OpenFOAM’s base units.
 * **OpenFOAM Dimensions:** The `to_openfoam_dimensions()` method uses `pint` to derive OpenFOAM’s dimension vector (M, L, T, Θ, N, J, A) from the unit, which is crucial for generating field file headers (e.g., `U`, `p`).
 
 ### 4.3. Solver and Field Orchestration (`Solver` and `CaseFieldsManager`)

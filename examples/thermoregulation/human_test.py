@@ -8,7 +8,7 @@ import random
 from pathlib import Path
 
 # Import required libraries
-from foampilot import Meshing, commons, postprocess,latex_pdf,Quantity,FluidMechanics,Solver
+from foampilot import Meshing, commons, postprocess,latex_pdf,ValueWithUnit,FluidMechanics,Solver
 
 current_path = Path.cwd()
 

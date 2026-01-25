@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/">
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/zh/dev/manage_ValueWithUnit/">
       
       
         <link rel="prev" href="../dev_detailed_documentation/">
@@ -18,9 +18,9 @@
       
       
         
-          <link rel="alternate" href="../../../dev/manage_quantity/" hreflang="en">
+          <link rel="alternate" href="../../../dev/manage_ValueWithUnit/" hreflang="en">
         
-          <link rel="alternate" href="../../../fr/dev/manage_quantity/" hreflang="fr">
+          <link rel="alternate" href="../../../fr/dev/manage_ValueWithUnit/" hreflang="fr">
         
           <link rel="alternate" href="./" hreflang="zh">
         
@@ -122,13 +122,13 @@
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../dev/manage_quantity/" hreflang="en" class="md-select__link">
+            <a href="../../../dev/manage_ValueWithUnit/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../../fr/dev/manage_quantity/" hreflang="fr" class="md-select__link">
+            <a href="../../../fr/dev/manage_ValueWithUnit/" hreflang="fr" class="md-select__link">
               Français
             </a>
           </li>
@@ -987,19 +987,19 @@
 
   <h1>Gestion des quantités</h1>
 
-<div class="highlight"><pre><span></span><code><span class="gh"># `Quantity` 类：方法详细说明</span>
+<div class="highlight"><pre><span></span><code><span class="gh"># `ValueWithUnit` 类：方法详细说明</span>
 
-本文档详细说明了 <span class="sb">`Quantity`</span> 类的各个方法，该类用于处理带有单位的物理量。
+本文档详细说明了 <span class="sb">`ValueWithUnit`</span> 类的各个方法，该类用于处理带有单位的物理量。
 
 <span class="gu">## 介绍</span>
 
-<span class="sb">`Quantity`</span> 类是对 Pint 库的封装，可用于操作带有物理单位的数值。它简化了单位转换、显示、序列化以及算术运算。
+<span class="sb">`ValueWithUnit`</span> 类是对 Pint 库的封装，可用于操作带有物理单位的数值。它简化了单位转换、显示、序列化以及算术运算。
 
 <span class="gu">## 构造函数</span>
 
 <span class="gu">### 描述</span>
 
-构造函数用于使用数值和单位初始化一个新的 <span class="sb">`Quantity`</span> 实例。
+构造函数用于使用数值和单位初始化一个新的 <span class="sb">`ValueWithUnit`</span> 实例。
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**参数**</span>：
 <span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`value`</span>：物理量的数值。
@@ -1007,7 +1007,7 @@
 
 <span class="gu">## 主要方法</span>
 
-<span class="gu">### `set_quantity`</span>
+<span class="gu">### `set_ValueWithUnit`</span>
 
 <span class="gu">#### 描述</span>
 
@@ -1032,11 +1032,11 @@
 
 <span class="gu">#### 描述</span>
 
-将物理量转换为目标单位，并返回一个新的 <span class="sb">`Quantity`</span> 对象。
+将物理量转换为目标单位，并返回一个新的 <span class="sb">`ValueWithUnit`</span> 对象。
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**参数**</span>：
 <span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`target_unit`</span>：目标单位。
-<span class="k">-</span><span class="w"> </span><span class="gs">**返回**</span>：包含转换后数值的新 <span class="sb">`Quantity`</span> 对象。
+<span class="k">-</span><span class="w"> </span><span class="gs">**返回**</span>：包含转换后数值的新 <span class="sb">`ValueWithUnit`</span> 对象。
 <span class="k">-</span><span class="w"> </span><span class="gs">**异常**</span>：如果无法转换，将引发错误。
 
 <span class="gu">## 序列化</span>
@@ -1054,21 +1054,21 @@
 
 <span class="gu">#### 描述</span>
 
-从字典创建一个 <span class="sb">`Quantity`</span> 对象。
+从字典创建一个 <span class="sb">`ValueWithUnit`</span> 对象。
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**参数**</span>：
 <span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`data`</span>：包含 <span class="sb">`value`</span> 和 <span class="sb">`unit`</span> 的字典。
-<span class="k">-</span><span class="w"> </span><span class="gs">**返回**</span>：新的 <span class="sb">`Quantity`</span> 对象。
+<span class="k">-</span><span class="w"> </span><span class="gs">**返回**</span>：新的 <span class="sb">`ValueWithUnit`</span> 对象。
 
 <span class="gu">### `from_pint`</span>
 
 <span class="gu">#### 描述</span>
 
-从 Pint Quantity 对象创建一个 <span class="sb">`Quantity`</span> 对象。
+从 Pint ValueWithUnit 对象创建一个 <span class="sb">`ValueWithUnit`</span> 对象。
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**参数**</span>：
-<span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`pint_quantity`</span>：Pint Quantity 对象。
-<span class="k">-</span><span class="w"> </span><span class="gs">**返回**</span>：新的 <span class="sb">`Quantity`</span> 对象。
+<span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`pint_ValueWithUnit`</span>：Pint ValueWithUnit 对象。
+<span class="k">-</span><span class="w"> </span><span class="gs">**返回**</span>：新的 <span class="sb">`ValueWithUnit`</span> 对象。
 
 <span class="gu">## 表示方法</span>
 
@@ -1083,20 +1083,20 @@
 
 <span class="gu">### 描述</span>
 
-该类支持与其他 <span class="sb">`Quantity`</span> 对象或标量的 <span class="sb">`+`</span>、<span class="sb">`-`</span>、<span class="sb">`*`</span>、<span class="sb">`/`</span> 运算。
+该类支持与其他 <span class="sb">`ValueWithUnit`</span> 对象或标量的 <span class="sb">`+`</span>、<span class="sb">`-`</span>、<span class="sb">`*`</span>、<span class="sb">`/`</span> 运算。
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**加法 (`__add__`)**</span>：两个物理量相加或物理量与标量相加。
 <span class="k">-</span><span class="w"> </span><span class="gs">**减法 (`__sub__`)**</span>：两个物理量相减或物理量与标量相减。
 <span class="k">-</span><span class="w"> </span><span class="gs">**乘法 (`__mul__`)**</span>：两个物理量相乘或物理量与标量相乘。
 <span class="k">-</span><span class="w"> </span><span class="gs">**除法 (`__truediv__`)**</span>：两个物理量相除或物理量与标量相除。
 
-<span class="k">-</span><span class="w"> </span><span class="gs">**返回**</span>：一个新的 <span class="sb">`Quantity`</span> 对象，表示运算结果。
+<span class="k">-</span><span class="w"> </span><span class="gs">**返回**</span>：一个新的 <span class="sb">`ValueWithUnit`</span> 对象，表示运算结果。
 
 <span class="gu">## 使用示例</span>
 
 <span class="k">1.</span> <span class="gs">**创建对象**</span>：
-<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed = Quantity(10, &quot;m/s&quot;)`</span>
-<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`pressure = Quantity(101325, &quot;Pa&quot;)`</span>
+<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed = ValueWithUnit(10, &quot;m/s&quot;)`</span>
+<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`pressure = ValueWithUnit(101325, &quot;Pa&quot;)`</span>
 
 <span class="k">2.</span> <span class="gs">**单位转换**</span>：
 <span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed.get_in(&quot;km/h&quot;)`</span>
@@ -1111,11 +1111,11 @@
 <span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`json_str = json.dumps(data, indent=2)`</span>
 
 <span class="k">5.</span> <span class="gs">**反序列化**</span>：
-<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed_loaded = Quantity.from_dict(loaded_data[&quot;speed&quot;])`</span>
+<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed_loaded = ValueWithUnit.from_dict(loaded_data[&quot;speed&quot;])`</span>
 
 <span class="gu">## 结论</span>
 
-<span class="sb">`Quantity`</span> 类简化了 Python 中带单位物理量的处理，利用 Pint 进行单位转换，同时增加了序列化和算术运算功能。
+<span class="sb">`ValueWithUnit`</span> 类简化了 Python 中带单位物理量的处理，利用 Pint 进行单位转换，同时增加了序列化和算术运算功能。
 </code></pre></div>
 
 

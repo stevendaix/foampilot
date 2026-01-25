@@ -1,13 +1,13 @@
 from __future__ import annotations
-from pint import UnitRegistry, Quantity as PintQuantity
+from pint import UnitRegistry, ValueWithUnit as PintValueWithUnit
 from typing import Union, Any
 
 # Initialize pint's unit registry
 ureg = UnitRegistry()
-Q_ = ureg.Quantity  # Shortcut to define quantities with units
+Q_ = ureg.ValueWithUnit  # Shortcut to define quantities with units
 
 
-class Quantity:
+class ValueWithUnit:
     """
     Wrapper for Pint quantities to manage values with physical units.
 
@@ -22,56 +22,56 @@ class Quantity:
     """
 
     def __init__(self, value: Union[float, int], unit: str):
-        """Initialize a quantity with a value and unit."""
-        self.quantity: PintQuantity = Q_(value, unit)
+        """Initialize a ValueWithUnit with a value and unit."""
+        self.ValueWithUnit: PintValueWithUnit = Q_(value, unit)
 
     # ---- Accessors ----
     @property
     def magnitude(self) -> float:
-        """Return the numeric value of the quantity."""
-        return float(self.quantity.magnitude)
+        """Return the numeric value of the ValueWithUnit."""
+        return float(self.ValueWithUnit.magnitude)
 
     @property
     def units(self) -> str:
         """Return the unit as a string."""
-        return str(self.quantity.units)
+        return str(self.ValueWithUnit.units)
 
-    def copy(self) -> Quantity:
-        """Return a copy of this quantity."""
-        return Quantity.from_pint(self.quantity)
+    def copy(self) -> ValueWithUnit:
+        """Return a copy of this ValueWithUnit."""
+        return ValueWithUnit.from_pint(self.ValueWithUnit)
 
     # ---- Conversion ----
-    def set_quantity(self, value: Union[float, int], unit: str) -> None:
-        """Update the quantity with a new value and unit."""
-        self.quantity = Q_(value, unit)
+    def set_ValueWithUnit(self, value: Union[float, int], unit: str) -> None:
+        """Update the ValueWithUnit with a new value and unit."""
+        self.ValueWithUnit = Q_(value, unit)
 
     def get_in(self, target_unit: str) -> float:
-        """Convert the quantity to a specified unit and return its magnitude."""
+        """Convert the ValueWithUnit to a specified unit and return its magnitude."""
         try:
-            return self.quantity.to(target_unit).magnitude
+            return self.ValueWithUnit.to(target_unit).magnitude
         except Exception as e:
-            raise ValueError(f"Cannot convert {self.quantity} to {target_unit}: {e}")
+            raise ValueError(f"Cannot convert {self.ValueWithUnit} to {target_unit}: {e}")
 
-    def to_base_units(self) -> Quantity:
+    def to_base_units(self) -> ValueWithUnit:
         """
-        Convert the quantity to SI base units and return a new Quantity object.
+        Convert the ValueWithUnit to SI base units and return a new ValueWithUnit object.
         Example: 1 bar → 100000 Pa
         """
         try:
-            q_base = self.quantity.to_base_units()
-            return Quantity.from_pint(q_base)
+            q_base = self.ValueWithUnit.to_base_units()
+            return ValueWithUnit.from_pint(q_base)
         except Exception as e:
-            raise ValueError(f"Cannot convert {self.quantity} to base units: {e}")
+            raise ValueError(f"Cannot convert {self.ValueWithUnit} to base units: {e}")
 
     def to_openfoam_dimensions(self) -> str:
         """
-        Return the OpenFOAM-style dimensions string for the quantity's units.
+        Return the OpenFOAM-style dimensions string for the ValueWithUnit's units.
 
         Format:
             dimensions      [M L T Θ N J A];
 
         Example:
-            Quantity(10, "m/s").to_openfoam_dimensions()
+            ValueWithUnit(10, "m/s").to_openfoam_dimensions()
             -> "dimensions      [0 1 -1 0 0 0 0];"
         """
         mapping = {
@@ -86,7 +86,7 @@ class Quantity:
 
         exponents = [0] * 7  # Default exponents
 
-        for dim, power in self.quantity.dimensionality.items():
+        for dim, power in self.ValueWithUnit.dimensionality.items():
             if dim in mapping:
                 exponents[mapping[dim]] = int(power)
 
@@ -94,32 +94,32 @@ class Quantity:
 
     # ---- Serialization ----
     def as_dict(self) -> dict[str, Any]:
-        """Return a dictionary representation of the quantity."""
+        """Return a dictionary representation of the ValueWithUnit."""
         return {"value": self.magnitude, "unit": self.units}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Quantity:
-        """Create a Quantity object from a dictionary."""
+    def from_dict(cls, data: dict[str, Any]) -> ValueWithUnit:
+        """Create a ValueWithUnit object from a dictionary."""
         return cls(data["value"], data["unit"])
 
     @classmethod
-    def from_pint(cls, pint_quantity: PintQuantity) -> Quantity:
-        """Create a Quantity from a Pint Quantity."""
-        return cls(pint_quantity.magnitude, str(pint_quantity.units))
+    def from_pint(cls, pint_ValueWithUnit: PintValueWithUnit) -> ValueWithUnit:
+        """Create a ValueWithUnit from a Pint ValueWithUnit."""
+        return cls(pint_ValueWithUnit.magnitude, str(pint_ValueWithUnit.units))
 
     # ---- Representation ----
     def __repr__(self) -> str:
-        return f"Quantity({self.magnitude}, '{self.units}')"
+        return f"ValueWithUnit({self.magnitude}, '{self.units}')"
 
     def __str__(self) -> str:
         return f"{self.magnitude} {self.units}"
 
     # ---- Equality & Hashing ----
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Quantity):
+        if not isinstance(other, ValueWithUnit):
             return False
         try:
-            return self.quantity == other.quantity
+            return self.ValueWithUnit == other.ValueWithUnit
         except Exception:
             return False
 
@@ -127,41 +127,41 @@ class Quantity:
         return hash((round(self.magnitude, 12), self.units))
 
     # ---- Arithmetic operations ----
-    def _wrap(self, result: PintQuantity) -> Quantity:
-        return Quantity.from_pint(result)
+    def _wrap(self, result: PintValueWithUnit) -> ValueWithUnit:
+        return ValueWithUnit.from_pint(result)
 
-    def __add__(self, other: Union[Quantity, float, int]) -> Quantity:
-        return self._wrap(self.quantity + (other.quantity if isinstance(other, Quantity) else other))
+    def __add__(self, other: Union[ValueWithUnit, float, int]) -> ValueWithUnit:
+        return self._wrap(self.ValueWithUnit + (other.ValueWithUnit if isinstance(other, ValueWithUnit) else other))
 
-    def __radd__(self, other: Union[float, int]) -> Quantity:
-        return self._wrap(other + self.quantity)
+    def __radd__(self, other: Union[float, int]) -> ValueWithUnit:
+        return self._wrap(other + self.ValueWithUnit)
 
-    def __sub__(self, other: Union[Quantity, float, int]) -> Quantity:
-        return self._wrap(self.quantity - (other.quantity if isinstance(other, Quantity) else other))
+    def __sub__(self, other: Union[ValueWithUnit, float, int]) -> ValueWithUnit:
+        return self._wrap(self.ValueWithUnit - (other.ValueWithUnit if isinstance(other, ValueWithUnit) else other))
 
-    def __rsub__(self, other: Union[float, int]) -> Quantity:
-        return self._wrap(other - self.quantity)
+    def __rsub__(self, other: Union[float, int]) -> ValueWithUnit:
+        return self._wrap(other - self.ValueWithUnit)
 
-    def __mul__(self, other: Union[Quantity, float, int]) -> Quantity:
-        return self._wrap(self.quantity * (other.quantity if isinstance(other, Quantity) else other))
+    def __mul__(self, other: Union[ValueWithUnit, float, int]) -> ValueWithUnit:
+        return self._wrap(self.ValueWithUnit * (other.ValueWithUnit if isinstance(other, ValueWithUnit) else other))
 
-    def __rmul__(self, other: Union[float, int]) -> Quantity:
-        return self._wrap(other * self.quantity)
+    def __rmul__(self, other: Union[float, int]) -> ValueWithUnit:
+        return self._wrap(other * self.ValueWithUnit)
 
-    def __truediv__(self, other: Union[Quantity, float, int]) -> Quantity:
-        return self._wrap(self.quantity / (other.quantity if isinstance(other, Quantity) else other))
+    def __truediv__(self, other: Union[ValueWithUnit, float, int]) -> ValueWithUnit:
+        return self._wrap(self.ValueWithUnit / (other.ValueWithUnit if isinstance(other, ValueWithUnit) else other))
 
-    def __rtruediv__(self, other: Union[float, int]) -> Quantity:
-        return self._wrap(other / self.quantity)
+    def __rtruediv__(self, other: Union[float, int]) -> ValueWithUnit:
+        return self._wrap(other / self.ValueWithUnit)
 
 
 # ==== Example usage ====
 if __name__ == "__main__":
-    v = Quantity(10, "m/s")
+    v = ValueWithUnit(10, "m/s")
     print(v, "→", v.to_openfoam_dimensions())
 
-    p = Quantity(1, "Pa")
+    p = ValueWithUnit(1, "Pa")
     print(p, "→", p.to_openfoam_dimensions())
 
-    rho = Quantity(1, "kg/m^3")
+    rho = ValueWithUnit(1, "kg/m^3")
     print(rho, "→", rho.to_openfoam_dimensions())

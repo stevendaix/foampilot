@@ -1194,7 +1194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev/manage_quantity/" class="md-nav__link">
+      <a href="../dev/manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1553,9 +1553,9 @@
 <h2 id="7">7. 输入验证和错误处理</h2>
 <p>稳健的输入验证和全面的错误处理对于任何计算工具的可靠性和可用性都至关重要。<code>FluidMechanics</code> 类纳入了几种验证方法，以确保输入参数具有物理意义并防止常见错误。</p>
 <h3 id="71">7.1. 正值验证</h3>
-<p>流体力学中的许多物理量，如压力、速度和特征长度，本质上必须是正值。<code>_validate_positive_quantity</code> 辅助方法确保传入的任何 <code>Quantity</code> 对象的值大于零。</p>
+<p>流体力学中的许多物理量，如压力、速度和特征长度，本质上必须是正值。<code>_validate_positive_ValueWithUnit</code> 辅助方法确保传入的任何 <code>ValueWithUnit</code> 对象的值大于零。</p>
 <h3 id="72">7.2. 非零值验证</h3>
-<p>某些计算涉及除以流体属性，如动力粘度或热导率。<code>_validate_non_zero_quantity</code> 辅助方法检查关键 <code>Quantity</code> 对象的值是否非零，以防止除以零的数学错误。</p>
+<p>某些计算涉及除以流体属性，如动力粘度或热导率。<code>_validate_non_zero_ValueWithUnit</code> 辅助方法检查关键 <code>ValueWithUnit</code> 对象的值是否非零，以防止除以零的数学错误。</p>
 <h3 id="73">7.3. 温度范围验证</h3>
 <p>温度必须以绝对温标（例如开尔文）表示且必须为正。<code>_validate_temperature_range</code> 辅助方法确保输入温度大于 0 开尔文，以保证计算的物理一致性 [17]。</p>
 <hr />

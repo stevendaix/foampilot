@@ -14,7 +14,7 @@
         <link rel="prev" href="../dev_intro_documentation/">
       
       
-        <link rel="next" href="../manage_quantity/">
+        <link rel="next" href="../manage_ValueWithUnit/">
       
       
         
@@ -1233,10 +1233,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#foampilotutilitiesmanageunitsquantity" class="md-nav__link">
+  <a href="#foampilotutilitiesmanageunitsValueWithUnit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        foampilot.utilities.manageunits.Quantity
+        foampilot.utilities.manageunits.ValueWithUnit
       
     </span>
   </a>
@@ -1286,7 +1286,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../manage_quantity/" class="md-nav__link">
+      <a href="../manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1616,7 +1616,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
   Définit une condition aux limites d'entrée de vitesse.</p>
 </li>
 <li><code>pattern</code>: Motif d'expression régulière.</li>
-<li><code>velocity</code>: Tuple de 3 objets <code>Quantity</code> (u, v, w) représentant les composantes de vitesse.</li>
+<li><code>velocity</code>: Tuple de 3 objets <code>ValueWithUnit</code> (u, v, w) représentant les composantes de vitesse.</li>
 <li><code>turbulence_intensity</code> (float, optionnel): Intensité de turbulence entre 0 et 1.</li>
 <li>
 <p><strong>Lève:</strong> <code>ValueError</code> si les unités de vitesse sont incorrectes.</p>
@@ -1626,7 +1626,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
   Définit une condition aux limites d'entrée de pression.</p>
 </li>
 <li><code>pattern</code>: Motif d'expression régulière.</li>
-<li><code>pressure</code>: Valeur de pression en tant qu'objet <code>Quantity</code>.</li>
+<li><code>pressure</code>: Valeur de pression en tant qu'objet <code>ValueWithUnit</code>.</li>
 <li><code>turbulence_intensity</code> (float, optionnel): Intensité de turbulence entre 0 et 1.</li>
 <li>
 <p><strong>Lève:</strong> <code>ValueError</code> si les unités de pression sont incorrectes.</p>
@@ -1637,15 +1637,15 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 </li>
 <li><code>pattern</code>: Motif d'expression régulière.</li>
 <li>
-<p><code>velocity</code>: Tuple de 3 objets <code>Quantity</code> (u, v, w) représentant les composantes de vitesse.</p>
+<p><code>velocity</code>: Tuple de 3 objets <code>ValueWithUnit</code> (u, v, w) représentant les composantes de vitesse.</p>
 </li>
 <li>
 <p><code>set_mass_flow_inlet(pattern, mass_flow_rate, density)</code>:
   Définit une condition aux limites d'entrée de débit massique.</p>
 </li>
 <li><code>pattern</code>: Motif d'expression régulière.</li>
-<li><code>mass_flow_rate</code>: Débit massique en tant qu'objet <code>Quantity</code>.</li>
-<li><code>density</code>: Densité en tant qu'objet <code>Quantity</code>.</li>
+<li><code>mass_flow_rate</code>: Débit massique en tant qu'objet <code>ValueWithUnit</code>.</li>
+<li><code>density</code>: Densité en tant qu'objet <code>ValueWithUnit</code>.</li>
 <li>
 <p><strong>Lève:</strong> <code>ValueError</code> si les unités sont incorrectes.</p>
 </li>
@@ -1656,7 +1656,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 <li><code>pattern</code>: Motif d'expression régulière.</li>
 <li><code>friction</code> (bool): Si <code>True</code> (par défaut), utilise la condition de non-glissement. Si <code>False</code>, utilise la condition de glissement.</li>
 <li>
-<p><code>velocity</code> (tuple, optionnel): Tuple de 3 objets <code>Quantity</code> pour une paroi à vitesse fixe.</p>
+<p><code>velocity</code> (tuple, optionnel): Tuple de 3 objets <code>ValueWithUnit</code> pour une paroi à vitesse fixe.</p>
 </li>
 <li>
 <p><code>set_symmetry(pattern)</code>:
@@ -2657,10 +2657,10 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 <p><strong>Attributs:</strong></p>
 <ul>
 <li><code>fluid_name</code> (FluidsList): Le fluide analysé (à partir de l'énumération <code>FluidsList</code>).</li>
-<li><code>temperature</code> (Quantity): Température du fluide avec unités.</li>
-<li><code>pressure</code> (Quantity): Pression du fluide avec unités.</li>
-<li><code>velocity</code> (Quantity): Vitesse d'écoulement caractéristique avec unités.</li>
-<li><code>characteristic_length</code> (Quantity): Échelle de longueur pertinente pour les nombres sans dimension.</li>
+<li><code>temperature</code> (ValueWithUnit): Température du fluide avec unités.</li>
+<li><code>pressure</code> (ValueWithUnit): Pression du fluide avec unités.</li>
+<li><code>velocity</code> (ValueWithUnit): Vitesse d'écoulement caractéristique avec unités.</li>
+<li><code>characteristic_length</code> (ValueWithUnit): Échelle de longueur pertinente pour les nombres sans dimension.</li>
 <li><code>fluid</code>: Objet <code>PyFluids Fluid</code> initialisé avec l'état actuel.</li>
 </ul>
 <p><strong>Constructeur:</strong></p>
@@ -2668,9 +2668,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 </code></pre></div>
 <ul>
 <li><code>fluid_name</code>: Type de fluide de l'énumération <code>FluidsList</code> (par exemple, <code>FluidsList.Water</code>).</li>
-<li><code>temperature</code>: Température du fluide (par exemple, <code>Quantity(300, 'K')</code>).</li>
-<li><code>pressure</code>: Pression du fluide (par exemple, <code>Quantity(101325, 'Pa')</code>).</li>
-<li><code>velocity</code>: Vitesse d'écoulement caractéristique (par exemple, <code>Quantity(2, 'm/s')</code>).</li>
+<li><code>temperature</code>: Température du fluide (par exemple, <code>ValueWithUnit(300, 'K')</code>).</li>
+<li><code>pressure</code>: Pression du fluide (par exemple, <code>ValueWithUnit(101325, 'Pa')</code>).</li>
+<li><code>velocity</code>: Vitesse d'écoulement caractéristique (par exemple, <code>ValueWithUnit(2, 'm/s')</code>).</li>
 <li><code>characteristic_length</code>: Échelle de longueur pertinente (par exemple, diamètre du tuyau).</li>
 </ul>
 <p><strong>Méthodes:</strong></p>
@@ -2729,7 +2729,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
   Estime l'épaisseur de la couche limite turbulente en utilisant une corrélation empirique.</p>
 </li>
 <li>
-<p><strong>Retourne:</strong> <code>Quantity</code> : Épaisseur de la couche limite avec unités (δ = 0.37L/Re^(1/5)).</p>
+<p><strong>Retourne:</strong> <code>ValueWithUnit</code> : Épaisseur de la couche limite avec unités (δ = 0.37L/Re^(1/5)).</p>
 </li>
 <li>
 <p><code>calculate_layers_for_cell_size(target_cell_size, expansion_ratio=1.2)</code>:
@@ -2740,14 +2740,14 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 <li><strong>Retourne:</strong> <code>int</code> : Nombre de couches requises.</li>
 <li><strong>Lève:</strong> <code>ValueError</code> si l'épaisseur de la couche limite est non positive.</li>
 </ul>
-<h3 id="foampilotutilitiesmanageunitsquantity"><code>foampilot.utilities.manageunits.Quantity</code></h3>
-<p>La classe <code>Quantity</code> est un wrapper pour les quantités Pint afin de gérer les valeurs avec des unités physiques. Elle fournit une interface pratique pour stocker des valeurs avec des unités, les convertir dans d'autres unités et les afficher.</p>
+<h3 id="foampilotutilitiesmanageunitsValueWithUnit"><code>foampilot.utilities.manageunits.ValueWithUnit</code></h3>
+<p>La classe <code>ValueWithUnit</code> est un wrapper pour les quantités Pint afin de gérer les valeurs avec des unités physiques. Elle fournit une interface pratique pour stocker des valeurs avec des unités, les convertir dans d'autres unités et les afficher.</p>
 <p><strong>Attributs:</strong></p>
 <ul>
-<li><code>quantity</code> (pint.Quantity): La quantité avec sa valeur numérique et son unité associée.</li>
+<li><code>ValueWithUnit</code> (pint.ValueWithUnit): La quantité avec sa valeur numérique et son unité associée.</li>
 </ul>
 <p><strong>Constructeur:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="n">Quantity</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">ValueWithUnit</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
 </code></pre></div>
 <ul>
 <li><code>value</code> (float): La valeur numérique de la quantité.</li>
@@ -2755,7 +2755,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 </ul>
 <p><strong>Méthodes:</strong></p>
 <ul>
-<li><code>set_quantity(value, unit)</code>:
+<li><code>set_ValueWithUnit(value, unit)</code>:
   Met à jour la quantité avec une nouvelle valeur et unité.</li>
 <li><code>value</code> (float): La nouvelle valeur numérique.</li>
 <li>

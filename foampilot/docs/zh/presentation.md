@@ -67,7 +67,7 @@
 
 | 子模块 | 概念角色 | 理论说明 |
 | :--- | :--- | :--- |
-| **`utilities.manageunits`** | **单位管理** | 使用 `Quantity` 类确保输入的量纲一致。这在物理和工程中至关重要，可避免单位转换错误，并使代码独立于使用的单位制（SI、英制等）。 |
+| **`utilities.manageunits`** | **单位管理** | 使用 `ValueWithUnit` 类确保输入的量纲一致。这在物理和工程中至关重要，可避免单位转换错误，并使代码独立于使用的单位制（SI、英制等）。 |
 | **`utilities.dictonnary`** | **OpenFOAM 字典处理** | 提供创建和操作复杂数据结构的工具，匹配 OpenFOAM 字典文件（如 `topoSetDict`、`createPatchDict`）。 |
 | **`commons`** | **通用工具** | 包含类序列化、网格文件读取（`polyMesh/boundary`）及其他底层操作，实现与 OpenFOAM 文件格式接口。 |
 

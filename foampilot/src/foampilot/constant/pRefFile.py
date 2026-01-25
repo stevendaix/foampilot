@@ -1,7 +1,7 @@
 
 # foampilot/constant/pRefFile.py
 
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from pathlib import Path
 
@@ -11,19 +11,19 @@ from pathlib import Path
 class PRefFile(OpenFOAMFile):
     """
     Represents the reference pressure file 'constant/pRef' in OpenFOAM.
-    Supports a single Quantity value.
+    Supports a single ValueWithUnit value.
     """
 
-    def __init__(self, value: Quantity = None, dimensions="[1 -1 -2 0 0 0 0]"):
+    def __init__(self, value: ValueWithUnit = None, dimensions="[1 -1 -2 0 0 0 0]"):
         """
         Initialize PRefFile.
 
         Args:
-            value (Quantity): Reference pressure (default = 1e5 Pa).
+            value (ValueWithUnit): Reference pressure (default = 1e5 Pa).
             dimensions (str): Dimensions string for pressure.
         """
         if value is None:
-            value = Quantity(1e5, "Pa")
+            value = ValueWithUnit(1e5, "Pa")
 
         super().__init__(
             object_name="pRef",
@@ -35,9 +35,9 @@ class PRefFile(OpenFOAMFile):
 
     def _format_value(self, key, value):
         """
-        Override for 'value' since pRef expects a scalar Quantity.
+        Override for 'value' since pRef expects a scalar ValueWithUnit.
         """
-        if key == "value" and isinstance(value, Quantity):
+        if key == "value" and isinstance(value, ValueWithUnit):
             # toujours en Pascal (Pa) via get_in()
             return format(value.get_in("Pa"), ".15g")
         return super()._format_value(key, value)

@@ -83,7 +83,7 @@ The critical Rayleigh number varies depending on the geometry and boundary condi
 
 ### 2.6. Peclet Number (Pe)
 
-The Peclet number is a dimensionless number relevant in the study of transport phenomena in fluid flows. It is defined as the ratio of the rate of advection of a physical quantity by the flow to the rate of diffusion of the same quantity driven by an appropriate gradient. It is given by:
+The Peclet number is a dimensionless number relevant in the study of transport phenomena in fluid flows. It is defined as the ratio of the rate of advection of a physical ValueWithUnit by the flow to the rate of diffusion of the same ValueWithUnit driven by an appropriate gradient. It is given by:
 
 $$Pe = Re \cdot Pr$$
 
@@ -279,13 +279,13 @@ This value is important for engineers to design systems that operate within a de
 
 Robust input validation and comprehensive error handling are crucial for the reliability and usability of any computational tool. The `FluidMechanics` class incorporates several validation methods to ensure that input parameters are physically meaningful and to prevent common errors that could lead to incorrect results or program crashes. These validation checks are performed at the initialization of the class and within individual methods where specific conditions apply.
 
-### 7.1. Positive Quantity Validation
+### 7.1. Positive ValueWithUnit Validation
 
-Many physical quantities in fluid mechanics, such as pressure, velocity, and characteristic length, must inherently be positive. Attempting calculations with non-positive values for these parameters would lead to physically impossible or undefined results. The `_validate_positive_quantity` helper method ensures that any `Quantity` object passed to the class or its methods has a value greater than zero. If a non-positive value is detected, a `ValueError` is raised with an informative message, guiding the user to correct their input.
+Many physical quantities in fluid mechanics, such as pressure, velocity, and characteristic length, must inherently be positive. Attempting calculations with non-positive values for these parameters would lead to physically impossible or undefined results. The `_validate_positive_ValueWithUnit` helper method ensures that any `ValueWithUnit` object passed to the class or its methods has a value greater than zero. If a non-positive value is detected, a `ValueError` is raised with an informative message, guiding the user to correct their input.
 
-### 7.2. Non-Zero Quantity Validation
+### 7.2. Non-Zero ValueWithUnit Validation
 
-Certain calculations involve division by fluid properties like dynamic viscosity, thermal conductivity, or kinematic viscosity. If these properties were zero, the division would result in a mathematical error (division by zero), leading to a program crash. The `_validate_non_zero_quantity` helper method checks that critical `Quantity` objects, or their underlying numerical values, are not zero before they are used in such calculations. This prevents runtime errors and ensures the mathematical integrity of the computations. For instance, a fluid with zero viscosity would behave as a perfect fluid, which is a theoretical idealization not typically encountered in practical engineering problems where viscous effects are always present, however small.
+Certain calculations involve division by fluid properties like dynamic viscosity, thermal conductivity, or kinematic viscosity. If these properties were zero, the division would result in a mathematical error (division by zero), leading to a program crash. The `_validate_non_zero_ValueWithUnit` helper method checks that critical `ValueWithUnit` objects, or their underlying numerical values, are not zero before they are used in such calculations. This prevents runtime errors and ensures the mathematical integrity of the computations. For instance, a fluid with zero viscosity would behave as a perfect fluid, which is a theoretical idealization not typically encountered in practical engineering problems where viscous effects are always present, however small.
 
 ### 7.3. Temperature Range Validation
 

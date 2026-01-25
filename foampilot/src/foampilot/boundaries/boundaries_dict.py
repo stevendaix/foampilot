@@ -3,7 +3,7 @@ import re
 import warnings
 from typing import Dict, List, Optional, Any
 from foampilot.base.openFOAMFile import OpenFOAMFile
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 from foampilot.boundaries.boundaries_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
 
 from foampilot.base.cases_variables import CaseFieldsManager
@@ -111,7 +111,7 @@ class Boundary:
 
         # Ensure velocity is always defined
         if "velocity" not in kwargs:
-            kwargs["velocity"] = (Quantity(0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+            kwargs["velocity"] = (ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
 
         # Validate and calculate additional parameters
         calculator = CONDITION_CALCULATORS.get(condition_type)
@@ -135,8 +135,8 @@ class Boundary:
         """
         # Ajouter une valeur par défaut pour velocity si non fournie
         if "velocity" not in kwargs:
-            from foampilot.utilities.manageunits import Quantity
-            kwargs["velocity"] = (Quantity(0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+            from foampilot.utilities.manageunits import ValueWithUnit
+            kwargs["velocity"] = (ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
 
         if "type" in field_config and field_config["type"] == "wallFunction":
             wall_func_conf = WALL_FUNCTIONS[self.turbulence_model][field_config["function"]]
@@ -241,10 +241,10 @@ if __name__ == '__main__':
     boundary_manager = Boundary(parent_case, fields_manager=fields_manager, turbulence_model="kEpsilon")
     boundary_manager.initialize_boundary()
 
-    velocity_in = (Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+    velocity_in = (ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
     boundary_manager.apply_condition_with_wildcard("inlet", "velocityInlet", velocity=velocity_in, turbulence_intensity=0.05)
 
-    velocity_out = (Quantity(0, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s"))
+    velocity_out = (ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
     boundary_manager.apply_condition_with_wildcard("outlet", "pressureOutlet", velocity=velocity_out)
 
     boundary_manager.write_boundary_conditions()

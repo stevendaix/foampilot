@@ -3,12 +3,12 @@ from typing import Any, Type, TypeVar, get_origin, get_args, Union, Optional
 
 T = TypeVar("T", bound="Serializable")
 
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 
 class Serializable:
     """
     Base class for serialization/deserialization.
-    Works with nested Serializable classes, Quantity,
+    Works with nested Serializable classes, ValueWithUnit,
     lists and dicts containing them, including Optional/Union.
     """
 
@@ -17,18 +17,18 @@ class Serializable:
         for key, value in self.__dict__.items():
             if isinstance(value, Serializable):
                 result[key] = value.as_dict()
-            elif isinstance(value, Quantity):
+            elif isinstance(value, ValueWithUnit):
                 result[key] = {"magnitude": value.magnitude, "units": value.units}
             elif isinstance(value, list):
                 result[key] = [
                     v.as_dict() if isinstance(v, Serializable) else
-                    {"magnitude": v.magnitude, "units": v.units} if isinstance(v, Quantity) else v
+                    {"magnitude": v.magnitude, "units": v.units} if isinstance(v, ValueWithUnit) else v
                     for v in value
                 ]
             elif isinstance(value, dict):
                 result[key] = {
                     k: v.as_dict() if isinstance(v, Serializable) else
-                    {"magnitude": v.magnitude, "units": v.units} if isinstance(v, Quantity) else v
+                    {"magnitude": v.magnitude, "units": v.units} if isinstance(v, ValueWithUnit) else v
                     for k, v in value.items()
                 }
             else:
@@ -59,9 +59,9 @@ class Serializable:
                     origin = get_origin(expected_type)
                     args = get_args(expected_type)
 
-            # Case: Quantity
-            if expected_type == Quantity and isinstance(value, dict):
-                setattr(obj, key, Quantity.from_dict(value))
+            # Case: ValueWithUnit
+            if expected_type == ValueWithUnit and isinstance(value, dict):
+                setattr(obj, key, ValueWithUnit.from_dict(value))
                 continue
 
             # Case: nested Serializable

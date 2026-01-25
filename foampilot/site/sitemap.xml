@@ -73,12 +73,12 @@
         <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_intro_documentation/"/>
     </url>
     <url>
-        <loc>https://stevendaix.github.io/foampilot/dev/manage_quantity/</loc>
+        <loc>https://stevendaix.github.io/foampilot/dev/manage_ValueWithUnit/</loc>
         <lastmod>2025-12-28</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_quantity/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/"/>
-        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_ValueWithUnit/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_ValueWithUnit/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_ValueWithUnit/"/>
     </url>
     <url>
         <loc>https://stevendaix.github.io/foampilot/example/presentation_example/</loc>
@@ -177,12 +177,12 @@
         <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/dev_intro_documentation/"/>
     </url>
     <url>
-        <loc>https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/</loc>
+        <loc>https://stevendaix.github.io/foampilot/fr/dev/manage_ValueWithUnit/</loc>
         <lastmod>2025-12-28</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_quantity/"/>
-        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_ValueWithUnit/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_ValueWithUnit/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_ValueWithUnit/"/>
     </url>
     <url>
         <loc>https://stevendaix.github.io/foampilot/fr/example/presentation_example/</loc>
@@ -281,12 +281,12 @@
         <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/dev_intro_documentation/"/>
     </url>
     <url>
-        <loc>https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/</loc>
+        <loc>https://stevendaix.github.io/foampilot/zh/dev/manage_ValueWithUnit/</loc>
         <lastmod>2025-12-28</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_quantity/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_quantity/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://stevendaix.github.io/foampilot/zh/dev/manage_ValueWithUnit/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://stevendaix.github.io/foampilot/dev/manage_ValueWithUnit/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://stevendaix.github.io/foampilot/fr/dev/manage_ValueWithUnit/"/>
     </url>
     <url>
         <loc>https://stevendaix.github.io/foampilot/zh/example/presentation_example/</loc>

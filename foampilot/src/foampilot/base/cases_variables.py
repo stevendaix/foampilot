@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Dict, Optional, Any
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 
 
 class CaseFieldsManager:
@@ -20,7 +20,7 @@ class CaseFieldsManager:
         with_radiation (bool): Whether radiation models are enabled.
         turbulence_model (str): The specific turbulence model used (determines fields like k, epsilon, omega).
         fields (Dict[str, Dict[str, Any]]): Dictionary storing the generated field configurations and initial values.
-        physical_properties (Dict[str, Quantity]): Registry for physical constants (reserved for future use).
+        physical_properties (Dict[str, ValueWithUnit]): Registry for physical constants (reserved for future use).
         turbulence_properties (Dict[str, Any]): Registry for turbulence constants (reserved for future use).
     """
 
@@ -57,7 +57,7 @@ class CaseFieldsManager:
 
         # Storage
         self.fields: Dict[str, Dict[str, Any]] = {}
-        self.physical_properties: Dict[str, Quantity] = {}
+        self.physical_properties: Dict[str, ValueWithUnit] = {}
         self.turbulence_properties: Dict[str, Any] = {}
 
         self._generate_fields()
@@ -74,23 +74,23 @@ class CaseFieldsManager:
 
         # --- Base pressure and velocity fields
         pressure_name = "p_rgh" if self.with_gravity and not self.compressible else "p"
-        self.fields[pressure_name] = {"value": Quantity(0, "Pa")}
+        self.fields[pressure_name] = {"value": ValueWithUnit(0, "Pa")}
         if not self.is_solid:
-            self.fields["U"] = {"value": Quantity(0, "m/s")}
+            self.fields["U"] = {"value": ValueWithUnit(0, "m/s")}
 
         # --- Volume fraction (VOF)
         if self.is_vof:
-            self.fields["alpha.water"] = {"value": Quantity(1.0, "")}
-            self.fields["alpha.air"] = {"value": Quantity(0.0, "")}
+            self.fields["alpha.water"] = {"value": ValueWithUnit(1.0, "")}
+            self.fields["alpha.air"] = {"value": ValueWithUnit(0.0, "")}
 
         # --- Energy or temperature field
         if self.energy_activated or self.compressible:
-            self.fields["T"] = {"value": Quantity(300, "K")}
+            self.fields["T"] = {"value": ValueWithUnit(300, "K")}
 
         # --- Radiation
         if self.with_radiation:
-            self.fields["G"] = {"value": Quantity(0, "W/m^2")}
-            self.fields["q_r"] = {"value": Quantity(0, "W/m^2")}
+            self.fields["G"] = {"value": ValueWithUnit(0, "W/m^2")}
+            self.fields["q_r"] = {"value": ValueWithUnit(0, "W/m^2")}
 
         # --- Turbulence model fields
         if self.turbulence_model:
@@ -98,7 +98,7 @@ class CaseFieldsManager:
 
         # --- Solid-specific field
         if self.is_solid:
-            self.fields = {"T": {"value": Quantity(300, "K")}}  # Only temperature in solids
+            self.fields = {"T": {"value": ValueWithUnit(300, "K")}}  # Only temperature in solids
 
     def _generate_turbulence_fields(self) -> None:
         """Internal logic to add scalars and vectors required by turbulence models.
@@ -108,23 +108,23 @@ class CaseFieldsManager:
         model = self.turbulence_model.lower()
 
         if "kepsilon" in model:
-            self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
-            self.fields["epsilon"] = {"value": Quantity(0.1, "m^2/s^3")}
-            self.fields["nut"] = {"value": Quantity(1e-5, "m^2/s")}
+            self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            self.fields["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
+            self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
         elif "omega" in model:
-            self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
-            self.fields["omega"] = {"value": Quantity(1, "1/s")}
-            self.fields["nut"] = {"value": Quantity(1e-5, "m^2/s")}
+            self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            self.fields["omega"] = {"value": ValueWithUnit(1, "1/s")}
+            self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
         elif "spalart" in model:
-            self.fields["nut"] = {"value": Quantity(1e-5, "m^2/s")}
+            self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
         elif "v2" in model:
-            self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
-            self.fields["epsilon"] = {"value": Quantity(0.1, "m^2/s^3")}
-            self.fields["v2"] = {"value": Quantity(0.1, "m^2/s^2")}
+            self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            self.fields["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
+            self.fields["v2"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
         else:
             # Default to k-epsilon if unknown
-            self.fields["k"] = {"value": Quantity(0.1, "m^2/s^2")}
-            self.fields["epsilon"] = {"value": Quantity(0.1, "m^2/s^3")}
+            self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            self.fields["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
 
     def get_field_names(self) -> list[str]:
         """Returns the names of all generated fields.

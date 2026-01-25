@@ -868,10 +868,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#42-gestion-des-unites-et-des-dimensions-quantity" class="md-nav__link">
+  <a href="#42-gestion-des-unites-et-des-dimensions-ValueWithUnit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.2. Gestion des Unités et des Dimensions (Quantity)
+        4.2. Gestion des Unités et des Dimensions (ValueWithUnit)
       
     </span>
   </a>
@@ -960,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../manage_quantity/" class="md-nav__link">
+      <a href="../manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1209,7 +1209,7 @@
 <tr>
 <td style="text-align: left;"><code>utilities</code></td>
 <td style="text-align: left;">Fonctions et classes utilitaires non spécifiques à OpenFOAM (unités, propriétés des fluides, etc.).</td>
-<td style="text-align: left;"><code>Quantity</code>, <code>FluidMechanics</code>, <code>manageunits</code></td>
+<td style="text-align: left;"><code>ValueWithUnit</code>, <code>FluidMechanics</code>, <code>manageunits</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>postprocess</code></td>
@@ -1225,13 +1225,13 @@
 <ul>
 <li><strong>Héritage et Attributs :</strong> Chaque fichier de configuration OpenFOAM (comme <code>transportPropertiesFile</code> ou <code>controlDictFile</code>) hérite de <code>OpenFOAMFile</code>. Les paramètres de configuration sont stockés dans l'attribut <code>self.attributes</code> de l'instance.</li>
 <li><strong>Accès Dynamique :</strong> La surcharge des méthodes magiques <code>__getattr__</code> et <code>__setattr__</code> permet d'accéder et de modifier les paramètres directement comme des attributs de l'objet (ex: <code>solver.constant.transportProperties.nu = ...</code>), même si ces paramètres sont stockés dans le dictionnaire <code>self.attributes</code>.</li>
-<li><strong>Sérialisation (<code>write_file</code>) :</strong> La méthode <code>write_file</code> parcourt récursivement le dictionnaire <code>self.attributes</code> et utilise la méthode interne <code>_format_value</code> pour convertir les types de données Python (booléens, nombres, tuples, et surtout <code>Quantity</code>) en la syntaxe spécifique d'OpenFOAM (ex: <code>true</code>/<code>false</code>, listes entre parenthèses).</li>
+<li><strong>Sérialisation (<code>write_file</code>) :</strong> La méthode <code>write_file</code> parcourt récursivement le dictionnaire <code>self.attributes</code> et utilise la méthode interne <code>_format_value</code> pour convertir les types de données Python (booléens, nombres, tuples, et surtout <code>ValueWithUnit</code>) en la syntaxe spécifique d'OpenFOAM (ex: <code>true</code>/<code>false</code>, listes entre parenthèses).</li>
 </ul>
-<h3 id="42-gestion-des-unites-et-des-dimensions-quantity">4.2. Gestion des Unités et des Dimensions (<code>Quantity</code>)</h3>
-<p>La classe <code>Quantity</code> (<code>foampilot/foampilot/src/foampilot/utilities/manageunits.py</code>) est un <em>wrapper</em> autour de la librairie <code>pint</code> et est essentielle pour assurer la cohérence physique.</p>
+<h3 id="42-gestion-des-unites-et-des-dimensions-ValueWithUnit">4.2. Gestion des Unités et des Dimensions (<code>ValueWithUnit</code>)</h3>
+<p>La classe <code>ValueWithUnit</code> (<code>foampilot/foampilot/src/foampilot/utilities/manageunits.py</code>) est un <em>wrapper</em> autour de la librairie <code>pint</code> et est essentielle pour assurer la cohérence physique.</p>
 <ul>
-<li><strong>Rôle :</strong> Elle stocke une valeur numérique avec son unité physique (ex: <code>Quantity(10, "m/s")</code>).</li>
-<li><strong>Conversion Automatique :</strong> Lors de l'écriture dans un fichier OpenFOAM, la méthode <code>_format_value</code> de <code>OpenFOAMFile</code> vérifie si la valeur est une instance de <code>Quantity</code>. Si c'est le cas, elle utilise la méthode <code>get_in(target_unit)</code> pour convertir la valeur dans l'unité attendue par OpenFOAM (définie dans <code>OpenFOAMFile.DEFAULT_UNITS</code>), garantissant que toutes les valeurs écrites sont dans le système d'unités de base d'OpenFOAM.</li>
+<li><strong>Rôle :</strong> Elle stocke une valeur numérique avec son unité physique (ex: <code>ValueWithUnit(10, "m/s")</code>).</li>
+<li><strong>Conversion Automatique :</strong> Lors de l'écriture dans un fichier OpenFOAM, la méthode <code>_format_value</code> de <code>OpenFOAMFile</code> vérifie si la valeur est une instance de <code>ValueWithUnit</code>. Si c'est le cas, elle utilise la méthode <code>get_in(target_unit)</code> pour convertir la valeur dans l'unité attendue par OpenFOAM (définie dans <code>OpenFOAMFile.DEFAULT_UNITS</code>), garantissant que toutes les valeurs écrites sont dans le système d'unités de base d'OpenFOAM.</li>
 <li><strong>Dimensions OpenFOAM :</strong> La méthode <code>to_openfoam_dimensions()</code> utilise les capacités de <code>pint</code> pour dériver le vecteur de dimensions OpenFOAM (M, L, T, Θ, N, J, A) à partir de l'unité, ce qui est crucial pour la génération des en-têtes de fichiers de champs (ex: <code>U</code>, <code>p</code>).</li>
 </ul>
 <h3 id="43-orchestration-du-solveur-et-des-champs-solver-et-casefieldsmanager">4.3. Orchestration du Solveur et des Champs (<code>Solver</code> et <code>CaseFieldsManager</code>)</h3>

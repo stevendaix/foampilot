@@ -49,7 +49,7 @@ nav:
       - index: en/dev/dev_index.md
       - introduction : en/dev/dev_intro_documentation.md
       - Modules détailés de FoamPilot : en/dev/dev_detailed_documentation.md
-      - Gestion des quantités : en/dev/manage_quantity.md
+      - Gestion des quantités : en/dev/manage_ValueWithUnit.md
   - Partie exemples:
       - index: en/example/presentation_example.md
       - Étude de cas silencieux : en/example/muffler/detailled_example_muffler.md

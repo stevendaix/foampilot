@@ -2,7 +2,7 @@
 
 # Import required libraries
 from foampilot.solver import Solver
-from foampilot import Meshing, commons, utilities, postprocess,latex_pdf, FluidMechanics , Quantity
+from foampilot import Meshing, commons, utilities, postprocess,latex_pdf, FluidMechanics , ValueWithUnit
 import pyvista as pv
 from pathlib import Path
 import numpy as np
@@ -23,8 +23,8 @@ for name in available_fluids:
 # Create a FluidMechanics instance for water at room temperature and atmospheric pressure
 fluid_mech = FluidMechanics(
     available_fluids['Water'],
-    temperature=Quantity(293.15, "K"),
-    pressure=Quantity(101325, "Pa")
+    temperature=ValueWithUnit(293.15, "K"),
+    pressure=ValueWithUnit(101325, "Pa")
 )
 
 # Get fluid properties including kinematic viscosity
@@ -148,7 +148,7 @@ solver.boundary.initialize_boundary()
 solver.boundary.apply_condition_with_wildcard(
     pattern="inlet",
     condition_type="velocityInlet",
-    velocity=(Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")),
+    velocity=(ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")),
     turbulence_intensity=0.05  # 5% turbulence intensity
 )
 

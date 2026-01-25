@@ -11,7 +11,7 @@ numpy
 pandas
 
 # Pour la gestion des unités (vu dans run_exemple1.py)
-pint # Supposition basée sur l'utilisation de Quantity, à vérifier
+pint # Supposition basée sur l'utilisation de ValueWithUnit, à vérifier
 
 # Pour la génération de rapports (vu dans foampilot/src/foampilot/report/latex_pdf.py)
 reportlab # Supposition basée sur le nom du fichier

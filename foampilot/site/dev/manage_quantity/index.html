@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://stevendaix.github.io/foampilot/dev/manage_quantity/">
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/dev/manage_ValueWithUnit/">
       
       
         <link rel="prev" href="../dev_detailed_documentation/">
@@ -20,9 +20,9 @@
         
           <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../../fr/dev/manage_quantity/" hreflang="fr">
+          <link rel="alternate" href="../../fr/dev/manage_ValueWithUnit/" hreflang="fr">
         
-          <link rel="alternate" href="../../zh/dev/manage_quantity/" hreflang="zh">
+          <link rel="alternate" href="../../zh/dev/manage_ValueWithUnit/" hreflang="zh">
         
       
       
@@ -128,13 +128,13 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../fr/dev/manage_quantity/" hreflang="fr" class="md-select__link">
+            <a href="../../fr/dev/manage_ValueWithUnit/" hreflang="fr" class="md-select__link">
               Français
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../zh/dev/manage_quantity/" hreflang="zh" class="md-select__link">
+            <a href="../../zh/dev/manage_ValueWithUnit/" hreflang="zh" class="md-select__link">
               中文
             </a>
           </li>
@@ -987,31 +987,31 @@
 
   <h1>Gestion des quantités</h1>
 
-<div class="highlight"><pre><span></span><code><span class="gh"># `Quantity` Class: Detailed Method Documentation</span>
+<div class="highlight"><pre><span></span><code><span class="gh"># `ValueWithUnit` Class: Detailed Method Documentation</span>
 
-This document provides a detailed explanation of each method of the <span class="sb">`Quantity`</span> class, designed to handle physical quantities with units.
+This document provides a detailed explanation of each method of the <span class="sb">`ValueWithUnit`</span> class, designed to handle physical quantities with units.
 
 <span class="gu">## Introduction</span>
 
-The <span class="sb">`Quantity`</span> class is a wrapper around the Pint library, allowing manipulation of values associated with physical units. It facilitates unit conversion, display, serialization, and arithmetic operations.
+The <span class="sb">`ValueWithUnit`</span> class is a wrapper around the Pint library, allowing manipulation of values associated with physical units. It facilitates unit conversion, display, serialization, and arithmetic operations.
 
 <span class="gu">## Constructor</span>
 
 <span class="gu">### Description</span>
 
-The constructor initializes a new <span class="sb">`Quantity`</span> instance with a numeric value and a unit.
+The constructor initializes a new <span class="sb">`ValueWithUnit`</span> instance with a numeric value and a unit.
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**Parameters**</span>:
-<span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`value`</span>: Numeric value of the quantity.
+<span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`value`</span>: Numeric value of the ValueWithUnit.
 <span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`unit`</span>: String representing the unit (e.g., &quot;m/s&quot;, &quot;Pa&quot;, &quot;kg&quot;).
 
 <span class="gu">## Main Methods</span>
 
-<span class="gu">### `set_quantity`</span>
+<span class="gu">### `set_ValueWithUnit`</span>
 
 <span class="gu">#### Description</span>
 
-Updates the value and unit of the quantity.
+Updates the value and unit of the ValueWithUnit.
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**Parameters**</span>:
 <span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`value`</span>: New numeric value.
@@ -1021,7 +1021,7 @@ Updates the value and unit of the quantity.
 
 <span class="gu">#### Description</span>
 
-Converts the quantity to a target unit and returns its numeric value.
+Converts the ValueWithUnit to a target unit and returns its numeric value.
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**Parameters**</span>:
 <span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`target_unit`</span>: Unit to convert to.
@@ -1032,11 +1032,11 @@ Converts the quantity to a target unit and returns its numeric value.
 
 <span class="gu">#### Description</span>
 
-Converts the quantity to a target unit and returns a new <span class="sb">`Quantity`</span> object.
+Converts the ValueWithUnit to a target unit and returns a new <span class="sb">`ValueWithUnit`</span> object.
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**Parameters**</span>:
 <span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`target_unit`</span>: Unit to convert to.
-<span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A new <span class="sb">`Quantity`</span> object with the converted value.
+<span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A new <span class="sb">`ValueWithUnit`</span> object with the converted value.
 <span class="k">-</span><span class="w"> </span><span class="gs">**Exceptions**</span>: Raises an error if conversion is not possible.
 
 <span class="gu">## Serialization</span>
@@ -1045,7 +1045,7 @@ Converts the quantity to a target unit and returns a new <span class="sb">`Quant
 
 <span class="gu">#### Description</span>
 
-Returns a dictionary representation of the quantity.
+Returns a dictionary representation of the ValueWithUnit.
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A dictionary with keys <span class="sb">`value`</span> and <span class="sb">`unit`</span>.
 <span class="k">-</span><span class="w"> </span><span class="gs">**Example Output**</span>: <span class="sb">`{&quot;value&quot;: 10.0, &quot;unit&quot;: &quot;meter / second&quot;}`</span>
@@ -1054,21 +1054,21 @@ Returns a dictionary representation of the quantity.
 
 <span class="gu">#### Description</span>
 
-Creates a <span class="sb">`Quantity`</span> object from a dictionary.
+Creates a <span class="sb">`ValueWithUnit`</span> object from a dictionary.
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**Parameters**</span>:
 <span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`data`</span>: Dictionary containing <span class="sb">`value`</span> and <span class="sb">`unit`</span>.
-<span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A new <span class="sb">`Quantity`</span> object.
+<span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A new <span class="sb">`ValueWithUnit`</span> object.
 
 <span class="gu">### `from_pint`</span>
 
 <span class="gu">#### Description</span>
 
-Creates a <span class="sb">`Quantity`</span> object from a Pint Quantity.
+Creates a <span class="sb">`ValueWithUnit`</span> object from a Pint ValueWithUnit.
 
 <span class="k">-</span><span class="w"> </span><span class="gs">**Parameters**</span>:
-<span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`pint_quantity`</span>: Pint Quantity object.
-<span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A new <span class="sb">`Quantity`</span> object.
+<span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`pint_ValueWithUnit`</span>: Pint ValueWithUnit object.
+<span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A new <span class="sb">`ValueWithUnit`</span> object.
 
 <span class="gu">## Representation</span>
 
@@ -1083,20 +1083,20 @@ Creates a <span class="sb">`Quantity`</span> object from a Pint Quantity.
 
 <span class="gu">### Description</span>
 
-The class supports <span class="sb">`+`</span>, <span class="sb">`-`</span>, <span class="sb">`*`</span>, <span class="sb">`/`</span> operations with other <span class="sb">`Quantity`</span> objects or scalars.
+The class supports <span class="sb">`+`</span>, <span class="sb">`-`</span>, <span class="sb">`*`</span>, <span class="sb">`/`</span> operations with other <span class="sb">`ValueWithUnit`</span> objects or scalars.
 
-<span class="k">-</span><span class="w"> </span><span class="gs">**Addition (`__add__`)**</span>: Adds two quantities or a quantity and a scalar.
-<span class="k">-</span><span class="w"> </span><span class="gs">**Subtraction (`__sub__`)**</span>: Subtracts two quantities or a quantity and a scalar.
-<span class="k">-</span><span class="w"> </span><span class="gs">**Multiplication (`__mul__`)**</span>: Multiplies two quantities or a quantity and a scalar.
-<span class="k">-</span><span class="w"> </span><span class="gs">**Division (`__truediv__`)**</span>: Divides two quantities or a quantity and a scalar.
+<span class="k">-</span><span class="w"> </span><span class="gs">**Addition (`__add__`)**</span>: Adds two quantities or a ValueWithUnit and a scalar.
+<span class="k">-</span><span class="w"> </span><span class="gs">**Subtraction (`__sub__`)**</span>: Subtracts two quantities or a ValueWithUnit and a scalar.
+<span class="k">-</span><span class="w"> </span><span class="gs">**Multiplication (`__mul__`)**</span>: Multiplies two quantities or a ValueWithUnit and a scalar.
+<span class="k">-</span><span class="w"> </span><span class="gs">**Division (`__truediv__`)**</span>: Divides two quantities or a ValueWithUnit and a scalar.
 
-<span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A new <span class="sb">`Quantity`</span> object representing the result of the operation.
+<span class="k">-</span><span class="w"> </span><span class="gs">**Returns**</span>: A new <span class="sb">`ValueWithUnit`</span> object representing the result of the operation.
 
 <span class="gu">## Usage Examples</span>
 
 <span class="k">1.</span> <span class="gs">**Creating objects**</span>:
-<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed = Quantity(10, &quot;m/s&quot;)`</span>
-<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`pressure = Quantity(101325, &quot;Pa&quot;)`</span>
+<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed = ValueWithUnit(10, &quot;m/s&quot;)`</span>
+<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`pressure = ValueWithUnit(101325, &quot;Pa&quot;)`</span>
 
 <span class="k">2.</span> <span class="gs">**Conversion**</span>:
 <span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed.get_in(&quot;km/h&quot;)`</span>
@@ -1111,11 +1111,11 @@ The class supports <span class="sb">`+`</span>, <span class="sb">`-`</span>, <sp
 <span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`json_str = json.dumps(data, indent=2)`</span>
 
 <span class="k">5.</span> <span class="gs">**Deserialization**</span>:
-<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed_loaded = Quantity.from_dict(loaded_data[&quot;speed&quot;])`</span>
+<span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`speed_loaded = ValueWithUnit.from_dict(loaded_data[&quot;speed&quot;])`</span>
 
 <span class="gu">## Conclusion</span>
 
-The <span class="sb">`Quantity`</span> class simplifies handling physical quantities with units in Python, leveraging Pint for conversions and adding serialization and arithmetic capabilities.
+The <span class="sb">`ValueWithUnit`</span> class simplifies handling physical quantities with units in Python, leveraging Pint for conversions and adding serialization and arithmetic capabilities.
 </code></pre></div>
 
 

@@ -1,6 +1,6 @@
 
 from foampilot.base.openFOAMFile import OpenFOAMFile
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 from typing import Optional, Dict, Any
 from pathlib import Path
 
@@ -30,15 +30,15 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         parent: Optional[Any] = None,
         energy: bool = False,
         boussinesq: bool = False,
-        mu: str | Quantity = "1e-05",
+        mu: str | ValueWithUnit = "1e-05",
         Pr: float = 0.7,
-        Cv: str | Quantity = "712",
-        Cp: str | Quantity = "1000",
-        hf: str | Quantity = "0",
-        rho0: str | Quantity = "1",
-        T0: str | Quantity = "300",
-        beta: str | Quantity = "3e-03",
-        pRef: str | Quantity = "100000"
+        Cv: str | ValueWithUnit = "712",
+        Cp: str | ValueWithUnit = "1000",
+        hf: str | ValueWithUnit = "0",
+        rho0: str | ValueWithUnit = "1",
+        T0: str | ValueWithUnit = "300",
+        beta: str | ValueWithUnit = "3e-03",
+        pRef: str | ValueWithUnit = "100000"
     ):
         super().__init__(object_name="physicalProperties")
         self.parent = parent
@@ -46,15 +46,15 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         self._boussinesq = boussinesq
 
         # Store properties with units (using internal names)
-        self._mu = self._to_quantity(mu, "mu")
+        self._mu = self._to_ValueWithUnit(mu, "mu")
         self._Pr = Pr  # Sans unité
-        self._Cv = self._to_quantity(Cv, "Cv")
-        self._Cp = self._to_quantity(Cp, "Cp")
-        self._hf = self._to_quantity(hf, "hf")
-        self._rho0 = self._to_quantity(rho0, "rho0")
-        self._T0 = self._to_quantity(T0, "T0")
-        self._beta = self._to_quantity(beta, "beta")
-        self._pRef = self._to_quantity(pRef, "pRef")
+        self._Cv = self._to_ValueWithUnit(Cv, "Cv")
+        self._Cp = self._to_ValueWithUnit(Cp, "Cp")
+        self._hf = self._to_ValueWithUnit(hf, "hf")
+        self._rho0 = self._to_ValueWithUnit(rho0, "rho0")
+        self._T0 = self._to_ValueWithUnit(T0, "T0")
+        self._beta = self._to_ValueWithUnit(beta, "beta")
+        self._pRef = self._to_ValueWithUnit(pRef, "pRef")
 
         # Configure attributes based on fields and flags
         self._configure_attributes()
@@ -63,18 +63,18 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         if self.parent and hasattr(self.parent, "fields_manager"):
             self._configure_from_fields()
 
-    def _to_quantity(self, value: str | Quantity, name: str) -> Quantity:
+    def _to_ValueWithUnit(self, value: str | ValueWithUnit, name: str) -> ValueWithUnit:
         """
-        Convert string or Quantity to Quantity with correct units.
+        Convert string or ValueWithUnit to ValueWithUnit with correct units.
         """
-        if isinstance(value, Quantity):
+        if isinstance(value, ValueWithUnit):
             unit = self.DEFAULT_UNITS.get(name)
-            if unit and not value.quantity.check(unit):
+            if unit and not value.ValueWithUnit.check(unit):
                 raise ValueError(f"{name} must have units compatible with {unit}")
             return value
         else:
             unit = self.DEFAULT_UNITS.get(name)
-            return Quantity(float(value), unit) if unit else float(value)
+            return ValueWithUnit(float(value), unit) if unit else float(value)
 
     def _configure_attributes(self):
         """
@@ -103,32 +103,32 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         mixture = {
             "specie": {"molWeight": 28.9},
             "transport": {
-                "mu": self._mu.magnitude if isinstance(self._mu, Quantity) else self._mu,
+                "mu": self._mu.magnitude if isinstance(self._mu, ValueWithUnit) else self._mu,
                 "Pr": self._Pr
             }
         }
 
         if self._boussinesq:
             mixture["equationOfState"] = {
-                "rho0": self._rho0.magnitude if isinstance(self._rho0, Quantity) else self._rho0,
-                "T0": self._T0.magnitude if isinstance(self._T0, Quantity) else self._T0,
-                "beta": self._beta.magnitude if isinstance(self._beta, Quantity) else self._beta
+                "rho0": self._rho0.magnitude if isinstance(self._rho0, ValueWithUnit) else self._rho0,
+                "T0": self._T0.magnitude if isinstance(self._T0, ValueWithUnit) else self._T0,
+                "beta": self._beta.magnitude if isinstance(self._beta, ValueWithUnit) else self._beta
             }
             if self._energy:
                 mixture["thermodynamics"] = {
-                    "Cv": self._Cv.magnitude if isinstance(self._Cv, Quantity) else self._Cv,
-                    "hf": self._hf.magnitude if isinstance(self._hf, Quantity) else self._hf
+                    "Cv": self._Cv.magnitude if isinstance(self._Cv, ValueWithUnit) else self._Cv,
+                    "hf": self._hf.magnitude if isinstance(self._hf, ValueWithUnit) else self._hf
                 }
         else:
             if self._energy:
                 mixture["thermodynamics"] = {
-                    "Cp": self._Cp.magnitude if isinstance(self._Cp, Quantity) else self._Cp,
-                    "hf": self._hf.magnitude if isinstance(self._hf, Quantity) else self._hf
+                    "Cp": self._Cp.magnitude if isinstance(self._Cp, ValueWithUnit) else self._Cp,
+                    "hf": self._hf.magnitude if isinstance(self._hf, ValueWithUnit) else self._hf
                 }
 
         # pRef only for non-Boussinesq
         if not self._boussinesq:
-            self.attributes["pRef"] = self._pRef.magnitude if isinstance(self._pRef, Quantity) else self._pRef
+            self.attributes["pRef"] = self._pRef.magnitude if isinstance(self._pRef, ValueWithUnit) else self._pRef
 
         # Assign attributes
         self.attributes["thermoType"] = thermoType
@@ -179,8 +179,8 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         return self._mu
 
     @mu.setter
-    def mu(self, value: str | Quantity):
-        self._mu = self._to_quantity(value, "mu")
+    def mu(self, value: str | ValueWithUnit):
+        self._mu = self._to_ValueWithUnit(value, "mu")
         self._configure_attributes()
 
     @property
@@ -197,8 +197,8 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         return self._Cv
 
     @Cv.setter
-    def Cv(self, value: str | Quantity):
-        self._Cv = self._to_quantity(value, "Cv")
+    def Cv(self, value: str | ValueWithUnit):
+        self._Cv = self._to_ValueWithUnit(value, "Cv")
         self._configure_attributes()
 
     @property
@@ -206,8 +206,8 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         return self._Cp
 
     @Cp.setter
-    def Cp(self, value: str | Quantity):
-        self._Cp = self._to_quantity(value, "Cp")
+    def Cp(self, value: str | ValueWithUnit):
+        self._Cp = self._to_ValueWithUnit(value, "Cp")
         self._configure_attributes()
 
     @property
@@ -215,8 +215,8 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         return self._hf
 
     @hf.setter
-    def hf(self, value: str | Quantity):
-        self._hf = self._to_quantity(value, "hf")
+    def hf(self, value: str | ValueWithUnit):
+        self._hf = self._to_ValueWithUnit(value, "hf")
         self._configure_attributes()
 
     @property
@@ -224,8 +224,8 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         return self._rho0
 
     @rho0.setter
-    def rho0(self, value: str | Quantity):
-        self._rho0 = self._to_quantity(value, "rho0")
+    def rho0(self, value: str | ValueWithUnit):
+        self._rho0 = self._to_ValueWithUnit(value, "rho0")
         self._configure_attributes()
 
     @property
@@ -233,8 +233,8 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         return self._T0
 
     @T0.setter
-    def T0(self, value: str | Quantity):
-        self._T0 = self._to_quantity(value, "T0")
+    def T0(self, value: str | ValueWithUnit):
+        self._T0 = self._to_ValueWithUnit(value, "T0")
         self._configure_attributes()
 
     @property
@@ -242,8 +242,8 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         return self._beta
 
     @beta.setter
-    def beta(self, value: str | Quantity):
-        self._beta = self._to_quantity(value, "beta")
+    def beta(self, value: str | ValueWithUnit):
+        self._beta = self._to_ValueWithUnit(value, "beta")
         self._configure_attributes()
 
     @property
@@ -251,8 +251,8 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         return self._pRef
 
     @pRef.setter
-    def pRef(self, value: str | Quantity):
-        self._pRef = self._to_quantity(value, "pRef")
+    def pRef(self, value: str | ValueWithUnit):
+        self._pRef = self._to_ValueWithUnit(value, "pRef")
         self._configure_attributes()
 
     def to_dict(self) -> Dict[str, Any]:

@@ -57,14 +57,14 @@ Le `Solver` est l'objet central qui orchestre :
 FoamPilot utilise l'API `FluidMechanics` pour définir explicitement les fluides.
 
 ```python
-from foampilot import FluidMechanics, Quantity
+from foampilot import FluidMechanics, ValueWithUnit
 
 fluides_disponibles = FluidMechanics.get_available_fluids()
 
 fluide = FluidMechanics(
     fluides_disponibles["Water"],
-    temperature=Quantity(293.15, "K"),
-    pressure=Quantity(101325, "Pa")
+    temperature=ValueWithUnit(293.15, "K"),
+    pressure=ValueWithUnit(101325, "Pa")
 )
 
 proprietes = fluide.get_fluid_properties()
@@ -179,9 +179,9 @@ solver.boundary.apply_condition_with_wildcard(
     pattern="inlet",
     condition_type="velocityInlet",
     velocity=(
-        Quantity(10, "m/s"),
-        Quantity(0, "m/s"),
-        Quantity(0, "m/s")
+        ValueWithUnit(10, "m/s"),
+        ValueWithUnit(0, "m/s"),
+        ValueWithUnit(0, "m/s")
     ),
     turbulence_intensity=0.05
 )

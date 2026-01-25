@@ -1,5 +1,5 @@
 from pyfluids import Fluid, FluidsList, Input
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 
 class FluidMechanics:
     """
@@ -11,10 +11,10 @@ class FluidMechanics:
 
     Attributes:
         fluid_name (FluidsList): The fluid being analyzed (from FluidsList enum)
-        temperature (Quantity): Fluid temperature with units
-        pressure (Quantity): Fluid pressure with units
-        velocity (Quantity): Characteristic flow velocity with units
-        characteristic_length (Quantity): Relevant length scale for dimensionless numbers
+        temperature (ValueWithUnit): Fluid temperature with units
+        pressure (ValueWithUnit): Fluid pressure with units
+        velocity (ValueWithUnit): Characteristic flow velocity with units
+        characteristic_length (ValueWithUnit): Relevant length scale for dimensionless numbers
         fluid: PyFluids Fluid object initialized with current state
     """
 
@@ -47,16 +47,16 @@ class FluidMechanics:
             available_fluids[name] = fluid
         return available_fluids
 
-    def __init__(self, fluid_name: FluidsList, temperature: Quantity, pressure: Quantity, 
-                 velocity: Quantity | None = None, characteristic_length: Quantity | None = None):
+    def __init__(self, fluid_name: FluidsList, temperature: ValueWithUnit, pressure: ValueWithUnit, 
+                 velocity: ValueWithUnit | None = None, characteristic_length: ValueWithUnit | None = None):
         """
         Initialize fluid mechanics calculator with fluid properties and optional flow conditions.
 
         Args:
             fluid_name: Fluid type from FluidsList enum (e.g., FluidsList.Water)
-            temperature: Fluid temperature (e.g., Quantity(300, 'K'))
-            pressure: Fluid pressure (e.g., Quantity(101325, 'Pa'))
-            velocity: Optional characteristic flow velocity (e.g., Quantity(2, 'm/s'))
+            temperature: Fluid temperature (e.g., ValueWithUnit(300, 'K'))
+            pressure: Fluid pressure (e.g., ValueWithUnit(101325, 'Pa'))
+            velocity: Optional characteristic flow velocity (e.g., ValueWithUnit(2, 'm/s'))
             characteristic_length: Optional relevant length scale (e.g., pipe diameter)
 
         Notes:
@@ -83,7 +83,7 @@ class FluidMechanics:
         Returns:
             dict: Dictionary containing available fluid properties. Properties that are not
             available for the current fluid or state are omitted. Most properties are
-            returned as Quantity objects with appropriate units:
+            returned as ValueWithUnit objects with appropriate units:
                 - density [kg/m³]
                 - dynamic_viscosity [Pa·s]
                 - kinematic_viscosity [m²/s]
@@ -139,7 +139,7 @@ class FluidMechanics:
                 value = getattr(fluid_state, attr_name)
                 if value is not None:  # Skip None values
                     if unit is not None:
-                        properties[prop_name] = Quantity(value, unit)
+                        properties[prop_name] = ValueWithUnit(value, unit)
                     else:
                         properties[prop_name] = value
             except (AttributeError, ValueError) as e:
@@ -165,7 +165,7 @@ class FluidMechanics:
         return (props['density'].get_in('kg/m^3') * self.velocity.get_in('m/s') * 
                 self.characteristic_length.get_in('m')) / props['dynamic_viscosity'].get_in('Pa.s')
 
-    def calculate_y_plus(self, wall_shear_stress: Quantity) -> float:
+    def calculate_y_plus(self, wall_shear_stress: ValueWithUnit) -> float:
         """
         Calculate y+ value (dimensionless wall distance) for turbulence modeling.
 
@@ -197,8 +197,8 @@ class FluidMechanics:
                 props['specific_heat'].get_in('J/(kg.K)')) / 
                 props['thermal_conductivity'].get_in('W/(m.K)'))
 
-    def calculate_thermal_expansion_coefficient(self, temperature1: Quantity, 
-                                              temperature2: Quantity,
+    def calculate_thermal_expansion_coefficient(self, temperature1: ValueWithUnit, 
+                                              temperature2: ValueWithUnit,
                                               density1: float, density2: float,
                                               density_ave: float) -> float:
         """
@@ -218,7 +218,7 @@ class FluidMechanics:
         d_temp = temperature1.get_in("K") - temperature2.get_in("K")  
         return -(1/density_ave) * (d_density/d_temp)
 
-    def calculate_rayleigh(self, temperature1: Quantity, temperature2: Quantity) -> float:
+    def calculate_rayleigh(self, temperature1: ValueWithUnit, temperature2: ValueWithUnit) -> float:
         """
         Calculate Rayleigh number for natural convection analysis.
 
@@ -232,13 +232,13 @@ class FluidMechanics:
         temp_ave = (temperature1.get_in("K") + temperature2.get_in("K"))/2
         props1 = self.get_fluid_properties(temperature1)
         props2 = self.get_fluid_properties(temperature2)
-        props_ave = self.get_fluid_properties(Quantity(temp_ave, "K"))
+        props_ave = self.get_fluid_properties(ValueWithUnit(temp_ave, "K"))
 
         density = (props1['density'].get_in('kg/m^3') + props2['density'].get_in('kg/m^3'))/2
         viscosity = (props1['dynamic_viscosity'].get_in('Pa.s') + props2['dynamic_viscosity'].get_in('Pa.s'))/2
         conductivity = (props1['thermal_conductivity'].get_in('W/(m.K)') + props2['thermal_conductivity'].get_in('W/(m.K)'))/2
 
-        g = Quantity(9.81, 'm/s^2').get_in('m/s^2')
+        g = ValueWithUnit(9.81, 'm/s^2').get_in('m/s^2')
         delta_T = abs(temperature1.get_in('K') - temperature2.get_in('K'))
         beta = self.calculate_thermal_expansion_coefficient(
             temperature1, temperature2,
@@ -250,18 +250,18 @@ class FluidMechanics:
                 self.characteristic_length.get_in('m')**3 / 
                 (viscosity * conductivity))
 
-    def characteristic_thickness_turbulent(self) -> Quantity:
+    def characteristic_thickness_turbulent(self) -> ValueWithUnit:
         """
         Estimate turbulent boundary layer thickness using empirical correlation.
 
         Returns:
-            Quantity: Boundary layer thickness with units (δ = 0.37L/Re^(1/5))
+            ValueWithUnit: Boundary layer thickness with units (δ = 0.37L/Re^(1/5))
         """
         re = self.calculate_reynolds()
-        return Quantity(0.37 * self.characteristic_length.get_in('m') / 
+        return ValueWithUnit(0.37 * self.characteristic_length.get_in('m') / 
                       (re ** 0.2), 'm')
 
-    def calculate_layers_for_cell_size(self, target_cell_size: Quantity, 
+    def calculate_layers_for_cell_size(self, target_cell_size: ValueWithUnit, 
                                      expansion_ratio: float = 1.2) -> int:
         """
         Calculate number of boundary layer cells needed to reach target size.
@@ -293,18 +293,18 @@ class FluidMechanics:
 if __name__ == "__main__":
     # Initialize with water at 300K, 1atm, 2m/s flow in 0.1m channel
     fm = FluidMechanics(FluidsList.Water, 
-                        Quantity(300, 'K'), 
-                        Quantity(101325, 'Pa'),
-                        Quantity(2, 'm/s'), 
-                        Quantity(0.1, 'm'))
+                        ValueWithUnit(300, 'K'), 
+                        ValueWithUnit(101325, 'Pa'),
+                        ValueWithUnit(2, 'm/s'), 
+                        ValueWithUnit(0.1, 'm'))
 
     print(f"Reynolds: {fm.calculate_reynolds():.1f}")
-    print(f"y+: {fm.calculate_y_plus(Quantity(0.1, 'Pa')):.2f}")
+    print(f"y+: {fm.calculate_y_plus(ValueWithUnit(0.1, 'Pa')):.2f}")
     print(f"Prandtl: {fm.calculate_prandtl():.2f}")
     
     # Natural convection between 10°C and 30°C surfaces
-    print(f"Rayleigh: {fm.calculate_rayleigh(Quantity(10, 'degC'),Quantity(30, 'degC')):.2e}")
+    print(f"Rayleigh: {fm.calculate_rayleigh(ValueWithUnit(10, 'degC'),ValueWithUnit(30, 'degC')):.2e}")
     
     # Mesh recommendations
     print(f"BL thickness: {fm.characteristic_thickness_turbulent():.4f}")
-    print(f"Layers needed: {fm.calculate_layers_for_cell_size(Quantity(0.02, 'm'))}")
+    print(f"Layers needed: {fm.calculate_layers_for_cell_size(ValueWithUnit(0.02, 'm'))}")

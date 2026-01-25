@@ -178,34 +178,34 @@ Boundary(parent, turbulence_model="kEpsilon")
 - `set_velocity_inlet(pattern, velocity, turbulence_intensity=None)`:
   Définit une condition aux limites d'entrée de vitesse.
   - `pattern`: Motif d'expression régulière.
-  - `velocity`: Tuple de 3 objets `Quantity` (u, v, w) représentant les composantes de vitesse.
+  - `velocity`: Tuple de 3 objets `ValueWithUnit` (u, v, w) représentant les composantes de vitesse.
   - `turbulence_intensity` (float, optionnel): Intensité de turbulence entre 0 et 1.
   - **Lève:** `ValueError` si les unités de vitesse sont incorrectes.
 
 - `set_pressure_inlet(pattern, pressure, turbulence_intensity=None)`:
   Définit une condition aux limites d'entrée de pression.
   - `pattern`: Motif d'expression régulière.
-  - `pressure`: Valeur de pression en tant qu'objet `Quantity`.
+  - `pressure`: Valeur de pression en tant qu'objet `ValueWithUnit`.
   - `turbulence_intensity` (float, optionnel): Intensité de turbulence entre 0 et 1.
   - **Lève:** `ValueError` si les unités de pression sont incorrectes.
 
 - `set_pressure_outlet(pattern, velocity)`:
   Définit une condition aux limites de sortie de pression.
   - `pattern`: Motif d'expression régulière.
-  - `velocity`: Tuple de 3 objets `Quantity` (u, v, w) représentant les composantes de vitesse.
+  - `velocity`: Tuple de 3 objets `ValueWithUnit` (u, v, w) représentant les composantes de vitesse.
 
 - `set_mass_flow_inlet(pattern, mass_flow_rate, density)`:
   Définit une condition aux limites d'entrée de débit massique.
   - `pattern`: Motif d'expression régulière.
-  - `mass_flow_rate`: Débit massique en tant qu'objet `Quantity`.
-  - `density`: Densité en tant qu'objet `Quantity`.
+  - `mass_flow_rate`: Débit massique en tant qu'objet `ValueWithUnit`.
+  - `density`: Densité en tant qu'objet `ValueWithUnit`.
   - **Lève:** `ValueError` si les unités sont incorrectes.
 
 - `set_wall(pattern, friction=True, velocity=None)`:
   Définit une condition aux limites de paroi.
   - `pattern`: Motif d'expression régulière.
   - `friction` (bool): Si `True` (par défaut), utilise la condition de non-glissement. Si `False`, utilise la condition de glissement.
-  - `velocity` (tuple, optionnel): Tuple de 3 objets `Quantity` pour une paroi à vitesse fixe.
+  - `velocity` (tuple, optionnel): Tuple de 3 objets `ValueWithUnit` pour une paroi à vitesse fixe.
 
 - `set_symmetry(pattern)`:
   Définit une condition aux limites de symétrie (vide).
@@ -1128,10 +1128,10 @@ La classe `FluidMechanics` est un calculateur complet de mécanique des fluides 
 **Attributs:**
 
 - `fluid_name` (FluidsList): Le fluide analysé (à partir de l'énumération `FluidsList`).
-- `temperature` (Quantity): Température du fluide avec unités.
-- `pressure` (Quantity): Pression du fluide avec unités.
-- `velocity` (Quantity): Vitesse d'écoulement caractéristique avec unités.
-- `characteristic_length` (Quantity): Échelle de longueur pertinente pour les nombres sans dimension.
+- `temperature` (ValueWithUnit): Température du fluide avec unités.
+- `pressure` (ValueWithUnit): Pression du fluide avec unités.
+- `velocity` (ValueWithUnit): Vitesse d'écoulement caractéristique avec unités.
+- `characteristic_length` (ValueWithUnit): Échelle de longueur pertinente pour les nombres sans dimension.
 - `fluid`: Objet `PyFluids Fluid` initialisé avec l'état actuel.
 
 **Constructeur:**
@@ -1141,9 +1141,9 @@ FluidMechanics(fluid_name, temperature, pressure, velocity, characteristic_lengt
 ```
 
 - `fluid_name`: Type de fluide de l'énumération `FluidsList` (par exemple, `FluidsList.Water`).
-- `temperature`: Température du fluide (par exemple, `Quantity(300, 'K')`).
-- `pressure`: Pression du fluide (par exemple, `Quantity(101325, 'Pa')`).
-- `velocity`: Vitesse d'écoulement caractéristique (par exemple, `Quantity(2, 'm/s')`).
+- `temperature`: Température du fluide (par exemple, `ValueWithUnit(300, 'K')`).
+- `pressure`: Pression du fluide (par exemple, `ValueWithUnit(101325, 'Pa')`).
+- `velocity`: Vitesse d'écoulement caractéristique (par exemple, `ValueWithUnit(2, 'm/s')`).
 - `characteristic_length`: Échelle de longueur pertinente (par exemple, diamètre du tuyau).
 
 **Méthodes:**
@@ -1183,7 +1183,7 @@ FluidMechanics(fluid_name, temperature, pressure, velocity, characteristic_lengt
 
 - `characteristic_thickness_turbulent()`:
   Estime l'épaisseur de la couche limite turbulente en utilisant une corrélation empirique.
-  - **Retourne:** `Quantity` : Épaisseur de la couche limite avec unités (δ = 0.37L/Re^(1/5)).
+  - **Retourne:** `ValueWithUnit` : Épaisseur de la couche limite avec unités (δ = 0.37L/Re^(1/5)).
 
 - `calculate_layers_for_cell_size(target_cell_size, expansion_ratio=1.2)`:
   Calcule le nombre de cellules de couche limite nécessaires pour atteindre la taille cible.
@@ -1196,18 +1196,18 @@ FluidMechanics(fluid_name, temperature, pressure, velocity, characteristic_lengt
 
 
 
-### `foampilot.utilities.manageunits.Quantity`
+### `foampilot.utilities.manageunits.ValueWithUnit`
 
-La classe `Quantity` est un wrapper pour les quantités Pint afin de gérer les valeurs avec des unités physiques. Elle fournit une interface pratique pour stocker des valeurs avec des unités, les convertir dans d'autres unités et les afficher.
+La classe `ValueWithUnit` est un wrapper pour les quantités Pint afin de gérer les valeurs avec des unités physiques. Elle fournit une interface pratique pour stocker des valeurs avec des unités, les convertir dans d'autres unités et les afficher.
 
 **Attributs:**
 
-- `quantity` (pint.Quantity): La quantité avec sa valeur numérique et son unité associée.
+- `ValueWithUnit` (pint.ValueWithUnit): La quantité avec sa valeur numérique et son unité associée.
 
 **Constructeur:**
 
 ```python
-Quantity(value, unit)
+ValueWithUnit(value, unit)
 ```
 
 - `value` (float): La valeur numérique de la quantité.
@@ -1215,7 +1215,7 @@ Quantity(value, unit)
 
 **Méthodes:**
 
-- `set_quantity(value, unit)`:
+- `set_ValueWithUnit(value, unit)`:
   Met à jour la quantité avec une nouvelle valeur et unité.
   - `value` (float): La nouvelle valeur numérique.
   - `unit` (str): La nouvelle unité associée.
