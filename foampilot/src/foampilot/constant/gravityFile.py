@@ -70,14 +70,14 @@ class GravityFile(OpenFOAMFile):
         for i, v in enumerate(vec):
             if not isinstance(v, ValueWithUnit):
                 raise ValueError(f"Gravity vector element {i} must be a ValueWithUnit")
-            if not v.ValueWithUnit.check('[length]/[time]^2'):
+            if not v.check('[length]/[time]^2'):
                 raise ValueError(f"Gravity element {i} must have units compatible with m/s^2")
 
     def _create_vector_from_axis(self, value: ValueWithUnit, axis: str) -> Tuple[ValueWithUnit, ValueWithUnit, ValueWithUnit]:
         """Create 3D gravity vector from single ValueWithUnit + axis."""
         if not isinstance(value, ValueWithUnit):
             raise ValueError("Value must be a ValueWithUnit when using axis")
-        if not value.ValueWithUnit.check('[length]/[time]^2'):
+        if not value.check('[length]/[time]^2'):
             raise ValueError("Gravity value must have units compatible with m/s^2")
 
         axis = axis.lower()
