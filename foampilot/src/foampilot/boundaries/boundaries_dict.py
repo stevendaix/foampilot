@@ -128,6 +128,20 @@ class Boundary:
                 if final_config:
                     self.fields[field][boundary_name] = self._format_config(final_config, kwargs)
 
+    def set_raw_condition(self, patch_name: str, field: str, config: dict):
+    """
+    Directly set a boundary condition dictionary for a given field and patch,
+    bypassing the default turbulence/velocity logic.
+
+    Args:
+        patch_name: Name of the patch.
+        field: Name of the field (e.g., 'U', 'p', 'k').
+        config: Dictionary representing the OpenFOAM boundary condition.
+    """
+    if field not in self.fields:
+        self.fields[field] = {}
+    self.fields[field][patch_name] = config
+
     def _resolve_field_config(self, field_config: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """
         Resolve the specific configuration for a field based on provided arguments.
