@@ -70,10 +70,12 @@ class SnappyMesher:
         }
 
         self.addLayersControls = {
+
             "relativeSizes": True,
             "expansionRatio": 1.2,
             "finalLayerThickness": 0.5,
             "minThickness": 0.1,
+            "featureAngle" : 60,
             "layers": {}
         }
 
@@ -113,15 +115,16 @@ class SnappyMesher:
     # ----------------------
     # SurfaceFeaturesDict
     # ----------------------
-    def write_surface_features_dict(self, stl_list=None, included_angle=30):
+    def write_surface_features_dict(self, stl_list_for_emesh: list[str] = None, included_angle: float = 30) -> Path:
         """
-        Write system/surfaceFeaturesDict based on STL files
+        Write system/surfaceFeaturesDict for snappyHexMesh based on a list of STL files.
         """
-        if stl_list is None:
-            stl_list = [f"{self.stl_file.stem}.stl"]
+
+        if not stl_list_for_emesh:
+            raise ValueError("stl_list_for_emesh must not be empty")
 
         system_path = self.case_path / "system"
-        system_path.mkdir(exist_ok=True, parents=True)
+        system_path.mkdir(parents=True, exist_ok=True)
         dict_file = system_path / "surfaceFeaturesDict"
 
         lines = [
@@ -136,13 +139,20 @@ class SnappyMesher:
             "surfaces",
             "("
         ]
-        for stl in stl_list:
-            lines.append(f'    "{stl}"')
-        lines.append(");")
-        lines.append(f"\nincludedAngle   {included_angle};\n")
 
+        # Ici on ajoute tous les STL correctement, un par ligne
+        for stl in stl_list_for_emesh:
+            lines.append(f'    "{stl}"')  # <- pas de ; ici, OpenFOAM n'en veut pas
+
+        lines.append(");")  # Fermeture de la liste
+        lines.append(f"\nincludedAngle   {included_angle};\n")  # Angle inclus
+
+        # Écriture finale
         dict_file.write_text("\n".join(lines))
-        print(f"surfaceFeaturesDict written to {dict_file}")
+        print(f"surfaceFeaturesDict written to {dict_file} with {len(stl_list_for_emesh)} STL files.")
+        return dict_file
+
+
 
     # ----------------------
     # Utilities
@@ -151,7 +161,8 @@ class SnappyMesher:
         """
         Runs surfaceFeatureExtract utility for the case.
         """
-        cmd = ["surfaceFeatureExtract", "-case", str(self.case_path)]
+        cmd = ["surfaceFeatures", "-case", str(self.case_path)]
+        print(cmd)
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print("Error running surfaceFeatureExtract:")
@@ -187,99 +198,100 @@ class SnappyMesher:
     self,
     padding: float = 0.2,
     base_cell_size: float = None
-):
-    """
-    Generate a blockMeshDict that encloses the STL geometry.
+    ):
+        """
+        Generate a blockMeshDict that encloses the STL geometry.
 
-    Args:
-        padding (float): Relative padding added around the STL bounding box.
-                          0.2 means +20% in each direction.
-        base_cell_size (float): Target cell size. If None, estimated automatically.
-    """
-    stl_path = self.case_path / "constant" / "triSurface" / self.stl_file.name
-    if not stl_path.exists():
-        raise FileNotFoundError(f"STL not found at {stl_path}")
+        Args:
+            padding (float): Relative padding added around the STL bounding box.
+                            0.2 means +20% in each direction.
+            base_cell_size (float): Target cell size. If None, estimated automatically.
+        """
+        print(self.stl_file.name)
+        stl_path = self.case_path / "constant" / "triSurface" / self.stl_file.name
+        if not stl_path.exists():
+            raise FileNotFoundError(f"STL not found at {stl_path}")
 
-    mesh = pv.read(stl_path)
-    xmin, xmax, ymin, ymax, zmin, zmax = mesh.bounds
+        mesh = pv.read(stl_path)
+        xmin, xmax, ymin, ymax, zmin, zmax = mesh.bounds
 
-    # Expand bounding box
-    dx = xmax - xmin
-    dy = ymax - ymin
-    dz = zmax - zmin
+        # Expand bounding box
+        dx = xmax - xmin
+        dy = ymax - ymin
+        dz = zmax - zmin
 
-    xmin -= padding * dx
-    xmax += padding * dx
-    ymin -= padding * dy
-    ymax += padding * dy
-    zmin -= padding * dz
-    zmax += padding * dz
+        xmin -= padding * dx
+        xmax += padding * dx
+        ymin -= padding * dy
+        ymax += padding * dy
+        zmin -= padding * dz
+        zmax += padding * dz
 
-    # Automatic cell size estimation
-    if base_cell_size is None:
-        base_cell_size = min(dx, dy, dz) / 20.0
+        # Automatic cell size estimation
+        if base_cell_size is None:
+            base_cell_size = min(dx, dy, dz) / 20.0
 
-    nx = max(1, int((xmax - xmin) / base_cell_size))
-    ny = max(1, int((ymax - ymin) / base_cell_size))
-    nz = max(1, int((zmax - zmin) / base_cell_size))
+        nx = max(1, int((xmax - xmin) / base_cell_size))
+        ny = max(1, int((ymax - ymin) / base_cell_size))
+        nz = max(1, int((zmax - zmin) / base_cell_size))
 
-    system_path = self.case_path / "system"
-    system_path.mkdir(parents=True, exist_ok=True)
-    dict_path = system_path / "blockMeshDict"
+        system_path = self.case_path / "system"
+        system_path.mkdir(parents=True, exist_ok=True)
+        dict_path = system_path / "blockMeshDict"
 
-    lines = [
-        "FoamFile",
-        "{",
-        "    version     2.0;",
-        "    format      ascii;",
-        "    class       dictionary;",
-        "    location    \"system\";",
-        "    object      blockMeshDict;",
-        "}",
-        "",
-        "convertToMeters 1;",
-        "",
-        "vertices",
-        "(",
-        f"    ({xmin} {ymin} {zmin})",
-        f"    ({xmax} {ymin} {zmin})",
-        f"    ({xmax} {ymax} {zmin})",
-        f"    ({xmin} {ymax} {zmin})",
-        f"    ({xmin} {ymin} {zmax})",
-        f"    ({xmax} {ymin} {zmax})",
-        f"    ({xmax} {ymax} {zmax})",
-        f"    ({xmin} {ymax} {zmax})",
-        ");",
-        "",
-        "blocks",
-        "(",
-        f"    hex (0 1 2 3 4 5 6 7) ({nx} {ny} {nz}) simpleGrading (1 1 1)",
-        ");",
-        "",
-        "edges ();",
-        "",
-        "boundary",
-        "(",
-        "    domain",
-        "    {",
-        "        type patch;",
-        "        faces",
-        "        (",
-        "            (0 1 2 3)",
-        "            (4 5 6 7)",
-        "            (0 1 5 4)",
-        "            (1 2 6 5)",
-        "            (2 3 7 6)",
-        "            (3 0 4 7)",
-        "        );",
-        "    }",
-        ");",
-        "",
-        "mergePatchPairs ();"
-    ]
+        lines = [
+            "FoamFile",
+            "{",
+            "    version     2.0;",
+            "    format      ascii;",
+            "    class       dictionary;",
+            "    location    \"system\";",
+            "    object      blockMeshDict;",
+            "}",
+            "",
+            "convertToMeters 1;",
+            "",
+            "vertices",
+            "(",
+            f"    ({xmin} {ymin} {zmin})",
+            f"    ({xmax} {ymin} {zmin})",
+            f"    ({xmax} {ymax} {zmin})",
+            f"    ({xmin} {ymax} {zmin})",
+            f"    ({xmin} {ymin} {zmax})",
+            f"    ({xmax} {ymin} {zmax})",
+            f"    ({xmax} {ymax} {zmax})",
+            f"    ({xmin} {ymax} {zmax})",
+            ");",
+            "",
+            "blocks",
+            "(",
+            f"    hex (0 1 2 3 4 5 6 7) ({nx} {ny} {nz}) simpleGrading (1 1 1)",
+            ");",
+            "",
+            "edges ();",
+            "",
+            "boundary",
+            "(",
+            "    domain",
+            "    {",
+            "        type patch;",
+            "        faces",
+            "        (",
+            "            (0 1 2 3)",
+            "            (4 5 6 7)",
+            "            (0 1 5 4)",
+            "            (1 2 6 5)",
+            "            (2 3 7 6)",
+            "            (3 0 4 7)",
+            "        );",
+            "    }",
+            ");",
+            "",
+            "mergePatchPairs ();"
+        ]
 
-    dict_path.write_text("\n".join(lines))
-    print(f"blockMeshDict written to {dict_path}")
+        dict_path.write_text("\n".join(lines))
+        print(f"blockMeshDict written to {dict_path}")
 
     def write_snappyHexMeshDict(self):
         dict_path = self.case_path / "system" / "snappyHexMeshDict"
@@ -360,9 +372,15 @@ class SnappyMesher:
         # AddLayersControls
         lines.append("addLayersControls")
         lines.append("{")
-        for k,v in self.addLayersControls.items():
+
+        for k, v in self.addLayersControls.items():
             if k != "layers":
-                lines.append(f"    {k} {v};")
+                if isinstance(v, bool):
+                    v_str = str(v).lower()
+                else:
+                    v_str = v
+                lines.append(f"    {k} {v_str};")
+
         lines.append("    layers")
         lines.append("    {")
         for name, layer in self.addLayersControls.get("layers", {}).items():
@@ -394,49 +412,45 @@ class SnappyMesher:
         # Write snappyHexMeshDict
         self.write_snappyHexMeshDict()
 
-        # Write surfaceFeaturesDict
-        self.write_surface_features_dict()
-
     def run_block_mesh(self):
-    """
-    Runs blockMesh for the case.
-    """
-    cmd = ["blockMesh", "-case", str(self.case_path)]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+        """
+        Runs blockMesh for the case.
+        """
+        cmd = ["blockMesh", "-case", str(self.case_path)]
+        result = subprocess.run(cmd, capture_output=True, text=True)
 
-    if result.returncode != 0:
-        print("Error running blockMesh:")
-        print(result.stderr)
-        raise RuntimeError("blockMesh failed")
-    else:
-        print("blockMesh finished successfully.")
+        if result.returncode != 0:
+            print("Error running blockMesh:")
+            print(result.stderr)
+            raise RuntimeError("blockMesh failed")
+        else:
+            print("blockMesh finished successfully.")
 
-     def run(self):
-    """
-    Full meshing pipeline:
-    1. blockMesh
-    2. surfaceFeatureExtract
-    3. snappyHexMesh
-    """
+    def run(self):
+        """
+        Full meshing pipeline:
+        1. blockMesh
+        2. surfaceFeatureExtract
+        3. snappyHexMesh
+        """
 
-    if not self.case_path.exists():
-        raise FileNotFoundError(f"Case path '{self.case_path}' does not exist.")
+        if not self.case_path.exists():
+            raise FileNotFoundError(f"Case path '{self.case_path}' does not exist.")
 
-    # 1. blockMesh
-    self.write_block_mesh_dict()
-    self.run_block_mesh()
+        # 1. blockMesh
+        
+        self.run_block_mesh()
 
-    # 2. surfaceFeatureExtract
-    self.write_surface_features_dict()
-    self.run_surface_feature_extract()
+        # 2. surfaceFeatureExtract
+        self.run_surface_feature_extract()
 
-    # 3. snappyHexMesh
-    cmd = ["snappyHexMesh", "-overwrite", "-case", str(self.case_path)]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+        # 3. snappyHexMesh
+        cmd = ["snappyHexMesh", "-overwrite", "-case", str(self.case_path)]
+        result = subprocess.run(cmd, capture_output=True, text=True)
 
-    if result.returncode != 0:
-        print("Error running snappyHexMesh:")
-        print(result.stderr)
-        raise RuntimeError("snappyHexMesh failed")
-    else:
-        print("snappyHexMesh finished successfully.")
+        if result.returncode != 0:
+            print("Error running snappyHexMesh:")
+            print(result.stderr)
+            raise RuntimeError("snappyHexMesh failed")
+        else:
+            print("snappyHexMesh finished successfully.")

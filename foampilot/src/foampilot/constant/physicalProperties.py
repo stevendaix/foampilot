@@ -1,7 +1,7 @@
 
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from foampilot.utilities.manageunits import ValueWithUnit
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from pathlib import Path
 
 
@@ -63,18 +63,22 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         if self.parent and hasattr(self.parent, "fields_manager"):
             self._configure_from_fields()
 
-    def _to_ValueWithUnit(self, value: str | ValueWithUnit, name: str) -> ValueWithUnit:
-        """
-        Convert string or ValueWithUnit to ValueWithUnit with correct units.
-        """
+    def _to_ValueWithUnit(self, value: Union[str, ValueWithUnit, float], name: str) -> ValueWithUnit:
+        expected_unit = self.DEFAULT_UNITS.get(name)
+        
         if isinstance(value, ValueWithUnit):
-            unit = self.DEFAULT_UNITS.get(name)
-            if unit and not value.ValueWithUnit.check(unit):
-                raise ValueError(f"{name} must have units compatible with {unit}")
+            if expected_unit:
+                try:
+                    _ = value.get_in(expected_unit)
+                except Exception:
+                    raise ValueError(f"{name} must have units compatible with {expected_unit} (found {value.units})")
             return value
         else:
-            unit = self.DEFAULT_UNITS.get(name)
-            return ValueWithUnit(float(value), unit) if unit else float(value)
+            if expected_unit:
+                return ValueWithUnit(float(value), expected_unit)
+            else:
+                return ValueWithUnit(float(value), "dimensionless")
+
 
     def _configure_attributes(self):
         """

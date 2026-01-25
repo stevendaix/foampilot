@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
 import typst
+import subprocess
 
 # ============================================================
 # Utils
@@ -133,10 +134,17 @@ class TypstRenderer:
         return f"{prefix} {typst_escape(s.title)}{lbl}\n{s.content}"
 
     def _render_equation(self, e: Equation) -> str:
-        lbl = f" <{e.label}>" if e.label else ""
-        content = f"$ {e.formula} ${lbl}"
-        return f'#figure({content}, caption: [{typst_escape(e.caption)}])' if e.caption else f"#align(center)[{content}]"
-
+        content = f"$ {e.formula} $"
+        # Figure avec caption
+        if e.caption:
+            # ajouter le label après la figure avec <>
+            lbl = f" <{e.label}>" if e.label else ""
+            return f'#figure({content}, caption: [{typst_escape(e.caption)}]){lbl}'
+        else:
+            # align sans figure
+            lbl = f" <{e.label}>" if e.label else ""
+            return f"#align(center)[{content}]{lbl}"
+        
     def _render_figure(self, f: Figure) -> str:
         return f'#figure(image("{f.path}", width: {f.width}), caption: [{typst_escape(f.caption)}]) <{f.label}>'
 
@@ -164,6 +172,35 @@ class TypstRenderer:
         block = f'``` {c.lang}\n{c.code}\n```'
         return f'#figure({block}, caption: [{typst_escape(c.caption)}])' if c.caption else block
 
+
+    def compile_pdf(self, doc: ScientificDocument, output_pdf: str = "report/rapport_complet.pdf"):
+        """
+        Génère un fichier .typ et compile le PDF via le binaire Typst (subprocess).
+        Compatible Ubuntu + Snap.
+        """
+        Path("report").mkdir(exist_ok=True)
+        typ_file = Path("report/rapport_complet.typ")
+        # Rendu Typst
+        source = self.render(doc)
+        typ_file.write_text(source, encoding="utf-8")
+
+        # Chemin vers le binaire Typst
+        typst_bin = "/snap/bin/typst"  # Modifie si nécessaire
+
+        # Compilation via subprocess
+        try:
+            subprocess.run(
+                [typst_bin, "compile", str(typ_file), output_pdf],  # <-- sortie en second argument
+                check=True
+            )
+            print(f"PDF généré avec succès : {output_pdf}")
+        except subprocess.CalledProcessError as e:
+            print("Erreur lors de la compilation Typst :", e)
+        except FileNotFoundError:
+            print(f"Binaire Typst introuvable. Vérifie le chemin : {typst_bin}")
+
+
+
 # ============================================================
 # EXEMPLE D'UTILISATION
 # ============================================================
@@ -187,6 +224,7 @@ if __name__ == "__main__":
     source = renderer.render(doc)
     
     Path("report").mkdir(exist_ok=True)
-    typst.compile(source, output="report/rapport_complet.pdf")
+    
+    renderer.compile_pdf(doc, output_pdf="report/rapport_complet.pdf")
     
     print("PDF généré avec succès dans le dossier 'report/'")

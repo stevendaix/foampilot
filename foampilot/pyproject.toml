@@ -58,7 +58,8 @@ dependencies = [
   "trame-vtk", 
   "trame-vuetify",
   "meshio",
-  "build123d"
+  "build123d",
+  "typst"
 ]
 
 [project.optional-dependencies]

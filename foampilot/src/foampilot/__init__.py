@@ -46,5 +46,8 @@ from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.commons.read_polymesh import BoundaryFileHandler
-from foampilot.report import latex_pdf
+from foampilot.commons import STLAnalyzer
+
+from foampilot.report import latex_pdf,ScientificDocument, TypstRenderer
 from foampilot.utilities import ValueWithUnit, FluidMechanics, Functions, ResidualsPost, HumanGeometry, OpenFOAMDictAddFile, CSVFoamIntegrator,WeatherFileEPW
+from foampilot.model_addon.windkessel import WindkesselModel
