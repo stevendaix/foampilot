@@ -2,7 +2,7 @@ import os
 import shutil
 import pandas as pd 
 from pathlib import Path
-from foampilot import Meshing, Quantity, FluidMechanics, Solver, CSVFoamIntegrator
+from foampilot import Meshing, ValueWithUnit, FluidMechanics, Solver, CSVFoamIntegrator
 
 
 def setup_coa_case():
@@ -16,8 +16,8 @@ def setup_coa_case():
 
     # 2. FLUID PROPERTIES
     # Blood:  rho=1060, nu=3.77e-6
-    rho_blood = Quantity(1060, "kg/m^3")
-    nu_blood = Quantity(3.7735849056603773e-06, "m^2/s")
+    rho_blood = ValueWithUnit(1060, "kg/m^3")
+    nu_blood = ValueWithUnit(3.7735849056603773e-06, "m^2/s")
 
     # 3. INITIALIZE SOLVER
     solver = Solver(case_path)

@@ -7,7 +7,7 @@ import random
 from pathlib import Path
 
 # Import required libraries
-from foampilot import Meshing, commons, postprocess,latex_pdf,Quantity,FluidMechanics,Solver
+from foampilot import Meshing, commons, postprocess,latex_pdf,ValueWithUnit,FluidMechanics,Solver
 
 current_path = Path.cwd() / "exemple_gmsh"
 
@@ -22,8 +22,8 @@ for name in available_fluids:
 # Create a FluidMechanics instance for water at room temperature and atmospheric pressure
 fluid_mech = FluidMechanics(
     available_fluids['Air'],
-    temperature=Quantity(293.15, "K"),
-    pressure=Quantity(101325, "Pa")
+    temperature=ValueWithUnit(293.15, "K"),
+    pressure=ValueWithUnit(101325, "Pa")
 )
 
 # Get fluid properties including kinematic viscosity

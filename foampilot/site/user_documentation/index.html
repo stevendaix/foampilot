@@ -988,7 +988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev/manage_quantity/" class="md-nav__link">
+      <a href="../dev/manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1329,7 +1329,7 @@
 <span class="n">solver</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">apply_condition_with_wildcard</span><span class="p">(</span>
     <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;inlet&quot;</span><span class="p">,</span>
     <span class="n">condition_type</span><span class="o">=</span><span class="s2">&quot;velocityInlet&quot;</span><span class="p">,</span>
-    <span class="n">velocity</span><span class="o">=</span><span class="p">(</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)),</span>
+    <span class="n">velocity</span><span class="o">=</span><span class="p">(</span><span class="n">ValueWithUnit</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span> <span class="n">ValueWithUnit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span> <span class="n">ValueWithUnit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)),</span>
     <span class="n">turbulence_intensity</span><span class="o">=</span><span class="mf">0.05</span>
 <span class="p">)</span>
 
@@ -1390,9 +1390,9 @@
 </table>
 <h3 id="33-modifying-dictionaries-or-adding-a-patch">3.3. Modifying Dictionaries or Adding a Patch</h3>
 <p>OpenFOAM dictionaries are exposed as Python objects:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">foampilot.utilities.manageunits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">foampilot.utilities.manageunits</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValueWithUnit</span>
 
-<span class="n">solver</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">transportProperties</span><span class="o">.</span><span class="n">nu</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="s2">&quot;m2/s&quot;</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">transportProperties</span><span class="o">.</span><span class="n">nu</span> <span class="o">=</span> <span class="n">ValueWithUnit</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="s2">&quot;m2/s&quot;</span><span class="p">)</span>
 <span class="n">solver</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">controlDict</span><span class="o">.</span><span class="n">writeInterval</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="n">solver</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">controlDict</span><span class="o">.</span><span class="n">endTime</span> <span class="o">=</span> <span class="mi">1000</span>
 </code></pre></div>
@@ -1412,12 +1412,12 @@
 <h2 id="4-system-and-constant-setup-with-pyfluid">4. <code>system</code> and <code>constant</code> Setup with <code>pyfluid</code></h2>
 <p><code>pyfluid</code> (or <code>FluidMechanics</code> from <code>foampilot.utilities.fluids_theory</code>) defines physical fluid properties and constants.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">foampilot.utilities.fluids_theory</span><span class="w"> </span><span class="kn">import</span> <span class="n">FluidMechanics</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">foampilot.utilities.manageunits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">foampilot.utilities.manageunits</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValueWithUnit</span>
 
 <span class="n">fluid_mech</span> <span class="o">=</span> <span class="n">FluidMechanics</span><span class="p">(</span>
     <span class="n">FluidMechanics</span><span class="o">.</span><span class="n">get_available_fluids</span><span class="p">()[</span><span class="s1">&#39;Water&#39;</span><span class="p">],</span>
-    <span class="n">temperature</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">293.15</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">),</span>
-    <span class="n">pressure</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">101325</span><span class="p">,</span> <span class="s2">&quot;Pa&quot;</span><span class="p">)</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="n">ValueWithUnit</span><span class="p">(</span><span class="mf">293.15</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">),</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="n">ValueWithUnit</span><span class="p">(</span><span class="mi">101325</span><span class="p">,</span> <span class="s2">&quot;Pa&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="n">properties</span> <span class="o">=</span> <span class="n">fluid_mech</span><span class="o">.</span><span class="n">get_fluid_properties</span><span class="p">()</span>

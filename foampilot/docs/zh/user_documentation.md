@@ -89,7 +89,7 @@ solver.with_gravity = False
 
 ```python
 solver.boundary.initialize_boundary()
-solver.boundary.apply_condition_with_wildcard(pattern="inlet", condition_type="velocityInlet", velocity=(Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")), turbulence_intensity=0.05)
+solver.boundary.apply_condition_with_wildcard(pattern="inlet", condition_type="velocityInlet", velocity=(ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")), turbulence_intensity=0.05)
 solver.boundary.apply_condition_with_wildcard(pattern="outlet", condition_type="pressureOutlet")
 solver.boundary.apply_condition_with_wildcard(pattern="walls", condition_type="wall")
 solver.boundary.write_boundary_conditions()
@@ -98,7 +98,7 @@ solver.boundary.write_boundary_conditions()
 ### 3.3 修改字典或添加补丁
 
 ```python
-solver.constant.transportProperties.nu = Quantity(1e-6, "m2/s")
+solver.constant.transportProperties.nu = ValueWithUnit(1e-6, "m2/s")
 solver.system.controlDict.writeInterval = 100
 solver.system.write()
 solver.constant.write()
@@ -108,7 +108,7 @@ solver.constant.write()
 
 ```python
 from foampilot.utilities.fluids_theory import FluidMechanics
-fluid_mech = FluidMechanics(FluidMechanics.get_available_fluids()['Water'], temperature=Quantity(293.15, "K"), pressure=Quantity(101325, "Pa"))
+fluid_mech = FluidMechanics(FluidMechanics.get_available_fluids()['Water'], temperature=ValueWithUnit(293.15, "K"), pressure=ValueWithUnit(101325, "Pa"))
 properties = fluid_mech.get_fluid_properties()
 solver.constant.transportProperties.nu = properties['kinematic_viscosity']
 solver.system.write()

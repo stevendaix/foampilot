@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 from typing import Optional, Any, Union, Tuple
 
 
@@ -90,7 +90,7 @@ class OpenFOAMFile:
         """Formats Python types into OpenFOAM-compatible string syntax.
 
         Handles Booleans (true/false), floating point precision, and 
-        `Quantity` objects with unit conversion.
+        `ValueWithUnit` objects with unit conversion.
 
         Args:
             key: The attribute key (used to determine target units).
@@ -103,7 +103,7 @@ class OpenFOAMFile:
             return "true" if value else "false"
         if isinstance(value, (int, float)):
             return format(value, ".15g")
-        if Quantity and isinstance(value, Quantity):
+        if ValueWithUnit and isinstance(value, ValueWithUnit):
             unit = self.DEFAULT_UNITS.get(key)
             val = value.get_in(unit) if unit else value.magnitude
             if isinstance(val, (int, float)):

@@ -17,12 +17,12 @@ current_path = Path.cwd() / "cases"
 
 ## 2. 流体属性
 ```python
-from foampilot import FluidMechanics, Quantity
+from foampilot import FluidMechanics, ValueWithUnit
 available_fluids = FluidMechanics.get_available_fluids()
 fluid = FluidMechanics(
     available_fluids["Air"],
-    temperature=Quantity(293.15, "K"),
-    pressure=Quantity(101325, "Pa")
+    temperature=ValueWithUnit(293.15, "K"),
+    pressure=ValueWithUnit(101325, "Pa")
 )
 nu = fluid.get_fluid_properties()["kinematic_viscosity"]
 ```
@@ -127,8 +127,8 @@ solver.system.run_createPatch()
 ## 7. 边界条件
 ```python
 solver.boundary.initialize_boundary()
-solver.boundary.apply_condition_with_wildcard(pattern="inlet", condition_type="velocityInlet", velocity=(Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")), turbulence_intensity=0.05)
-solver.boundary.apply_condition_with_wildcard(pattern="airIntake", condition_type="velocityInlet", velocity=(Quantity(1.2, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")), turbulence_intensity=0.05)
+solver.boundary.apply_condition_with_wildcard(pattern="inlet", condition_type="velocityInlet", velocity=(ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")), turbulence_intensity=0.05)
+solver.boundary.apply_condition_with_wildcard(pattern="airIntake", condition_type="velocityInlet", velocity=(ValueWithUnit(1.2, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")), turbulence_intensity=0.05)
 solver.boundary.apply_condition_with_wildcard(pattern="outlet", condition_type="pressureOutlet")
 solver.boundary.apply_condition_with_wildcard(pattern="walls", condition_type="wall")
 solver.boundary.write_boundary_conditions()

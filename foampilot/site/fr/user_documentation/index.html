@@ -883,7 +883,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev/manage_quantity/" class="md-nav__link">
+      <a href="../dev/manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1241,7 +1241,7 @@ solver.with_gravity = False   # Sans gravité</p>
 <p>solver.boundary.apply_condition_with_wildcard(
     pattern="inlet",
     condition_type="velocityInlet",
-    velocity=(Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")),
+    velocity=(ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")),
     turbulence_intensity=0.05
 )</p>
 <h1 id="condition-de-sortie-patch-outlet">Condition de sortie (patch 'outlet')</h1>
@@ -1305,8 +1305,8 @@ solver.with_gravity = False   # Sans gravité</p>
 <p>Pour modifier ou ajouter une entrée dans un dictionnaire, il suffit d'accéder à l'attribut correspondant :</p>
 <p>```python</p>
 <h1 id="modification-de-la-viscosite-cinematique-dans-transportproperties">Modification de la viscosité cinématique dans transportProperties</h1>
-<p>from foampilot.utilities.manageunits import Quantity
-kinematic_viscosity = Quantity(1e-6, "m2/s")
+<p>from foampilot.utilities.manageunits import ValueWithUnit
+kinematic_viscosity = ValueWithUnit(1e-6, "m2/s")
 solver.constant.transportProperties.nu = kinematic_viscosity</p>
 <h1 id="modification-dune-propriete-dans-controldict">Modification d'une propriété dans controlDict</h1>
 <p>solver.system.controlDict.writeInterval = 100 # Écrit les résultats toutes les 100 itérations
@@ -1402,12 +1402,12 @@ solver.system.controlDict.endTime = 1000 # Définit le temps de fin de simulatio
 <p>La classe <code>FluidMechanics</code> permet de calculer les propriétés d'un fluide (comme la viscosité cinématique <span class="arithmatex">\(\nu\)</span>) en fonction de la température et de la pression, en utilisant des données physiques intégrées.</p>
 <p>```python
 from foampilot.utilities.fluids_theory import FluidMechanics
-from foampilot.utilities.manageunits import Quantity</p>
+from foampilot.utilities.manageunits import ValueWithUnit</p>
 <h1 id="1-creer-une-instance-de-fluidmechanics-pour-leau-a-20c-29315-k">1. Créer une instance de FluidMechanics pour l'eau à 20°C (293.15 K)</h1>
 <p>fluid_mech = FluidMechanics(
     FluidMechanics.get_available_fluids()['Water'],
-    temperature=Quantity(293.15, "K"),
-    pressure=Quantity(101325, "Pa")
+    temperature=ValueWithUnit(293.15, "K"),
+    pressure=ValueWithUnit(101325, "Pa")
 )</p>
 <h1 id="2-recuperer-les-proprietes">2. Récupérer les propriétés</h1>
 <p>properties = fluid_mech.get_fluid_properties()

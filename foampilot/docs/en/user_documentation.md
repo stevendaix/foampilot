@@ -114,7 +114,7 @@ solver.boundary.initialize_boundary()
 solver.boundary.apply_condition_with_wildcard(
     pattern="inlet",
     condition_type="velocityInlet",
-    velocity=(Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")),
+    velocity=(ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")),
     turbulence_intensity=0.05
 )
 
@@ -147,9 +147,9 @@ solver.boundary.write_boundary_conditions()
 OpenFOAM dictionaries are exposed as Python objects:
 
 ```python
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 
-solver.constant.transportProperties.nu = Quantity(1e-6, "m2/s")
+solver.constant.transportProperties.nu = ValueWithUnit(1e-6, "m2/s")
 solver.system.controlDict.writeInterval = 100
 solver.system.controlDict.endTime = 1000
 ```
@@ -177,12 +177,12 @@ shapes[-1].set_end_patch("newPatch")
 
 ```python
 from foampilot.utilities.fluids_theory import FluidMechanics
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 
 fluid_mech = FluidMechanics(
     FluidMechanics.get_available_fluids()['Water'],
-    temperature=Quantity(293.15, "K"),
-    pressure=Quantity(101325, "Pa")
+    temperature=ValueWithUnit(293.15, "K"),
+    pressure=ValueWithUnit(101325, "Pa")
 )
 
 properties = fluid_mech.get_fluid_properties()

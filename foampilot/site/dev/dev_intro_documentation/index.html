@@ -868,10 +868,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#42-unit-and-dimension-management-quantity" class="md-nav__link">
+  <a href="#42-unit-and-dimension-management-ValueWithUnit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.2. Unit and Dimension Management (Quantity)
+        4.2. Unit and Dimension Management (ValueWithUnit)
       
     </span>
   </a>
@@ -960,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../manage_quantity/" class="md-nav__link">
+      <a href="../manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1209,7 +1209,7 @@
 <tr>
 <td style="text-align: left;"><code>utilities</code></td>
 <td style="text-align: left;">Utility functions and classes not specific to OpenFOAM (units, fluid properties, etc.).</td>
-<td style="text-align: left;"><code>Quantity</code>, <code>FluidMechanics</code>, <code>manageunits</code></td>
+<td style="text-align: left;"><code>ValueWithUnit</code>, <code>FluidMechanics</code>, <code>manageunits</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>postprocess</code></td>
@@ -1225,13 +1225,13 @@
 <ul>
 <li><strong>Inheritance and Attributes:</strong> Each OpenFOAM configuration file (e.g., <code>transportPropertiesFile</code> or <code>controlDictFile</code>) inherits from <code>OpenFOAMFile</code>. Configuration parameters are stored in the instance attribute <code>self.attributes</code>.</li>
 <li><strong>Dynamic Access:</strong> Overriding magic methods <code>__getattr__</code> and <code>__setattr__</code> allows direct access and modification of parameters as object attributes (e.g., <code>solver.constant.transportProperties.nu = ...</code>), even if they are stored in the <code>self.attributes</code> dictionary.</li>
-<li><strong>Serialization (<code>write_file</code>):</strong> The <code>write_file</code> method recursively iterates over <code>self.attributes</code> and uses the internal <code>_format_value</code> method to convert Python data types (booleans, numbers, tuples, especially <code>Quantity</code>) into OpenFOAM-specific syntax (e.g., <code>true</code>/<code>false</code>, parenthesis-enclosed lists).</li>
+<li><strong>Serialization (<code>write_file</code>):</strong> The <code>write_file</code> method recursively iterates over <code>self.attributes</code> and uses the internal <code>_format_value</code> method to convert Python data types (booleans, numbers, tuples, especially <code>ValueWithUnit</code>) into OpenFOAM-specific syntax (e.g., <code>true</code>/<code>false</code>, parenthesis-enclosed lists).</li>
 </ul>
-<h3 id="42-unit-and-dimension-management-quantity">4.2. Unit and Dimension Management (<code>Quantity</code>)</h3>
-<p>The <code>Quantity</code> class (<code>foampilot/foampilot/src/foampilot/utilities/manageunits.py</code>) is a <em>wrapper</em> around the <code>pint</code> library and ensures physical consistency.</p>
+<h3 id="42-unit-and-dimension-management-ValueWithUnit">4.2. Unit and Dimension Management (<code>ValueWithUnit</code>)</h3>
+<p>The <code>ValueWithUnit</code> class (<code>foampilot/foampilot/src/foampilot/utilities/manageunits.py</code>) is a <em>wrapper</em> around the <code>pint</code> library and ensures physical consistency.</p>
 <ul>
-<li><strong>Purpose:</strong> Stores a numerical value with its physical unit (e.g., <code>Quantity(10, "m/s")</code>).</li>
-<li><strong>Automatic Conversion:</strong> When writing to an OpenFOAM file, <code>OpenFOAMFile._format_value</code> checks if the value is a <code>Quantity</code>. If so, it uses <code>get_in(target_unit)</code> to convert the value to the unit expected by OpenFOAM (defined in <code>OpenFOAMFile.DEFAULT_UNITS</code>), ensuring all written values are in OpenFOAM’s base units.</li>
+<li><strong>Purpose:</strong> Stores a numerical value with its physical unit (e.g., <code>ValueWithUnit(10, "m/s")</code>).</li>
+<li><strong>Automatic Conversion:</strong> When writing to an OpenFOAM file, <code>OpenFOAMFile._format_value</code> checks if the value is a <code>ValueWithUnit</code>. If so, it uses <code>get_in(target_unit)</code> to convert the value to the unit expected by OpenFOAM (defined in <code>OpenFOAMFile.DEFAULT_UNITS</code>), ensuring all written values are in OpenFOAM’s base units.</li>
 <li><strong>OpenFOAM Dimensions:</strong> The <code>to_openfoam_dimensions()</code> method uses <code>pint</code> to derive OpenFOAM’s dimension vector (M, L, T, Θ, N, J, A) from the unit, which is crucial for generating field file headers (e.g., <code>U</code>, <code>p</code>).</li>
 </ul>
 <h3 id="43-solver-and-field-orchestration-solver-and-casefieldsmanager">4.3. Solver and Field Orchestration (<code>Solver</code> and <code>CaseFieldsManager</code>)</h3>

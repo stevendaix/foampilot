@@ -57,14 +57,14 @@ solver.with_gravity = False
 使用 FoamPilot 的 `FluidMechanics` API 明确定义流体。
 
 ```python
-from foampilot import FluidMechanics, Quantity
+from foampilot import FluidMechanics, ValueWithUnit
 
 available_fluids = FluidMechanics.get_available_fluids()
 
 fluid = FluidMechanics(
     available_fluids["Water"],
-    temperature=Quantity(293.15, "K"),
-    pressure=Quantity(101325, "Pa")
+    temperature=ValueWithUnit(293.15, "K"),
+    pressure=ValueWithUnit(101325, "Pa")
 )
 
 properties = fluid.get_fluid_properties()
@@ -179,9 +179,9 @@ solver.boundary.apply_condition_with_wildcard(
     pattern="inlet",
     condition_type="velocityInlet",
     velocity=(
-        Quantity(10, "m/s"),
-        Quantity(0, "m/s"),
-        Quantity(0, "m/s")
+        ValueWithUnit(10, "m/s"),
+        ValueWithUnit(0, "m/s"),
+        ValueWithUnit(0, "m/s")
     ),
     turbulence_intensity=0.05
 )

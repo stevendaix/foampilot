@@ -125,7 +125,7 @@ solver.boundary.initialize_boundary()
 solver.boundary.apply_condition_with_wildcard(
     pattern="inlet",
     condition_type="velocityInlet",
-    velocity=(Quantity(10, "m/s"), Quantity(0, "m/s"), Quantity(0, "m/s")),
+    velocity=(ValueWithUnit(10, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")),
     turbulence_intensity=0.05
 )
 
@@ -166,8 +166,8 @@ Pour modifier ou ajouter une entrée dans un dictionnaire, il suffit d'accéder 
 
 \`\`\`python
 # Modification de la viscosité cinématique dans transportProperties
-from foampilot.utilities.manageunits import Quantity
-kinematic_viscosity = Quantity(1e-6, "m2/s")
+from foampilot.utilities.manageunits import ValueWithUnit
+kinematic_viscosity = ValueWithUnit(1e-6, "m2/s")
 solver.constant.transportProperties.nu = kinematic_viscosity
 
 # Modification d'une propriété dans controlDict
@@ -229,13 +229,13 @@ La classe `FluidMechanics` permet de calculer les propriétés d'un fluide (comm
 
 \`\`\`python
 from foampilot.utilities.fluids_theory import FluidMechanics
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 
 # 1. Créer une instance de FluidMechanics pour l'eau à 20°C (293.15 K)
 fluid_mech = FluidMechanics(
     FluidMechanics.get_available_fluids()['Water'],
-    temperature=Quantity(293.15, "K"),
-    pressure=Quantity(101325, "Pa")
+    temperature=ValueWithUnit(293.15, "K"),
+    pressure=ValueWithUnit(101325, "Pa")
 )
 
 # 2. Récupérer les propriétés

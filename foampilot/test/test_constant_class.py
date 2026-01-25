@@ -4,7 +4,7 @@ import filecmp
 import os
 
 from foampilot.solver.solver import Solver
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 
 BASE_REFERENCE_DIR = Path("reference/constant_files")
 TESTS_DIR = Path("tests")
@@ -45,11 +45,11 @@ def run_test(case_name: str, compressible: bool, with_gravity: bool, with_radiat
 
     # Propriétés
     if compressible:
-        solver.constant.physicalProperties.mu = Quantity("1.8e-5", "kg/m/s")
-        solver.constant.physicalProperties.Cp = Quantity(1005, "J/kg/K")
-        solver.constant.pRef.value = Quantity(101325, "Pa")
+        solver.constant.physicalProperties.mu = ValueWithUnit("1.8e-5", "kg/m/s")
+        solver.constant.physicalProperties.Cp = ValueWithUnit(1005, "J/kg/K")
+        solver.constant.pRef.value = ValueWithUnit(101325, "Pa")
     else:
-        solver.constant.transportProperties.nu = Quantity("1.5e-5", "m^2/s")
+        solver.constant.transportProperties.nu = ValueWithUnit("1.5e-5", "m^2/s")
 
     if with_radiation:
         solver.constant.enable_radiation(model="P1")
@@ -117,11 +117,11 @@ def build_reference_files(
     solver.with_gravity = with_gravity
 
     if compressible:
-        solver.constant.physicalProperties.mu = Quantity("1.8e-5", "kg/m/s")
-        solver.constant.physicalProperties.Cp = Quantity(1005, "J/kg/K")
-        solver.constant.pRef.value = Quantity(101325, "Pa")
+        solver.constant.physicalProperties.mu = ValueWithUnit("1.8e-5", "kg/m/s")
+        solver.constant.physicalProperties.Cp = ValueWithUnit(1005, "J/kg/K")
+        solver.constant.pRef.value = ValueWithUnit(101325, "Pa")
     else:
-        solver.constant.transportProperties.nu = Quantity("1.5e-5", "m^2/s")
+        solver.constant.transportProperties.nu = ValueWithUnit("1.5e-5", "m^2/s")
 
     if with_radiation:
         solver.constant.enable_radiation(model="P1")

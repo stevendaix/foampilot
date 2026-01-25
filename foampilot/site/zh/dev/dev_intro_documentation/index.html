@@ -868,10 +868,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#42-quantity" class="md-nav__link">
+  <a href="#42-ValueWithUnit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.2 单位与维度管理 (Quantity)
+        4.2 单位与维度管理 (ValueWithUnit)
       
     </span>
   </a>
@@ -960,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../manage_quantity/" class="md-nav__link">
+      <a href="../manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1209,7 +1209,7 @@
 <tr>
 <td style="text-align: left;"><code>utilities</code></td>
 <td style="text-align: left;">非 OpenFOAM 特定的工具函数和类（单位、流体属性等）。</td>
-<td style="text-align: left;"><code>Quantity</code>, <code>FluidMechanics</code>, <code>manageunits</code></td>
+<td style="text-align: left;"><code>ValueWithUnit</code>, <code>FluidMechanics</code>, <code>manageunits</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>postprocess</code></td>
@@ -1225,13 +1225,13 @@
 <ul>
 <li><strong>继承与属性</strong>：每个 OpenFOAM 配置文件（如 <code>transportPropertiesFile</code> 或 <code>controlDictFile</code>）都继承自 <code>OpenFOAMFile</code>。配置参数存储在实例属性 <code>self.attributes</code> 中。</li>
 <li><strong>动态访问</strong>：重载魔法方法 <code>__getattr__</code> 和 <code>__setattr__</code> 允许直接通过对象属性访问和修改参数（如 <code>solver.constant.transportProperties.nu = ...</code>），即使它们存储在 <code>self.attributes</code> 字典中。</li>
-<li><strong>序列化 (<code>write_file</code>)</strong>：<code>write_file</code> 方法递归遍历 <code>self.attributes</code>，并使用内部 <code>_format_value</code> 方法将 Python 数据类型（布尔值、数字、元组，尤其是 <code>Quantity</code>）转换为 OpenFOAM 特定语法（如 <code>true</code>/<code>false</code>，括号列表）。</li>
+<li><strong>序列化 (<code>write_file</code>)</strong>：<code>write_file</code> 方法递归遍历 <code>self.attributes</code>，并使用内部 <code>_format_value</code> 方法将 Python 数据类型（布尔值、数字、元组，尤其是 <code>ValueWithUnit</code>）转换为 OpenFOAM 特定语法（如 <code>true</code>/<code>false</code>，括号列表）。</li>
 </ul>
-<h3 id="42-quantity">4.2 单位与维度管理 (<code>Quantity</code>)</h3>
-<p><code>Quantity</code> 类（<code>foampilot/foampilot/src/foampilot/utilities/manageunits.py</code>）是 <code>pint</code> 库的封装，用于保证物理一致性。</p>
+<h3 id="42-ValueWithUnit">4.2 单位与维度管理 (<code>ValueWithUnit</code>)</h3>
+<p><code>ValueWithUnit</code> 类（<code>foampilot/foampilot/src/foampilot/utilities/manageunits.py</code>）是 <code>pint</code> 库的封装，用于保证物理一致性。</p>
 <ul>
-<li><strong>作用</strong>：存储带有物理单位的数值（如 <code>Quantity(10, "m/s")</code>）。</li>
-<li><strong>自动转换</strong>：写入 OpenFOAM 文件时，<code>OpenFOAMFile._format_value</code> 会检查值是否为 <code>Quantity</code> 实例。如果是，则使用 <code>get_in(target_unit)</code> 将其转换为 OpenFOAM 期望的单位（由 <code>OpenFOAMFile.DEFAULT_UNITS</code> 定义），确保所有写入值使用 OpenFOAM 基本单位。</li>
+<li><strong>作用</strong>：存储带有物理单位的数值（如 <code>ValueWithUnit(10, "m/s")</code>）。</li>
+<li><strong>自动转换</strong>：写入 OpenFOAM 文件时，<code>OpenFOAMFile._format_value</code> 会检查值是否为 <code>ValueWithUnit</code> 实例。如果是，则使用 <code>get_in(target_unit)</code> 将其转换为 OpenFOAM 期望的单位（由 <code>OpenFOAMFile.DEFAULT_UNITS</code> 定义），确保所有写入值使用 OpenFOAM 基本单位。</li>
 <li><strong>OpenFOAM 维度</strong>：<code>to_openfoam_dimensions()</code> 方法使用 <code>pint</code> 推导 OpenFOAM 维度向量 (M, L, T, Θ, N, J, A)，这对于生成场文件头（如 <code>U</code>, <code>p</code>）非常关键。</li>
 </ul>
 <h3 id="43-solver-casefieldsmanager">4.3 求解器与场协调 (<code>Solver</code> 和 <code>CaseFieldsManager</code>)</h3>

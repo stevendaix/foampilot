@@ -1,5 +1,5 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
-from foampilot.utilities.manageunits import Quantity
+from foampilot.utilities.manageunits import ValueWithUnit
 from typing import Optional, Any, Dict, Union
 from pathlib import Path
 
@@ -41,14 +41,14 @@ class TransportPropertiesFile(OpenFOAMFile):
         self,
         parent: Optional[Any] = None,
         transportModel: str = NonNewtonianModels.NEWTONIAN,
-        nu: Union[str, Quantity, float] = "1e-05",
-        rho: Optional[Union[str, Quantity, float]] = None,
-        crossPowerLawCoeffs: Optional[Dict[str, Union[str, Quantity, float]]] = None,
+        nu: Union[str, ValueWithUnit, float] = "1e-05",
+        rho: Optional[Union[str, ValueWithUnit, float]] = None,
+        crossPowerLawCoeffs: Optional[Dict[str, Union[str, ValueWithUnit, float]]] = None,
     ):
         self.parent = parent
         self.transportModel = transportModel
-        self._nu = self._to_quantity(nu, "nu")
-        self._rho = self._to_quantity(rho, "rho") if rho is not None else None
+        self._nu = self._to_ValueWithUnit(nu, "nu")
+        self._rho = self._to_ValueWithUnit(rho, "rho") if rho is not None else None
         self.crossPowerLawCoeffs = self._process_coeffs(crossPowerLawCoeffs) if crossPowerLawCoeffs else None
 
         # Configure les attributes pour l’écriture
@@ -65,9 +65,9 @@ class TransportPropertiesFile(OpenFOAMFile):
 
     @nu.setter
     def nu(self, value):
-        self._nu = self._to_quantity(value, "nu")
+        self._nu = self._to_ValueWithUnit(value, "nu")
         if self.transportModel == NonNewtonianModels.NEWTONIAN:
-            self.attributes["nu"] = self._nu.magnitude if isinstance(self._nu, Quantity) else float(self._nu)
+            self.attributes["nu"] = self._nu.magnitude if isinstance(self._nu, ValueWithUnit) else float(self._nu)
 
     @property
     def rho(self):
@@ -75,49 +75,49 @@ class TransportPropertiesFile(OpenFOAMFile):
 
     @rho.setter
     def rho(self, value):
-        self._rho = self._to_quantity(value, "rho")
+        self._rho = self._to_ValueWithUnit(value, "rho")
         if self.transportModel == NonNewtonianModels.NEWTONIAN or self.transportModel != NonNewtonianModels.NEWTONIAN:
-            self.attributes["rho"] = self._rho.magnitude if isinstance(self._rho, Quantity) else float(self._rho)
+            self.attributes["rho"] = self._rho.magnitude if isinstance(self._rho, ValueWithUnit) else float(self._rho)
 
     # ------------------ Public Methods ------------------
 
     def set_non_newtonian(
         self,
         model: str,
-        rho: Union[str, float, Quantity],
-        **coeffs: Union[str, float, Quantity]
+        rho: Union[str, float, ValueWithUnit],
+        **coeffs: Union[str, float, ValueWithUnit]
     ):
         """Configure le fluide comme non-Newtonien."""
         if model not in NonNewtonianModels.list_models():
             raise ValueError(f"Unsupported non-Newtonian model: {model}")
 
         self.transportModel = model
-        self.rho = self._to_quantity(rho, "rho")
-        self.crossPowerLawCoeffs = {k: self._to_quantity(v, k) for k, v in coeffs.items()}
+        self.rho = self._to_ValueWithUnit(rho, "rho")
+        self.crossPowerLawCoeffs = {k: self._to_ValueWithUnit(v, k) for k, v in coeffs.items()}
 
         # Mettre à jour les attributes pour OpenFOAM
         self._configure_attributes()
 
     # ------------------ Internal Methods ------------------
 
-    def _to_quantity(self, value: Union[str, Quantity, float], name: str) -> Quantity:
-        if isinstance(value, Quantity):
+    def _to_ValueWithUnit(self, value: Union[str, ValueWithUnit, float], name: str) -> ValueWithUnit:
+        if isinstance(value, ValueWithUnit):
             expected_unit = self.DEFAULT_UNITS.get(name)
-            if expected_unit and not value.quantity.check(expected_unit):
+            if expected_unit and not value.ValueWithUnit.check(expected_unit):
                 raise ValueError(f"{name} must have units compatible with {expected_unit}")
             return value
         else:
             expected_unit = self.DEFAULT_UNITS.get(name)
             if expected_unit:
-                return Quantity(float(value), expected_unit)
+                return ValueWithUnit(float(value), expected_unit)
             else:
                 return float(value)
 
-    def _process_coeffs(self, coeffs: Dict[str, Union[str, Quantity, float]]) -> Dict[str, float]:
+    def _process_coeffs(self, coeffs: Dict[str, Union[str, ValueWithUnit, float]]) -> Dict[str, float]:
         processed = {}
         for key, value in coeffs.items():
             if key in self.DEFAULT_UNITS["crossPowerLawCoeffs"]:
-                processed[key] = self._to_quantity(value, f"crossPowerLawCoeffs.{key}")
+                processed[key] = self._to_ValueWithUnit(value, f"crossPowerLawCoeffs.{key}")
             else:
                 processed[key] = float(value)
         return processed
@@ -141,7 +141,7 @@ class TransportPropertiesFile(OpenFOAMFile):
                 # Nom exact du dictionnaire attendu par OpenFOAM
                 coeffs_dict_name = f"{self.transportModel}Coeffs"
                 self.attributes[coeffs_dict_name] = {
-                    k: v.magnitude if isinstance(v, Quantity) else float(v)
+                    k: v.magnitude if isinstance(v, ValueWithUnit) else float(v)
                     for k, v in self.crossPowerLawCoeffs.items()
                 }
                 

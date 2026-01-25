@@ -33,7 +33,7 @@ Le cœur de la logique de `foampilot` se trouve dans le répertoire `foampilot/f
 | `system` | Gestion des fichiers de configuration dans le répertoire `system`. | `SystemDirectory`, `controlDictFile`, `fvSchemesFile`, `fvSolutionFile` |
 | `boundaries` | Définition et application des conditions aux limites. | `Boundary`, `boundaries_conditions_config` |
 | `mesh` | Outils de maillage, y compris l'intégration avec `classy_blocks` et `snappyHexMesh`. | `BlockMeshFile`, `Meshing`, `gmsh_mesher` |
-| `utilities` | Fonctions et classes utilitaires non spécifiques à OpenFOAM (unités, propriétés des fluides, etc.). | `Quantity`, `FluidMechanics`, `manageunits` |
+| `utilities` | Fonctions et classes utilitaires non spécifiques à OpenFOAM (unités, propriétés des fluides, etc.). | `ValueWithUnit`, `FluidMechanics`, `manageunits` |
 | `postprocess` | Classes pour l'analyse des résultats, la visualisation (via `pyvista`) et l'extraction de données. | `FoamPostProcessing`, `ResidualsPost` |
 
 ## 4. Mécanismes Internes pour les Développeurs
@@ -46,14 +46,14 @@ Le cœur de la sérialisation des données réside dans la classe de base `OpenF
 
 *   **Héritage et Attributs :** Chaque fichier de configuration OpenFOAM (comme `transportPropertiesFile` ou `controlDictFile`) hérite de `OpenFOAMFile`. Les paramètres de configuration sont stockés dans l'attribut `self.attributes` de l'instance.
 *   **Accès Dynamique :** La surcharge des méthodes magiques `__getattr__` et `__setattr__` permet d'accéder et de modifier les paramètres directement comme des attributs de l'objet (ex: `solver.constant.transportProperties.nu = ...`), même si ces paramètres sont stockés dans le dictionnaire `self.attributes`.
-*   **Sérialisation (`write_file`) :** La méthode `write_file` parcourt récursivement le dictionnaire `self.attributes` et utilise la méthode interne `_format_value` pour convertir les types de données Python (booléens, nombres, tuples, et surtout `Quantity`) en la syntaxe spécifique d'OpenFOAM (ex: `true`/`false`, listes entre parenthèses).
+*   **Sérialisation (`write_file`) :** La méthode `write_file` parcourt récursivement le dictionnaire `self.attributes` et utilise la méthode interne `_format_value` pour convertir les types de données Python (booléens, nombres, tuples, et surtout `ValueWithUnit`) en la syntaxe spécifique d'OpenFOAM (ex: `true`/`false`, listes entre parenthèses).
 
-### 4.2. Gestion des Unités et des Dimensions (`Quantity`)
+### 4.2. Gestion des Unités et des Dimensions (`ValueWithUnit`)
 
-La classe `Quantity` (`foampilot/foampilot/src/foampilot/utilities/manageunits.py`) est un *wrapper* autour de la librairie `pint` et est essentielle pour assurer la cohérence physique.
+La classe `ValueWithUnit` (`foampilot/foampilot/src/foampilot/utilities/manageunits.py`) est un *wrapper* autour de la librairie `pint` et est essentielle pour assurer la cohérence physique.
 
-*   **Rôle :** Elle stocke une valeur numérique avec son unité physique (ex: `Quantity(10, "m/s")`).
-*   **Conversion Automatique :** Lors de l'écriture dans un fichier OpenFOAM, la méthode `_format_value` de `OpenFOAMFile` vérifie si la valeur est une instance de `Quantity`. Si c'est le cas, elle utilise la méthode `get_in(target_unit)` pour convertir la valeur dans l'unité attendue par OpenFOAM (définie dans `OpenFOAMFile.DEFAULT_UNITS`), garantissant que toutes les valeurs écrites sont dans le système d'unités de base d'OpenFOAM.
+*   **Rôle :** Elle stocke une valeur numérique avec son unité physique (ex: `ValueWithUnit(10, "m/s")`).
+*   **Conversion Automatique :** Lors de l'écriture dans un fichier OpenFOAM, la méthode `_format_value` de `OpenFOAMFile` vérifie si la valeur est une instance de `ValueWithUnit`. Si c'est le cas, elle utilise la méthode `get_in(target_unit)` pour convertir la valeur dans l'unité attendue par OpenFOAM (définie dans `OpenFOAMFile.DEFAULT_UNITS`), garantissant que toutes les valeurs écrites sont dans le système d'unités de base d'OpenFOAM.
 *   **Dimensions OpenFOAM :** La méthode `to_openfoam_dimensions()` utilise les capacités de `pint` pour dériver le vecteur de dimensions OpenFOAM (M, L, T, Θ, N, J, A) à partir de l'unité, ce qui est crucial pour la génération des en-têtes de fichiers de champs (ex: `U`, `p`).
 
 ### 4.3. Orchestration du Solveur et des Champs (`Solver` et `CaseFieldsManager`)

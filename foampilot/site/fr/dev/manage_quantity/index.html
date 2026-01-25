@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://stevendaix.github.io/foampilot/fr/dev/manage_quantity/">
+        <link rel="canonical" href="https://stevendaix.github.io/foampilot/fr/dev/manage_ValueWithUnit/">
       
       
         <link rel="prev" href="../dev_detailed_documentation/">
@@ -18,11 +18,11 @@
       
       
         
-          <link rel="alternate" href="../../../dev/manage_quantity/" hreflang="en">
+          <link rel="alternate" href="../../../dev/manage_ValueWithUnit/" hreflang="en">
         
           <link rel="alternate" href="./" hreflang="fr">
         
-          <link rel="alternate" href="../../../zh/dev/manage_quantity/" hreflang="zh">
+          <link rel="alternate" href="../../../zh/dev/manage_ValueWithUnit/" hreflang="zh">
         
       
       
@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#classe-quantity-explication-detaillee-des-methodes" class="md-skip">
+        <a href="#classe-ValueWithUnit-explication-detaillee-des-methodes" class="md-skip">
           Aller au contenu
         </a>
       
@@ -127,7 +127,7 @@
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../dev/manage_quantity/" hreflang="en" class="md-select__link">
+            <a href="../../../dev/manage_ValueWithUnit/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -139,7 +139,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../../zh/dev/manage_quantity/" hreflang="zh" class="md-select__link">
+            <a href="../../../zh/dev/manage_ValueWithUnit/" hreflang="zh" class="md-select__link">
               中文
             </a>
           </li>
@@ -902,15 +902,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#set_quantity" class="md-nav__link">
+  <a href="#set_ValueWithUnit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        set_quantity
+        set_ValueWithUnit
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="set_quantity">
+    <nav class="md-nav" aria-label="set_ValueWithUnit">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1365,20 +1365,20 @@
   
 
 
-<h1 id="classe-quantity-explication-detaillee-des-methodes">Classe <code>Quantity</code> : Explication détaillée des méthodes</h1>
-<p>Ce document détaille chaque méthode de la classe <code>Quantity</code>, conçue pour gérer les grandeurs physiques avec unités.</p>
+<h1 id="classe-ValueWithUnit-explication-detaillee-des-methodes">Classe <code>ValueWithUnit</code> : Explication détaillée des méthodes</h1>
+<p>Ce document détaille chaque méthode de la classe <code>ValueWithUnit</code>, conçue pour gérer les grandeurs physiques avec unités.</p>
 <h2 id="introduction">Introduction</h2>
-<p>La classe <code>Quantity</code> est une enveloppe autour de la bibliothèque Pint, permettant de manipuler des valeurs associées à des unités physiques. Elle facilite la conversion, l'affichage, la sérialisation, et les opérations arithmétiques.</p>
+<p>La classe <code>ValueWithUnit</code> est une enveloppe autour de la bibliothèque Pint, permettant de manipuler des valeurs associées à des unités physiques. Elle facilite la conversion, l'affichage, la sérialisation, et les opérations arithmétiques.</p>
 <h2 id="constructeur">Constructeur</h2>
 <h3 id="description">Description</h3>
-<p>Le constructeur initialise une nouvelle instance de <code>Quantity</code> avec une valeur numérique et une unité.</p>
+<p>Le constructeur initialise une nouvelle instance de <code>ValueWithUnit</code> avec une valeur numérique et une unité.</p>
 <ul>
 <li><strong>Paramètres</strong> :</li>
 <li><code>value</code> : Valeur numérique de la quantité.</li>
 <li><code>unit</code> : Chaîne de caractères représentant l'unité (ex: "m/s", "Pa", "kg").</li>
 </ul>
 <h2 id="methodes-principales">Méthodes principales</h2>
-<h3 id="set_quantity"><code>set_quantity</code></h3>
+<h3 id="set_ValueWithUnit"><code>set_ValueWithUnit</code></h3>
 <h4 id="description_1">Description</h4>
 <p>Met à jour la valeur et l'unité de la quantité.</p>
 <ul>
@@ -1397,11 +1397,11 @@
 </ul>
 <h3 id="to"><code>to</code></h3>
 <h4 id="description_3">Description</h4>
-<p>Convertit la quantité dans une unité cible et retourne un nouvel objet <code>Quantity</code>.</p>
+<p>Convertit la quantité dans une unité cible et retourne un nouvel objet <code>ValueWithUnit</code>.</p>
 <ul>
 <li><strong>Paramètres</strong> :</li>
 <li><code>target_unit</code> : Unité cible pour la conversion.</li>
-<li><strong>Retourne</strong> : Un nouvel objet <code>Quantity</code> avec la valeur convertie.</li>
+<li><strong>Retourne</strong> : Un nouvel objet <code>ValueWithUnit</code> avec la valeur convertie.</li>
 <li><strong>Exceptions</strong> : Lève une erreur si la conversion est impossible.</li>
 </ul>
 <h2 id="serialisation">Sérialisation</h2>
@@ -1414,19 +1414,19 @@
 </ul>
 <h3 id="from_dict"><code>from_dict</code></h3>
 <h4 id="description_5">Description</h4>
-<p>Crée un objet <code>Quantity</code> à partir d'un dictionnaire.</p>
+<p>Crée un objet <code>ValueWithUnit</code> à partir d'un dictionnaire.</p>
 <ul>
 <li><strong>Paramètres</strong> :</li>
 <li><code>data</code> : Dictionnaire contenant les clés <code>value</code> et <code>unit</code>.</li>
-<li><strong>Retourne</strong> : Un nouvel objet <code>Quantity</code>.</li>
+<li><strong>Retourne</strong> : Un nouvel objet <code>ValueWithUnit</code>.</li>
 </ul>
 <h3 id="from_pint"><code>from_pint</code></h3>
 <h4 id="description_6">Description</h4>
-<p>Crée un objet <code>Quantity</code> à partir d'une quantité Pint.</p>
+<p>Crée un objet <code>ValueWithUnit</code> à partir d'une quantité Pint.</p>
 <ul>
 <li><strong>Paramètres</strong> :</li>
-<li><code>pint_quantity</code> : Objet Pint Quantity.</li>
-<li><strong>Retourne</strong> : Un nouvel objet <code>Quantity</code>.</li>
+<li><code>pint_ValueWithUnit</code> : Objet Pint ValueWithUnit.</li>
+<li><strong>Retourne</strong> : Un nouvel objet <code>ValueWithUnit</code>.</li>
 </ul>
 <h2 id="representation">Représentation</h2>
 <h3 id="__repr__-et-__str__"><code>__repr__</code> et <code>__str__</code></h3>
@@ -1437,7 +1437,7 @@
 </ul>
 <h2 id="operations-arithmetiques">Opérations arithmétiques</h2>
 <h3 id="description_8">Description</h3>
-<p>La classe supporte les opérations <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> avec d'autres objets <code>Quantity</code> ou des scalaires.</p>
+<p>La classe supporte les opérations <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> avec d'autres objets <code>ValueWithUnit</code> ou des scalaires.</p>
 <ul>
 <li><strong>Addition (<code>__add__</code>)</strong> : Additionne deux quantités ou une quantité et un scalaire.</li>
 <li><strong>Soustraction (<code>__sub__</code>)</strong> : Soustrait deux quantités ou une quantité et un scalaire.</li>
@@ -1446,15 +1446,15 @@
 <p><strong>Division (<code>__truediv__</code>)</strong> : Divise deux quantités ou une quantité et un scalaire.</p>
 </li>
 <li>
-<p><strong>Retourne</strong> : Un nouvel objet <code>Quantity</code> représentant le résultat de l'opération.</p>
+<p><strong>Retourne</strong> : Un nouvel objet <code>ValueWithUnit</code> représentant le résultat de l'opération.</p>
 </li>
 </ul>
 <h2 id="exemple-dutilisation">Exemple d'utilisation</h2>
 <ol>
 <li><strong>Création d'objets</strong> :</li>
-<li><code>speed = Quantity(10, "m/s")</code></li>
+<li><code>speed = ValueWithUnit(10, "m/s")</code></li>
 <li>
-<p><code>pressure = Quantity(101325, "Pa")</code></p>
+<p><code>pressure = ValueWithUnit(101325, "Pa")</code></p>
 </li>
 <li>
 <p><strong>Conversion</strong> :</p>
@@ -1480,10 +1480,10 @@
 <li>
 <p><strong>Désérialisation</strong> :</p>
 </li>
-<li><code>speed_loaded = Quantity.from_dict(loaded_data["speed"])</code></li>
+<li><code>speed_loaded = ValueWithUnit.from_dict(loaded_data["speed"])</code></li>
 </ol>
 <h2 id="conclusion">Conclusion</h2>
-<p>La classe <code>Quantity</code> simplifie la gestion des grandeurs physiques avec unités en Python, en s'appuyant sur Pint pour les conversions et en ajoutant des fonctionnalités de sérialisation et d'opérations arithmétiques.</p>
+<p>La classe <code>ValueWithUnit</code> simplifie la gestion des grandeurs physiques avec unités en Python, en s'appuyant sur Pint pour les conversions et en ajoutant des fonctionnalités de sérialisation et d'opérations arithmétiques.</p>
 
 
 

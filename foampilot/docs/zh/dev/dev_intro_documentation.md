@@ -32,7 +32,7 @@
 | `system` | 管理 `system` 目录下的配置文件。 | `SystemDirectory`, `controlDictFile`, `fvSchemesFile`, `fvSolutionFile` |
 | `boundaries` | 定义并应用边界条件。 | `Boundary`, `boundaries_conditions_config` |
 | `mesh` | 网格工具，包括与 `classy_blocks` 和 `snappyHexMesh` 的集成。 | `BlockMeshFile`, `Meshing`, `gmsh_mesher` |
-| `utilities` | 非 OpenFOAM 特定的工具函数和类（单位、流体属性等）。 | `Quantity`, `FluidMechanics`, `manageunits` |
+| `utilities` | 非 OpenFOAM 特定的工具函数和类（单位、流体属性等）。 | `ValueWithUnit`, `FluidMechanics`, `manageunits` |
 | `postprocess` | 结果分析、可视化（通过 `pyvista`）和数据提取的类。 | `FoamPostProcessing`, `ResidualsPost` |
 
 ## 4. 开发者内部机制
@@ -45,14 +45,14 @@
 
 * **继承与属性**：每个 OpenFOAM 配置文件（如 `transportPropertiesFile` 或 `controlDictFile`）都继承自 `OpenFOAMFile`。配置参数存储在实例属性 `self.attributes` 中。
 * **动态访问**：重载魔法方法 `__getattr__` 和 `__setattr__` 允许直接通过对象属性访问和修改参数（如 `solver.constant.transportProperties.nu = ...`），即使它们存储在 `self.attributes` 字典中。
-* **序列化 (`write_file`)**：`write_file` 方法递归遍历 `self.attributes`，并使用内部 `_format_value` 方法将 Python 数据类型（布尔值、数字、元组，尤其是 `Quantity`）转换为 OpenFOAM 特定语法（如 `true`/`false`，括号列表）。
+* **序列化 (`write_file`)**：`write_file` 方法递归遍历 `self.attributes`，并使用内部 `_format_value` 方法将 Python 数据类型（布尔值、数字、元组，尤其是 `ValueWithUnit`）转换为 OpenFOAM 特定语法（如 `true`/`false`，括号列表）。
 
-### 4.2 单位与维度管理 (`Quantity`)
+### 4.2 单位与维度管理 (`ValueWithUnit`)
 
-`Quantity` 类（`foampilot/foampilot/src/foampilot/utilities/manageunits.py`）是 `pint` 库的封装，用于保证物理一致性。
+`ValueWithUnit` 类（`foampilot/foampilot/src/foampilot/utilities/manageunits.py`）是 `pint` 库的封装，用于保证物理一致性。
 
-* **作用**：存储带有物理单位的数值（如 `Quantity(10, "m/s")`）。
-* **自动转换**：写入 OpenFOAM 文件时，`OpenFOAMFile._format_value` 会检查值是否为 `Quantity` 实例。如果是，则使用 `get_in(target_unit)` 将其转换为 OpenFOAM 期望的单位（由 `OpenFOAMFile.DEFAULT_UNITS` 定义），确保所有写入值使用 OpenFOAM 基本单位。
+* **作用**：存储带有物理单位的数值（如 `ValueWithUnit(10, "m/s")`）。
+* **自动转换**：写入 OpenFOAM 文件时，`OpenFOAMFile._format_value` 会检查值是否为 `ValueWithUnit` 实例。如果是，则使用 `get_in(target_unit)` 将其转换为 OpenFOAM 期望的单位（由 `OpenFOAMFile.DEFAULT_UNITS` 定义），确保所有写入值使用 OpenFOAM 基本单位。
 * **OpenFOAM 维度**：`to_openfoam_dimensions()` 方法使用 `pint` 推导 OpenFOAM 维度向量 (M, L, T, Θ, N, J, A)，这对于生成场文件头（如 `U`, `p`）非常关键。
 
 ### 4.3 求解器与场协调 (`Solver` 和 `CaseFieldsManager`)

@@ -968,10 +968,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#71-positive-quantity-validation" class="md-nav__link">
+  <a href="#71-positive-ValueWithUnit-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7.1. Positive Quantity Validation
+        7.1. Positive ValueWithUnit Validation
       
     </span>
   </a>
@@ -979,10 +979,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#72-non-zero-quantity-validation" class="md-nav__link">
+  <a href="#72-non-zero-ValueWithUnit-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7.2. Non-Zero Quantity Validation
+        7.2. Non-Zero ValueWithUnit Validation
       
     </span>
   </a>
@@ -1194,7 +1194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev/manage_quantity/" class="md-nav__link">
+      <a href="../dev/manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1434,7 +1434,7 @@
 - <span class="arithmatex">\(\alpha\)</span> is the thermal diffusivity (m²/s)</p>
 <p>The critical Rayleigh number varies depending on the geometry and boundary conditions. For example, for a horizontal fluid layer heated from below, convection typically begins when <span class="arithmatex">\(Ra &gt; 1708\)</span> [5].</p>
 <h3 id="26-peclet-number-pe">2.6. Peclet Number (Pe)</h3>
-<p>The Peclet number is a dimensionless number relevant in the study of transport phenomena in fluid flows. It is defined as the ratio of the rate of advection of a physical quantity by the flow to the rate of diffusion of the same quantity driven by an appropriate gradient. It is given by:</p>
+<p>The Peclet number is a dimensionless number relevant in the study of transport phenomena in fluid flows. It is defined as the ratio of the rate of advection of a physical ValueWithUnit by the flow to the rate of diffusion of the same ValueWithUnit driven by an appropriate gradient. It is given by:</p>
 <div class="arithmatex">\[Pe = Re \cdot Pr\]</div>
 <p>Where:
 - <span class="arithmatex">\(Re\)</span> is the Reynolds number
@@ -1549,10 +1549,10 @@
 <p>This value is important for engineers to design systems that operate within a desired flow regime or to understand the conditions under which a transition might occur [16].</p>
 <h2 id="7-input-validation-and-error-handling">7. Input Validation and Error Handling</h2>
 <p>Robust input validation and comprehensive error handling are crucial for the reliability and usability of any computational tool. The <code>FluidMechanics</code> class incorporates several validation methods to ensure that input parameters are physically meaningful and to prevent common errors that could lead to incorrect results or program crashes. These validation checks are performed at the initialization of the class and within individual methods where specific conditions apply.</p>
-<h3 id="71-positive-quantity-validation">7.1. Positive Quantity Validation</h3>
-<p>Many physical quantities in fluid mechanics, such as pressure, velocity, and characteristic length, must inherently be positive. Attempting calculations with non-positive values for these parameters would lead to physically impossible or undefined results. The <code>_validate_positive_quantity</code> helper method ensures that any <code>Quantity</code> object passed to the class or its methods has a value greater than zero. If a non-positive value is detected, a <code>ValueError</code> is raised with an informative message, guiding the user to correct their input.</p>
-<h3 id="72-non-zero-quantity-validation">7.2. Non-Zero Quantity Validation</h3>
-<p>Certain calculations involve division by fluid properties like dynamic viscosity, thermal conductivity, or kinematic viscosity. If these properties were zero, the division would result in a mathematical error (division by zero), leading to a program crash. The <code>_validate_non_zero_quantity</code> helper method checks that critical <code>Quantity</code> objects, or their underlying numerical values, are not zero before they are used in such calculations. This prevents runtime errors and ensures the mathematical integrity of the computations. For instance, a fluid with zero viscosity would behave as a perfect fluid, which is a theoretical idealization not typically encountered in practical engineering problems where viscous effects are always present, however small.</p>
+<h3 id="71-positive-ValueWithUnit-validation">7.1. Positive ValueWithUnit Validation</h3>
+<p>Many physical quantities in fluid mechanics, such as pressure, velocity, and characteristic length, must inherently be positive. Attempting calculations with non-positive values for these parameters would lead to physically impossible or undefined results. The <code>_validate_positive_ValueWithUnit</code> helper method ensures that any <code>ValueWithUnit</code> object passed to the class or its methods has a value greater than zero. If a non-positive value is detected, a <code>ValueError</code> is raised with an informative message, guiding the user to correct their input.</p>
+<h3 id="72-non-zero-ValueWithUnit-validation">7.2. Non-Zero ValueWithUnit Validation</h3>
+<p>Certain calculations involve division by fluid properties like dynamic viscosity, thermal conductivity, or kinematic viscosity. If these properties were zero, the division would result in a mathematical error (division by zero), leading to a program crash. The <code>_validate_non_zero_ValueWithUnit</code> helper method checks that critical <code>ValueWithUnit</code> objects, or their underlying numerical values, are not zero before they are used in such calculations. This prevents runtime errors and ensures the mathematical integrity of the computations. For instance, a fluid with zero viscosity would behave as a perfect fluid, which is a theoretical idealization not typically encountered in practical engineering problems where viscous effects are always present, however small.</p>
 <h3 id="73-temperature-range-validation">7.3. Temperature Range Validation</h3>
 <p>Temperature is a fundamental property that significantly influences fluid behavior. In many physical models and equations, particularly those involving ideal gas laws or thermodynamic properties, temperature must be expressed on an absolute scale (e.g., Kelvin) and must be positive. A temperature of 0 Kelvin (absolute zero) represents a state where particles have minimal kinetic energy, and many fluid properties become undefined or behave in ways not covered by standard models. Negative temperatures are physically impossible in this context. The <code>_validate_temperature_range</code> helper method ensures that the input temperature is greater than 0 Kelvin, preventing calculations based on unphysical temperature values and ensuring compatibility with the underlying <code>pyfluids</code> library, which relies on absolute temperature scales [17].</p>
 <p>By implementing these validation checks, the <code>FluidMechanics</code> class enhances its robustness, provides clearer feedback to the user in case of invalid inputs, and helps maintain the physical consistency of the calculated results. This proactive approach to error handling is essential for developing reliable and user-friendly engineering software.</p>

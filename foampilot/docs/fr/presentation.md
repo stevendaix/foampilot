@@ -67,7 +67,7 @@ Ces modules fournissent des fonctionnalités de support essentielles à l'ensemb
 
 | Sous-module | Rôle Conceptuel | Description Théorique |
 | :--- | :--- | :--- |
-| **`utilities.manageunits`** | **Gestion des Unités** | Utilise la classe `Quantity` pour garantir la cohérence dimensionnelle des entrées. C'est une pratique essentielle en physique et en ingénierie pour éviter les erreurs de conversion et rendre le code indépendant du système d'unités utilisé (SI, impérial, etc.). |
+| **`utilities.manageunits`** | **Gestion des Unités** | Utilise la classe `ValueWithUnit` pour garantir la cohérence dimensionnelle des entrées. C'est une pratique essentielle en physique et en ingénierie pour éviter les erreurs de conversion et rendre le code indépendant du système d'unités utilisé (SI, impérial, etc.). |
 | **`utilities.dictonnary`** | **Manipulation des Dictionnaires OpenFOAM** | Fournit des outils pour créer et manipuler des structures de données complexes qui correspondent aux fichiers de dictionnaire OpenFOAM (ex: `topoSetDict`, `createPatchDict`). |
 | **`commons`** | **Utilitaires Génériques** | Contient des fonctions pour la sérialisation des classes, la lecture des fichiers de maillage (`polyMesh/boundary`), et d'autres opérations de bas niveau nécessaires à l'interfaçage avec le format de fichier OpenFOAM. |
 

@@ -258,11 +258,11 @@ $$v_c = \frac{Re_{crit} \mu}{\rho D}$$
 
 ### 7.1. 正值验证
 
-流体力学中的许多物理量，如压力、速度和特征长度，本质上必须是正值。`_validate_positive_quantity` 辅助方法确保传入的任何 `Quantity` 对象的值大于零。
+流体力学中的许多物理量，如压力、速度和特征长度，本质上必须是正值。`_validate_positive_ValueWithUnit` 辅助方法确保传入的任何 `ValueWithUnit` 对象的值大于零。
 
 ### 7.2. 非零值验证
 
-某些计算涉及除以流体属性，如动力粘度或热导率。`_validate_non_zero_quantity` 辅助方法检查关键 `Quantity` 对象的值是否非零，以防止除以零的数学错误。
+某些计算涉及除以流体属性，如动力粘度或热导率。`_validate_non_zero_ValueWithUnit` 辅助方法检查关键 `ValueWithUnit` 对象的值是否非零，以防止除以零的数学错误。
 
 ### 7.3. 温度范围验证
 

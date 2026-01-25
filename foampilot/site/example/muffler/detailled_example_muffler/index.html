@@ -786,7 +786,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../dev/manage_quantity/" class="md-nav__link">
+      <a href="../../../dev/manage_ValueWithUnit/" class="md-nav__link">
         
   
   
@@ -1323,14 +1323,14 @@
 <hr />
 <h2 id="3-fluid-properties">3. Fluid Properties</h2>
 <p>FoamPilot relies on explicit fluid modeling through the <code>FluidMechanics</code> API.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">foampilot</span><span class="w"> </span><span class="kn">import</span> <span class="n">FluidMechanics</span><span class="p">,</span> <span class="n">Quantity</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">foampilot</span><span class="w"> </span><span class="kn">import</span> <span class="n">FluidMechanics</span><span class="p">,</span> <span class="n">ValueWithUnit</span>
 
 <span class="n">available_fluids</span> <span class="o">=</span> <span class="n">FluidMechanics</span><span class="o">.</span><span class="n">get_available_fluids</span><span class="p">()</span>
 
 <span class="n">fluid</span> <span class="o">=</span> <span class="n">FluidMechanics</span><span class="p">(</span>
     <span class="n">available_fluids</span><span class="p">[</span><span class="s2">&quot;Water&quot;</span><span class="p">],</span>
-    <span class="n">temperature</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mf">293.15</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">),</span>
-    <span class="n">pressure</span><span class="o">=</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">101325</span><span class="p">,</span> <span class="s2">&quot;Pa&quot;</span><span class="p">)</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="n">ValueWithUnit</span><span class="p">(</span><span class="mf">293.15</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">),</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="n">ValueWithUnit</span><span class="p">(</span><span class="mi">101325</span><span class="p">,</span> <span class="s2">&quot;Pa&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="n">properties</span> <span class="o">=</span> <span class="n">fluid</span><span class="o">.</span><span class="n">get_fluid_properties</span><span class="p">()</span>
@@ -1414,9 +1414,9 @@
     <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;inlet&quot;</span><span class="p">,</span>
     <span class="n">condition_type</span><span class="o">=</span><span class="s2">&quot;velocityInlet&quot;</span><span class="p">,</span>
     <span class="n">velocity</span><span class="o">=</span><span class="p">(</span>
-        <span class="n">Quantity</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span>
-        <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span>
-        <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)</span>
+        <span class="n">ValueWithUnit</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span>
+        <span class="n">ValueWithUnit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span>
+        <span class="n">ValueWithUnit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)</span>
     <span class="p">),</span>
     <span class="n">turbulence_intensity</span><span class="o">=</span><span class="mf">0.05</span>
 <span class="p">)</span>

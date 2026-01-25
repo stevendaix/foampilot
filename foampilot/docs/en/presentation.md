@@ -67,7 +67,7 @@ These modules provide essential supporting functionality for the entire framewor
 
 | Submodule | Conceptual Role | Theoretical Description |
 | :--- | :--- | :--- |
-| **`utilities.manageunits`** | **Unit Management** | Uses the `Quantity` class to ensure dimensional consistency of inputs. This practice is essential in physics and engineering to avoid conversion errors and make the code unit-system independent (SI, Imperial, etc.). |
+| **`utilities.manageunits`** | **Unit Management** | Uses the `ValueWithUnit` class to ensure dimensional consistency of inputs. This practice is essential in physics and engineering to avoid conversion errors and make the code unit-system independent (SI, Imperial, etc.). |
 | **`utilities.dictonnary`** | **OpenFOAM Dictionary Handling** | Provides tools to create and manipulate complex data structures corresponding to OpenFOAM dictionary files (e.g., `topoSetDict`, `createPatchDict`). |
 | **`commons`** | **Generic Utilities** | Contains functions for class serialization, reading mesh files (`polyMesh/boundary`), and other low-level operations necessary to interface with OpenFOAM file formats. |
 
