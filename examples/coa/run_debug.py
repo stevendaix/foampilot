@@ -151,16 +151,13 @@ def setup_coa_case():
     }
     
     # Apply to patches
-    solver.boundary.fields["U"]["inlet"] = inlet_bc_u
-    solver.boundary.fields["p"]["inlet"] = inlet_bc_p
-    
-    for i in range(1, 5):
-        patch = f"outlet{i}"
-        solver.boundary.fields["U"][patch] = wk_u_bc
-        solver.boundary.fields["p"][patch] = wk_p_bc
-        
-    solver.boundary.fields["U"]["wall_aorta"] = {"type": "noSlip"}
-    solver.boundary. fields["p"]["wall_aorta"] = {"type": "zeroGradient"}
+   solver.boundary.set_raw_condition("inlet", "U", inlet_bc_u)
+solver.boundary.set_raw_condition("inlet", "p", inlet_bc_p)
+
+for i in range(1, 5):
+    patch = f"outlet{i}"
+    solver.boundary.set_raw_condition(patch, "U", wk_u_bc)
+    solver.boundary.set_raw_condition(patch, "p", wk_p_bc)
 
     # Write all boundary files (this creates the 0/ directory files)
     solver.boundary.write_boundary_conditions()
