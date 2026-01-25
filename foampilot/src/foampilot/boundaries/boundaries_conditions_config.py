@@ -218,7 +218,7 @@ CONDITION_CALCULATORS = {
                 "omega_value": (1.5 * ((velocity[0].get_in("m/s")**2 + velocity[1].get_in("m/s")**2 + velocity[2].get_in("m/s")**2) ** 0.5 * turbulence_intensity) ** 2) ** 0.5 / (0.09 * ((velocity[0].get_in("m/s")**2 + velocity[1].get_in("m/s")**2 + velocity[2].get_in("m/s")**2) ** 0.5)), # Simplified for kOmegaSST
             })
         },
-        "validate": lambda velocity, **kwargs: all(comp.ValueWithUnit.check('[length] / [time]') for comp in velocity),
+        "validate": lambda velocity, **kwargs: all(comp.check('[length] / [time]') for comp in velocity),
         "error_message": "Each velocity component must have units of length/time."
     },
     "pressureInlet": {
@@ -230,7 +230,7 @@ CONDITION_CALCULATORS = {
                 "omega_value": (1.5 * (pressure.get_in("Pa") * turbulence_intensity) ** 2) ** 0.5 / (0.09 * pressure.get_in("Pa")),
             })
         },
-        "validate": lambda pressure, **kwargs: pressure.ValueWithUnit.check('[mass] / ([length] * [time] ** 2)'),
+        "validate": lambda pressure, **kwargs: pressure.check('[mass] / ([length] * [time] ** 2)'),
         "error_message": "Pressure must have units of mass/(length*time²)."
     },
     "pressureOutlet": {
@@ -239,7 +239,7 @@ CONDITION_CALCULATORS = {
             "v_ms": velocity[1].get_in('m/s'),
             "w_ms": velocity[2].get_in('m/s'),
         },
-        "validate": lambda velocity, **kwargs: all(comp.ValueWithUnit.check('[length] / [time]') for comp in velocity),
+        "validate": lambda velocity, **kwargs: all(comp.check('[length] / [time]') for comp in velocity),
         "error_message": "Each velocity component must have units of length/time."
     },
     "massFlowInlet": {
@@ -247,7 +247,7 @@ CONDITION_CALCULATORS = {
             "velocity_value": (mass_flow_rate.get_in("kg/s") / density.get_in("kg/m^3")),
         },
         "validate": lambda mass_flow_rate, density, **kwargs:
-            mass_flow_rate.ValueWithUnit.check('[mass] / [time]') and density.ValueWithUnit.check('[mass] / [volume]'),
+            mass_flow_rate.check('[mass] / [time]') and density.check('[mass] / [volume]'),
         "error_message": "Mass flow rate must have units of mass/time and density must have units of mass/volume."
     },
     "wall": {
@@ -259,7 +259,7 @@ CONDITION_CALCULATORS = {
             })
         },
         "validate": lambda velocity, **kwargs:
-            True if not velocity else all(comp.ValueWithUnit.check('[length] / [time]') for comp in velocity),
+            True if not velocity else all(comp.check('[length] / [time]') for comp in velocity),
         "error_message": "Each velocity component must have units of length/time."
     },
     "uniformNormalFixedValue": {
