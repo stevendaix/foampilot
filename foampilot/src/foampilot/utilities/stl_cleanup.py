@@ -1,109 +1,117 @@
+import trimesh
 import pyvista as pv
+import pyacvd
 import numpy as np
-import gmsh
 import os
 from scipy.spatial import KDTree
 
-class AortaVesselMaster:
-def init(self, verbose=True):
-self.verbose = verbose
+class AortaSurfaceCleaner:
+    def __init__(self, input_path):
+        self.path = input_path
+        self.mesh = None
+        self.original_raw = pv.read(input_path)
+        
+        # Détection d'échelle auto au chargement
+        if self.original_raw.length > 1.0:
+            self.original_raw.scale([0.001, 0.001, 0.001], inplace=True)
 
-def log(self, msg):  
-    if self.verbose: print(f"[PROCESS] {msg}")  
+    def log(self, msg):
+        print(f"[PROCESS] {msg}")
 
-def clean_and_prepare_surface(self, input_file, target_points=25000):  
-    """Nettoyage, lissage Taubin et remaillage isotrope."""  
-    mesh = pv.read(input_file).extract_geometry()  
-      
-    # 1. Isolation de l'aorte (plus grande région)  
-    self.log("Cleaning topology...")  
-    cleaned = mesh.connectivity(largest=True).clean(tolerance=1e-5)  
-      
-    # 2. Détection des zones à protéger (Inlets/Outlets)  
-    # On utilise les bords libres du STL  
-    boundary_edges = cleaned.extract_feature_edges(boundary_edges=True, feature_edges=False)  
-    protected_coords = boundary_edges.points  
-      
-    # 3. Lissage Taubin (ne réduit pas le diamètre)  
-    self.log("Smoothing (Taubin)...")  
-    smoothed = cleaned.smooth_taubin(n_iter=40, pass_band=0.1)  
-      
-    # 4. Remaillage Isotrope (PyACVD)  
-    self.log("Isotropic Remeshing...")  
-    import pyacvd  
-    clus = pyacvd.Clustering(smoothed)  
-    clus.subdivide(3)  
-    clus.cluster(target_points)  
-    remeshed = clus.create_mesh()  
-      
-    # 5. Correction de la déformation des bords via KDTree  
-    self.log("Restoring boundary precision...")  
-    tree = KDTree(remeshed.points)  
-    _, indices = tree.query(protected_coords)  
-    remeshed.points[indices] = protected_coords  
-      
-    return remeshed  
+    def run_pipeline(self, method="classic", decimate_ratio=0.5, target_points=25000):
+        """
+        Interrupteur de méthode :
+        - 'classic' : Trimesh + Taubin + ACVD (Précision CFD)
+        - 'wrap'    : Reconstruct Surface (Robustesse max pour scans brisés)
+        """
+        if method == "classic":
+            return self._pipeline_classic(decimate_ratio, target_points)
+        elif method == "wrap":
+            return self._pipeline_wrapping(target_points)
+        else:
+            raise ValueError("Méthode inconnue. Utilisez 'classic' ou 'wrap'.")
 
-def create_volume_mesh(self, surface_mesh, output_file, mesh_size=2.0):  
-    """Génère un maillage volumique (tétraèdres) via GMSH."""  
-    self.log("Starting GMSH Volume Meshing...")  
-      
-    gmsh.initialize()  
-    gmsh.model.add("AortaVolume")  
+    def _pipeline_classic(self, decimate_ratio, target_points):
+        self.log("Exécution du pipeline CLASSIQUE...")
+        # 1. Trimesh : Réparation et isolation
+        t_mesh = trimesh.load(self.path)
+        t_mesh.fill_holes()
+        components = t_mesh.split(only_watertight=False)
+        t_mesh = max(components, key=lambda x: x.area)
+        
+        # 2. PyVista : Décimation et Protection des bords
+        pv_mesh = pv.wrap(t_mesh)
+        if pv_mesh.length > 1.0: pv_mesh.scale([0.001, 0.001, 0.001], inplace=True)
+        
+        if decimate_ratio < 1.0:
+            pv_mesh = pv_mesh.decimate(1.0 - decimate_ratio, preserve_topology=True)
 
-    # Import de la surface STL nettoyée  
-    # On passe par un fichier temporaire pour assurer la compatibilité GMSH  
-    temp_stl = "temp_refined.stl"  
-    surface_mesh.save(temp_stl)  
-    gmsh.merge(temp_stl)  
+        edges = pv_mesh.extract_feature_edges(boundary_edges=True, feature_edges=False)
+        protected_coords = edges.points
 
-    # Création de la géométrie volumique  
-    surf_ids = gmsh.model.getEntities(2)  
-    loops = gmsh.model.geo.addSurfaceLoop([s[1] for s in surf_ids])  
-    gmsh.model.geo.addVolume([loops])  
-    gmsh.model.geo.synchronize()  
+        # 3. Lissage et Remaillage
+        smoothed = pv_mesh.smooth_taubin(n_iter=50, pass_band=0.05)
+        clus = pyacvd.Clustering(smoothed)
+        clus.subdivide(3)
+        clus.cluster(target_points)
+        self.mesh = clus.create_mesh()
 
-    # Configuration du mailleur  
-    gmsh.option.setNumber("Mesh.MeshSizeMin", mesh_size * 0.5)  
-    gmsh.option.setNumber("Mesh.MeshSizeMax", mesh_size)  
-    gmsh.option.setNumber("Mesh.Algorithm3D", 1) # Delaunay  
-      
-    gmsh.model.mesh.generate(3)  
-    gmsh.write(output_file)  
-    gmsh.finalize()  
-      
-    if os.path.exists(temp_stl): os.remove(temp_stl)  
-    self.log(f"Volume mesh saved to {output_file}")  
+        # 4. Restauration KDTree
+        if len(protected_coords) > 0:
+            tree = KDTree(self.mesh.points)
+            _, indices = tree.query(protected_coords)
+            self.mesh.points[indices] = protected_coords
+        
+        return self.mesh
 
-def visualize(self, surface, volume_path):  
-    """Visualise la surface et une coupe du volume."""  
-    vol = pv.read(volume_path)  
-    plotter = pv.Plotter(shape=(1, 2))  
-      
-    plotter.subplot(0, 0)  
-    plotter.add_text("Surface Isotrope")  
-    plotter.add_mesh(surface, color="lightblue", show_edges=True)  
-      
-    plotter.subplot(0, 1)  
-    plotter.add_text("Coupe Volumique (Tétraèdres)")  
-    # Création d'une coupe (clip) pour voir l'intérieur  
-    clipped = vol.clip(normal='x')  
-    plotter.add_mesh(clipped, show_edges=True, color="white")  
-      
-    plotter.link_views()  
-    plotter.show()
+    def _pipeline_wrapping(self, target_points):
+        self.log("Exécution du pipeline WRAPPING (Shrink-wrap)...")
+        # Utilisation de la reconstruction de surface VTK
+        # On traite le scan comme un nuage de points pour recréer une peau neuve
+        points = pv.PolyData(self.original_raw.points)
+        surface = points.reconstruct_surface(nbr_sz=20)
+        
+        # Extraction de la peau et remaillage pour uniformiser
+        clus = pyacvd.Clustering(surface.connectivity(largest=True))
+        clus.subdivide(2)
+        clus.cluster(target_points)
+        self.mesh = clus.create_mesh().smooth_taubin(n_iter=30)
+        
+        return self.mesh
 
---- MAIN ---
+    # --- OUTILS DE DIAGNOSTIC ---
 
-if name == "main":
-worker = AortaVesselMaster()
+    def show_comparison(self):
+        p = pv.Plotter(shape=(1, 2), title="Diagnostic : Original vs Cleaned")
+        p.subplot(0, 0)
+        p.add_text("Scan Brut")
+        p.add_mesh(self.original_raw, color="salmon", opacity=0.5)
+        p.subplot(0, 1)
+        p.add_text("Maillage Final")
+        p.add_mesh(self.mesh, color="lightblue", show_edges=True)
+        p.link_views()
+        p.show()
 
-# 1. Prétraitement de la surface  
-surf_cleaned = worker.clean_and_prepare_surface("votre_aorte.stl")  
-  
-# 2. Génération du volume (Fichier .msh ou .vtk)  
-# Le format .vtk est facile à relire dans PyVista/Paraview  
-worker.create_volume_mesh(surf_cleaned, "aorta_final.vtk", mesh_size=1.5)  
-  
-# 3. Affichage  
-worker.visualize(surf_cleaned, "aorta_final.vtk")
+    def check_quality(self):
+        """Affiche la qualité des triangles (angles)."""
+        qual = self.mesh.compute_cell_quality(quality_measure='min_angle')
+        qual.plot(scalars="CellQuality", cmap="RdYlGn", show_edges=True, title="Qualité (Angle Min)")
+
+    def save(self, output_path):
+        if self.mesh:
+            self.mesh.save(output_path)
+            self.log(f"Exportation réussie : {output_path}")
+
+# --- EXEMPLE D'UTILISATION ---
+if __name__ == "__main__":
+    cleaner = AortaSurfaceCleaner("aorta_scan.stl")
+
+    # Si le scan est vraiment sale (trous partout), utilisez method="wrap"
+    # Sinon, "classic" est meilleur pour garder la précision
+    mesh_final = cleaner.run_pipeline(method="classic", decimate_ratio=0.3)
+
+    cleaner.show_comparison()
+    cleaner.check_quality()
+    cleaner.save("aorta_for_gmsh.stl")
+
+
