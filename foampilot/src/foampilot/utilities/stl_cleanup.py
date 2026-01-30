@@ -120,3 +120,47 @@ class AortaSurfaceCleaner:
             p.add_mesh(res['mesh'], scalars="Error_mm", cmap="magma")
             p.add_text(f"Rank {i+1}: {res['params']['method']}\nMax Err: {h['max']*1000:.2f}mm", font_size=9)
         p.show()
+
+class AortaCapper:
+    def __init__(self, mesh):
+        self.mesh = mesh
+        
+    def close_openings(self):
+        boundaries = self.mesh.extract_feature_edges(
+            boundary_edges=True,
+            non_manifold_edges=False,
+            feature_edges=False
+        )
+        
+        if boundaries.n_points == 0:
+            return self.mesh
+            
+        loops = boundaries.connectivity()
+        surfaces_to_add = []
+
+        for rid in np.unique(loops["RegionId"]):
+            loop = loops.extract_points(loops["RegionId"] == rid)
+
+            center = loop.points.mean(axis=0)
+            normals = loop.compute_normals(
+                cell_normals=False,
+                point_normals=True
+            )["Normals"]
+            normal = normals.mean(axis=0)
+            normal /= np.linalg.norm(normal)
+
+            projected = loop.project_points_to_plane(
+                origin=center,
+                normal=normal
+            )
+
+            cap = projected.delaunay_2d()
+            surfaces_to_add.append(cap)
+
+        combined = self.mesh.merge(surfaces_to_add)
+        combined = combined.clean()
+        combined = combined.compute_normals(
+            auto_orient_normals=True,
+            consistent_normals=True
+        )
+        return combined
