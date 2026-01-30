@@ -2,116 +2,121 @@ import trimesh
 import pyvista as pv
 import pyacvd
 import numpy as np
-import os
-from scipy.spatial import KDTree
+import itertools
+from pathlib import Path
+from scipy.spatial import cKDTree, KDTree
 
 class AortaSurfaceCleaner:
     def __init__(self, input_path):
         self.path = input_path
         self.mesh = None
+        # Chargement et normalisation immédiate de l'original
         self.original_raw = pv.read(input_path)
-        
-        # Détection d'échelle auto au chargement
         if self.original_raw.length > 1.0:
             self.original_raw.scale([0.001, 0.001, 0.001], inplace=True)
 
     def log(self, msg):
         print(f"[PROCESS] {msg}")
 
-    def run_pipeline(self, method="classic", decimate_ratio=0.5, target_points=25000):
-        """
-        Interrupteur de méthode :
-        - 'classic' : Trimesh + Taubin + ACVD (Précision CFD)
-        - 'wrap'    : Reconstruct Surface (Robustesse max pour scans brisés)
-        """
-        if method == "classic":
-            return self._pipeline_classic(decimate_ratio, target_points)
-        elif method == "wrap":
-            return self._pipeline_wrapping(target_points)
-        else:
-            raise ValueError("Méthode inconnue. Utilisez 'classic' ou 'wrap'.")
+    # --- MÉTHODES DE CALCUL ---
 
-    def _pipeline_classic(self, decimate_ratio, target_points):
-        self.log("Exécution du pipeline CLASSIQUE...")
-        # 1. Trimesh : Réparation et isolation
+    def compute_hausdorff(self, cleaned_mesh):
+        """Calcule l'écart entre l'original et le maillage nettoyé."""
+        tree = cKDTree(self.original_raw.points)
+        distances, _ = tree.query(cleaned_mesh.points)
+        return {
+            "max": np.max(distances),
+            "mean": np.mean(distances),
+            "local_dist": distances
+        }
+
+    def get_mesh_quality(self, mesh):
+        """Retourne l'angle minimal moyen des triangles."""
+        qual = mesh.compute_cell_quality(quality_measure='min_angle')
+        return np.mean(qual['CellQuality'])
+
+    # --- PIPELINES ---
+
+    def _pipeline_classic(self, decimate_ratio, target_points, smooth_iter=50):
         t_mesh = trimesh.load(self.path)
         t_mesh.fill_holes()
-        components = t_mesh.split(only_watertight=False)
-        t_mesh = max(components, key=lambda x: x.area)
+        t_mesh = max(t_mesh.split(only_watertight=False), key=lambda x: x.area)
         
-        # 2. PyVista : Décimation et Protection des bords
         pv_mesh = pv.wrap(t_mesh)
         if pv_mesh.length > 1.0: pv_mesh.scale([0.001, 0.001, 0.001], inplace=True)
-        
         if decimate_ratio < 1.0:
             pv_mesh = pv_mesh.decimate(1.0 - decimate_ratio, preserve_topology=True)
 
         edges = pv_mesh.extract_feature_edges(boundary_edges=True, feature_edges=False)
-        protected_coords = edges.points
-
-        # 3. Lissage et Remaillage
-        smoothed = pv_mesh.smooth_taubin(n_iter=50, pass_band=0.05)
+        smoothed = pv_mesh.smooth_taubin(n_iter=smooth_iter, pass_band=0.05)
+        
         clus = pyacvd.Clustering(smoothed)
         clus.subdivide(3)
         clus.cluster(target_points)
-        self.mesh = clus.create_mesh()
+        m = clus.create_mesh()
 
-        # 4. Restauration KDTree
-        if len(protected_coords) > 0:
-            tree = KDTree(self.mesh.points)
-            _, indices = tree.query(protected_coords)
-            self.mesh.points[indices] = protected_coords
-        
-        return self.mesh
+        if edges.n_points > 0:
+            tree = KDTree(m.points)
+            _, idx = tree.query(edges.points)
+            m.points[idx] = edges.points
+        return m
 
-    def _pipeline_wrapping(self, target_points):
-        self.log("Exécution du pipeline WRAPPING (Shrink-wrap)...")
-        # Utilisation de la reconstruction de surface VTK
-        # On traite le scan comme un nuage de points pour recréer une peau neuve
+    def _pipeline_wrapping(self, target_points, nbr_sz=20):
         points = pv.PolyData(self.original_raw.points)
-        surface = points.reconstruct_surface(nbr_sz=20)
-        
-        # Extraction de la peau et remaillage pour uniformiser
+        surface = points.reconstruct_surface(nbr_sz=nbr_sz)
         clus = pyacvd.Clustering(surface.connectivity(largest=True))
         clus.subdivide(2)
         clus.cluster(target_points)
-        self.mesh = clus.create_mesh().smooth_taubin(n_iter=30)
+        return clus.create_mesh().smooth_taubin(n_iter=30)
+
+    # --- L'OPTIMISEUR ---
+
+    def optimize(self, runs=None):
+        """
+        Teste plusieurs combinaisons et retourne le meilleur compromis.
+        """
+        if runs is None:
+            runs = [
+                {"method": "classic", "decimate": 0.2, "points": 30000},
+                {"method": "classic", "decimate": 0.5, "points": 20000},
+                {"method": "wrap",    "decimate": 0.0, "points": 25000}
+            ]
         
-        return self.mesh
+        results = []
+        for r in runs:
+            self.log(f"Testing {r['method']} | Pts: {r['points']}...")
+            try:
+                if r['method'] == "classic":
+                    m = self._pipeline_classic(r['decimate'], r['points'])
+                else:
+                    m = self._pipeline_wrapping(r['points'])
+                
+                h = self.compute_hausdorff(m)
+                q = self.get_mesh_quality(m)
+                
+                # Score : Haute qualité d'angle + Faible distance de Hausdorff
+                # On pénalise si l'erreur max > 0.8mm (0.0008m)
+                score = (q / 60.0) + (1.0 / (1.0 + h['max'] * 1500))
+                if m.is_manifold: score += 0.5
+                
+                results.append({"mesh": m, "score": score, "h_max": h['max'], "quality": q, "params": r})
+            except Exception as e:
+                self.log(f"Failed combination: {e}")
 
-    # --- OUTILS DE DIAGNOSTIC ---
+        # On garde le meilleur
+        results.sort(key=lambda x: x['score'], reverse=True)
+        self.mesh = results[0]['mesh']
+        self.log(f"Best model selected (Score: {results[0]['score']:.2f})")
+        return results
 
-    def show_comparison(self):
-        p = pv.Plotter(shape=(1, 2), title="Diagnostic : Original vs Cleaned")
-        p.subplot(0, 0)
-        p.add_text("Scan Brut")
-        p.add_mesh(self.original_raw, color="salmon", opacity=0.5)
-        p.subplot(0, 1)
-        p.add_text("Maillage Final")
-        p.add_mesh(self.mesh, color="lightblue", show_edges=True)
-        p.link_views()
+    def show_best_results(self, results):
+        """Visualise les 3 meilleurs avec l'erreur de Hausdorff en couleur."""
+        p = pv.Plotter(shape=(1, min(3, len(results))))
+        for i in range(min(3, len(results))):
+            res = results[i]
+            p.subplot(0, i)
+            h = self.compute_hausdorff(res['mesh'])
+            res['mesh']["Error_mm"] = h['local_dist'] * 1000 # Conversion en mm pour le plot
+            p.add_mesh(res['mesh'], scalars="Error_mm", cmap="magma")
+            p.add_text(f"Rank {i+1}: {res['params']['method']}\nMax Err: {h['max']*1000:.2f}mm", font_size=9)
         p.show()
-
-    def check_quality(self):
-        """Affiche la qualité des triangles (angles)."""
-        qual = self.mesh.compute_cell_quality(quality_measure='min_angle')
-        qual.plot(scalars="CellQuality", cmap="RdYlGn", show_edges=True, title="Qualité (Angle Min)")
-
-    def save(self, output_path):
-        if self.mesh:
-            self.mesh.save(output_path)
-            self.log(f"Exportation réussie : {output_path}")
-
-# --- EXEMPLE D'UTILISATION ---
-if __name__ == "__main__":
-    cleaner = AortaSurfaceCleaner("aorta_scan.stl")
-
-    # Si le scan est vraiment sale (trous partout), utilisez method="wrap"
-    # Sinon, "classic" est meilleur pour garder la précision
-    mesh_final = cleaner.run_pipeline(method="classic", decimate_ratio=0.3)
-
-    cleaner.show_comparison()
-    cleaner.check_quality()
-    cleaner.save("aorta_for_gmsh.stl")
-
-
