@@ -34,25 +34,30 @@ class AortaSurfaceCleaner:
         }
 
     def get_mesh_quality(self, mesh):
-        qual = mesh.cell_quality(quality_measure='min_angle')
-        print(f"Type de 'qual': {type(qual)}")  # Debug
-        if isinstance(qual, np.ndarray):
-            return np.mean(qual)
-        else:
-            # Alternative : Calculer manuellement la qualité
-            cells = mesh.cells
-            points = mesh.points
-            angles = []
-            for cell in cells:
-                # Exemple simplifié : calculer les angles d'un triangle
-                if len(cell) == 3:  # Triangle
-                    a, b, c = points[cell]
-                    # Calculer les angles (à adapter selon tes besoins)
-                    ab = b - a
-                    ac = c - a
-                    angle = np.arccos(np.dot(ab, ac) / (np.linalg.norm(ab) * np.linalg.norm(ac)))
-                    angles.append(np.degrees(angle))
-            return np.mean(angles) if angles else 0
+        # Récupérer les points et les faces
+        points = mesh.points
+        faces = mesh.faces.reshape(-1, 4)[:, 1:]  # Les faces sont stockées comme [n, i, j, k]
+
+        angles = []
+        for face in faces:
+            # Récupérer les points du triangle
+            a, b, c = points[face]
+
+            # Calculer les vecteurs
+            ab = b - a
+            ac = c - a
+            bc = c - b
+
+            # Calculer les angles (en radians)
+            angle_a = np.arccos(np.dot(ab, ac) / (np.linalg.norm(ab) * np.linalg.norm(ac)))
+            angle_b = np.arccos(np.dot(-ab, bc) / (np.linalg.norm(bc) * np.linalg.norm(ab)))
+            angle_c = np.arccos(np.dot(-ac, -bc) / (np.linalg.norm(ac) * np.linalg.norm(bc)))
+
+            # Convertir en degrés et ajouter à la liste
+            angles.extend([np.degrees(angle_a), np.degrees(angle_b), np.degrees(angle_c)])
+
+        # Retourner l'angle minimal moyen
+        return np.mean(angles) if angles else 0
 
 
 
