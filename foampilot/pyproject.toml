@@ -59,7 +59,13 @@ dependencies = [
   "trame-vuetify",
   "meshio",
   "build123d",
-  "typst"
+  "typst",
+  "scikit-image",
+  "nibabel",
+  "trimesh", 
+  "pyacvd",
+  "kagglehub"
+
 ]
 
 [project.optional-dependencies]

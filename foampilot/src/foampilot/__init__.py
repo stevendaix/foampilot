@@ -49,5 +49,5 @@ from foampilot.commons.read_polymesh import BoundaryFileHandler
 from foampilot.commons import STLAnalyzer
 
 from foampilot.report import latex_pdf,ScientificDocument, TypstRenderer
-from foampilot.utilities import ValueWithUnit, FluidMechanics, Functions, ResidualsPost, HumanGeometry, OpenFOAMDictAddFile, CSVFoamIntegrator,WeatherFileEPW
+from foampilot.utilities import ValueWithUnit, FluidMechanics, Functions, ResidualsPost, HumanGeometry, OpenFOAMDictAddFile, CSVFoamIntegrator,WeatherFileEPW, AortaSurfaceCleaner,AortaCapMethod, create_closed_aorta_mesh, prepare_tbad_mesh, save_nifti_to_obj
 from foampilot.model_addon.windkessel import WindkesselModel

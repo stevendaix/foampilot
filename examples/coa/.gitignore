@@ -1,0 +1,9 @@
+# Ignorer tout
+*
+!*.py
+!*.json
+!.gitignore
+!*.csv
+!data**
+!CoA**
+!data_preproc/*stl

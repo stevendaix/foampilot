@@ -129,18 +129,18 @@ class Boundary:
                     self.fields[field][boundary_name] = self._format_config(final_config, kwargs)
 
     def set_raw_condition(self, patch_name: str, field: str, config: dict):
-    """
-    Directly set a boundary condition dictionary for a given field and patch,
-    bypassing the default turbulence/velocity logic.
+        """
+        Directly set a boundary condition dictionary for a given field and patch,
+        bypassing the default turbulence/velocity logic.
 
-    Args:
-        patch_name: Name of the patch.
-        field: Name of the field (e.g., 'U', 'p', 'k').
-        config: Dictionary representing the OpenFOAM boundary condition.
-    """
-    if field not in self.fields:
-        self.fields[field] = {}
-    self.fields[field][patch_name] = config
+        Args:
+            patch_name: Name of the patch.
+            field: Name of the field (e.g., 'U', 'p', 'k').
+            config: Dictionary representing the OpenFOAM boundary condition.
+        """
+        if field not in self.fields:
+            self.fields[field] = {}
+        self.fields[field][patch_name] = config
 
     def _resolve_field_config(self, field_config: Dict[str, Any], kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -149,7 +149,6 @@ class Boundary:
         """
         # Ajouter une valeur par défaut pour velocity si non fournie
         if "velocity" not in kwargs:
-            from foampilot.utilities.manageunits import ValueWithUnit
             kwargs["velocity"] = (ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
 
         if "type" in field_config and field_config["type"] == "wallFunction":
@@ -170,7 +169,6 @@ class Boundary:
             return field_config["noSlip"]
 
         return field_config
-
 
     def _format_config(self, config: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
         """
