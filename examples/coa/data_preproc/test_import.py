@@ -668,6 +668,17 @@ def process_tbad_pipeline(
 # ============================================================================
 # POINT D'ENTRÉE PRINCIPAL
 # ============================================================================
+import kagglehub
+
+import pyvista as pv
+
+import_data = False #set to True to download from Kaggle
+#https://www.kaggle.com/datasets/xiaoweixumedicalai/imagetbad?resource=download
+if import_data :
+    path = kagglehub.dataset_download("xiaoweixumedicalai/imagetbad")
+
+    print("Path to dataset files:", path)
+    #il faut dezipper avec 7z dans le path
 
 if __name__ == "__main__":
     # ------------------------------------------------------------------------
