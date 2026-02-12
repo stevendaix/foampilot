@@ -11,7 +11,7 @@ license = { text = "MIT" }
 requires-python = ">=3.9"
 
 authors = [
-  { name = "Steven Daix", email = "votre.email@exemple.com" }
+  { name = "Steven Daix", email ="steven.daix@gmail.com" }
 ]
 
 keywords = ["openfoam", "cfd", "simulation", "pyvista", "automation"]
@@ -74,7 +74,7 @@ Homepage = "https://github.com/stevendaix/foampilot"
 Bug_Tracker = "https://github.com/stevendaix/foampilot/issues"
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["foampilot*"]
 
 [tool.black]
