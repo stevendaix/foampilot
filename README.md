@@ -6,8 +6,7 @@
 🌍 **Languages:**  
 [English](README.md) | [Français](README.fr.md) | [中文](README.zh.md)
 
-**foampilot** is a Python platform designed to *fully orchestrate OpenFOAM simulations*  
-using Python as the single source of truth — from case definition and meshing to execution,
+**foampilot** is a Python platform designed to *fully orchestrate OpenFOAM simulations* — from case definition and meshing to execution,
 post-processing, and reporting.
 
 It is intended for engineers and researchers who want **reproducible, scriptable,
@@ -52,7 +51,6 @@ OpenFOAM cases become *generated artifacts*, not manually maintained inputs.
 
 ## Design Philosophy
 
-- Python is the **source of truth**
 - OpenFOAM dictionaries are **generated**, never manually edited
 - Reproducibility and traceability over GUI-driven workflows
 - Explicit, inspectable configurations
