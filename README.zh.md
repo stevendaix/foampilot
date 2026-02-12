@@ -6,8 +6,7 @@
 🌍 **语言：**  
 [English](README.md) | [Français](README.fr.md) | [中文](README.zh.md)
 
-**foampilot** 是一个 Python 平台，旨在 *完全管理 OpenFOAM 仿真*，  
-使用 Python 作为唯一可信源 —— 从案例定义和网格划分，到执行、后处理和报告生成。
+**foampilot** 是一个 Python 平台，旨在 *完全管理 OpenFOAM 仿真* —— 从案例定义和网格划分，到执行、后处理和报告生成。
 
 它面向希望获得 **可复现、可脚本化和可维护 CFD 工作流** 的工程师和研究人员，  
 无需手动编辑 OpenFOAM 字典文件。
@@ -51,7 +50,6 @@ OpenFOAM 案例变为 *生成的工件*，而不是手动维护的输入文件�
 
 ## 设计理念
 
-- Python 是 **唯一可信源**
 - OpenFOAM 字典文件由 **程序生成**，不手动编辑
 - 优先保证可复现性和可追踪性，而非 GUI 工作流
 - 配置明确，可检查
