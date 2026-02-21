@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 
-"""
-Simulation CFD d'un quartier urbain avec rotation du domaine pour rose des vents.
-Le domaine tourne pour aligner le vent avec l'axe X → meilleure stabilité numérique.
-"""
-
 # Import required libraries
 from build123d import *
 from build123d import exporters3d
@@ -12,11 +7,13 @@ import gmsh
 import random
 import json
 import math
-from pathlib import Path
 import numpy as np
+from pathlib import Path
 
-from foampilot import Meshing, commons, postprocess, latex_pdf, ValueWithUnit, FluidMechanics, Solver, utilities
 import pyvista as pv
+
+from foampilot.solver import Solver
+from foampilot import Meshing, commons, utilities, postprocess, latex_pdf, ValueWithUnit, FluidMechanics
 
 # Define the working directory for the simulation case
 current_path = Path.cwd() / 'quartier_gmsh'
@@ -55,7 +52,8 @@ config = {
     },
     "simulation": {
         "inlet_velocity": 5.0,   # m/s, vitesse du vent
-        "turbulence_intensity": 0.05
+        "turbulence_intensity": 0.05,
+        "direction_vent": [1, 0, 0]  # Vent selon x
     },
     "seed": 42  # Pour reproductibilité
 }
@@ -103,107 +101,12 @@ solver.with_gravity = False
 # Configuration de la viscosité
 solver.constant.transportProperties.nu = kinematic_viscosity
 
-# 🔑 Modèle de turbulence k-epsilon
-solver.constant.turbulenceProperties = {
-    'simulationType': 'RAS',
-    'RAS': {
-        'RASModel': 'kEpsilon',
-        'turbulence': 'on',
-        'printCoeffs': 'on'
-    }
-}
-
-# Configuration des schémas numériques
-solver.system.fvSchemes = {
-    'ddtSchemes': {'default': 'steadyState'},
-    'gradSchemes': {'default': 'Gauss linear'},
-    'divSchemes': {
-        'default': 'none',
-        'div(phi,U)': 'bounded Gauss linearUpwind grad(U)',
-        'div(phi,k)': 'bounded Gauss upwind',
-        'div(phi,epsilon)': 'bounded Gauss upwind',
-        'div((nuEff*dev2(T(grad(U)))))': 'Gauss linear'
-    },
-    'laplacianSchemes': {'default': 'Gauss linear corrected'},
-    'interpolationSchemes': {'default': 'linear'},
-    'snGradSchemes': {'default': 'corrected'}
-}
-
-solver.system.fvSolution = {
-    'solvers': {
-        'p': {
-            'solver': 'GAMG',
-            'tolerance': 1e-7,
-            'relTol': 0.01,
-            'smoother': 'GaussSeidel',
-            'nPreSweeps': 0,
-            'nPostSweeps': 2,
-            'cacheAgglomeration': 'on',
-            'agglomerator': 'faceAreaPair',
-            'nCellsInCoarsestLevel': 10,
-            'mergeLevels': 1
-        },
-        'U': {
-            'solver': 'smoothSolver',
-            'smoother': 'symGaussSeidel',
-            'tolerance': 1e-7,
-            'relTol': 0.1
-        },
-        'k': {
-            'solver': 'smoothSolver',
-            'smoother': 'symGaussSeidel',
-            'tolerance': 1e-7,
-            'relTol': 0.1
-        },
-        'epsilon': {
-            'solver': 'smoothSolver',
-            'smoother': 'symGaussSeidel',
-            'tolerance': 1e-7,
-            'relTol': 0.1
-        }
-    },
-    'SIMPLE': {
-        'nNonOrthogonalCorrectors': 0,
-        'consistent': 'yes',
-        'residualControl': {
-            'p': 1e-4,
-            'U': 1e-4,
-            'k': 1e-4,
-            'epsilon': 1e-4
-        }
-    },
-    'relaxationFactors': {
-        'fields': {'p': 0.3},
-        'equations': {
-            'U': 0.7,
-            'k': 0.7,
-            'epsilon': 0.7
-        }
-    }
-}
-
-# Configuration du controlDict
-solver.system.controlDict = {
-    'application': 'simpleFoam',
-    'startFrom': 'startTime',
-    'startTime': 0,
-    'stopAt': 'endTime',
-    'endTime': 1000,
-    'deltaT': 1,
-    'writeControl': 'timeStep',
-    'writeInterval': 100,
-    'purgeWrite': 2,
-    'writeFormat': 'ascii',
-    'writePrecision': 6,
-    'writeCompression': 'off',
-    'timeFormat': 'general',
-    'timePrecision': 6,
-    'runTimeModifiable': True
-}
-
-# Écriture des fichiers de configuration
+# Écriture des fichiers de configuration (sans écraser fvSchemes/fvSolution)
 solver.system.write()
 solver.constant.write()
+
+# Inspection des schémas numériques par défaut
+solver.system.fvSchemes.to_dict()
 
 # -----------------------------
 # Paramètres
@@ -253,7 +156,7 @@ for i in range(q['n_buildings_side']):
         "dimensions": {"width": bw, "depth": q['building_depth'], "height": h1},
         "row": "front"
     })
-    
+
     # Bâtiment arrière
     b2, h2 = make_building(x, -y_front, bw, i+1+q['n_buildings_side'])
     city += b2
@@ -263,7 +166,7 @@ for i in range(q['n_buildings_side']):
         "dimensions": {"width": bw, "depth": q['building_depth'], "height": h2},
         "row": "back"
     })
-    
+
     x += bw + q['gap']
 
 # Mise à jour du JSON avec les hauteurs réelles
@@ -274,11 +177,6 @@ with open(config_path, 'w') as f:
 # -----------------------------
 # Domaine fluide avec rotation
 # -----------------------------
-print("\n" + "="*50)
-print("Construction du domaine fluide")
-print("="*50)
-
-# Dimensions du domaine de base
 Dx = q['lot_length'] * (1 + d['mx_in'] + d['mx_out'])
 Dy = q['lot_width'] * d['my']
 Dz = q['max_h'] * d['mz']
@@ -286,55 +184,35 @@ offset = (d['mx_out'] - d['mx_in']) * q['lot_length'] / 2
 
 with BuildPart() as dom:
     Box(Dx, Dy, Dz)
-fluid_domain_base = dom.part.translate((offset, 0, 0))
-fluid_domain_base.label = "FLUID_BASE"
+fluid_domain = dom.part.translate((offset, 0, 0))
 
-# 🔑 Calcul des limites AVANT rotation
-bbox_before = fluid_domain_base.bounding_box()
-xmin_before = bbox_before.min.X
-xmax_before = bbox_before.max.X
-ymin_before = bbox_before.min.Y
-ymax_before = bbox_before.max.Y
-zmin_before = bbox_before.min.Z
-zmax_before = bbox_before.max.Z
-
-print(f"\nDomaine AVANT rotation:")
-print(f"  X: [{xmin_before:.2f}, {xmax_before:.2f}] (Δx={xmax_before-xmin_before:.2f})")
-print(f"  Y: [{ymin_before:.2f}, {ymax_before:.2f}] (Δy={ymax_before-ymin_before:.2f})")
-print(f"  Z: [{zmin_before:.2f}, {zmax_before:.2f}] (Δz={zmax_before-zmin_before:.2f})")
-
-# 🔑 Application de la rotation autour de l'axe Z
+# Application de la rotation
 if d['rotation_angle'] != 0:
     angle_rad = math.radians(d['rotation_angle'])
     rotation = Rotation(axis=(0, 0, 1), angle=angle_rad)
-    fluid_domain_rotated = fluid_domain_base.rotate(rotation)
-    fluid_domain_rotated.label = "FLUID_ROTATED"
-    print(f"\n✅ Rotation appliquée: {d['rotation_angle']}°")
-else:
-    fluid_domain_rotated = fluid_domain_base
-    print(f"\n⚠️ Pas de rotation (angle = 0°)")
+    fluid_domain = fluid_domain.rotate(rotation)
+    print(f"Rotation appliquée: {d['rotation_angle']}°")
 
-# 🔑 Calcul des NOUVELLES limites APRÈS rotation
-bbox_after = fluid_domain_rotated.bounding_box()
-xmin_after = bbox_after.min.X
-xmax_after = bbox_after.max.X
-ymin_after = bbox_after.min.Y
-ymax_after = bbox_after.max.Y
-zmin_after = bbox_after.min.Z
-zmax_after = bbox_after.max.Z
-
-print(f"\nDomaine APRÈS rotation:")
-print(f"  X: [{xmin_after:.2f}, {xmax_after:.2f}] (Δx={xmax_after-xmin_after:.2f})")
-print(f"  Y: [{ymin_after:.2f}, {ymax_after:.2f}] (Δy={ymax_after-ymin_after:.2f})")
-print(f"  Z: [{zmin_after:.2f}, {zmax_after:.2f}] (Δz={zmax_after-zmin_after:.2f})")
+fluid_domain.label = "FLUID"
 
 # Volume fluide = domaine - ville
-fluid_volume = fluid_domain_rotated - city
+fluid_volume = fluid_domain - city
 
 # Export STEP pour Gmsh
 step_path = current_path / "city_block_cfd_domain.step"
 exporters3d.export_step(fluid_volume, step_path)
-print(f"\n✅ STEP exporté: {step_path}")
+print(f"STEP exporté: {step_path}")
+
+# Calcul des limites du domaine pour les patches
+bbox = fluid_domain.bounding_box()
+xmin, xmax = bbox.min.X, bbox.max.X
+ymin, ymax = bbox.min.Y, bbox.max.Y
+zmin, zmax = bbox.min.Z, bbox.max.Z
+
+print(f"\nDimensions du domaine:")
+print(f"  x: [{xmin:.1f}, {xmax:.1f}] (Δx={xmax-xmin:.1f})")
+print(f"  y: [{ymin:.1f}, {ymax:.1f}] (Δy={ymax-ymin:.1f})")
+print(f"  z: [{zmin:.1f}, {zmax:.1f}] (Δz={zmax-zmin:.1f})")
 
 # -----------------------------
 # Maillage avec Gmsh
@@ -346,14 +224,13 @@ print("="*50)
 mesh = Meshing(current_path, mesher="gmsh")
 mesh.mesher.load_geometry(step_path)
 
-# 🔑 Attribution des patches basée sur les limites APRÈS rotation
 mesh.mesher.assign_boundary_patches(
-    xmin=xmin_after,  # ⚠️ CRUCIAL: Utiliser les limites APRÈS rotation
-    xmax=xmax_after,
-    ymin=ymin_after,
-    ymax=ymax_after,
-    zmin=zmin_after,
-    zmax=zmax_after
+    xmin=xmin,
+    xmax=xmax,
+    ymin=ymin,
+    ymax=ymax,
+    zmin=zmin,
+    zmax=zmax
 )
 
 # Création du maillage volume
@@ -363,7 +240,6 @@ mesh.mesher.mesh_volume(
 )
 
 # Statistiques du maillage
-print("\nStatistiques du maillage:")
 mesh.mesher.get_basic_mesh_stats()
 mesh.mesher.analyze_mesh_quality()
 mesh.mesher.get_volume_tags()
@@ -373,232 +249,84 @@ mesh.mesher.get_face_tags()
 unassigned = mesh.mesher.get_unassigned_faces()
 if unassigned:
     mesh.mesher.define_physical_group(dim=2, tags=unassigned, name="buildings")
-    print(f"✅ Faces des bâtiments identifiées: {len(unassigned)}")
+    print(f"Faces des bâtiments identifiées: {len(unassigned)}")
 else:
-    print("⚠️ Attention: aucune face de bâtiment identifiée")
+    print("Attention: aucune face de bâtiment identifiée")
+    unassigned = []
 
 # Export pour OpenFOAM
 mesh.mesher.export_to_openfoam(run_gmshtofoam=True)
-print("✅ Maillage converti pour OpenFOAM")
+print("Maillage converti pour OpenFOAM")
 
 mesh.mesher.finalize()
-
-# -----------------------------
-# 🔑 Lecture et classification des patches
-# -----------------------------
-print("\n" + "="*50)
-print("Lecture et classification des patches")
-print("="*50)
-
-def read_openfoam_boundary(case_path):
-    """Lit le fichier boundary et retourne les patches."""
-    boundary_file = case_path / "constant" / "polyMesh" / "boundary"
-    
-    if not boundary_file.exists():
-        print(f"⚠️ Fichier boundary non trouvé: {boundary_file}")
-        return {}
-    
-    patches = {}
-    current_patch = None
-    in_patch = False
-    
-    with open(boundary_file, 'r') as f:
-        lines = f.readlines()
-    
-    for i, line in enumerate(lines):
-        line = line.strip()
-        
-        # Détecter un nouveau patch
-        if line and not line.startswith('//') and not line.startswith('/*'):
-            if not any(c in line for c in ['{', '}', '(', ')', ';']) or 'type' in line or 'nFaces' in line:
-                if i+1 < len(lines) and '{' in lines[i+1] and 'type' not in line:
-                    current_patch = line.replace('"', '').strip()
-                    if current_patch:
-                        patches[current_patch] = {'type': None, 'nFaces': None}
-                        in_patch = True
-            
-            # Extraire les infos
-            if in_patch and current_patch:
-                if 'type' in line and ';' in line:
-                    patch_type = line.split('type')[1].replace(';', '').strip()
-                    patches[current_patch]['type'] = patch_type
-                
-                if 'nFaces' in line and ';' in line:
-                    try:
-                        nFaces = int(line.split('nFaces')[1].replace(';', '').strip())
-                        patches[current_patch]['nFaces'] = nFaces
-                    except:
-                        pass
-                
-                if line == '}':
-                    in_patch = False
-                    current_patch = None
-    
-    return patches
-
-def identify_patch_type(patch_name, xmin, xmax, ymin, ymax, zmin, zmax, tolerance=1.0):
-    """Identifie le type de patch selon son nom/position."""
-    patch_lower = patch_name.lower()
-    
-    # Vérifier si le nom contient des indices de position
-    if 'xmin' in patch_lower or f'{xmin:.0f}' in patch_name or f'{xmin:.1f}' in patch_name:
-        return 'inlet'
-    elif 'xmax' in patch_lower or f'{xmax:.0f}' in patch_name or f'{xmax:.1f}' in patch_name:
-        return 'outlet'
-    elif 'ymin' in patch_lower or f'{ymin:.0f}' in patch_name or f'{ymin:.1f}' in patch_name:
-        return 'side_left'
-    elif 'ymax' in patch_lower or f'{ymax:.0f}' in patch_name or f'{ymax:.1f}' in patch_name:
-        return 'side_right'
-    elif 'zmin' in patch_lower or f'{zmin:.0f}' in patch_name or f'{zmin:.1f}' in patch_name:
-        return 'ground'
-    elif 'zmax' in patch_lower or f'{zmax:.0f}' in patch_name or f'{zmax:.1f}' in patch_name:
-        return 'top'
-    elif 'building' in patch_lower:
-        return 'buildings'
-    else:
-        return 'unknown'
-
-# Lecture des patches
-patches_info = read_openfoam_boundary(current_path)
-print("\nPatches créés par Gmsh:")
-for patch_name, info in patches_info.items():
-    print(f"  {patch_name:35s} | Type: {info['type']:15s} | Faces: {info['nFaces']}")
-
-# Classification
-print("\nClassification des patches:")
-patch_classification = {}
-for patch_name in patches_info.keys():
-    patch_type = identify_patch_type(
-        patch_name, 
-        xmin_after, xmax_after, 
-        ymin_after, ymax_after, 
-        zmin_after, zmax_after
-    )
-    patch_classification[patch_name] = patch_type
-    print(f"  {patch_name:35s} → {patch_type}")
 
 # -----------------------------
 # Conditions aux limites
 # -----------------------------
 print("\n" + "="*50)
-print("Configuration des conditions aux limites")
+print("Configuration des patches OpenFOAM")
 print("="*50)
-
-# Calcul des valeurs de turbulence
-U_inlet = sim['inlet_velocity']
-I = sim['turbulence_intensity']
-k_inlet = 1.5 * (U_inlet * I) ** 2
-# Longueur de turbulence estimée
-L = 0.07 * min(Dx, Dy)
-epsilon_inlet = 0.09**(0.75) * k_inlet**(1.5) / L
-
-print(f"\nValeurs de turbulence:")
-print(f"  k = {k_inlet:.6f} m²/s²")
-print(f"  epsilon = {epsilon_inlet:.6f} m²/s³")
 
 solver.boundary.initialize_boundary()
 
-# 🔑 Application des BC selon la classification
-for patch_name, patch_type in patch_classification.items():
-    
-    if patch_type == 'inlet':
-        print(f"\n✅ {patch_name:35s} → INLET (velocityInlet)")
-        # 🔑 Vitesse selon X car domaine tourné pour aligner vent avec X
-        solver.boundary.apply_condition_with_wildcard(
-            pattern=patch_name,
-            condition_type="velocityInlet",
-            velocity=(
-                ValueWithUnit(U_inlet, "m/s"),  # Vent selon X
-                ValueWithUnit(0.0, "m/s"),
-                ValueWithUnit(0.0, "m/s")
-            ),
-            turbulence_intensity=I
-        )
-    
-    elif patch_type == 'outlet':
-        print(f"✅ {patch_name:35s} → OUTLET (pressureOutlet)")
-        solver.boundary.apply_condition_with_wildcard(
-            pattern=patch_name,
-            condition_type="pressureOutlet",
-            pressure=ValueWithUnit(0, "Pa")
-        )
-    
-    elif patch_type in ['side_left', 'side_right']:
-        print(f"✅ {patch_name:35s} → SIDE (symmetry)")
-        solver.boundary.apply_condition_with_wildcard(
-            pattern=patch_name,
-            condition_type="symmetry"
-        )
-    
-    elif patch_type == 'top':
-        print(f"✅ {patch_name:35s} → TOP (symmetry)")
-        solver.boundary.apply_condition_with_wildcard(
-            pattern=patch_name,
-            condition_type="symmetry"
-        )
-    
-    elif patch_type == 'ground':
-        print(f"✅ {patch_name:35s} → GROUND (wall)")
-        solver.boundary.apply_condition_with_wildcard(
-            pattern=patch_name,
-            condition_type="wall"
-        )
-    
-    elif patch_type == 'buildings':
-        print(f"✅ {patch_name:35s} → BUILDINGS (wall)")
-        solver.boundary.apply_condition_with_wildcard(
-            pattern=patch_name,
-            condition_type="wall"
-        )
-    
-    else:
-        print(f"⚠️ {patch_name:35s} → NON CLASSIFIÉ")
+# Inlet
+solver.boundary.apply_condition_with_wildcard(
+    pattern="inlet",
+    condition_type="velocityInlet",
+    velocity=(
+        ValueWithUnit(sim['inlet_velocity'] * sim['direction_vent'][0], "m/s"),
+        ValueWithUnit(sim['inlet_velocity'] * sim['direction_vent'][1], "m/s"),
+        ValueWithUnit(sim['inlet_velocity'] * sim['direction_vent'][2], "m/s")
+    ),
+    turbulence_intensity=sim['turbulence_intensity']
+)
+
+# Outlet
+solver.boundary.apply_condition_with_wildcard(
+    pattern="outlet",
+    condition_type="pressureOutlet"
+)
+
+# Faces latérales et ciel -> symétrie (wall avec glissement)
+solver.boundary.apply_condition_with_wildcard(
+    pattern="side_left",
+    condition_type="wall"
+)
+
+solver.boundary.apply_condition_with_wildcard(
+    pattern="side_right",
+    condition_type="wall"
+)
+
+solver.boundary.apply_condition_with_wildcard(
+    pattern="top",
+    condition_type="wall"
+)
+
+# Sol
+solver.boundary.apply_condition_with_wildcard(
+    pattern="bottom",
+    condition_type="wall"
+)
+
+# Bâtiments
+solver.boundary.apply_condition_with_wildcard(
+    pattern="buildings",
+    condition_type="wall"
+)
 
 # Écriture des conditions aux limites
 solver.boundary.write_boundary_conditions()
-print("\n✅ Conditions aux limites écrites dans 0/")
-
-# -----------------------------
-# Validation du cas
-# -----------------------------
-print("\n" + "="*50)
-print("VALIDATION DU CAS")
-print("="*50)
-
-validation_ok = True
-
-# Vérifier les fichiers BC
-bc_dir = current_path / "0"
-required_fields = ['U', 'p', 'k', 'epsilon', 'nut']
-
-for field in required_fields:
-    field_file = bc_dir / field
-    if field_file.exists():
-        print(f"✅ {field:10s} : OK")
-    else:
-        print(f"❌ {field:10s} : MANQUANT")
-        validation_ok = False
-
-if validation_ok:
-    print("\n✅ CAS VALIDÉ - Prêt pour simulation")
-else:
-    print("\n❌ CAS NON VALIDÉ - Vérifier les erreurs")
+print("Boundary condition files have been generated")
 
 # -----------------------------
 # Exécution de la simulation
 # -----------------------------
-if validation_ok:
-    print("\n" + "="*50)
-    print("Exécution de la simulation")
-    print("="*50)
-    
-    try:
-        solver.run_simulation()
-        print("\n✅ Simulation terminée avec succès")
-    except Exception as e:
-        print(f"\n❌ Erreur lors de la simulation: {e}")
-        import traceback
-        traceback.print_exc()
+print("\n" + "="*50)
+print("Exécution de la simulation")
+print("="*50)
+
+solver.run_simulation()
 
 # -----------------------------
 # Post-traitement
@@ -607,132 +335,251 @@ print("\n" + "="*50)
 print("Post-traitement")
 print("="*50)
 
-# Analyse des résidus
-log_file = current_path / "log.simpleFoam"
+# Analyse des résidus (cohérent avec le muffler : log.incompressibleFluid)
+log_file = current_path / "log.incompressibleFluid"
 if log_file.exists():
-    print("\nAnalyse des résidus...")
     residuals_post = utilities.ResidualsPost(log_file)
     residuals_post.process(export_csv=True, export_json=True, export_png=True, export_html=True)
-    print("✅ Résidus analysés")
-else:
-    print(f"⚠️ Fichier log non trouvé: {log_file}")
+    print("Résidus analysés")
 
-# Conversion en VTK
+# Conversion en VTK pour visualisation
 foam_post = postprocess.FoamPostProcessing(case_path=current_path)
 foam_post.foamToVTK()
 
 # Chargement des résultats
 time_steps = foam_post.get_all_time_steps()
-print(f"\nTime steps disponibles: {time_steps}")
+print(f"Time steps disponibles: {time_steps}")
 
 if time_steps:
     latest_time_step = time_steps[-1]
     structure = foam_post.load_time_step(latest_time_step)
     cell_mesh = structure["cell"]
     boundaries = structure["boundaries"]
-    
-    print(f"\nMaillage chargé: {cell_mesh.n_cells} cellules")
+
+    print(f"Maillage chargé pour le time step {latest_time_step}: {cell_mesh}")
     print(f"Frontières: {list(boundaries.keys())}")
-    
+
     # Création du dossier pour les visualisations
     viz_dir = current_path / "visualisations"
     viz_dir.mkdir(exist_ok=True)
-    
-    # Visualisations
-    print("\n" + "="*50)
-    print("Génération des visualisations")
-    print("="*50)
-    
-    # 1. Coupe horizontale
-    print("→ Coupe horizontale...")
+
+    print("\n--- Génération des visualisations ---")
+
+    # 1. Coupe horizontale à mi-hauteur
+    print("Génération coupe horizontale...")
     foam_post.plot_slice(
         structure=structure,
         plane="z",
-        origin=(0, 0, q['max_h']/2),
         scalars="U",
         opacity=0.5,
         path_filename=viz_dir / "slice_horizontale.png"
     )
-    
-    # 2. Coupe verticale
-    print("→ Coupe verticale...")
+
+    # 2. Coupe verticale dans l'axe du vent
+    print("Génération coupe verticale...")
     foam_post.plot_slice(
         structure=structure,
-        plane="y",
-        origin=(0, 0, 0),
+        plane="x",
         scalars="p",
         opacity=0.5,
         path_filename=viz_dir / "slice_verticale.png"
     )
-    
+
     # 3. Contours de vitesse
-    print("→ Contours de vitesse...")
+    print("Génération contours de vitesse...")
     pl_contour = pv.Plotter(off_screen=True)
-    pl_contour.add_mesh(cell_mesh, scalars='U', show_scalar_bar=True, opacity=0.7)
-    if 'buildings' in boundaries:
-        pl_contour.add_mesh(boundaries['buildings'], color='red', opacity=0.5)
-    foam_post.export_plot(pl_contour, viz_dir / "contour_vitesse.png")
-    
-    # 4. Vue 3D
-    print("→ Vue 3D...")
-    pl_3d = pv.Plotter(off_screen=True)
-    pl_3d.add_mesh(cell_mesh, scalars='U', show_scalar_bar=True, opacity=0.5)
-    if 'buildings' in boundaries:
-        pl_3d.add_mesh(boundaries['buildings'], color='red', opacity=0.8)
-    pl_3d.camera_position = 'iso'
-    foam_post.export_plot(pl_3d, viz_dir / "vue_3d.png")
-    
-    print(f"\n✅ Visualisations sauvegardées dans: {viz_dir}")
-    
-    # Statistiques
+    pl_contour.add_mesh(cell_mesh, scalars='p', show_scalar_bar=True)
+    foam_post.export_plot(pl_contour, viz_dir / "contour_pression.png")
+
+    # 4. Champ de vecteurs vitesse
+    print("Génération du champ de vecteurs...")
+    pl_vectors = pv.Plotter(off_screen=True)
+    cell_mesh.set_active_vectors('U')
+    arrows = cell_mesh.glyph(orient='U', factor=0.0003)
+    pl_vectors.add_mesh(arrows, color='blue')
+    foam_post.export_plot(pl_vectors, viz_dir / "vector_plot.png")
+
+    # 5. Maillage en wireframe
+    print("Génération vue maillage...")
+    pl_mesh_style = pv.Plotter(off_screen=True)
+    pl_mesh_style.add_mesh(cell_mesh, style='wireframe', show_edges=True, color='red')
+    foam_post.export_plot(pl_mesh_style, viz_dir / "mesh_style_plot.png")
+
+    print("\n--- Calculs avancés ---")
+
+    # Q-criterion pour visualiser les tourbillons
+    print("Calcul du Q-criterion...")
+    mesh_with_q = foam_post.calculate_q_criterion(mesh=cell_mesh, velocity_field="U")
+    if 'q_criterion' in mesh_with_q.point_data:
+        print(f"Q-criterion calculé. Plage: {mesh_with_q.point_data['q_criterion'].min():.2e} "
+              f"à {mesh_with_q.point_data['q_criterion'].max():.2e}")
+    else:
+        print("Échec du calcul Q-criterion.")
+
+    # Vorticité
+    print("Calcul de la vorticité...")
+    mesh_with_vorticity = foam_post.calculate_vorticity(mesh=cell_mesh, velocity_field="U")
+    if 'vorticity' in mesh_with_vorticity.point_data:
+        print(f"Vorticité calculée. Plage: {mesh_with_vorticity.point_data['vorticity'].min():.2e} "
+              f"à {mesh_with_vorticity.point_data['vorticity'].max():.2e}")
+    else:
+        print("Échec du calcul de vorticité.")
+
+    print("\n--- Analyse statistique ---")
+
+    # Statistiques du maillage
+    print("Calcul des statistiques du maillage...")
+    mesh_stats = foam_post.get_mesh_statistics(cell_mesh)
+    print(f"Statistiques maillage: {mesh_stats}")
+
+    # Statistiques du champ de vitesse (région cell)
+    print("Calcul des statistiques pour la région 'cell' et le champ 'U'...")
+    cell_region_stats = foam_post.get_region_statistics(structure, "cell", "U")
+    print(f"Statistiques région 'cell' pour 'U': {cell_region_stats}")
+
+    # Statistiques de pression sur boundary1 si disponible
+    boundary_region_stats = "N/A"
+    if "boundary1" in boundaries:
+        print("Calcul des statistiques pour 'boundary1' et 'p'...")
+        boundary_region_stats = foam_post.get_region_statistics(structure, "boundary1", "p")
+        print(f"Statistiques 'boundary1' pour 'p': {boundary_region_stats}")
+
+    # Export des données en CSV
+    print("Export des données 'cell' en CSV...")
+    foam_post.export_region_data_to_csv(structure, "cell", ["U", "p"], viz_dir / "cell_data.csv")
+
+    # Export des statistiques en JSON
+    print("Export des statistiques en JSON...")
+    all_stats = {
+        "mesh_stats": mesh_stats,
+        "cell_region_stats_U": cell_region_stats,
+        "boundary1_region_stats_p": boundary_region_stats
+    }
+    foam_post.export_statistics_to_json(all_stats, viz_dir / "all_stats.json")
+
+    # Animation
+    print("Création de l'animation...")
+    foam_post.create_animation(scalars='U', filename=viz_dir / 'animation_test.gif', fps=5)
+
+    print(f"\nVisualisations sauvegardées dans: {viz_dir}")
+
+    # -----------------------------
+    # Génération du rapport PDF
+    # -----------------------------
     print("\n" + "="*50)
-    print("Statistiques")
+    print("Génération du rapport PDF")
     print("="*50)
-    
-    # Vitesse moyenne dans la rue
-    rue_mask = (
-        (cell_mesh.points[:, 1] > -q['street_width']/2) & 
-        (cell_mesh.points[:, 1] < q['street_width']/2) &
-        (cell_mesh.points[:, 2] < 5)
+
+    import json as _json
+    stats_file = viz_dir / "all_stats.json"
+    with open(stats_file, "r") as f:
+        stats = _json.load(f)
+
+    doc = latex_pdf.LatexDocument(
+        title="Simulation Report: Building Aerodynamics",
+        author="Automated Report",
+        filename="simulation_report",
+        output_dir=current_path
     )
-    
-    if any(rue_mask):
-        U_street = cell_mesh.point_data['U'][rue_mask]
-        U_mag_street = np.linalg.norm(U_street, axis=1)
-        
-        print(f"\nVitesse dans la rue (hauteur piétonne, z<5m):")
-        print(f"  Moyenne: {np.mean(U_mag_street):.2f} m/s")
-        print(f"  Maximum: {np.max(U_mag_street):.2f} m/s")
-        print(f"  Minimum: {np.min(U_mag_street):.2f} m/s")
-    
-    # Export CSV
-    foam_post.export_region_data_to_csv(
-        structure, "cell", ["U", "p", "k", "epsilon"], 
-        viz_dir / "field_data.csv"
+
+    doc.add_title()
+    doc.add_toc()
+    doc.add_abstract(
+        f"Simulation d'écoulement d'air autour d'un quartier de {q['n_buildings_side']*2} bâtiments. "
+        f"Angle de rotation: {d['rotation_angle']}°. Vitesse du vent: {sim['inlet_velocity']} m/s."
     )
-    print(f"\n✅ Données exportées dans: {viz_dir / 'field_data.csv'}")
+
+    doc.add_section("Propriétés du fluide",
+                    f"Fluide: {config['fluide']['nom']}. Viscosité cinématique: {kinematic_viscosity}")
+
+    # Statistiques du maillage
+    doc.add_section("Statistiques du maillage", "Métriques de qualité du maillage:")
+    mesh_table_data = [[k, v] for k, v in mesh_stats.items()]
+    doc.add_table(mesh_table_data, headers=["Statistique", "Valeur"], caption="Qualité du maillage")
+
+    # Statistiques de vitesse
+    doc.add_section("Statistiques du champ de vitesse (région cell)",
+                    "Statistiques du champ U dans la région cell.")
+    cell_table_data = [[k, v] for k, v in cell_region_stats.items()]
+    doc.add_table(cell_table_data, headers=["Statistique", "Valeur"],
+                  caption="Statistiques du champ 'U'")
+
+    # Statistiques de pression si disponibles
+    if boundary_region_stats != "N/A":
+        doc.add_section("Statistiques de pression (boundary1)",
+                        "Statistiques du champ p sur boundary1.")
+        boundary_table_data = [[k, v] for k, v in boundary_region_stats.items()]
+        doc.add_table(boundary_table_data, headers=["Statistique", "Valeur"],
+                      caption="Statistiques du champ 'p'")
+
+    # Figures
+    doc.add_section("Visualisations", "Figures représentant l'écoulement, la pression et la vitesse.")
+    for img_name in ["slice_horizontale.png", "slice_verticale.png",
+                     "contour_pression.png", "vector_plot.png", "mesh_style_plot.png"]:
+        img_path = viz_dir / img_name
+        if img_path.exists():
+            doc.add_figure(str(img_path), caption=img_name.replace("_", " ").title(),
+                           width="0.7\\textwidth")
+
+    doc.add_appendix("Export des données",
+                     f"Les données cell ont été exportées dans {viz_dir / 'cell_data.csv'}.")
+
+    doc.generate_document(output_format="pdf")
+    print("Rapport PDF généré avec succès.")
 
 else:
-    print("⚠️ Aucun time step trouvé - post-traitement impossible")
+    print("Aucun time step trouvé, post-traitement ignoré.")
 
 # -----------------------------
 # Résumé final
 # -----------------------------
-print("\n" + "="*70)
+print("\n" + "="*50)
 print("RÉSUMÉ DE LA SIMULATION")
-print("="*70)
+print("="*50)
 print(f"Nombre de bâtiments: {len(buildings_data)}")
 print(f"Angle de rotation: {d['rotation_angle']}°")
-print(f"Dimensions domaine (après rotation):")
-print(f"  X: [{xmin_after:.1f}, {xmax_after:.1f}] m")
-print(f"  Y: [{ymin_after:.1f}, {ymax_after:.1f}] m")
-print(f"  Z: [{zmin_after:.1f}, {zmax_after:.1f}] m")
-print(f"Vitesse d'entrée: {sim['inlet_velocity']} m/s (selon X)")
+print(f"Dimensions domaine: {xmax-xmin:.1f} x {ymax-ymin:.1f} x {zmax-zmin:.1f} m")
+print(f"Vitesse d'entrée: {sim['inlet_velocity']} m/s (direction {sim['direction_vent']})")
 print(f"Taille de maille: {m['lc_min']} - {m['lc_max']} m")
-print(f"\nConditions aux limites appliquées:")
-for patch_name, patch_type in patch_classification.items():
-    print(f"  - {patch_name[:30]:30s} : {patch_type}")
+print(f"Conditions aux limites:")
+print(f"  - Inlet: face à x={xmin:.1f}")
+print(f"  - Outlet: face à x={xmax:.1f}")
+print(f"  - Côtés: side_left (y={ymin:.1f}), side_right (y={ymax:.1f}) → wall")
+print(f"  - Sol: face z={zmin:.1f} → wall")
+print(f"  - Ciel: face z={zmax:.1f} → wall")
+print(f"  - Bâtiments: {len(unassigned)} faces → wall")
 print(f"\nDossier de travail: {current_path}")
-print(f"Configuration: {config_path}")
-print("="*70)
-print("\n✅ Script terminé avec succès!\n")
+print(f"Configuration sauvegardée: {config_path}")
+print("\nSimulation terminée avec succès!")
+
+
+# -----------------------------
+# Fonctions de reprise
+# -----------------------------
+def relancer_simulation_depuis_json(json_path, modifier_angle=None, modifier_vitesse=None):
+    """Relance une simulation à partir du fichier JSON de configuration."""
+    with open(json_path, 'r') as f:
+        cfg = json.load(f)
+
+    if modifier_angle is not None:
+        cfg['domaine_fluide']['rotation_angle'] = modifier_angle
+        print(f"Angle modifié: {modifier_angle}°")
+
+    if modifier_vitesse is not None:
+        cfg['simulation']['inlet_velocity'] = modifier_vitesse
+        print(f"Vitesse modifiée: {modifier_vitesse} m/s")
+
+    new_config_path = json_path.parent / (
+        f"config_angle{cfg['domaine_fluide']['rotation_angle']}"
+        f"_v{cfg['simulation']['inlet_velocity']}.json"
+    )
+    with open(new_config_path, 'w') as f:
+        json.dump(cfg, f, indent=2)
+
+    print(f"\nPour relancer avec ces paramètres, exécutez à nouveau ce script")
+    print(f"en utilisant le fichier de configuration: {new_config_path}")
+
+    return cfg
+
+# Exemple d'utilisation (décommentez pour tester)
+# nouvelle_config = relancer_simulation_depuis_json(config_path, modifier_angle=30.0, modifier_vitesse=10.0)
