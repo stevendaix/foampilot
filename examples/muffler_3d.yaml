@@ -1,0 +1,71 @@
+config_name: "muffler_parametric_study"
+version: "1.0.0"
+description: "Étude paramétrique d'un silencieux 3D avec eau"
+
+base_dir: "experiments/muffler"
+
+geometry:
+  dimension: "3d"
+  mesh_type: "structured"
+  case_type: "pipe"
+  characteristic_length: 0.1
+  extract_wall_distance: true
+  extract_inlet_distance: true
+  extract_outlet_distance: true
+  include_boundary_type: true
+  include_cell_volume: true
+
+physics:
+  fluid_type: "water"
+  flow_type: "incompressible"
+  turbulence_model: "kOmegaSST"
+  steady: true
+  w_data: 1.0
+  w_mass_conservation: 0.1
+  w_momentum_conservation: 0.05
+  w_boundary_conditions: 0.1
+
+sampling:
+  method: "latin_hypercube"
+  n_initial: 20
+  n_per_iteration: 5
+  param_ranges:
+    inlet_velocity: [1.0, 20.0]      # m/s
+    outlet_pressure: [90000, 110000]  # Pa
+    temperature: [280, 320]           # K
+    pipe_radius: [0.03, 0.07]         # m
+    muffler_radius: [0.06, 0.12]      # m
+    cell_size: [0.008, 0.02]          # m
+
+gnn:
+  n_layers: 6
+  hidden_dim: 128
+  n_heads: 4
+  include_node_position: true
+  include_boundary_type: true
+  include_cell_volume: true
+  use_attention: true
+  predict_uncertainty: true
+  output_variables: ["p", "Ux", "Uy", "Uz"]
+
+training:
+  epochs: 100
+  batch_size: 1  # Important: garder à 1 pour l'instant
+  learning_rate: 0.001
+  curriculum: true
+  curriculum_schedule: "physics_ramp"
+  curriculum_ramp_epochs: 40
+  normalize_features: true
+  early_stopping: true
+  patience: 15
+  save_every: 10
+
+validation:
+  test_split: 0.15
+  val_split: 0.15
+
+active_learning: true
+max_active_iterations: 3
+device: "auto"
+random_seed: 42
+log_level: "INFO"
