@@ -142,8 +142,13 @@ class SurfaceResult:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Export STL
-        self.mesh.export(path, file_type='stl_binary' if binary else 'stl_ascii')
+        # Export STL - compatibilité API trimesh
+        try:
+            # Nouvelle API
+            self.mesh.export(path, file_type='stl')
+        except Exception as e:
+            # Fallback
+            self.mesh.export(path)
         
         # Métadonnées JSON
         metadata_path = path.with_suffix('.json')
@@ -520,10 +525,28 @@ class NiftiToSTLConverter:
             validate=True
         )
         
-        # Nettoyage de base
-        mesh.remove_degenerate_faces()
-        mesh.remove_duplicate_faces()
-        mesh.remove_unreferenced_vertices()
+        # Nettoyage de base (avec compatibilité API trimesh)
+        try:
+            mesh.remove_degenerate_faces()
+        except AttributeError:
+            pass  # API plus récente
+        try:
+            mesh.remove_duplicate_faces()
+        except AttributeError:
+            pass  # API plus récente
+        try:
+            mesh.remove_unreferenced_vertices()
+        except AttributeError:
+            pass  # API plus récente
+        
+        # Fusion des vertices proches (alternative兼容)
+        try:
+            mesh.merge_vertices()
+        except AttributeError:
+            try:
+                mesh = mesh.merge_vertices()
+            except:
+                pass
         
         self.logger.info(f"   ├─ Vertices: {len(verts):,}")
         self.logger.info(f"   ├─ Faces: {len(faces):,}")
@@ -560,11 +583,24 @@ class NiftiToSTLConverter:
         best_mesh = mesh
         
         for attempt in range(3):
-            decimated = mesh.simplify_quadratic_decimation(
-                current_target,
-                preserve_curvature=True,
-                preserve_border=True
-            )
+            # Compatibilité API trimesh
+            try:
+                if hasattr(mesh, 'simplify_quadric_decimation'):
+                    # Nouvelle API: utiliser face_count
+                    decimated = mesh.simplify_quadric_decimation(face_count=current_target)
+                elif hasattr(mesh, 'simplify_quadratic_decimation'):
+                    # Ancienne API
+                    decimated = mesh.simplify_quadratic_decimation(
+                        current_target,
+                        preserve_curvature=True,
+                        preserve_border=True
+                    )
+                else:
+                    # Fallback
+                    decimated = mesh.simplify(current_target)
+            except Exception as e:
+                self.logger.warning(f"   ⚠️ Décimation tentative {attempt+1} échouée: {e}")
+                continue
             
             # Validation Hausdorff
             try:

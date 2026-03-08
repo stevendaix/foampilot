@@ -99,7 +99,7 @@ class GmshMesher:
         Returns:
             Physical group ID
         """
-        if not tags:
+        if tags is None or (hasattr(tags, '__len__') and len(tags) == 0):
             raise ValueError("Empty tag list provided")
 
         phys_id = gmsh.model.addPhysicalGroup(dim, tags)
@@ -154,18 +154,41 @@ class GmshMesher:
         gmsh.model.occ.synchronize()
 
     # ----------------------------------------------------
-    # 3) DETECT PATCH BASED ON CENTER OF MASS
+    # 3) DETECT PATCH BASED ON CENTER OF MASS OR NORMAL
     # ----------------------------------------------------
-    def detect_patch(self, com, bbox, tol=1e-3):
+    def detect_patch(self, com, bbox, tol=15.0, normal=None):
         x, y, z = com
-
+        
+        # First try center of mass (works for non-rotated geometry)
+        # Use tolerance proportional to domain size for rotated geometries
         if abs(x - bbox["xmin"]) < tol: return "INLET"
         if abs(x - bbox["xmax"]) < tol: return "OUTLET"
         if abs(z - bbox["zmin"]) < tol: return "GROUND"
         if abs(z - bbox["zmax"]) < tol: return "TOP"
         if abs(y - bbox["ymax"]) < tol: return "SIDE_NORTH"
         if abs(y - bbox["ymin"]) < tol: return "SIDE_SOUTH"
-
+        
+        # If normal is provided, try based on normal direction (works for rotated geometry)
+        if normal is not None:
+            nx, ny, nz = normal
+            # Normalize
+            mag = (nx**2 + ny**2 + nz**2)**0.5
+            if mag > 0:
+                nx, ny, nz = nx/mag, ny/mag, nz/mag
+                
+            # Check if normal points in -X direction (inlet)
+            if nx < -0.9: return "INLET"
+            # Check if normal points in +X direction (outlet)
+            if nx > 0.9: return "OUTLET"
+            # Check if normal points in -Y direction (SIDE_SOUTH)
+            if ny < -0.9: return "SIDE_SOUTH"
+            # Check if normal points in +Y direction (SIDE_NORTH)
+            if ny > 0.9: return "SIDE_NORTH"
+            # Check if normal points in -Z direction (ground)
+            if nz < -0.9: return "GROUND"
+            # Check if normal points in +Z direction (top)
+            if nz > 0.9: return "TOP"
+        
         return None
 
     # ----------------------------------------------------
@@ -194,8 +217,37 @@ class GmshMesher:
             except:
                 patch_map[self.unassigned_tag].append(face)
                 continue
+            
+            # Try to get the normal vector of the face
+            normal = None
+            try:
+                # Get the normal by getting boundary edges and computing cross product
+                edges = gmsh.model.getBoundary([face])
+                if len(edges) >= 3:
+                    # Get coordinates of first 3 vertices to compute normal
+                    nodes = gmsh.model.mesh.getNodes(2, face[1])
+                    if nodes[0] >= 3:
+                        # Get node coordinates
+                        node_tags = nodes[1][:3]
+                        coord = gmsh.model.mesh.getCoordinates()
+                        # Extract coordinates of the 3 nodes
+                        pts = []
+                        for nt in node_tags:
+                            idx = list(nodes[1]).index(nt)
+                            pts.append([nodes[2][3*idx], nodes[2][3*idx+1], nodes[2][3*idx+2]])
+                        # Compute two edge vectors
+                        v1 = [pts[1][0]-pts[0][0], pts[1][1]-pts[0][1], pts[1][2]-pts[0][2]]
+                        v2 = [pts[2][0]-pts[0][0], pts[2][1]-pts[0][1], pts[2][2]-pts[0][2]]
+                        # Cross product
+                        normal = [
+                            v1[1]*v2[2] - v1[2]*v2[1],
+                            v1[2]*v2[0] - v1[0]*v2[2],
+                            v1[0]*v2[1] - v1[1]*v2[0]
+                        ]
+            except:
+                pass  # Use center of mass only
 
-            patch = self.detect_patch(com, bbox)
+            patch = self.detect_patch(com, bbox, normal=normal)
             if patch:
                 patch_map[patch].append(face)
             else:

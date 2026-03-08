@@ -47,7 +47,7 @@ import traceback
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Tuple, Union, Callable
+from typing import Optional, List, Dict, Any, Tuple, Union, Callable, get_type_hints
 from enum import Enum
 
 import numpy as np
@@ -59,11 +59,13 @@ from scipy.spatial import cKDTree
 
 # foampilot imports (optionnels)
 try:
-    from foampilot import meshing, boundary, solver, utils
+    from foampilot import Meshing, Solver, FluidMechanics, ValueWithUnit
+    from foampilot import utilities
+    from foampilot import postprocess
     FOAMPILOT_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     FOAMPILOT_AVAILABLE = False
-    print("⚠️ foampilot non disponible - mode simulation activé")
+    print(f"⚠️ foampilot non disponible - mode simulation activé: {e}")
 
 # torch_scatter pour opérations sur graphe
 try:
@@ -252,6 +254,9 @@ class GNNArchitectureConfig:
     # Multi-échelle
     use_multiscale: bool = False
     n_scales: int = 3
+    
+    # Gestion de la taille du graphe
+    max_nodes_per_graph: int = 5000  # Limite nodes pour éviter OOM
 
 
 @dataclass
@@ -403,7 +408,17 @@ class PipelineConfig:
         if not data:
             return cls()
         
-        field_types = {f.name: f.type for f in cls.__dataclass_fields__.values()}
+        # Résoudre les forward references
+        try:
+            field_types = {f.name: f.type for f in cls.__dataclass_fields__.values()}
+            type_hints = get_type_hints(cls)
+            # Remplacer les types par les types résolus
+            for name in field_types:
+                if name in type_hints:
+                    field_types[name] = type_hints[name]
+        except Exception:
+            field_types = {f.name: f.type for f in cls.__dataclass_fields__.values()}
+        
         kwargs = {}
         
         for key, value in data.items():
@@ -411,7 +426,9 @@ class PipelineConfig:
                 continue
             field_type = field_types[key]
             
-            if hasattr(field_type, '__dataclass_fields__'):
+            # Vérifier si c'est un dataclass (utiliser is_dataclass pour éviter les problèmes de forward ref)
+            import dataclasses
+            if dataclasses.is_dataclass(field_type):
                 kwargs[key] = cls._build_nested(field_type, value or {})
             elif field_type == Path:
                 kwargs[key] = Path(value) if value else None
@@ -428,7 +445,17 @@ class PipelineConfig:
         if not data:
             return dataclass_type()
         
-        field_types = {f.name: f.type for f in dataclass_type.__dataclass_fields__.values()}
+        # Résoudre les forward references
+        try:
+            field_types = {f.name: f.type for f in dataclass_type.__dataclass_fields__.values()}
+            type_hints = get_type_hints(dataclass_type)
+            for name in field_types:
+                if name in type_hints:
+                    field_types[name] = type_hints[name]
+        except Exception:
+            field_types = {f.name: f.type for f in dataclass_type.__dataclass_fields__.values()}
+        
+        import dataclasses
         kwargs = {}
         
         for key, value in data.items():
@@ -436,14 +463,18 @@ class PipelineConfig:
                 continue
             field_type = field_types[key]
             
-            if hasattr(field_type, '__dataclass_fields__'):
+            if dataclasses.is_dataclass(field_type):
                 kwargs[key] = cls._build_nested(field_type, value or {})
             elif hasattr(field_type, '__members__'):
                 kwargs[key] = field_type(value)
             elif field_type == Path:
                 kwargs[key] = Path(value) if value else None
             else:
-                kwargs[key] = value
+                # Convertir les listes en tuples pour les types Tuple
+                if isinstance(value, list) and 'Tuple' in str(field_type):
+                    kwargs[key] = tuple(value)
+                else:
+                    kwargs[key] = value
         
         return dataclass_type(**kwargs)
     
@@ -817,9 +848,21 @@ class UniversalGraphExtractor:
     
     def __init__(self,
                  case_path: Path,
-                 geometry_config: Optional[GeometryConfig] = None):
+                 pipeline_config: Optional['PipelineConfig'] = None):
         self.case_path = Path(case_path)
-        self.cfg = geometry_config or GeometryConfig()
+        # Accepter soit PipelineConfig soit GeometryConfig
+        if pipeline_config is not None:
+            if hasattr(pipeline_config, 'geometry'):
+                # C'est un PipelineConfig
+                self.cfg = pipeline_config.geometry
+                self.gnn_cfg = pipeline_config.gnn
+            else:
+                # C'est un GeometryConfig
+                self.cfg = pipeline_config
+                self.gnn_cfg = None
+        else:
+            self.cfg = GeometryConfig()
+            self.gnn_cfg = None
         self.logger = logging.getLogger("cfd_gnn")
         
         # Cache
@@ -832,6 +875,15 @@ class UniversalGraphExtractor:
         self._wall_distances = None
         self._boundary_distances = {}
         self._kdtrees = {}
+    
+    @property
+    def gnn_config(self):
+        """Retourne la config GNN (depuis gnn_cfg ou crée une config par défaut)."""
+        if self.gnn_cfg is not None:
+            return self.gnn_cfg
+        # Retourner une config par défaut
+        from dataclasses import asdict
+        return GNNArchitectureConfig()
     
     def extract(self) -> Dict[str, Any]:
         """Extrait toutes les données du graphe."""
@@ -858,18 +910,167 @@ class UniversalGraphExtractor:
         }
     
     def _load_mesh(self):
-        """Charge le mesh (OpenFOAM ou autre)."""
+        """Charge le mesh depuis les fichiers VTK en utilisant FoamPostProcessing."""
         if FOAMPILOT_AVAILABLE:
-            self._mesh = meshing.OpenFOAMMesh(self.case_path)
-            self._node_positions = self._mesh.node_positions
-            self._spatial_dim = self._mesh.dim
-            self._face_areas = self._mesh.face_areas
+            # Utiliser FoamPostProcessing pour charger les données du maillage
+            foam_post = postprocess.FoamPostProcessing(self.case_path)
+            time_steps = foam_post.get_all_time_steps()
+            
+            if not time_steps:
+                raise ValueError(f"Aucun time step trouvé dans {self.case_path}")
+            
+            # Charger le dernier time step
+            structure = foam_post.load_time_step(time_steps[-1])
+            
+            # Extraire le maillage des cellules
+            cell_mesh = structure.get("cell")
+            if cell_mesh is None:
+                raise ValueError(f"Maillage non trouvé dans {self.case_path}")
+            
+            # UTILISER LES CENTROIDES DES CELLULES comme positions des nœuds
+            cell_centers = cell_mesh.cell_centers()
+            self._node_positions = cell_centers.points  # Shape: (n_cells, 3)
+            self._n_cells = len(self._node_positions)
+            self._spatial_dim = 3  # Dimension spatiale
+            
+            # Calculer les volumes des cellules
+            cell_sizes = cell_mesh.compute_cell_sizes()
+            self._node_volumes = cell_sizes['Volume']  # Shape: (n_cells,)
+            
+            # Stocker le mesh pour une utilisation ultérieure
+            self._cell_mesh = cell_mesh
+            
+            # Identifier les boundaries
+            self._boundaries = structure.get("boundaries", {})
+            self._face_areas = None  # Pas directement disponible
+            
+            # Initialiser les distances aux boundaries
+            self._boundary_nodes = self._identify_boundary_cells()
+            
         else:
             self._node_positions = self._generate_dummy_mesh()
+            self._n_cells = len(self._node_positions)
             self._spatial_dim = 3 if self.cfg.dimension == GeometryDimension.D3 else 2
+            self._node_volumes = np.ones(self._n_cells)
             self._face_areas = None
+    
+    def _downsample_graph(self, graph: Dict, max_nodes: int) -> Dict:
+        """
+        Sous-échantillonne un graphe pour réduire sa taille.
         
-        self._identify_boundaries()
+        Utilise un échantillonnage stratifié pour garder les boundary cells.
+        """
+        n_nodes = graph['n_nodes']
+        if n_nodes <= max_nodes:
+            return graph  # Pas besoin de réduire
+        
+        # Identifier les cellules de boundary
+        boundary_type = graph.get('metadata', {}).get('boundary_type')
+        boundary_indices = set()
+        
+        if boundary_type is not None:
+            # Trouver les indices qui sont sur les boundaries
+            for i, bt in enumerate(boundary_type):
+                if bt.sum() > 0:  # One-hot avec au moins un 1
+                    boundary_indices.add(i)
+        
+        # Calculer le nombre de boundary cells à garder
+        n_boundary = len(boundary_indices)
+        n_sample = min(max_nodes - n_boundary, n_nodes - n_boundary)
+        
+        # Échantillonner les cellules intérieures
+        interior_indices = [i for i in range(n_nodes) if i not in boundary_indices]
+        if len(interior_indices) > n_sample:
+            sample_indices = np.random.choice(interior_indices, n_sample, replace=False)
+        else:
+            sample_indices = interior_indices
+        
+        # Combiner avec les boundary cells
+        selected_indices = sorted(list(boundary_indices) + list(sample_indices))
+        selected_set = set(selected_indices)
+        
+        # Créer le nouveau graphe
+        new_graph = {}
+        
+        # Downsampler node_features
+        if graph['node_features'] is not None:
+            new_graph['node_features'] = graph['node_features'][selected_indices]
+        
+        # Downsampler targets
+        if graph['targets'] is not None:
+            new_targets = {}
+            for k, v in graph['targets'].items():
+                new_targets[k] = v[selected_indices]
+            new_graph['targets'] = new_targets
+        
+        # Downsampler node_volumes
+        if graph['node_volumes'] is not None:
+            new_graph['node_volumes'] = graph['node_volumes'][selected_indices]
+        
+        # Reconstruire les edges
+        old_edge_index = graph['edge_index']
+        new_edge_index = []
+        old_to_new = {old: new for new, old in enumerate(selected_indices)}
+        
+        for i in range(old_edge_index.shape[1]):
+            src, dst = old_edge_index[0, i].item(), old_edge_index[1, i].item()
+            if src in selected_set and dst in selected_set:
+                new_edge_index.append([old_to_new[src], old_to_new[dst]])
+        
+        if new_edge_index:
+            new_graph['edge_index'] = torch.tensor(new_edge_index, dtype=torch.long).t()
+        else:
+            new_graph['edge_index'] = torch.zeros((2, 0), dtype=torch.long)
+        
+        # Downsampler edge_features
+        if graph['edge_features'] is not None and len(new_edge_index) > 0:
+            # Garder uniquement les features des edges sélectionnés
+            edge_mask = []
+            for i in range(old_edge_index.shape[1]):
+                src, dst = old_edge_index[0, i].item(), old_edge_index[1, i].item()
+                edge_mask.append(src in selected_set and dst in selected_set)
+            new_graph['edge_features'] = graph['edge_features'][edge_mask]
+        else:
+            new_graph['edge_features'] = None
+        
+        # Métadonnées
+        new_graph['metadata'] = graph.get('metadata', {})
+        new_graph['n_nodes'] = len(selected_indices)
+        new_graph['n_edges'] = new_graph['edge_index'].shape[1]
+        new_graph['spatial_dim'] = graph['spatial_dim']
+        new_graph['face_areas'] = None
+        
+        return new_graph
+    
+    def _identify_boundary_cells(self) -> Dict[str, np.ndarray]:
+        """Identifie les cellules belonging à chaque boundary."""
+        boundary_cells = {}
+        
+        if not hasattr(self, '_cell_mesh') or self._cell_mesh is None:
+            return boundary_cells
+        
+        # Pour chaque boundary, trouver les cellules proches
+        cell_centers = self._node_positions
+        
+        for boundary_name, boundary_mesh in self._boundaries.items():
+            # Obtenir les points de la boundary
+            boundary_points = boundary_mesh.points
+            
+            # Trouver les cellules les plus proches de la boundary
+            tree = cKDTree(cell_centers)
+            
+            # Distance moyenne des points de boundary aux cellules
+            for point in boundary_points[:100]:  # Échantillonner pour la performance
+                dist, idx = tree.query(point, k=1)
+                if boundary_name not in boundary_cells:
+                    boundary_cells[boundary_name] = set()
+                boundary_cells[boundary_name].add(idx)
+        
+        # Convertir en arrays
+        for name in boundary_cells:
+            boundary_cells[name] = np.array(list(boundary_cells[name]))
+        
+        return boundary_cells
     
     def _generate_dummy_mesh(self) -> np.ndarray:
         """Génère un mesh dummy pour test."""
@@ -917,7 +1118,7 @@ class UniversalGraphExtractor:
         features = []
         positions = torch.tensor(self._node_positions, dtype=torch.float32)
         
-        if self.cfg.include_node_position:
+        if self.gnn_config.include_node_position:
             scale = self.cfg.characteristic_length
             features.append(positions / (scale + 1e-8))
         
@@ -933,15 +1134,15 @@ class UniversalGraphExtractor:
             outlet_dist = self._compute_boundary_distance("outlet")
             features.append(outlet_dist.unsqueeze(-1))
         
-        if self.cfg.include_boundary_type:
+        if self.gnn_config.include_boundary_type:
             boundary_type = self._classify_boundary_type()
             features.append(boundary_type)
         
-        if self.cfg.include_cell_volume:
+        if self.gnn_config.include_cell_volume:
             volumes = self._compute_control_volumes()
             features.append(volumes.unsqueeze(-1))
         
-        for feature_name in self.cfg.custom_node_features:
+        for feature_name in self.gnn_config.custom_node_features:
             feature = self._compute_custom_node_feature(feature_name)
             if feature is not None:
                 features.append(feature)
@@ -1039,17 +1240,26 @@ class UniversalGraphExtractor:
         return torch.tensor(volumes, dtype=torch.float32)
     
     def _extract_edge_features(self) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        """Extrait la connectivité et features d'arête."""
-        if FOAMPILOT_AVAILABLE and self._mesh:
-            edge_index = self._mesh.edge_index
-            face_areas = self._mesh.face_areas
-        else:
-            edge_index = self._build_dummy_connectivity()
-            face_areas = None
+        """Extrait la connectivité et features d'arête en utilisant KDTree."""
+        # Build graph using KDTree k-nearest neighbors
+        n_nodes = self._n_cells if hasattr(self, '_n_cells') else len(self._node_positions)
+        k = min(6, n_nodes - 1)
         
-        edge_index = torch.tensor(edge_index, dtype=torch.long).T
+        tree = cKDTree(self._node_positions)
+        distances, neighbors = tree.query(self._node_positions, k=k+1)
         
-        if edge_index.shape[0] == 0:
+        # Build edge list (avoiding duplicates and self-loops)
+        edges = set()
+        for i in range(n_nodes):
+            for j in neighbors[i]:
+                if i != j:  # No self-loops
+                    # Add undirected edge (sorted tuple)
+                    edges.add((min(i, j), max(i, j)))
+        
+        edge_list = sorted(list(edges))
+        edge_index = torch.tensor(edge_list, dtype=torch.long).t().contiguous()
+        
+        if edge_index.shape[1] == 0:
             return edge_index, None
         
         src, dst = edge_index
@@ -1057,26 +1267,21 @@ class UniversalGraphExtractor:
         
         features = []
         
+        # Edge length
         edge_vec = pos[dst] - pos[src]
         edge_len = torch.norm(edge_vec, dim=1, keepdim=True)
         features.append(edge_len)
         
-        if face_areas is not None and len(face_areas) == len(src):
-            face_area_tensor = torch.tensor(face_areas, dtype=torch.float32).unsqueeze(-1)
-            features.append(face_area_tensor)
-        else:
-            if self._spatial_dim == 2:
-                features.append(edge_len)
-            else:
-                features.append(edge_len ** 2)
-        
+        # Edge direction (normalized)
         edge_dir = edge_vec / (edge_len + 1e-8)
         features.append(edge_dir)
         
-        for feature_name in self.cfg.custom_edge_features:
-            feature = self._compute_custom_edge_feature(feature_name, edge_index, edge_vec)
-            if feature is not None:
-                features.append(feature)
+        # Compute distances for each edge (source to destination)
+        edge_distances = torch.tensor([
+            distances[i, list(neighbors[i]).index(j)] if j in neighbors[i] else 0.0
+            for i, j in zip(src.tolist(), dst.tolist())
+        ], dtype=torch.float32).unsqueeze(-1)
+        features.append(edge_distances)
         
         edge_features = torch.cat(features, dim=1) if features else None
         
@@ -1109,20 +1314,49 @@ class UniversalGraphExtractor:
         return None
     
     def _load_target_fields(self) -> Optional[Dict[str, torch.Tensor]]:
-        """Charge les champs cibles."""
+        """Charge les champs cibles depuis le mesh VTK déjà chargé."""
         if not FOAMPILOT_AVAILABLE:
             return None
         
+        if not hasattr(self, '_cell_mesh') or self._cell_mesh is None:
+            return None
+        
         try:
-            latest_time = utils.get_latest_time(self.case_path)
-            if latest_time is None:
-                return None
+            cell_mesh = self._cell_mesh
+            targets = {}
             
-            fields = utils.load_fields(self.case_path, latest_time,
-                                      ["p", "T", "U", "Ma", "rho", "k", "omega"])
+            # Charger les variables disponibles
+            available_arrays = cell_mesh.array_names
             
-            return {k: torch.tensor(v, dtype=torch.float32)
-                   for k, v in fields.items()}
+            # Pression
+            if 'p' in available_arrays:
+                p_data = cell_mesh['p']
+                if len(p_data.shape) == 1:
+                    targets['p'] = torch.tensor(p_data, dtype=torch.float32)
+                else:
+                    # Prendre la première composante si multi-dimensionnel
+                    targets['p'] = torch.tensor(p_data[:, 0], dtype=torch.float32)
+            
+            # Vitesse
+            if 'U' in available_arrays:
+                U_data = cell_mesh['U']
+                targets['U'] = torch.tensor(U_data, dtype=torch.float32)
+            
+            # Variables de turbulence
+            for var in ['k', 'epsilon', 'omega', 'nut']:
+                if var in available_arrays:
+                    var_data = cell_mesh[var]
+                    if len(var_data.shape) == 1:
+                        targets[var] = torch.tensor(var_data, dtype=torch.float32)
+                    else:
+                        targets[var] = torch.tensor(var_data[:, 0], dtype=torch.float32)
+            
+            # Densité (si disponible)
+            if 'rho' in available_arrays:
+                targets['rho'] = torch.tensor(cell_mesh['rho'], dtype=torch.float32)
+            
+            return targets if targets else None
+            
         except Exception as e:
             self.logger.warning(f"Erreur chargement champs: {e}")
             return None
@@ -1188,12 +1422,22 @@ class PhysicsInformedLoss(nn.Module):
         """Calcule le loss composite."""
         w = weights or self.cfg.loss_weights
         
+        # Skip physics losses entirely if their weights are 0
+        use_mass = w.get("mass", 0) > 0
+        use_momentum = w.get("momentum", 0) > 0
+        use_energy = w.get("energy", 0) > 0
+        use_bc = w.get("bc", 0) > 0
+        use_turb = w.get("turbulence", 0) > 0
+        
+        # Get device from prediction
+        device = pred["p"].device
+        
         L_data = self._data_loss(pred, target)
-        L_mass = self._mass_conservation_loss(pred, graph)
-        L_momentum = self._momentum_conservation_loss(pred, graph)
-        L_energy = self._energy_conservation_loss(pred, graph)
-        L_bc = self._boundary_condition_loss(pred, graph)
-        L_turb = self._turbulence_loss(pred, graph)
+        L_mass = self._mass_conservation_loss(pred, graph) if use_mass else torch.tensor(0.0, device=device)
+        L_momentum = self._momentum_conservation_loss(pred, graph) if use_momentum else torch.tensor(0.0, device=device)
+        L_energy = self._energy_conservation_loss(pred, graph) if use_energy else torch.tensor(0.0, device=device)
+        L_bc = self._boundary_condition_loss(pred, graph) if use_bc else torch.tensor(0.0, device=device)
+        L_turb = self._turbulence_loss(pred, graph) if use_turb else torch.tensor(0.0, device=device)
         
         if self.cfg.loss_normalization:
             L_mass = self._normalize_loss(L_mass, 1)
@@ -1443,7 +1687,7 @@ class UniversalGNN(nn.Module):
     
     def __init__(self, config: GNNArchitectureConfig, physics_config: PhysicsConfig, spatial_dim: int = 3):
         super().__init__()
-        self.cfg = config
+        self.cfg = config  # GNN config
         self.physics_cfg = physics_config
         self.spatial_dim = spatial_dim
         
@@ -1481,22 +1725,22 @@ class UniversalGNN(nn.Module):
                 nn.Linear(config.hidden_dim // 2, len(config.output_variables) * 2),
             )
     
+    @property
+    def gnn_config(self):
+        """Retourne la config GNN."""
+        return self.cfg
+    
     def _estimate_input_dim(self) -> int:
         """Estime la dimension d'entrée."""
         dim = 0
-        if self.cfg.include_node_position:
+        if self.gnn_config.include_node_position:
             dim += self.spatial_dim
-        if self.cfg.extract_wall_distance:
-            dim += 1
-        if self.cfg.extract_inlet_distance:
-            dim += 1
-        if self.cfg.extract_outlet_distance:
-            dim += 1
-        if self.cfg.include_boundary_type:
+        # Skip wall distances for now as they're computed differently
+        if self.gnn_config.include_boundary_type:
             dim += len(UniversalGraphExtractor.BOUNDARY_TYPES)
-        if self.cfg.include_cell_volume:
+        if self.gnn_config.include_cell_volume:
             dim += 1
-        for _ in self.cfg.custom_node_features:
+        for _ in self.gnn_config.custom_node_features:
             dim += 1
         return max(dim, self.spatial_dim)
     
@@ -1513,7 +1757,7 @@ class UniversalGNN(nn.Module):
         
         output = self.decoder(x)
         
-        var_names = self.cfg.output_variables
+        var_names = self.gnn_config.output_variables
         pred = {var_names[i]: output[:, i:i+1] for i in range(len(var_names))}
         
         if "p" in pred and "T" in pred:
@@ -1525,7 +1769,7 @@ class UniversalGNN(nn.Module):
             pred["U"] = torch.cat(u_tensors, dim=1)
             pred["U_mag"] = torch.norm(pred["U"], dim=1, keepdim=True)
         
-        if self.cfg.predict_uncertainty and hasattr(self, 'uncertainty_head'):
+        if self.gnn_config.predict_uncertainty and hasattr(self, 'uncertainty_head'):
             unc_params = self.uncertainty_head(x)
             pred["uncertainty"] = unc_params
         
@@ -1536,7 +1780,7 @@ class UniversalGNN(nn.Module):
                                  edge_index: torch.Tensor,
                                  n_samples: int = 10) -> Dict[str, torch.Tensor]:
         """Prédiction avec quantification d'incertitude."""
-        if self.cfg.predict_uncertainty and hasattr(self, 'uncertainty_head'):
+        if self.gnn_config.predict_uncertainty and hasattr(self, 'uncertainty_head'):
             return self.forward(node_features, edge_index)
         else:
             self.train()
@@ -1848,15 +2092,24 @@ class CFDPipeline:
         """Extrait les graphes de toutes les simulations."""
         graphs = []
         
+        # Nombre max de nœuds par graphe (évite OOM)
+        max_nodes = getattr(self.cfg.gnn, 'max_nodes_per_graph', 5000)
+        
         for case_path in self.cfg.sim_dir.glob("sim_*"):
             if not case_path.is_dir():
                 continue
             
             try:
-                extractor = UniversalGraphExtractor(case_path, self.cfg.geometry)
+                # Passer la config complète au lieu de juste geometry
+                extractor = UniversalGraphExtractor(case_path, self.cfg)
                 graph = extractor.extract()
                 
                 if graph["targets"] is not None:
+                    # Sous-échantillonner si nécessaire
+                    if max_nodes > 0 and graph["n_nodes"] > max_nodes:
+                        self.logger.info(f"  📉 Downsampling {case_path.name}: {graph['n_nodes']} → {max_nodes} nodes")
+                        graph = extractor._downsample_graph(graph, max_nodes)
+                    
                     graphs.append(graph)
             except Exception as e:
                 self.logger.debug(f"Erreur extraction {case_path.name}: {e}")
@@ -1945,6 +2198,9 @@ class CFDPipeline:
         val_loss = 0.0
         n_batches = 0
         
+        # Get loss weights for validation
+        weights = self.cfg.training.loss_weights
+        
         n_val = max(1, len(graph_data) // 5)
         val_indices = np.random.choice(len(graph_data), n_val, replace=False)
         
@@ -1955,7 +2211,7 @@ class CFDPipeline:
                     batch["node_features"].to(self.cfg.device),
                     batch["edge_index"].to(self.cfg.device),
                 )
-                loss = criterion(pred, batch["targets"], batch)
+                loss = criterion(pred, batch["targets"], batch, weights=weights)
                 val_loss += loss.item()
                 n_batches += 1
         

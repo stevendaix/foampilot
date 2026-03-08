@@ -161,4 +161,6 @@ class TransportPropertiesFile(OpenFOAMFile):
         return self.attributes
 
     def write(self, filepath: Path):
+        # Ensure attributes are up to date before writing
+        self._configure_attributes()
         self.write_file(filepath)

@@ -12,7 +12,10 @@ import json
 import sys
 from pathlib import Path
 
-from windkessel import Windkessel
+# Add foampilot to path
+sys.path.insert(0, '/home/steven/foampilot')
+
+from foampilot.model_addon.windkessel import Windkessel
 
 
 # ---------------------------------------------------------------------
@@ -103,7 +106,7 @@ def pa_to_mmhg(p_pa: np.ndarray) -> np.ndarray:
 # ---------------------------------------------------------------------
 
 # Define paths
-data_dir = Path("data")
+data_dir = Path(__file__).parent  # examples/coa/
 flow_file = data_dir / "data_typec_q.csv"
 pressure_file = data_dir / "data_typec_p.csv"
 
@@ -217,7 +220,7 @@ plt.xlim(0.0, T)
 plt.tight_layout()
 
 # Save figure
-output_dir = Path("results")
+output_dir = Path(__file__).parent / "results"
 output_dir.mkdir(exist_ok=True)
 plt.savefig(output_dir / "validation_waveform.png", dpi=300, bbox_inches='tight')
 plt.show()

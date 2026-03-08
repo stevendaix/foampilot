@@ -97,9 +97,19 @@ print("="*50)
 solver = Solver(current_path)
 solver.compressible = False
 solver.with_gravity = False
+# Use k-epsilon RAS turbulence
+solver.turbulence_model = "kEpsilon"
 
 # Configuration de la viscosité
 solver.constant.transportProperties.nu = kinematic_viscosity
+
+# Configuration du temps de simulation (plus court pour test)
+solver.system.controlDict.endTime = 50
+solver.system.controlDict.writeInterval = 10
+solver.system.controlDict.deltaT = 0.5
+
+# Configuration pour parallel execution
+solver.system.ensure_decomposeParDict(4)
 
 # Écriture des fichiers de configuration (sans écraser fvSchemes/fvSolution)
 solver.system.write()
@@ -189,9 +199,13 @@ fluid_domain = dom.part.translate((offset, 0, 0))
 # Application de la rotation
 if d['rotation_angle'] != 0:
     angle_rad = math.radians(d['rotation_angle'])
-    rotation = Rotation(axis=(0, 0, 1), angle=angle_rad)
-    fluid_domain = fluid_domain.rotate(rotation)
+    # Create rotation axis using Edge
+    axis_edge = Edge.make_line(Vector(0, 0, 0), Vector(0, 0, 1))
+    axis = Axis(axis_edge)
+    fluid_domain = fluid_domain.rotate(axis, angle_rad)
     print(f"Rotation appliquée: {d['rotation_angle']}°")
+else:
+    print("Pas de rotation")
 
 fluid_domain.label = "FLUID"
 
@@ -247,7 +261,7 @@ mesh.mesher.get_face_tags()
 
 # Identification des faces non assignées (bâtiments)
 unassigned = mesh.mesher.get_unassigned_faces()
-if unassigned:
+if unassigned is not None and len(unassigned) > 0:
     mesh.mesher.define_physical_group(dim=2, tags=unassigned, name="buildings")
     print(f"Faces des bâtiments identifiées: {len(unassigned)}")
 else:
@@ -257,6 +271,26 @@ else:
 # Export pour OpenFOAM
 mesh.mesher.export_to_openfoam(run_gmshtofoam=True)
 print("Maillage converti pour OpenFOAM")
+
+# Fix patch types: change from "patch" to "wall" for walls
+# This is needed for RAS turbulence with wall functions
+boundary_file = current_path / "constant" / "polyMesh" / "boundary"
+with open(boundary_file, 'r') as f:
+    content = f.read()
+
+# Replace patch type with wall for wall patches (including UNASSIGNED with 0 faces)
+wall_patches = ["SIDE_SOUTH", "SIDE_NORTH", "GROUND", "TOP", "buildings", "UNASSIGNED"]
+for patch_name in wall_patches:
+    # Find the patch section and change type patch to type wall
+    import re
+    pattern = rf'({patch_name}\s*{{\s*type\s+)patch(;.*?nFaces\s+)(\d+)(;.*?startFace\s+)(\d+)(;\s*}})'
+    def replace_func(m):
+        return m.group(1) + "wall" + m.group(2) + m.group(3) + m.group(4) + m.group(5) + m.group(6)
+    content = re.sub(pattern, replace_func, content, flags=re.DOTALL)
+
+with open(boundary_file, 'w') as f:
+    f.write(content)
+print("Patch types updated to 'wall' for wall boundaries")
 
 mesh.mesher.finalize()
 
@@ -271,7 +305,7 @@ solver.boundary.initialize_boundary()
 
 # Inlet
 solver.boundary.apply_condition_with_wildcard(
-    pattern="inlet",
+    pattern="INLET",
     condition_type="velocityInlet",
     velocity=(
         ValueWithUnit(sim['inlet_velocity'] * sim['direction_vent'][0], "m/s"),
@@ -283,35 +317,41 @@ solver.boundary.apply_condition_with_wildcard(
 
 # Outlet
 solver.boundary.apply_condition_with_wildcard(
-    pattern="outlet",
+    pattern="OUTLET",
     condition_type="pressureOutlet"
 )
 
 # Faces latérales et ciel -> symétrie (wall avec glissement)
 solver.boundary.apply_condition_with_wildcard(
-    pattern="side_left",
+    pattern="SIDE_NORTH",
     condition_type="wall"
 )
 
 solver.boundary.apply_condition_with_wildcard(
-    pattern="side_right",
+    pattern="SIDE_SOUTH",
     condition_type="wall"
 )
 
 solver.boundary.apply_condition_with_wildcard(
-    pattern="top",
+    pattern="TOP",
     condition_type="wall"
 )
 
 # Sol
 solver.boundary.apply_condition_with_wildcard(
-    pattern="bottom",
+    pattern="GROUND",
     condition_type="wall"
 )
 
 # Bâtiments
 solver.boundary.apply_condition_with_wildcard(
     pattern="buildings",
+    condition_type="wall"
+)
+
+# UNASSIGNED faces
+solver.boundary.apply_condition_with_wildcard(
+    pattern="UNASSIGNED",
     condition_type="wall"
 )
 
@@ -326,7 +366,7 @@ print("\n" + "="*50)
 print("Exécution de la simulation")
 print("="*50)
 
-solver.run_simulation()
+solver.run_simulation(nb_proc=4)
 
 # -----------------------------
 # Post-traitement

@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
-run_muffler_simulation.py - Simulation unique pour le silencieux (version GNN)
+run_muffler_simulation.py - Simulation pour le silencieux basée sur run_simu.py
 Usage: python run_muffler_simulation.py --case-dir ./cas_test --params params.json
 """
 
@@ -13,9 +13,10 @@ from foampilot import Meshing, utilities, postprocess, FluidMechanics, ValueWith
 import classy_blocks as cb
 import sys
 
+
 def run_simulation(case_dir: Path, params: dict) -> dict:
     """
-    Lance une simulation avec les paramètres donnés.
+    Lance une simulation avec les paramètresdonnés.
     
     Args:
         case_dir: Répertoire où créer le cas
@@ -33,19 +34,32 @@ def run_simulation(case_dir: Path, params: dict) -> dict:
     case_dir.mkdir(parents=True, exist_ok=True)
     
     # --- 1. Configuration fluide ---
+    # Get available fluids and use Water
+    available_fluids = utilities.FluidMechanics.get_available_fluids()
     fluid_mech = FluidMechanics(
-        'Water',
+        available_fluids['Water'],
         temperature=ValueWithUnit(params.get('temperature', 293.15), "K"),
         pressure=ValueWithUnit(params.get('pressure', 101325), "Pa")
     )
     properties = fluid_mech.get_fluid_properties()
     kinematic_viscosity = properties['kinematic_viscosity']
+    print(f"\nUsing fluid: Water")
+    print(f"Kinematic viscosity: {kinematic_viscosity}")
     
     # --- 2. Initialisation solver ---
     solver = Solver(case_dir)
     solver.compressible = False
     solver.with_gravity = False
+    
+    # Set the kinematic viscosity in the solver's constant directory
     solver.constant.transportProperties.nu = kinematic_viscosity
+    
+    # Generate system and constant directories with updated OpenFOAM configuration
+    solver.system.write()
+    solver.constant.write()
+    
+    # Convert numerical schemes settings to Python dictionary for inspection
+    solver.system.fvSchemes.to_dict()
     
     # --- 3. Génération maillage paramétrique ---
     # Paramètres géométriques
@@ -97,15 +111,24 @@ def run_simulation(case_dir: Path, params: dict) -> dict:
         mesh.add(shape)
     mesh.set_default_patch("walls", "wall")
     
-    # Écriture
+    # Write output files
     mesh.write(case_dir / "system" / "blockMeshDict", case_dir / "debug.vtk")
     
+    print("Successfully generated blockMeshDict and debug.vtk files in the case directory.")
+    
     # --- 4. Exécution blockMesh ---
-    try:
-        mesher = Meshing(case_dir, mesher="blockMesh")
-        mesher.mesher.run()
-    except Exception as e:
-        return {"success": False, "error": f"blockMesh failed: {str(e)}"}
+    # Run blockMesh directly instead of using Meshing class to avoid issues
+    import subprocess
+    result = subprocess.run(
+        ["blockMesh"],
+        cwd=str(case_dir),
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        print(f"blockMesh output: {result.stdout}")
+        print(f"blockMesh error: {result.stderr}")
+        return {"success": False, "error": f"blockMesh failed: {result.stderr[:500]}"}
     
     # --- 5. Conditions limites ---
     solver.boundary.initialize_boundary()
@@ -136,6 +159,8 @@ def run_simulation(case_dir: Path, params: dict) -> dict:
     
     solver.boundary.write_boundary_conditions()
     
+    print("Boundary condition files have been generated")
+    
     # Sauvegarder les BC pour le GNN
     boundary_info = {
         "inlet": {"U_inlet": [inlet_velocity, 0, 0]},
@@ -145,13 +170,25 @@ def run_simulation(case_dir: Path, params: dict) -> dict:
     
     # --- 6. Exécution simulation ---
     try:
-        success = solver.run_simulation()
-        if not success:
-            return {"success": False, "error": "Simulation solver failed"}
+        # Run simulation
+        solver.run_simulation()
     except Exception as e:
         return {"success": False, "error": f"Solver error: {str(e)}"}
     
     # --- 7. Post-traitement et extraction des données pour le GNN ---
+    foam_post = postprocess.FoamPostProcessing(case_path=case_dir)
+    
+    # Convertir les résultats en VTK (requis pour FoamPostProcessing)
+    try:
+        print("  🔄 Conversion des résultats en VTK...")
+        foam_post.foamToVTK()
+    except Exception as e:
+        print(f"  ⚠️ foamToVTK a échoué: {e}")
+        # Essayer avec latestTime uniquement
+        try:
+            foam_post.foamToVTK(latest_time=True)
+        except Exception as e2:
+            return {"success": False, "error": f"foamToVTK failed: {e2}"}
     
     # Récupérer les résiduels (convergence)
     try:
@@ -161,7 +198,6 @@ def run_simulation(case_dir: Path, params: dict) -> dict:
         residuals_data = {"final_residual": 1e-3}
     
     # Charger les résultats
-    foam_post = postprocess.FoamPostProcessing(case_path=case_dir)
     time_steps = foam_post.get_all_time_steps()
     
     if not time_steps:
@@ -202,10 +238,11 @@ def run_simulation(case_dir: Path, params: dict) -> dict:
         "success": True,
         "time_steps": time_steps,
         "n_cells": len(structure["cell"].points),
-        "final_residual": residuals_data.get('final_residual', 1e-3),
-        "U_mean": cell_stats.get('mean', 0),
-        "p_mean": pressure_stats.get('mean', 0)
+        "final_residual": float(residuals_data.get('final_residual', 1e-3)),
+        "U_mean": float(cell_stats.get('mean', 0)),
+        "p_mean": float(pressure_stats.get('mean', 0))
     }
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Lance une simulation CFD pour le silencieux")
@@ -219,7 +256,7 @@ if __name__ == "__main__":
         
         # Sauvegarder le résultat
         with open(args.case_dir / "result.json", 'w') as f:
-            json.dump(result, f, indent=2)
+            json.dump(result, f, indent=2, default=str)
         
         # Code de retour pour succès/échec
         sys.exit(0 if result.get("success") else 1)

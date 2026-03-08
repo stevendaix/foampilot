@@ -1,0 +1,1 @@
+python extract_tbad_full.py 58 -o patient58_final --viz

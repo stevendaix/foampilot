@@ -6,4 +6,5 @@
 !*.csv
 !data**
 !CoA**
-!data_preproc/*stl
+!data_preproc/*sh
+!data_preproc/*png

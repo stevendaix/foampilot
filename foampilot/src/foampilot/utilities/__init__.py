@@ -10,5 +10,5 @@ from foampilot.utilities.residuals import ResidualsPost
 from foampilot.utilities.make_human import HumanGeometry
 from foampilot.utilities.coupling_foam_csv import CSVFoamIntegrator
 from foampilot.utilities.stl_cleanup import AortaSurfaceCleaner,AortaCapMethod, create_closed_aorta_mesh
-from foampilot.utilities.import_tbad import prepare_tbad_mesh, save_nifti_to_obj
+# from foampilot.utilities.import_tbad import prepare_tbad_mesh, save_nifti_to_obj
 # from .read_mesh import ValueWithUnit

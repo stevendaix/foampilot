@@ -144,8 +144,8 @@ class Solver:
     def setup_case(self):
         self._solver.setup_case()
 
-    def run_simulation(self):
-        self._solver.run_simulation()
+    def run_simulation(self, nb_proc: int = 1, log_filename: str | None = None):
+        self._solver.run_simulation(nb_proc=nb_proc, log_filename=log_filename)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._solver, name)

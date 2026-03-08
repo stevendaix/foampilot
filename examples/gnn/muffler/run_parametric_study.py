@@ -100,7 +100,7 @@ def main():
     for name, (min_val, max_val) in cfg.sampling.param_ranges.items():
         print(f"   • {name}: [{min_val}, {max_val}]")
     
-    print(f"\n🎯 Objectif: {cfg.n_initial} simulations initiales")
+    print(f"\n🎯 Objectif: {cfg.sampling.n_initial} simulations initiales")
     if cfg.active_learning:
         print(f"🔄 Active learning: {cfg.max_active_iterations} itérations")
     

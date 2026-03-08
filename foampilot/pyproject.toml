@@ -54,6 +54,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+gnn = [
+  "torch>=2.5.0,<2.6.0",
+  "torch-scatter",
+  "scipy",
+  "pyyaml"
+]
 dev = [
   "pytest",
   "ipykernel",

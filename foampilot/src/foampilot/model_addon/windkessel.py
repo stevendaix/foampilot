@@ -7,7 +7,7 @@ Numerically stable implementation using spline-interpolated flow signals.
 
 from __future__ import annotations
 import numpy as np
-from scipy.integrate import solve_ivp, OdeResult
+from scipy.integrate import solve_ivp
 from scipy.interpolate import CubicSpline
 from dataclasses import dataclass
 from typing import Union, Optional
@@ -15,7 +15,7 @@ import warnings
 
 
 @dataclass
-class WindkesselResult(OdeResult):
+class WindkesselResult:
     """
     Extended OdeResult with Windkessel-specific pressure fields.
     
@@ -32,8 +32,11 @@ class WindkesselResult(OdeResult):
     message : str
         Solver termination message.
     """
+    t: np.ndarray
     p1: np.ndarray
     p2: np.ndarray
+    success: bool
+    message: str
 
 
 class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation script

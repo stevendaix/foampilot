@@ -51,13 +51,13 @@ except ImportError:
     KAGGLE_AVAILABLE = False
 
 try:
-    from nifti_to_stl_converter import NiftiToSTLConverter, SurfaceParameters, ConversionResult
+    from niftitostlconverter import NiftiToSTLConverter, SurfaceParameters, SurfaceResult
     CONVERTER_AVAILABLE = True
 except ImportError:
     CONVERTER_AVAILABLE = False
     warnings.warn(
-        "⚠️  nifti_to_stl_converter non trouvé. L'extraction ne fonctionnera pas.\n"
-        "Installez-le avec: pip install -e .",
+        "⚠️  niftitostlconverter non trouvé. L'extraction ne fonctionnera pas.\n"
+        "Installez-le ou ajoutez le répertoire au PYTHONPATH.",
         ImportWarning,
         stacklevel=2
     )
@@ -462,7 +462,7 @@ class TbadExtractor:
     ):
         if not CONVERTER_AVAILABLE:
             raise ImportError(
-                "nifti_to_stl_converter requis. Installez-le avec: pip install -e ."
+                "niftitostlconverter requis. Ajoutez le répertoire au PYTHONPATH."
             )
         
         self.output_dir = Path(output_dir)
@@ -556,7 +556,7 @@ class TbadExtractor:
             tl_start = time.time()
             
             tl_stl = self.output_dir / "tbad_TL_walls.stl"
-            conv_result_tl: ConversionResult = self.converter_tl.convert(
+            conv_result_tl: SurfaceResult = self.converter_tl.convert(
                 nifti_path=nifti_path,
                 label_value=tl_label,
                 output_stl=tl_stl,
@@ -591,7 +591,7 @@ class TbadExtractor:
             fl_start = time.time()
             
             fl_stl = self.output_dir / "tbad_FL_walls.stl"
-            conv_result_fl: ConversionResult = self.converter_fl.convert(
+            conv_result_fl: SurfaceResult = self.converter_fl.convert(
                 nifti_path=nifti_path,
                 label_value=fl_label,
                 output_stl=fl_stl,

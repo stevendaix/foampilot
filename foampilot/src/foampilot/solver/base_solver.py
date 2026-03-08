@@ -168,7 +168,11 @@ class BaseSolver:
 
         self.run_command(["foamRun", "-solver", self.foamrun_module], log_filename)
 
-    def run_parallel(self, nb_proc: int):
+    def run_parallel(self, nb_proc: int, log_filename: str | None = None):
+
+        if log_filename is None:
+            log_filename = f"log.{self.solver_name}"
+        log_path = self.case_path / log_filename
 
         print(f"🔵 Parallel run with {nb_proc} processors")
 
@@ -179,18 +183,36 @@ class BaseSolver:
 
         # 1. decomposePar
         print("🟦 Running decomposePar ...")
-        subprocess.run(["decomposePar", "-case", str(self.case_path)], check=True)
+        with open(log_path, "w", encoding="utf-8") as log_file:
+            log_file.write("=== decomposePar ===\n")
+            subprocess.run(
+                ["decomposePar", "-case", str(self.case_path)],
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                check=True
+            )
 
-        # 2. mpirun
+        # 2. mpirun with foamRun
         print("🟩 Running mpirun simulation ...")
-        subprocess.run(
-            ["mpirun", "-np", str(nb_proc), self.solver_name, "-parallel"],
-            cwd=self.case_path,
-            check=True
-        )
+        with open(log_path, "a", encoding="utf-8") as log_file:
+            log_file.write("\n=== mpirun foamRun ===\n")
+            subprocess.run(
+                ["mpirun", "-np", str(nb_proc), "foamRun", "-solver", self.foamrun_module, "-parallel"],
+                cwd=self.case_path,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                check=True
+            )
 
         # 3. reconstructPar
         print("🟪 Running reconstructPar ...")
-        subprocess.run(["reconstructPar", "-case", str(self.case_path)], check=True)
+        with open(log_path, "a", encoding="utf-8") as log_file:
+            log_file.write("\n=== reconstructPar ===\n")
+            subprocess.run(
+                ["reconstructPar", "-case", str(self.case_path)],
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                check=True
+            )
 
-        print("🏁 Parallel simulation finished !")
+        print(f"🏁 Parallel simulation finished ! (log: {log_path})")

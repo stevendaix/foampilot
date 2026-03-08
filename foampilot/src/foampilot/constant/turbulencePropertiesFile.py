@@ -31,20 +31,29 @@ class TurbulencePropertiesFile(OpenFOAMFile):
     ):
         self.parent = parent
 
-        simulationType = simulationType.lower()
+        # Use uppercase for RAS/LES, lowercase for laminar (OpenFOAM 13 requirement)
+        simulationType_upper = simulationType.upper()
+        # Use lowercase for comparisons
+        simulationType_lower = simulationType.lower()
+
+        # For writing to file: use uppercase for RAS/LES, lowercase for laminar
+        if simulationType_lower == "laminar":
+            simulationType_for_file = "laminar"
+        else:
+            simulationType_for_file = simulationType_upper
 
         data = {
             "object_name": "turbulenceProperties",
-            "simulationType": simulationType,
+            "simulationType": simulationType_for_file,
         }
 
         # ---- LAMINAR --------------------------------------------------
-        if simulationType == "laminar":
+        if simulationType_lower == "laminar":
             super().__init__(**data)
             return
 
         # ---- RAS ------------------------------------------------------
-        if simulationType == "ras":
+        if simulationType_lower == "ras":
             if RASModel is None:
                 raise ValueError("RASModel must be provided when simulationType='RAS'")
 
@@ -60,7 +69,7 @@ class TurbulencePropertiesFile(OpenFOAMFile):
             return
 
         # ---- LES ------------------------------------------------------
-        if simulationType == "les":
+        if simulationType_lower == "les":
             if LESModel is None:
                 raise ValueError("LESModel must be provided when simulationType='LES'")
 

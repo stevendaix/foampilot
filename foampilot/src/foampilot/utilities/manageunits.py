@@ -76,6 +76,46 @@ class ValueWithUnit:
 
         return f"dimensions      [{' '.join(str(e) for e in exponents)}];"
 
+    # ---- Unit checking ----
+    def check(self, expected_units: str) -> bool:
+        """
+        Check if the units are compatible with the expected units.
+        
+        Args:
+            expected_units: Expected units as a string (e.g., 'm/s' or '[length] / [time]')
+            
+        Returns:
+            True if units are compatible, False otherwise.
+        """
+        try:
+            # First try to parse as a regular unit string
+            expected = Q_(1, expected_units)
+            if self.quantity.dimensionality == expected.dimensionality:
+                return True
+        except Exception:
+            pass
+        
+        # Try to interpret as dimensionality (e.g., [length]/[time])
+        try:
+            # Replace [length] with meter, [time] with second, etc.
+            dim_map = {
+                '[mass]': 'kilogram',
+                '[length]': 'meter',
+                '[time]': 'second',
+                '[temperature]': 'kelvin',
+                '[substance]': 'mole',
+                '[current]': 'ampere',
+            }
+            
+            expected_str = expected_units
+            for dim, unit in dim_map.items():
+                expected_str = expected_str.replace(dim, unit)
+            
+            expected = Q_(1, expected_str)
+            return self.quantity.dimensionality == expected.dimensionality
+        except Exception:
+            return False
+
     # ---- Sérialisation ----
     def as_dict(self) -> dict[str, Any]:
         return {"value": self.magnitude, "unit": self.units}
