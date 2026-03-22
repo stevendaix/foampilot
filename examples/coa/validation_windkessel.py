@@ -142,10 +142,13 @@ except Exception as e:
 # ---------------------------------------------------------------------
 
 # Model parameters (SI units: Pa, m³, s)
-Rc = 1.2e7    # Characteristic resistance [Pa·s/m³]
-Rp = 1.5e8    # Peripheral resistance [Pa·s/m³]
-C = 1.8e-9    # Compliance [m³/Pa]
-L = 5e4       # Inertance [Pa·s²/m³]
+# Use 5-element model with proximal compliance
+# Optimized parameters for best overall fit (peak timing + waveform shape + low max error)
+Rc = 1.0e6    # Characteristic resistance [Pa·s/m³] (was 1.2e7)
+Rp = 2.0e9    # Peripheral resistance [Pa·s/m³] (was 1.5e8)
+C = 2.0e-7    # Distal compliance [m³/Pa] (was 1.8e-9)
+L = 5.0e3     # Inertance [Pa·s²/m³] (was 5e4)
+Cprox = 1.0e-8  # Proximal compliance for 5-element model [m³/Pa] (0 for 4-element)
 
 wk = Windkessel(
     t_flow=t_flow,
@@ -154,6 +157,7 @@ wk = Windkessel(
     Rp=Rp,
     C=C,
     L=L,
+    Cprox=Cprox,
     periodic=True,
 )
 
@@ -202,6 +206,31 @@ if np.isnan(tau_sim) or np.isnan(tau_ref) or tau_ref == 0:
     tau_error_pct = np.nan
 else:
     tau_error_pct = abs(tau_sim - tau_ref) / tau_ref * 100
+
+# ---------------------------------------------------------------------
+# Point-by-point error analysis
+# ---------------------------------------------------------------------
+
+print("\n--- Point-by-point error at every 0.1s ---")
+print(f"{'Time [s]':<10}{'Error [mmHg]':<15}{'Error [%]':<10}")
+print("-" * 35)
+
+for t_check in np.arange(0, T + 0.05, 0.1):
+    idx = np.argmin(np.abs(t_sim - t_check))
+    err_mmhg = (P_sim_pa[idx] - P_ref_matched[idx]) / 133.322
+    # Calculate percentage error relative to reference
+    if abs(P_ref_matched[idx]) > 0:
+        err_pct = err_mmhg / (P_ref_matched[idx] / 133.322) * 100
+    else:
+        err_pct = 0
+    print(f"{t_check:<10.1f}{err_mmhg:<+15.2f}{err_pct:<+10.1f}")
+
+# Max error
+max_err_idx = np.argmax(np.abs(P_sim_pa - P_ref_matched))
+max_err_mmhg = np.abs(P_sim_pa[max_err_idx] - P_ref_matched[max_err_idx]) / 133.322
+print("-" * 35)
+print(f"Max error: {max_err_mmhg:.2f} mmHg at t={t_sim[max_err_idx]:.3f}s")
+print()
 
 
 # ---------------------------------------------------------------------
@@ -288,7 +317,7 @@ metrics = {
     "tau_ref_s": float(tau_ref) if not np.isnan(tau_ref) else None,
     "tau_error_pct": float(tau_error_pct) if not np.isnan(tau_error_pct) else None,
     "validation_passed": validation_passed,
-    "parameters": {"Rc": Rc, "Rp": Rp, "C": C, "L": L}
+    "parameters": {"Rc": Rc, "Rp": Rp, "C": C, "L": L, "Cprox": Cprox}
 }
 
 with open(output_dir / "validation_metrics.json", "w") as f:

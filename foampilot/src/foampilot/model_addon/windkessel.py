@@ -31,12 +31,15 @@ class WindkesselResult:
         Whether the solver completed successfully.
     message : str
         Solver termination message.
+    p_prox : ndarray, optional
+        Proximal compliance pressure (for 5-element model) [Pa].
     """
     t: np.ndarray
     p1: np.ndarray
     p2: np.ndarray
     success: bool
     message: str
+    p_prox: np.ndarray = None
 
 
 class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation script
@@ -44,16 +47,23 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
     Windkessel model with serial inertance.
 
     Supported configurations:
-        - 2-element: Rc = 0, L = 0
-        - 3-element: L = 0, Rc > 0
-        - 4-element: Rc, Rp, C, L > 0
+        - 2-element: Rc = 0, L = 0, Cprox = 0
+        - 3-element: L = 0, Cprox = 0, Rc > 0
+        - 4-element: Cprox = 0, Rc, Rp, C, L > 0
+        - 5-element: Cprox > 0 (adds proximal compliance)
 
-    Governing equations:
+    For 4-element model:
         C * dp2/dt + p2/Rp = Q(t)           [Compliance node]
         p1 = p2 + Rc*Q + L*dQ/dt            [Inlet pressure reconstruction]
 
+    For 5-element model (with proximal compliance Cprox):
+        - p_prox: pressure at proximal compliance
+        - dp_prox/dt = (Q - (p_prox - p2)/Rc) / Cprox
+        - p1 = p_prox + L*dQ/dt
+
     State variable:
-        p2(t): pressure across the compliance element [Pa]
+        - 4-element: p2(t): pressure across the compliance element [Pa]
+        - 5-element: [p_prox, p2]: proximal and distal pressures [Pa]
 
     Expected units (SI):
         - Time: seconds [s]
@@ -72,6 +82,7 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
         Rp: float,
         C: float,
         L: float = 0.0,
+        Cprox: float = 0.0,  # Proximal compliance for 5-element model
         periodic: bool = True,
     ):
         """
@@ -88,9 +99,12 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
         Rp : float
             Peripheral resistance [Pa·s/m³]. Must be > 0.
         C : float
-            Compliance [m³/Pa]. Must be > 0.
+            Distal compliance [m³/Pa]. Must be > 0.
         L : float, optional
             Inertance [Pa·s²/m³]. Must be >= 0 (default: 0).
+        Cprox : float, optional
+            Proximal compliance for 5-element model [m³/Pa]. 
+            If 0, uses standard 4-element model (default: 0).
         periodic : bool, optional
             Assume periodic flow signal for spline interpolation (default: True).
 
@@ -119,12 +133,16 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
             raise ValueError(f"Rc must be non-negative, got {Rc}")
         if L < 0:
             raise ValueError(f"L must be non-negative, got {L}")
+        if Cprox < 0:
+            raise ValueError(f"Cprox must be non-negative, got {Cprox}")
 
         self.Rc = float(Rc)
         self.Rp = float(Rp)
         self.C = float(C)
         self.L = float(L)
+        self.Cprox = float(Cprox)
         self.periodic = bool(periodic)
+        self._is_5element = Cprox > 0
 
         self._t_min = float(t_flow[0])
         self._t_max = float(t_flow[-1])
@@ -165,38 +183,66 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
         """
         Right-hand side of the ODE system.
 
-        State:
-            y[0] = p2 : pressure across compliance [Pa]
+        For 4-element model (Cprox = 0):
+            State: y[0] = p2 : pressure across compliance [Pa]
+            Equation: dp2/dt = Q(t)/C - p2/(Rp*C)
 
-        Equation:
-            dp2/dt = Q(t)/C - p2/(Rp*C)
+        For 5-element model (Cprox > 0):
+            State: y[0] = p_prox, y[1] = p2
+            Equations:
+                dp_prox/dt = (Q - (p_prox - p2)/Rc) / Cprox
+                dp2/dt = ((p_prox - p2)/Rc) / C - p2/(Rp*C)
         """
-        p2 = y[0]
         q_val = self.Q(t)
         
         # Guard against division by zero (should never happen if C > 0)
         if self.C == 0:
             raise RuntimeError("Compliance C is zero - model undefined")
+
+        if self._is_5element:
+            # 5-element model with proximal compliance
+            p_prox = y[0]
+            p2 = y[1]
             
-        dp2dt = q_val / self.C - p2 / (self.Rp * self.C)
-        return [dp2dt]
+            # Flow through Rc: Q_Rc = (p_prox - p2) / Rc
+            q_rc = (p_prox - p2) / self.Rc
+            
+            # dp_prox/dt = (Q_in - Q_Rc) / Cprox
+            dp_prox_dt = (q_val - q_rc) / self.Cprox
+            
+            # dp2/dt = Q_Rc/C - p2/(Rp*C)
+            dp2dt = q_rc / self.C - p2 / (self.Rp * self.C)
+            
+            return [dp_prox_dt, dp2dt]
+        else:
+            # Standard 4-element model
+            p2 = y[0]
+            dp2dt = q_val / self.C - p2 / (self.Rp * self.C)
+            return [dp2dt]
 
     # ------------------------------------------------------------------
     # Algebraic reconstruction
     # ------------------------------------------------------------------
 
-    def p1_from_p2(self, t: Union[float, np.ndarray], p2: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def p1_from_p2(self, t: Union[float, np.ndarray], p2: Union[float, np.ndarray], 
+                    p_prox: Union[float, np.ndarray] = None) -> Union[float, np.ndarray]:
         """
-        Reconstruct inlet pressure p1 from p2 using algebraic relation.
+        Reconstruct inlet pressure p1 from pressures using algebraic relation.
 
-        p1 = p2 + Rc*Q + L*dQ/dt
+        For 4-element model:
+            p1 = p2 + Rc*Q + L*dQ/dt
+
+        For 5-element model:
+            p1 = p_prox + L*dQ/dt
 
         Parameters
         ----------
         t : float or array_like
             Time point(s) [s].
         p2 : float or array_like
-            Capacitor pressure(s) [Pa].
+            Capacitor/distal pressure(s) [Pa].
+        p_prox : float or array_like, optional
+            Proximal pressure(s) [Pa]. Required for 5-element model.
 
         Returns
         -------
@@ -209,7 +255,11 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
         q_val = self.Q(t_arr)
         dqdt_val = self.dQdt(t_arr)
         
-        return p2_arr + self.Rc * q_val + self.L * dqdt_val
+        if self._is_5element and p_prox is not None:
+            p_prox_arr = np.asarray(p_prox)
+            return p_prox_arr + self.L * dqdt_val
+        else:
+            return p2_arr + self.Rc * q_val + self.L * dqdt_val
 
     # Alias for backward compatibility with original API
     p1 = p1_from_p2
@@ -241,6 +291,7 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
         t_end: float = 1.0,
         n_steps: int = 2000,
         p2_init: Optional[float] = None,
+        p_prox_init: Optional[float] = None,
         method: str = "RK45",
         rtol: float = 1e-6,
         atol: float = 1e-9,
@@ -260,6 +311,9 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
         p2_init : float, optional
             Initial condition for p2 [Pa]. If None and estimate_ic=True,
             uses estimate_steady_state_p2(). Otherwise defaults to 0.
+        p_prox_init : float, optional
+            Initial condition for p_prox [Pa] (5-element model only).
+            If None, defaults to p2_init.
         method : str, optional
             ODE solver method passed to scipy.integrate.solve_ivp (default: "RK45").
         rtol, atol : float, optional
@@ -274,6 +328,7 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
                 - t: time points [s]
                 - p1: inlet pressure [Pa]
                 - p2: capacitor pressure [Pa]
+                - p_prox: proximal pressure [Pa] (5-element model only)
                 - success, message: solver status
 
         Raises
@@ -287,24 +342,37 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
             raise ValueError(f"n_steps must be >= 2, got {n_steps}")
 
         # Handle initial condition
-        if p2_init is None:
-            if estimate_ic:
-                p2_init = self.estimate_steady_state_p2()
-            else:
-                p2_init = 0.0
-                warnings.warn(
-                    "Using p2_init=0.0. For faster convergence to periodic steady-state, "
-                    "set estimate_ic=True or provide a better initial guess.",
-                    UserWarning,
-                    stacklevel=2
-                )
+        if self._is_5element:
+            # 5-element model: two state variables
+            if p2_init is None:
+                if estimate_ic:
+                    p2_init = self.estimate_steady_state_p2()
+                else:
+                    p2_init = 0.0
+            if p_prox_init is None:
+                p_prox_init = p2_init
+            y0 = [p_prox_init, p2_init]
+        else:
+            # 4-element model: single state variable
+            if p2_init is None:
+                if estimate_ic:
+                    p2_init = self.estimate_steady_state_p2()
+                else:
+                    p2_init = 0.0
+                    warnings.warn(
+                        "Using p2_init=0.0. For faster convergence to periodic steady-state, "
+                        "set estimate_ic=True or provide a better initial guess.",
+                        UserWarning,
+                        stacklevel=2
+                    )
+            y0 = [p2_init]
 
         t_eval = np.linspace(t_start, t_end, n_steps)
 
         sol = solve_ivp(
             fun=self._rhs,
             t_span=(t_start, t_end),
-            y0=[p2_init],
+            y0=y0,
             t_eval=t_eval,
             method=method,
             rtol=rtol,
@@ -314,13 +382,20 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
         if not sol.success:
             raise RuntimeError(f"ODE solver failed: {sol.message}")
 
-        p2 = sol.y[0]
-        p1 = self.p1_from_p2(sol.t, p2)
+        if self._is_5element:
+            p_prox = sol.y[0]
+            p2 = sol.y[1]
+            p1 = self.p1_from_p2(sol.t, p2, p_prox)
+        else:
+            p2 = sol.y[0]
+            p1 = self.p1_from_p2(sol.t, p2)
+            p_prox = None
 
         return WindkesselResult(
             t=sol.t,
             p1=p1,
             p2=p2,
+            p_prox=p_prox,
             success=sol.success,
             message=sol.message,
         )
@@ -331,15 +406,21 @@ class Windkessel:  # ✅ Renommé pour correspondre à l'import du validation sc
 
     def __repr__(self) -> str:
         """String representation for debugging."""
-        model_type = (
-            "2-element" if self.Rc == 0 and self.L == 0 else
-            "3-element" if self.L == 0 else
-            "4-element"
-        )
+        if self._is_5element:
+            model_type = "5-element"
+            c_str = f"C={self.C:.3e}, Cprox={self.Cprox:.3e}"
+        else:
+            model_type = (
+                "2-element" if self.Rc == 0 and self.L == 0 else
+                "3-element" if self.L == 0 else
+                "4-element"
+            )
+            c_str = f"C={self.C:.3e}"
+        
         return (
             f"Windkessel(model='{model_type}', "
             f"Rc={self.Rc:.3e} Pa·s/m³, Rp={self.Rp:.3e} Pa·s/m³, "
-            f"C={self.C:.3e} m³/Pa, L={self.L:.3e} Pa·s²/m³, "
+            f"{c_str} m³/Pa, L={self.L:.3e} Pa·s²/m³, "
             f"periodic={self.periodic})"
         )
 

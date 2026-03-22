@@ -1,10 +1,16 @@
 # Ignorer tout
 *
+
+# Exceptions - fichiers à suivre
 !*.py
 !*.json
 !.gitignore
 !*.csv
-!data**
-!CoA**
+!data*/
+!CoA*/
 !data_preproc/*sh
 !data_preproc/*png
+
+# Résultats et rapports - suivre (ne pas ignorer)
+!results/
+!report/
