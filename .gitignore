@@ -15,6 +15,7 @@
 !temp**
 !examples/**
 !src/**
+!Optimisations_foampilot.md
 # === Ignore les dossiers de build / metadata ===
 *.egg-info/
 __pycache__/
