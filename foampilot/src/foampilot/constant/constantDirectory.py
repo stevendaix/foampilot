@@ -34,7 +34,7 @@ class ConstantDirectory:
         self._transportProperties = TransportPropertiesFile(self.solver)
         self._physicalProperties = PhysicalPropertiesFile(self.solver)
         self._gravity = GravityFile(self.solver)
-        self._pRef = PRefFile(self.solver)
+        self._pRef = PRefFile()
 
         # Radiation files
         self._radiation: Optional[RadiationPropertiesFile] = None
@@ -106,12 +106,13 @@ class ConstantDirectory:
             self._pRef.write(constant_path / "pRef")
         else:
             self._transportProperties.write(constant_path / "transportProperties")
+            self._pRef.write(constant_path / "pRef")
 
         # Gravity
         if getattr(self.solver, "with_gravity", False):
             self._gravity.write()
             # Update p → p_rgh if necessary
-            if hasattr(self.solver.fields_manager.fields, "p") and "p_rgh" not in self.solver.fields_manager.fields:
+            if "p" in self.solver.fields_manager.fields and "p_rgh" not in self.solver.fields_manager.fields:
                 self.solver.fields_manager.fields["p_rgh"] = self.solver.fields_manager.fields.pop("p")
 
         # Radiation

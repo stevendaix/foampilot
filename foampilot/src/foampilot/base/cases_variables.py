@@ -107,6 +107,9 @@ class CaseFieldsManager:
         """
         model = self.turbulence_model.lower()
 
+        if model == "laminar":
+            return
+
         if "kepsilon" in model:
             self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
             self.fields["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}

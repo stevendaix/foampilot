@@ -1,7 +1,10 @@
+import logging
 from pathlib import Path
 from typing import Optional, Callable, List, Any
 from foampilot.solver.base_solver import BaseSolver
 from foampilot.boundaries.boundaries_dict import Boundary
+
+logger = logging.getLogger(__name__)
 
 class Solver:
     """Generic solver manager with automatic solver selection."""
@@ -33,12 +36,12 @@ class Solver:
         self._event_handlers.append(handler)
 
     def _notify_error(self, message: str):
-        print(f"⚠️ Error: {message}")
+        logger.warning(f"Error: {message}")
         for h in self._error_handlers:
             h(message)
 
     def _notify_event(self, event_type: str, message: str):
-        print(f"🔔 Event: {event_type} - {message}")
+        logger.info(f"Event: {event_type} - {message}")
         for h in self._event_handlers:
             h(event_type, message)
 
@@ -138,7 +141,7 @@ class Solver:
             turbulence_model=self._turbulence_model,
         )
 
-        self.boundary = Boundary(self._solver, fields_manager=self._solver.fields_manager)
+        self.boundary = Boundary(self._solver, fields_manager=self._solver.fields_manager, turbulence_model=self._turbulence_model)
 
     # ---------- Delegate methods ----------
     def setup_case(self):

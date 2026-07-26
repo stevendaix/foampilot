@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 import subprocess
 from typing import List, Optional
 
@@ -7,6 +8,8 @@ from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.base.cases_variables import CaseFieldsManager
 import os
+
+logger = logging.getLogger(__name__)
 
 class BaseSolver:
     """Base solver class with all common functionality."""
@@ -24,6 +27,18 @@ class BaseSolver:
         # Utility modules
         "functions": "functions",
         "movingMesh": "movingMesh",
+        # OpenFOAM-14 solvers
+        "icoFoam": "icoFoam",
+        "simpleFoam": "simpleFoam",
+        "pimpleFoam": "pimpleFoam",
+        "pimpleDyMFoam": "pimpleDyMFoam",
+        "rhoCentralFoam": "rhoCentralFoam",
+        "sonicFoam": "sonicFoam",
+        "reactingFoam": "reactingFoam",
+        "scalarTransportFoam": "scalarTransportFoam",
+        "chtMultiRegionFoam": "chtMultiRegionFoam",
+        "compressibleSinglePhasePorosityFoam": "compressibleSinglePhasePorosityFoam",
+        "porousSimpleFoam": "porousSimpleFoam",
     }
 
     def __init__(
@@ -66,7 +81,7 @@ class BaseSolver:
         # --- Subcomponents ---
         self.system = SystemDirectory(self)
         self.constant = ConstantDirectory(self)
-        self.boundary = Boundary(self, fields_manager=self.fields_manager)
+        self.boundary = Boundary(self, fields_manager=self.fields_manager, turbulence_model=turbulence_model)
 
     def update_case_specific_attributes(self):
         """Default: do nothing"""
@@ -96,7 +111,7 @@ class BaseSolver:
     # ---------- Running simulation ----------
     def run_command(self, cmd: List[str], log_filename: str) -> None:
         log_path = self.case_path / log_filename
-        print(f"Running command: {' '.join(cmd)} -> log: {log_path}")
+        logger.info("Running command: %s -> log: %s", " ".join(cmd), log_path)
         with open(log_path, "w", encoding="utf-8") as log_file:
             subprocess.run(
                 cmd,
@@ -110,11 +125,11 @@ class BaseSolver:
     def check_solver_module_exists(self) -> bool:
         foam_modules = os.getenv("FOAM_MODULES", "")
         if not foam_modules:
-            print("⚠️  $FOAM_MODULES environment variable is not set.")
+            logger.warning("$FOAM_MODULES environment variable is not set.")
             return False
         module_path = Path(foam_modules) / self.foamrun_module
         if not module_path.exists():
-            print(f"⚠️  Solver module '{self.foamrun_module}' not found in {foam_modules}")
+            logger.warning("Solver module '%s' not found in %s", self.foamrun_module, foam_modules)
             return False
         return True
 
@@ -164,7 +179,7 @@ class BaseSolver:
                 f"Solver module '{self.foamrun_module}' is not available."
             )
 
-        print(f"🔵 Running simulation in serial mode (1 proc)")
+        logger.info("Running simulation in serial mode (1 proc)")
 
         self.run_command(["foamRun", "-solver", self.foamrun_module], log_filename)
 
@@ -174,7 +189,7 @@ class BaseSolver:
             log_filename = f"log.{self.solver_name}"
         log_path = self.case_path / log_filename
 
-        print(f"🔵 Parallel run with {nb_proc} processors")
+        logger.info("Parallel run with %d processors", nb_proc)
 
         # Ask the system directory to prepare decomposeParDict
         if hasattr(self.system, "ensure_decomposeParDict"):
@@ -182,7 +197,7 @@ class BaseSolver:
             self.system.write()
 
         # 1. decomposePar
-        print("🟦 Running decomposePar ...")
+        logger.info("Running decomposePar ...")
         with open(log_path, "w", encoding="utf-8") as log_file:
             log_file.write("=== decomposePar ===\n")
             subprocess.run(
@@ -193,7 +208,7 @@ class BaseSolver:
             )
 
         # 2. mpirun with foamRun
-        print("🟩 Running mpirun simulation ...")
+        logger.info("Running mpirun simulation ...")
         with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write("\n=== mpirun foamRun ===\n")
             subprocess.run(
@@ -205,7 +220,7 @@ class BaseSolver:
             )
 
         # 3. reconstructPar
-        print("🟪 Running reconstructPar ...")
+        logger.info("Running reconstructPar ...")
         with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write("\n=== reconstructPar ===\n")
             subprocess.run(
@@ -215,4 +230,4 @@ class BaseSolver:
                 check=True
             )
 
-        print(f"🏁 Parallel simulation finished ! (log: {log_path})")
+        logger.info("Parallel simulation finished ! (log: %s)", log_path)

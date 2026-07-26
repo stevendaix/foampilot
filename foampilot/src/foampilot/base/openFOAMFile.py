@@ -1,7 +1,10 @@
+import logging
 import os
 from pathlib import Path
 from foampilot.utilities.manageunits import ValueWithUnit
 from typing import Optional, Any, Union, Tuple
+
+logger = logging.getLogger(__name__)
 
 
 class OpenFOAMFile:
@@ -36,7 +39,8 @@ class OpenFOAMFile:
         "p": "[0 2 -2 0 0 0 0]",
         "k": "[0 2 -2 0 0 0 0]",
         "epsilon": "[0 2 -3 0 0 0 0]",
-        "nut": "[0 2 -1 0 0 0 0]"
+        "nut": "[0 2 -1 0 0 0 0]",
+        "omega": "[0 0 -1 0 0 0 0]"
     }
 
     def __init__(self, object_name: str, **attributes: Any):
@@ -164,7 +168,7 @@ class OpenFOAMFile:
                 # main content
                 self._write_attributes(file, self.attributes)
         except IOError as e:
-            print(f"Error writing file {filepath}: {e}")
+            logger.error(f"Error writing file {filepath}: {e}")
 
     def _generate_field_header(self, field: str) -> str:
         """Generates the FoamFile header specific to field files (e.g., volScalarField).
@@ -211,6 +215,7 @@ class OpenFOAMFile:
             "p": "uniform 0",
             "k": "uniform 0.375",
             "epsilon": "uniform 0.125",
+            "omega": "uniform 1.0",
             "nut": "uniform 0"
         }
         internal_field = internal_field or default_fields.get(field, "uniform 0")
@@ -223,11 +228,12 @@ class OpenFOAMFile:
 
             f.write("boundaryField\n{\n")
             for patch, params in boundaries.items():
-                f.write(f'    {patch}\n    {{\n')
+                quoted = patch if patch.startswith('"') else f'"{patch}"'
+                f.write(f'    {quoted}\n    {{\n')
                 for key, value in params.items():
                     f.write(f'        {key:<15} {value};\n')
                 f.write("    }\n\n")
             f.write("}\n\n")
             f.write("// ************************************************************************* //\n")
 
-        print(f"[✔] Wrote boundary file: {file_path}")
+        logger.info(f"Wrote boundary file: {file_path}")

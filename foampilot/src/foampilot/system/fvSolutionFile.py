@@ -182,18 +182,6 @@ class FvSolutionFile(OpenFOAMFile):
                 tolerance=1e-5,
                 relTol=self.DEFAULT_REL_TOL,
             ),
-            "k": self._default_solver(
-                solver="smoothSolver",
-                smoother="symGaussSeidel",
-                tolerance=1e-5,
-                relTol=self.DEFAULT_REL_TOL,
-            ),
-            "epsilon": self._default_solver(
-                solver="smoothSolver",
-                smoother="symGaussSeidel",
-                tolerance=1e-5,
-                relTol=self.DEFAULT_REL_TOL,
-            ),
         }
 
         self._extend_solvers_for_simulation_type(solvers)
@@ -242,8 +230,6 @@ class FvSolutionFile(OpenFOAMFile):
             solvers["UFinal"] = {"$U": "", "relTol": "0"}
             if sim_type == "compressible" or energy_active:
                 solvers[f"{energy_var}Final"] = {"$" + energy_var: "", "relTol": "0"}
-            solvers["kFinal"] = {"$k": "", "relTol": "0"}
-            solvers["epsilonFinal"] = {"$epsilon": "", "relTol": "0"}
 
     # -------------------------
     # SIMPLE (méthode existante)
@@ -257,9 +243,9 @@ class FvSolutionFile(OpenFOAMFile):
             "residualControl": {
                 "p": "1e-2",
                 "U": "1e-4",
-                "k": "1e-4",
-                "epsilon": "1e-4",
             },
+            "pRefCell": "0",
+            "pRefValue": "0",
         }
 
         sim_type = getattr(self.parent, "simulation_type", "incompressible")
@@ -301,8 +287,6 @@ class FvSolutionFile(OpenFOAMFile):
             "fields": {"p": str(self.DEFAULT_RELAXATION_FACTOR)},
             "equations": {
                 "U": str(self.DEFAULT_RELAXATION_FACTOR),
-                "k": str(self.DEFAULT_RELAXATION_FACTOR),
-                "epsilon": str(self.DEFAULT_RELAXATION_FACTOR),
             },
         }
 

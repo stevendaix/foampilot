@@ -51,7 +51,7 @@ class Boundary:
         with open(boundary_file, 'r') as f:
             content = f.read()
 
-        pattern = re.compile(r'(\w+)\s*\{\s*[^}]*?type\s+(\w+);', re.DOTALL)
+        pattern = re.compile(r'([^\s{]+)\s*\{\s*[^}]*?type\s+(\w+);', re.DOTALL)
         patches = dict(pattern.findall(content))
 
         exclude = {'FoamFile', 'format', 'class', 'location', 'object'}
@@ -60,9 +60,22 @@ class Boundary:
     def initialize_boundary(self):
         """
         Initialize boundary fields with patch names and automatically apply default conditions.
-        Wall boundaries get 'wall' with friction, empty boundaries get 'symmetry'.
+        Wall boundaries get 'wall' with friction, empty boundaries get 'symmetry',
+        processorCyclic and nonConformalCyclic patches get 'processorCyclic' conditions.
+        If the polyMesh/boundary file does not exist yet, blockMesh is launched
+        automatically to generate the mesh before reading patch names.
         """
         case_path = Path(self.parent.case_path)
+        boundary_file = case_path / 'constant' / 'polyMesh' / 'boundary'
+        if not boundary_file.exists():
+            import subprocess as _sp
+            logger.info("PolyMesh boundary not found — launching blockMesh automatically")
+            _sp.run(
+                ['blockMesh', '-case', str(case_path)],
+                cwd=str(case_path),
+                capture_output=True,
+            )
+
         patch_types = self.load_boundary_names(case_path)
 
         # Warning for generic patch types
@@ -77,13 +90,27 @@ class Boundary:
         for field in self.fields:
             self.fields[field] = {name: {} for name in patch_types}
 
-        # Apply default conditions
+        # Apply default conditions based on patch type
+        advanced_patches = set()
         for patch_name, patch_type in patch_types.items():
             if patch_type == "wall":
                 self.set_condition(patch_name, "wall", friction=True)
             elif patch_type == "empty":
                 self.set_condition(patch_name, "symmetry")
-            # Leave 'patch' type for later explicit assignment if needed
+            elif patch_type in (
+                "processorCyclic",
+                "nonConformalCyclic",
+            ):
+                advanced_patches.add(patch_name)
+            elif patch_type == "cyclic":
+                self.set_condition(patch_name, "cyclic")
+            elif patch_type == "symmetryPlane":
+                self.set_condition(patch_name, "symmetry")
+            elif patch_type == "wedge":
+                self.set_condition(patch_name, "wedge")
+            # Leave standard 'patch' type for later explicit assignment
+
+        return advanced_patches
 
     def apply_condition_with_wildcard(self, pattern: str, condition_type: str, **kwargs):
         """
@@ -191,7 +218,12 @@ class Boundary:
         Write the boundary conditions to their respective files in the 0/ directory.
         """
         for field, boundaries in self.fields.items():
-            foam_file = OpenFOAMFile(field)  # on donne le nom du champ à la classe
+            for patch, params in boundaries.items():
+                if 'value' in params and isinstance(params['value'], str):
+                    val = params['value']
+                    if not val.startswith('uniform ') and not val.startswith('nonuniform '):
+                        params['value'] = 'uniform ' + val
+            foam_file = OpenFOAMFile(field)
             foam_file.write_boundary_file(
                 field=field,
                 boundaries=boundaries,

@@ -1,11 +1,15 @@
+import logging
+from pathlib import Path
 from foampilot.base.openFOAMFile import OpenFOAMFile
-from typing import Optional, Dict, Any,List,Tuple
+from typing import Optional, Dict, Any, List, Tuple
+
+logger = logging.getLogger(__name__)
 
 
 class ControlDictFile(OpenFOAMFile):
     """
     Class representing the controlDict file in OpenFOAM.
-    
+
     If a parent Solver is provided, the OpenFOAM solver application
     ('application') is automatically retrieved from the parent.
     """
@@ -30,7 +34,7 @@ class ControlDictFile(OpenFOAMFile):
         runTimeModifiable: bool = True,
         libs: Optional[List[str]] = None,
         adaptiveTimeStep: Optional[Dict[str, Any]] = None,
-
+        functions: Optional[List[str]] = None,
 
     ):
 
@@ -38,7 +42,7 @@ class ControlDictFile(OpenFOAMFile):
         if application is None and parent is not None:
             # Assume parent has a property `solver_name` (from Solver class)
             application = getattr(parent, "solver_name", "incompressibleFluid")
-            
+
         if libs is not None:
             if isinstance(libs, str):
                 libs = [libs]
@@ -47,6 +51,7 @@ class ControlDictFile(OpenFOAMFile):
 
         self.libs = libs or []
         self.adaptiveTimeStep = adaptiveTimeStep or {}
+        self.functions = functions or []
 
         # Call parent constructor with all parameters
         super().__init__(
@@ -72,7 +77,7 @@ class ControlDictFile(OpenFOAMFile):
         """
         Convert the controlDict parameters to a dictionary.
         """
-        return {
+        result = {
             'application': self.application,
             'startFrom': self.startFrom,
             'startTime': self.startTime,
@@ -88,8 +93,11 @@ class ControlDictFile(OpenFOAMFile):
             'timeFormat': self.timeFormat,
             'timePrecision': self.timePrecision,
             'runTimeModifiable': self.runTimeModifiable,
-            "libs": self.libs
+            "libs": self.libs,
         }
+        if self.functions:
+            result["functions"] = self.functions
+        return result
 
     @classmethod
     def from_dict(cls, config: Dict[str, Any], parent: Optional[Any] = None) -> "ControlDictFile":
@@ -114,7 +122,9 @@ class ControlDictFile(OpenFOAMFile):
             timePrecision=config.get('timePrecision', 6),
             runTimeModifiable=config.get('runTimeModifiable', True),
             libs=config.get('libs',()),
+            functions=config.get('functions'),
         )
+
     def add_library(self, lib_name: str):
         """Add a library to the controlDict."""
         if lib_name not in self.libs:
@@ -137,30 +147,36 @@ class ControlDictFile(OpenFOAMFile):
             "minDeltaT": minDeltaT
         }
 
-    def write(self, filepath):
-        """
-        Write the controlDict file with proper formatting for 'libs' and 'functions'.
+    def set_region_solvers(self, region_solvers: Dict[str, str]):
+        """Configure multi-region solvers for CHT cases.
 
-        Uses OpenFOAMFile.write_file() for all other attributes.
+        Args:
+            region_solvers: Dict mapping region names to solver
+                types, e.g. {"fluid": "fluid", "solid": "solid"}.
         """
-        # Faire une copie temporaire des attributs
+        self.region_solvers = region_solvers
+
+    def add_function(self, function_name: str):
+        """Add a functionObject include to the controlDict."""
+        if function_name not in self.functions:
+            self.functions.append(function_name)
+
+    def write(self, filepath):
         write_attrs = self.attributes.copy()
 
-        # Gestion adaptive time stepping
         if self.adaptiveTimeStep:
             write_attrs.update(self.adaptiveTimeStep)
-        # Gestion des libs
         if self.libs:
             includes_lib = "\n".join([f'"{fname}"' for fname in self.libs])
             write_attrs["libs"] = f'\n(\n{includes_lib} \n)'
 
+        if getattr(self, "region_solvers", None):
+            write_attrs["regionSolvers"] = self.region_solvers
 
-        # Remplacer temporairement attributes
-        old_attrs = self.attributes
-        self.attributes = write_attrs
-
-        # Écrire le fichier via OpenFOAMFile
-        super().write_file(filepath)
-
-        # Restaurer attributes originaux
-        self.attributes = old_attrs
+        filepath = Path(filepath)
+        with open(filepath, "w", encoding="utf-8") as file:
+            file.write("FoamFile\n{\n")
+            for key, value in self.header.items():
+                file.write(f"    {key}     {value};\n")
+            file.write("}\n\n")
+            self._write_attributes(file, write_attrs)

@@ -140,13 +140,7 @@ class FvSchemesFile(OpenFOAMFile):
         sim = getattr(self.parent, "simulation_type", "incompressible")
         energy = getattr(self.parent, "energy_variable", "e")
 
-        # Standard fields
-        divSchemes.update({
-            "div(phi,U)": "Gauss upwind",
-            "div(phi,k)": "Gauss upwind",
-            "div(phi,epsilon)": "Gauss upwind",
-            "div(((rho*nuEff)*dev2(T(grad(U)))))": "Gauss linear",
-        })
+        divSchemes["div(phi,U)"] = "Gauss upwind"
 
         # Specific simulation types
         if sim == "boussinesq":

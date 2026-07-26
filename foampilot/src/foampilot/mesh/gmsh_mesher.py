@@ -2,7 +2,10 @@ import gmsh
 from pathlib import Path
 import subprocess
 import numpy as np
+import logging
 from typing import Dict, List, Tuple, Optional, Union
+
+logger = logging.getLogger(__name__)
 
 class GmshMesher:
     def __init__(self, parent, model_name: str = "cfd_model", verbose: bool = True):
@@ -26,8 +29,7 @@ class GmshMesher:
 
     def _log(self, message: str):
         """Internal logging method."""
-        if self.verbose:
-            print(f"[GeometryCFD] {message}")
+        logger.info(f"[GeometryCFD] {message}")
 
     def load_geometry(self, filepath: Union[Path, str]) -> List[Tuple[int, int]]:
         """Load a STEP or STL geometry file.
@@ -49,109 +51,321 @@ class GmshMesher:
 
         if filepath.suffix.lower() == ".step":
             gmsh.merge(str(filepath))
-            gmsh.model.occ.synchronize()
-        elif filepath.suffix.lower() == ".stl":
-            raise ValueError(f"Run with snappyHexMesh for STL files, not direct import.")
-        else:
-            raise ValueError(f"Unsupported format: {filepath.suffix}")
+        gmsh.model.occ.synchronize()
 
+    # ================================================================
+    #  PRIMITIVES GÉOMÉTRIQUES (API Python Gmsh)
+    # ================================================================
 
-    def merge_geometry(self, filepath: Union[Path, str]) -> List[Tuple[int, int]]:
-        """Merge another geometry into the current model.
-        
+    def add_point(self, x: float, y: float, z: float, lc: float = 1.0) -> int:
+        """Add a point entity.
+
         Args:
-            filepath: Path to the geometry file to merge
-            
+            x, y, z: Coordinates.
+            lc: Local mesh size at this point.
+
         Returns:
-            List of (dimension, tag) pairs for the merged entities
+            The Gmsh tag of the created point.
         """
-        self.load_geometry(filepath)
-        self._log("Removing duplicate entities")
-        gmsh.model.occ.removeAllDuplicates()
-        gmsh.model.occ.synchronize()
+        tag = gmsh.model.occ.addPoint(x, y, z)
+        if lc > 0:
+            gmsh.model.mesh.setSize([(0, tag)], lc)
+        self._log(f"Point {tag} added at ({x}, {y}, {z}) with lc={lc}")
+        return tag
 
-    def wrap_surfaces(self, angle: float = 40.0):
-        """Clean and wrap surfaces (useful for STL files).
-        
+    def add_line(
+        self, x1: float, y1: float, z1: float, x2: float, y2: float, z2: float, lc: float = 1.0
+    ) -> int:
+        """Add a line between two points.
+
         Args:
-            angle: Feature angle in degrees for surface classification
-        """
-        self._log(f"Wrapping surfaces with angle threshold {angle}°")
-        angle_rad = angle * (np.pi / 180)
-        gmsh.model.mesh.classifySurfaces(angle_rad)
-        gmsh.model.mesh.createGeometry()
-        gmsh.model.occ.synchronize()
+            x1, y1, z1: Start point coordinates.
+            x2, y2, z2: End point coordinates.
+            lc: Local mesh size.
 
-        # Optionnel: Remesher les surfaces pour améliorer la qualité après la classification
-        # gmsh.option.setNumber("Mesh.Algorithm", 6) # Delaunay
-        # gmsh.option.setNumber("Mesh.MeshSizeFactor", 0.1) # Taille de maille pour le remeshing
-        # gmsh.model.mesh.generate(2) # Générer un maillage 2D sur les surfaces
-        # gmsh.model.occ.synchronize() # Synchroniser pour mettre à jour la géométrie OCC
-
-    def define_physical_group(self, dim: int, tags: List[int], name: str) -> int:
-        """Define a named physical group.
-        
-        Args:
-            dim: Dimension of entities (0=point, 1=line, 2=surface, 3=volume)
-            tags: List of entity tags
-            name: Name for the physical group
-            
         Returns:
-            Physical group ID
+            The Gmsh tag of the created line.
         """
-        if tags is None or (hasattr(tags, '__len__') and len(tags) == 0):
-            raise ValueError("Empty tag list provided")
+        p1 = self.add_point(x1, y1, z1, lc)
+        p2 = self.add_point(x2, y2, z2, lc)
+        tag = gmsh.model.occ.addLine(p1, p2)
+        self._log(f"Line {tag} created from point {p1} to {p2}")
+        return tag
 
-        phys_id = gmsh.model.addPhysicalGroup(dim, tags)
-        gmsh.model.setPhysicalName(dim, phys_id, name)
-        self.boundary_conditions[name] = tags
-        self._log(f"Created physical group \'{name}\' (dim={dim}) with {len(tags)} entities")
-        return phys_id
+    def add_circle(
+        self, cx: float, cy: float, z: float, radius: float, num_points: int = 64, lc: float = 1.0
+    ) -> int:
+        """Add a circle (closed curve) in the XY plane at height z.
 
-    def define_surface_group_by_tag(self, tag: int, name: str) -> int:
-        """Define a physical group from a single surface tag."""
-        return self.define_physical_group(2, [tag], name)
+        Args:
+            cx, cy: Center of the circle.
+            z: Z-coordinate (height).
+            radius: Radius of the circle.
+            num_points: Number of points on the circle.
+            lc: Local mesh size.
 
-    def define_all_surfaces_group(self, name: str) -> int:
-        """Define a physical group containing all surfaces."""
-        surfaces = gmsh.model.getEntities(dim=2)
-        surface_tags = [s[1] for s in surfaces]
-        return self.define_physical_group(2, surface_tags, name)
+        Returns:
+            The Gmsh tag of the created circle wire.
+        """
+        angles = [2.0 * np.pi * i / num_points for i in range(num_points)]
+        pts = [
+            self.add_point(cx + radius * np.cos(a), cy + radius * np.sin(a), z, lc)
+            for a in angles
+        ]
+        tags = []
+        for i in range(len(pts)):
+            tag = gmsh.model.occ.addLine(pts[i], pts[(i + 1) % len(pts)])
+            tags.append(tag)
+        wire = gmsh.model.occ.addCurveLoop(tags)
+        self._log(f"Circle wire {wire} created at ({cx}, {cy}, {z}) r={radius}")
+        return wire
 
-    # ----------------------------------------------------
-    # 1) BOUNDING BOX
-    # ----------------------------------------------------
-    def compute_bbox(self, 
-                     xmin=None, xmax=None, ymin=None, ymax=None, zmin=None, zmax=None):
+    def add_rectangle(
+        self, xmin: float, ymin: float, z: float, xmax: float, ymax: float, lc: float = 1.0
+    ) -> int:
+        """Add a rectangular surface in the XY plane at height z.
 
-        if xmin is not None:
-            return {
-                "xmin": xmin, "xmax": xmax,
-                "ymin": ymin, "ymax": ymax,
-                "zmin": zmin, "zmax": zmax,
-            }
+        Args:
+            xmin, ymin: Bottom-left corner.
+            z: Height.
+            xmax, ymax: Top-right corner.
+            lc: Local mesh size.
 
-        else :
-            raise ValueError("You must provide all bounding box parameters: xmin, xmax, ymin, ymax, zmin, zmax")
+        Returns:
+            Gmsh tag of the created surface.
+        """
+        p1 = self.add_point(xmin, ymin, z, lc)
+        p2 = self.add_point(xmax, ymin, z, lc)
+        p3 = self.add_point(xmax, ymax, z, lc)
+        p4 = self.add_point(xmin, ymax, z, lc)
+        l1 = gmsh.model.occ.addLine(p1, p2)
+        l2 = gmsh.model.occ.addLine(p2, p3)
+        l3 = gmsh.model.occ.addLine(p3, p4)
+        l4 = gmsh.model.occ.addLine(p4, p1)
+        wire = gmsh.model.occ.addCurveLoop([l1, l2, l3, l4])
+        surface = gmsh.model.occ.addPlaneSurface([wire])
+        self._log(f"Rectangle surface {surface} at z={z}: ({xmin},{ymin})→({xmax},{ymax})")
+        return surface
 
+    def extrude_surface(
+        self,
+        surface_tag: int,
+        dx: float = 0.0,
+        dy: float = 0.0,
+        dz: float = 1.0,
+        num_layers: int = 1,
+        lc: float = 1.0,
+    ) -> Tuple[int, List[int], List[int]]:
+        """Extrude a 2D surface into a 3D volume (prismatic layers).
 
+        Args:
+            surface_tag: Tag of the surface to extrude.
+            dx, dy, dz: Extrusion vector.
+            num_layers: Number of prism layers.
+            lc: Local mesh size for the extruded elements.
 
-    # ----------------------------------------------------
-    # 2) FRAGMENTATION
-    # ----------------------------------------------------
-    def fragment_volumes(self):
-        volumes = gmsh.model.getEntities(dim=3)
-        if not volumes:
-            return
+        Returns:
+            Tuple of (volume_tag, surface_tags, volume_tags).
+        """
+        surfaces = [(2, surface_tag)]
+        result = gmsh.model.occ.extrude(
+            surfaces,
+            dx, dy, dz,
+            numElements=[num_layers] if num_layers > 1 else None,
+            heights=[lc] if num_layers > 1 else None,
+        )
+        self._log(f"Surface {surface_tag} extruded by ({dx}, {dy}, {dz})")
+        return result
 
-        try:
-            gmsh.model.occ.fragment(volumes, [])
-        except:
-            for v in volumes:
-                try: gmsh.model.occ.fragment([v], [])
-                except: pass
+    def extrude_profile(
+        self,
+        curve_loop_tags: List[int],
+        dx: float = 0.0,
+        dy: float = 0.0,
+        dz: float = 1.0,
+        num_layers: int = 1,
+        lc: float = 1.0,
+    ) -> Tuple[int, List[int]]:
+        """Extrude a 2D profile (curve loop) into a 3D volume.
+
+        Args:
+            curve_loop_tags: Tags of the curve loops defining the profile.
+            dx, dy, dz: Extrusion vector.
+            num_layers: Number of prism layers along the extrusion.
+            lc: Local mesh size.
+
+        Returns:
+            Tuple of (volume_tag, surface_tags).
+        """
+        curves = [(1, tag) for tag in curve_loop_tags]
+        result = gmsh.model.occ.extrude(
+            curves,
+            dx, dy, dz,
+            numElements=[num_layers] if num_layers > 1 else None,
+            heights=[lc] if num_layers > 1 else None,
+        )
+        self._log(f"Profile extruded by ({dx}, {dy}, {dz})")
+        return result
+
+    def boolean_union(self, dim: int, tags: List[int]) -> List[Tuple[int, int]]:
+        """Boolean union of entities using fuse.
+
+        Args:
+            dim: Dimension of the entities (2=surface, 3=volume).
+            tags: List of entity tags.
+
+        Returns:
+            List of (dimension, tag) pairs of resulting entities.
+        """
+        objects = [(dim, t) for t in tags]
+        result, _ = gmsh.model.occ.fuse(objects, [], removeObject=True, removeTool=True)
+        self._log(f"Boolean union of {len(tags)} {dim}D entities → {len(result)} result(s)")
+        return result
+
+    def boolean_difference(
+        self, dim: int, object_tags: List[int], tool_tag: int
+    ) -> List[Tuple[int, int]]:
+        """Boolean subtraction: objects - tool.
+
+        Args:
+            dim: Dimension of the entities.
+            object_tags: Tags of entities to subtract from.
+            tool_tag: Tag of the entity to subtract.
+
+        Returns:
+            List of (dimension, tag) pairs of resulting entities.
+        """
+        objects = [(dim, t) for t in object_tags]
+        tool = [(dim, tool_tag)]
+        result = gmsh.model.occ.cut(objects, tool, removeObject=True, removeTool=True)
+        self._log(f"Boolean difference: {len(objects)} objects − tool → {len(result)} result(s)")
+        return result
+
+    def boolean_intersection(self, dim: int, tags: List[int]) -> List[Tuple[int, int]]:
+        """Boolean intersection of entities.
+
+        Args:
+            dim: Dimension of the entities.
+            tags: List of entity tags to intersect.
+
+        Returns:
+            List of (dimension, tag) pairs of resulting entities.
+        """
+        objects = [(dim, t) for t in tags]
+        result = gmsh.model.occ.intersect(objects, [], removeObject=True, removeTool=True)
+        self._log(f"Boolean intersection of {len(tags)} {dim}D entities → {len(result)} result(s)")
+        return result
+
+    # ================================================================
+    #  NOMMAGE AUTOMATIQUE DES PATCHS PAR DIRECTION / NORMALE
+    # ================================================================
+
+    def assign_patches_by_normal(
+        self,
+        angle_tol: float = 15.0,
+        custom_mapping: Optional[Dict[str, Tuple[float, float, float]]] = None,
+    ) -> Dict[str, List[int]]:
+        """Assign patch names to faces based on their normal direction.
+
+        Args:
+            angle_tol: Tolerance in degrees for direction matching.
+            custom_mapping: Optional dict {patch_name: (nx, ny, nz)} for
+                user-defined direction→patch mapping.
+
+        Defaults (axis-aligned):
+            +X → INLET, -X → OUTLET
+            +Y → SIDE_NORTH, -Y → SIDE_SOUTH
+            +Z → TOP, -Z → GROUND
+
+        Returns:
+            Dictionary mapping patch names to face tags.
+        """
+        faces = gmsh.model.getEntities(dim=2)
+        patch_map: Dict[str, List[int]] = {}
+
+        for _, face in faces:
+            edges = gmsh.model.getBoundary([face])
+            if len(edges) >= 3:
+                nodes = gmsh.model.mesh.getNodes(2, face[1])
+                node_tags = nodes[1][:3]
+                coord = gmsh.model.mesh.getCoordinates()
+                pts = np.array(
+                    [
+                        [coord[3 * i], coord[3 * i + 1], coord[3 * i + 2]]
+                        for i in node_tags
+                    ]
+                )
+                v1 = pts[1] - pts[0]
+                v2 = pts[2] - pts[0]
+                normal = np.cross(v1, v2)
+                mag = np.linalg.norm(normal)
+                if mag > 0:
+                    normal = normal / mag
+                else:
+                    continue
+            else:
+                continue
+
+            patch_name = self._match_normal_to_patch(normal, angle_tol, custom_mapping)
+            if patch_name not in patch_map:
+                patch_map[patch_name] = []
+            patch_map[patch_name].append(face)
+
+        for patch_name, face_tags in patch_map.items():
+            if face_tags:
+                gid = gmsh.model.addPhysicalGroup(2, face_tags)
+                gmsh.model.setPhysicalName(2, gid, patch_name)
+                self.boundary_conditions[patch_name] = face_tags
+                self._log(f"Assign patch '{patch_name}' to {len(face_tags)} face(s)")
+
+        volumes = [v[1] for v in gmsh.model.getEntities(dim=3)]
+        if volumes:
+            gid = gmsh.model.addPhysicalGroup(3, volumes)
+            gmsh.model.setPhysicalName(3, gid, "FLUID")
 
         gmsh.model.occ.synchronize()
+        return patch_map
+
+    def _match_normal_to_patch(
+        self,
+        normal: np.ndarray,
+        angle_tol: float,
+        custom_mapping: Optional[Dict[str, Tuple[float, float, float]]],
+    ) -> str:
+        """Match a face normal vector to a patch name.
+
+        Args:
+            normal: Normalized normal vector (nx, ny, nz).
+            angle_tol: Tolerance angle in degrees.
+            custom_mapping: Optional user-defined mapping.
+
+        Returns:
+            Patch name string.
+        """
+        default_mapping = {
+            "TOP": ([0, 0, 1], angle_tol),
+            "GROUND": ([0, 0, -1], angle_tol),
+            "SIDE_NORTH": ([0, 1, 0], angle_tol),
+            "SIDE_SOUTH": ([0, -1, 0], angle_tol),
+            "INLET": ([1, 0, 0], angle_tol),
+            "OUTLET": ([-1, 0, 0], angle_tol),
+        }
+
+        mapping = custom_mapping or default_mapping
+
+        for name, (direction, tol) in mapping.items():
+            d = np.array(direction) / (np.linalg.norm(direction) + 1e-12)
+            dot = np.dot(normal, d)
+            if dot > np.cos(np.radians(tol)):
+                return name
+            if dot < -np.cos(np.radians(tol)):
+                return name
+
+        return self.unassigned_tag
+
+    # ================================================================
+    #  DÉTECTION DE PATCH
+    # ================================================================
 
     # ----------------------------------------------------
     # 3) DETECT PATCH BASED ON CENTER OF MASS OR NORMAL
@@ -510,6 +724,226 @@ class GmshMesher:
         """Launch Gmsh GUI to visualize the geometry and mesh."""
         self._log("Launching Gmsh GUI")
         gmsh.fltk.run()
+
+    def add_rectangle(self, x0: float, y0: float, z0: float, dx: float, dy: float,
+                      dz: float, name: str, layer_thickness: Optional[float] = None) -> int:
+        """Create a 3D rectangular box by extruding a surface with optional boundary layers.
+
+        Args:
+            x0, y0, z0: Origin corner coordinates.
+            dx, dy, dz: Extents along x, y, z axes.
+            name: Physical group name for the volume.
+            layer_thickness: If provided, create boundary layers of this
+                thickness during extrusion.
+
+        Returns:
+            The Gmsh tag of the created volume.
+        """
+        p1 = gmsh.model.occ.addPoint(x0, y0, z0)
+        p2 = gmsh.model.occ.addPoint(x0 + dx, y0, z0)
+        p3 = gmsh.model.occ.addPoint(x0 + dx, y0 + dy, z0)
+        p4 = gmsh.model.occ.addPoint(x0, y0 + dy, z0)
+        l1 = gmsh.model.occ.addLine(p1, p2)
+        l2 = gmsh.model.occ.addLine(p2, p3)
+        l3 = gmsh.model.occ.addLine(p3, p4)
+        l4 = gmsh.model.occ.addLine(p4, p1)
+        wire = gmsh.model.occ.addCurveLoop([l1, l2, l3, l4])
+        surface = gmsh.model.occ.addPlaneSurface([wire])
+        gmsh.model.occ.synchronize()
+        if layer_thickness and layer_thickness > 0:
+            num_layers = max(1, int(round(dz / layer_thickness)))
+            heights = [(i + 1) * layer_thickness / dz for i in range(num_layers)]
+            result = gmsh.model.occ.extrude(
+                [(2, surface)],
+                0, 0, dz,
+                numElements=[1] * num_layers,
+                heights=heights,
+            )
+        else:
+            result = gmsh.model.occ.extrude(
+                [(2, surface)],
+                0, 0, dz,
+            )
+        gmsh.model.occ.synchronize()
+        volumes = [v[1] for v in gmsh.model.getEntities(dim=3)]
+        if volumes:
+            gid = gmsh.model.addPhysicalGroup(3, volumes, name=name)
+            gmsh.model.setPhysicalName(3, gid, name)
+        self._log(f"Box '{name}' created at ({x0},{y0},{z0}) dims=({dx},{dy},{dz})")
+        return surface
+
+    def add_circle(self, cx: float, cy: float, z0: float, radius: float,
+                    name: str, layer_thickness: Optional[float] = None) -> int:
+        """Create a circular cylinder by extruding a circle with optional boundary layers.
+
+        Args:
+            cx, cy: Center of the circle in the XY plane.
+            z0: Z-coordinate of the circle plane.
+            radius: Radius of the circle.
+            name: Physical group name for the volume.
+            layer_thickness: If provided, create boundary layers of this
+                thickness during extrusion. The extrusion height equals the radius.
+
+        Returns:
+            The Gmsh tag of the created volume.
+        """
+        wire = gmsh.model.occ.addCircle(cx, cy, z0, radius)
+        surface = gmsh.model.occ.addPlaneSurface([wire])
+        gmsh.model.occ.synchronize()
+        dz = radius
+        if layer_thickness and layer_thickness > 0:
+            num_layers = max(1, int(round(dz / layer_thickness)))
+            heights = [(i + 1) * layer_thickness / dz for i in range(num_layers)]
+            result = gmsh.model.occ.extrude(
+                [(2, surface)],
+                0, 0, dz,
+                numElements=[1] * num_layers,
+                heights=heights,
+            )
+        else:
+            result = gmsh.model.occ.extrude(
+                [(2, surface)],
+                0, 0, dz,
+            )
+        gmsh.model.occ.synchronize()
+        volumes = [v[1] for v in gmsh.model.getEntities(dim=3)]
+        if volumes:
+            gid = gmsh.model.addPhysicalGroup(3, volumes, name=name)
+            gmsh.model.setPhysicalName(3, gid, name)
+        self._log(f"Cylinder '{name}' created at ({cx},{cy},{z0}) r={radius}")
+        return surface
+
+    def add_cylinder_points(self, points_list: List[Tuple[float, float, float]],
+                            name: str,
+                            layer_thickness: Optional[float] = None) -> int:
+        """Create a cylinder from a list of axis points and assign a physical group.
+
+        Args:
+            points_list: List of (x, y, z) tuples defining the cylinder axis.
+                The first two points define the axis direction and length.
+                The radius is set to 1.0 by default.
+            name: Physical group name for the volume.
+            layer_thickness: If provided, extrude the end faces with boundary
+                layers of this thickness.
+
+        Returns:
+            The Gmsh tag of the created volume.
+        """
+        if len(points_list) < 2:
+            raise ValueError("points_list must contain at least two points")
+        p1 = points_list[0]
+        p2 = points_list[1]
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        dz = p2[2] - p1[2]
+        axis_length = np.sqrt(dx * dx + dy * dy + dz * dz)
+        radius = max(axis_length * 0.1, 1.0) if axis_length > 0 else 1.0
+        cyl_tag = gmsh.model.occ.addCylinder(p1[0], p1[1], p1[2], dx, dy, dz, radius)
+        gmsh.model.occ.synchronize()
+        if layer_thickness and layer_thickness > 0 and axis_length > 0:
+            num_layers = max(1, int(round(axis_length / layer_thickness)))
+            heights = [(i + 1) * layer_thickness / axis_length for i in range(num_layers)]
+            faces = gmsh.model.getEntities(dim=2)
+            for dim, tag in faces:
+                com = gmsh.model.occ.getCenterOfMass(2, (dim, tag))
+                if com is None:
+                    continue
+                dist_start = np.sqrt(
+                    (com[0] - p1[0]) ** 2 + (com[1] - p1[1]) ** 2 + (com[2] - p1[2]) ** 2
+                )
+                dist_end = np.sqrt(
+                    (com[0] - p2[0]) ** 2 + (com[1] - p2[1]) ** 2 + (com[2] - p2[2]) ** 2
+                )
+                if min(dist_start, dist_end) < axis_length * 0.01:
+                    gmsh.model.occ.extrude(
+                        [(dim, tag)],
+                        0, 0, 0,
+                        numElements=[1] * num_layers,
+                        heights=heights,
+                    )
+            gmsh.model.occ.synchronize()
+        volumes = [v[1] for v in gmsh.model.getEntities(dim=3)]
+        if volumes:
+            gid = gmsh.model.addPhysicalGroup(3, volumes, name=name)
+            gmsh.model.setPhysicalName(3, gid, name)
+        self._log(f"Cylinder '{name}' created from {p1} to {p2} r={radius:.4f}")
+        return cyl_tag
+
+    def extrude_2d_surface(self, surface_tag: int, dx: float = 0.0, dy: float = 0.0,
+                           dz: float = 1.0, layer_thickness: Optional[float] = None,
+                           name: Optional[str] = None) -> Tuple[int, List[int], List[int]]:
+        """Extrude a 2D surface into a 3D volume with optional boundary layers.
+
+        Args:
+            surface_tag: Tag of the surface to extrude.
+            dx, dy, dz: Extrusion vector.
+            layer_thickness: If provided, create boundary layers of this thickness
+                along the extrusion direction.
+            name: Optional physical group name for the resulting volume.
+
+        Returns:
+            Tuple of (volume_tag, surface_tags, volume_tags).
+        """
+        total_height = np.sqrt(dx * dx + dy * dy + dz * dz)
+        surfaces = [(2, surface_tag)]
+        if layer_thickness and layer_thickness > 0 and total_height > 0:
+            num_layers = max(1, int(round(total_height / layer_thickness)))
+            heights = [(i + 1) * layer_thickness / total_height for i in range(num_layers)]
+            result = gmsh.model.occ.extrude(
+                surfaces,
+                dx, dy, dz,
+                numElements=[1] * num_layers,
+                heights=heights,
+            )
+        else:
+            result = gmsh.model.occ.extrude(surfaces, dx, dy, dz)
+        gmsh.model.occ.synchronize()
+        if name:
+            volumes = [v[1] for v in gmsh.model.getEntities(dim=3)]
+            if volumes:
+                gid = gmsh.model.addPhysicalGroup(3, volumes, name=name)
+                gmsh.model.setPhysicalName(3, gid, name)
+        self._log(f"Surface {surface_tag} extruded by ({dx}, {dy}, {dz}) with name='{name}'")
+        return result
+
+    def assign_physical_groups(self, patch_map: Dict[str, List[Tuple[int, int]]]) -> None:
+        """Assign physical groups to entities by patch name.
+
+        Args:
+            patch_map: Dictionary mapping patch names to lists of
+                (dimension, tag) tuples.
+        """
+        for pname, entities in patch_map.items():
+            if not entities:
+                continue
+            dim = entities[0][0]
+            tags = [e[1] for e in entities]
+            gid = gmsh.model.addPhysicalGroup(dim, tags)
+            gmsh.model.setPhysicalName(dim, gid, pname)
+            self._log(f"Physical group '{pname}' assigned to {len(tags)} entity(ies)")
+        gmsh.model.occ.synchronize()
+
+    def write_geo(self, filepath: Union[Path, str]) -> None:
+        """Write the current geometry to a .geo file.
+
+        Args:
+            filepath: Path to the output .geo file.
+        """
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        lines = []
+        lines.append("// Gmsh geometry file generated by foampilot")
+        lines.append("")
+        phys_groups = gmsh.model.getPhysicalGroups()
+        for dim, ptag in phys_groups:
+            pname = gmsh.model.getPhysicalName(dim, ptag)
+            entity_tags = gmsh.model.getEntitiesForPhysicalGroup(dim, ptag)
+            if entity_tags:
+                tags_str = ", ".join(str(t) for t in entity_tags)
+                dim_name = ["Point", "Curve", "Surface", "Volume"][dim]
+                lines.append(f'Physical {dim_name}("{pname}") = {{{tags_str}}};')
+        filepath.write_text("\n".join(lines) + "\n")
+        self._log(f"Geometry written to {filepath}")
 
     def finalize(self):
         """Finalize the Gmsh API session."""

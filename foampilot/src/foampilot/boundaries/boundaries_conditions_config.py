@@ -26,8 +26,8 @@ WALL_FUNCTIONS = {
     },
     "kOmegaSST": {
         "k": {
-            "noSlip": {"type": "kWallFunction", "value": "uniform 0"},
-            "fixedValue": {"type": "kWallFunction", "value": "uniform 0"},
+            "noSlip": {"type": "kqRWallFunction", "value": "uniform 0"},
+            "fixedValue": {"type": "kqRWallFunction", "value": "uniform 0"},
         },
         "omega": {
             "default": {"type": "omegaWallFunction", "value": "uniform 0"},
@@ -40,6 +40,48 @@ WALL_FUNCTIONS = {
 
 # Définition des conditions aux limites par type et par champ
 BOUNDARY_CONDITIONS_CONFIG = {
+    "laminar": {
+        "velocityInlet": {
+            "U": {"type": "fixedValue", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
+            "p": {"type": "zeroGradient"},
+        },
+        "pressureInlet": {
+            "U": {"type": "zeroGradient"},
+            "p": {"type": "fixedValue", "value": "uniform {p_pa}"},
+        },
+        "pressureOutlet": {
+            "U": {"type": "pressureInletOutletVelocity", "value": "uniform (0 0 0)"},
+            "p": {"type": "fixedValue", "value": "uniform 0"},
+        },
+        "massFlowInlet": {
+            "U": {"type": "fixedValue", "value": "uniform ({velocity_value} 0 0)"},
+            "p": {"type": "zeroGradient"},
+        },
+        "wall": {
+            "U": {
+                "noSlip": {"type": "noSlip"},
+                "slip": {"type": "slip"},
+                "fixedValue": {"type": "fixedValue", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
+            },
+            "p": {"type": "zeroGradient"},
+        },
+        "symmetry": {
+            "U": {"type": "empty"},
+            "p": {"type": "empty"},
+        },
+        "noFrictionWall": {
+            "U": {"type": "slip"},
+            "p": {"type": "zeroGradient"},
+        },
+        "uniformNormalFixedValue": {
+            "U": {"type": "uniformNormalFixedValue", "value": "uniform {ref_value}"},
+            "p": {"type": "zeroGradient"},
+        },
+        "surfaceNormalFixedValue": {
+            "U": {"type": "surfaceNormalFixedValue", "refValue": "uniform {ref_value}", "ramp": "table ((0 0) (10 1))"},
+            "p": {"type": "zeroGradient"},
+        },
+    },
     "kEpsilon": {
         "velocityInlet": {
             "U": {"type": "fixedValue", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
@@ -174,11 +216,11 @@ BOUNDARY_CONDITIONS_CONFIG = {
             "nut": {"type": "wallFunction", "function": "nut"},
         },
         "symmetry": {
-            "U": {"type": "empty"},
-            "p": {"type": "empty"},
-            "k": {"type": "empty"},
-            "omega": {"type": "empty"},
-            "nut": {"type": "empty"},
+            "U": {"type": "symmetryPlane"},
+            "p": {"type": "symmetryPlane"},
+            "k": {"type": "symmetryPlane"},
+            "omega": {"type": "symmetryPlane"},
+            "nut": {"type": "symmetryPlane"},
         },
         "noFrictionWall": {
             "U": {"type": "slip"},
@@ -207,7 +249,7 @@ BOUNDARY_CONDITIONS_CONFIG = {
 # Mapping des types de conditions aux limites aux méthodes de calcul des paramètres
 CONDITION_CALCULATORS = {
     "velocityInlet": {
-        "calculate": lambda velocity, turbulence_intensity, **kwargs: {
+        "calculate": lambda velocity, turbulence_intensity=None, **kwargs: {
             "u_ms": velocity[0].get_in('m/s'),
             "v_ms": velocity[1].get_in('m/s'),
             "w_ms": velocity[2].get_in('m/s'),
@@ -222,7 +264,7 @@ CONDITION_CALCULATORS = {
         "error_message": "Each velocity component must have units of length/time."
     },
     "pressureInlet": {
-        "calculate": lambda pressure, turbulence_intensity, **kwargs: {
+        "calculate": lambda pressure, turbulence_intensity=None, **kwargs: {
             "p_pa": pressure.get_in('Pa'),
             **({} if not turbulence_intensity else {
                 "k_value": 1.5 * (pressure.get_in("Pa") * turbulence_intensity) ** 2,
@@ -248,10 +290,10 @@ CONDITION_CALCULATORS = {
         },
         "validate": lambda mass_flow_rate, density, **kwargs:
             mass_flow_rate.check('[mass] / [time]') and density.check('[mass] / [volume]'),
-        "error_message": "Mass flow rate must have units of mass/time and density must have units of mass/volume."
+        "error_message": "Mass flow rate must be of dimension mass/time and density must be of dimension mass/volume."
     },
     "wall": {
-        "calculate": lambda velocity, **kwargs: {
+        "calculate": lambda velocity=None, **kwargs: {
             **({} if not velocity else {
                 "u_ms": velocity[0].get_in('m/s'),
                 "v_ms": velocity[1].get_in('m/s'),

@@ -1,4 +1,5 @@
 import os
+import logging
 from pathlib import Path
 from foampilot.system.controlDictFile import ControlDictFile
 from foampilot.system.fvSchemesFile import FvSchemesFile
@@ -6,6 +7,8 @@ from foampilot.system.fvSolutionFile import FvSolutionFile
 from foampilot.base.openFOAMFile import OpenFOAMFile
 import subprocess
 from foampilot.system.decomposeParDictFile import DecomposeParDictFile
+
+logger = logging.getLogger(__name__)
 
 class SystemDirectory:
     """
@@ -145,7 +148,7 @@ class SystemDirectory:
             raise NotADirectoryError(f"The case path '{base_path}' is not a directory.")
 
         try:
-            print(f"Running 'topoSet' in: {base_path}")
+            logger.info(f"Running 'topoSet' in: {base_path}")
             result = subprocess.run(
                 ["topoSet"],
                 cwd=base_path,
@@ -153,13 +156,13 @@ class SystemDirectory:
                 capture_output=True,
                 check=True
             )
-            print("topoSet executed successfully.")
-            print(result.stdout)
+            logger.info("topoSet executed successfully.")
+            logger.info(result.stdout)
         except subprocess.CalledProcessError as e:
-            print(f"Error executing topoSet: {e.stderr}")
+            logger.error(f"Error executing topoSet: {e.stderr}")
             raise RuntimeError(f"topoSet failed with error: {e.stderr}")
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            logger.error(f"Unexpected error: {e}")
             raise
 
     def run_createPatch(self, overwrite=True):
@@ -187,7 +190,7 @@ class SystemDirectory:
             cmd.append("-overwrite")
 
         try:
-            print(f"Running '{' '.join(cmd)}' in: {base_path}")
+            logger.info(f"Running '{' '.join(cmd)}' in: {base_path}")
             result = subprocess.run(
                 cmd,
                 cwd=base_path,
@@ -195,13 +198,13 @@ class SystemDirectory:
                 capture_output=True,
                 check=True
             )
-            print("createPatch executed successfully.")
-            print(result.stdout)
+            logger.info("createPatch executed successfully.")
+            logger.info(result.stdout)
         except subprocess.CalledProcessError as e:
-            print(f"Error executing createPatch: {e.stderr}")
+            logger.error(f"Error executing createPatch: {e.stderr}")
             raise RuntimeError(f"createPatch failed with error: {e.stderr}")
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            logger.error(f"Unexpected error: {e}")
             raise
 
     def write_functions_file(self, includes=None, filename="functions"):
@@ -244,4 +247,4 @@ FoamFile
         with open(path, "w", encoding="utf-8") as f:
             f.write(header + body + footer)
 
-        print(f"✅ Fichier {path} créé avec {len(includes)} includes.")
+        logger.info(f"Fichier {path} créé avec {len(includes)} includes.")
