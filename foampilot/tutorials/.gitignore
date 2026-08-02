@@ -1,0 +1,17 @@
+# Tutorials root-level ignore
+report/
+report_unifie/
+
+# Per-tutorial generated files
+**/VTK/
+**/constant/
+**/system/
+**/0/
+**/processor*/
+**/postProcessing/
+**/all_stats.json
+**/cell_data.csv
+**/*.png
+**/log.*
+**/__pycache__/
+**/report/

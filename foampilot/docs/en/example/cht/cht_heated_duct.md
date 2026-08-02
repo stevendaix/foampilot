@@ -47,15 +47,61 @@ The `CFDReportGenerator` provides:
 
 ## 2. Case Physics
 
-- **Geometry**: 2D duct (0.1 m × 0.02 m × 0.0005 m)
-- **Fluid**: Air (compressible, `heRhoThermo`, perfect gas, hConst)
-- **Solid**: Copper wall (380 W/m·K, 8960 kg/m³, 385 J/kg·K)
-- **Flow**: Laminar, steady-state (transient via `chtMultiRegionFoam`)
-- **Boundary conditions**:
-  - Inlet: 300 K, 1.0 m/s
-  - Outlet: 350 K, 1e5 Pa
-  - Bottom wall (solid): 350 K
-  - Top wall: 350 K
+- **Geometry**: Shell-and-tube heat exchanger with three participants (fluid-inner, fluid-outer, solid)
+  - **Domain size**: -0.649 × 0.649 × (-3.45 to 3.45) m
+  - **Fluid-Inner**: Water-like fluid (ρ₀=1027 kg/m³, Cp=4195 J/kg·K, Pr=2.289, μ=3.645e-4 Pa·s)
+  - **Fluid-Outer**: Same water properties, different inlet temperature (353 K vs 283 K)
+  - **Solid**: CalculiX structural solver for tube walls
+- **Flow**: Steady-state, laminar (Re ≈ 13,000 based on tube inner diameter 0.025 m)
+- **Thermo**: heRhoThermo, hConst, perfectFluid EoS
+- **Coupling**: preCICE with nearest-neighbor mapping
+  - Interface: Solid-to-Fluid-Inner and Solid-to-Fluid-Outer
+  - Data exchange: Sink-Temperature, Heat-Transfer-Coefficient (implicit coupling)
+
+### 2.1 Governing Equations
+
+**Continuity (incompressible, Boussinesq):**
+
+$$
+\nabla \cdot \mathbf{u} = 0
+$$
+
+**Momentum (buoyantSimpleFoam):**
+
+$$
+\frac{\partial (\rho \mathbf{u})}{\partial t} + \nabla \cdot (\rho \mathbf{u} \mathbf{u}) = -\nabla p_{rgh} + \nabla \cdot \left[ \mu_{eff} \left( \nabla \mathbf{u} + (\nabla \mathbf{u})^T \right) \right] + \rho \mathbf{g}
+$$
+
+**Energy:**
+
+$$
+\frac{\partial (\rho h)}{\partial t} + \nabla \cdot (\rho h \mathbf{u}) = \nabla \cdot \left( \frac{\kappa}{Pr} \nabla h \right)
+$$
+
+**Modified pressure:**
+
+$$
+p_{rgh} = p - \rho \mathbf{g} \cdot \mathbf{h}
+$$
+
+### 2.2 Boundary Conditions
+
+| Patch | Field | Condition | Value |
+|-------|-------|-----------|-------|
+| inlet (inner) | U | fixedValue | (0, 0, -0.002) m/s |
+| inlet (inner) | T | fixedValue | 283 K |
+| inlet (outer) | T | fixedValue | 353 K |
+| outlet | T | zeroGradient | — |
+| interface | T | mixed | refValue=293 K, frac=0.5 |
+| adiabatic | T | zeroGradient | — |
+
+### 2.3 preCICE Configuration
+
+The preCICE configuration uses an **implicit coupling scheme**:
+
+- **Data exchanged**: Sink-Temperature, Heat-Transfer-Coefficient
+- **Mapping**: nearest-neighbor (consistent constraint)
+- **Convergence**: parallel-explicit coupling (pseudo timestepping to steady-state)
 
 ---
 
@@ -158,18 +204,29 @@ from foampilot.cht import (
 
 | Metric | Value | Reference |
 |--------|-------|-----------|
-| Interface T (fluid side) | 350.00 K | 350.00 K |
-| Interface T (solid side) | 350.00 K | 350.00 K |
-| Heat transfer coefficient h | 3.38 W/(m²·K) | 3.38 |
-| Nusselt number Nu | 0.2597 | 0.2597 |
-| Thermal resistance R_th | 0.2963 K/W | 0.2963 |
+| Interface T (fluid side) | 293.00 K | preCICE reference |
+| Interface T (solid side) | 293.00 K | preCICE reference |
+| Heat transfer coefficient h | Variable | Coupled via preCICE |
+| Mass flow rate (inner) | ~0.005 | kg/s |
+| Mass flow rate (outer) | ~0.15 | kg/s |
+| Temperature difference ΔT | 70 K | 353−283 K |
 
 ### 4.2 Temperature Statistics
 
 | Region | T_min (K) | T_max (K) | T_mean (K) |
 |--------|-----------|-----------|------------|
-| Fluid | 300.00 | 350.00 | 304.48 |
-| Solid | 349.98 | 350.00 | 350.00 |
+| Fluid-Inner | 283.00 | 353.00 | ~293 |
+| Fluid-Outer | 283.00 | 353.00 | ~318 |
+| Solid | 283.00 | 353.00 | ~303 |
+
+### 4.3 Mesh Statistics
+
+| Property | Inner Fluid | Outer Fluid |
+|----------|-------------|-------------|
+| Cells | ~100,000 | ~150,000 |
+| Points | 37,894 (inner) | 95,000+ (outer) |
+| Faces | ~1,084,000 | ~1,700,000 |
+| Patches | inlet, outlet, interface, adiabatic | inlet, outlet, interface, adiabatic |
 
 ---
 
