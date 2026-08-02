@@ -18,10 +18,31 @@ The examples aim to:
 
 ## List of Examples
 
-This section will be updated as more tests are developed.
+This section contains tutorials demonstrating various CFD physics and solver
+configurations using FoamPilot.
 
-- [Muffler](muffler/detailled_example_muffler.md): A detailed example of a car muffler, showing complex mesh generation, boundary conditions, and analysis of acoustic and fluidic results.  
-- [SimpleCar](simplecar/detailled_example.md): Example based on the official OpenFOAM tutorial [SimpleCar](https://develop.openfoam.com/Development/openfoam/-/tree/30d2e2d3cfd2c2f268dd987b413dbeffd63962eb/tutorials/incompressible/simpleFoam/simpleCar), illustrating the simulation of airflow around a simple car with JSON-based mesh generation, boundary condition application, and aerodynamic force monitoring.
+### Incompressible Solvers
+
+- [Cavity Laminar](cavity_laminar/tutorial.md): Laminar lid-driven cavity flow using `icoFoam`.
+- [SimpleCar Turbulent](simplecar_turbulent/tutorial.md): Steady RANS turbulent flow around a simplified car using `simpleFoam` with k-omega SST.
+- [PitzDaily Step](pitzdaily_step/tutorial.md): Backward-facing step turbulent flow with recirculation zone analysis.
+- [MotorBike](motorBike/tutorial.md): High-speed external aerodynamics around a motorcycle.
+- [Building Aero](buildingAero/tutorial.md): Urban boundary layer flow around buildings.
+
+### Multiphase & Scalar
+
+- [DamBreak VOF](dambreak_vof/tutorial.md): Two-phase water-air flow using VOF model with `interFoam`.
+- [Scalar Transport](scalarTransport/tutorial.md): Passive scalar (temperature) transport in a channel.
+
+### Buoyancy & Conjugate Heat Transfer
+
+- [Thermal Buoyancy](thermalBuoyancy/tutorial.md): Natural convection in a heated room using Boussinesq approximation.
+- [CHT Heated Duct](cmt/cht_heated_duct.md): Conjugate heat transfer between air and copper wall using `chtMultiRegionFoam`.
+
+### Muffler Studies
+
+- [Muffler](muffler/detailled_example_muffler.md): Detailed example of a car muffler with acoustic and fluidic analysis.
+- [SimpleCar](simplecar/detailled_example.md): OpenFOAM simpleCar tutorial with JSON-based mesh generation.
 
 ## Notes
 

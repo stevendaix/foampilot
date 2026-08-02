@@ -1,15 +1,22 @@
 from __future__ import annotations
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List, Union
+from pathlib import Path
 from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.base.openFOAMFile import OpenFOAMFile
 
 
 class CaseFieldsManager:
     """Dynamically generates OpenFOAM fields based on solver and physical configurations.
 
-    This manager automates the selection of required initial field files (e.g., U, p, T, k) 
-    by inspecting the physical characteristics of the simulation. It adapts to 
-    compressibility, gravity effects, multiphase flows (VOF), radiation, and 
+    This manager automates the selection of required initial field files (e.g., U, p, T, k)
+    by inspecting the physical characteristics of the simulation. It adapts to
+    compressibility, gravity effects, multiphase flows (VOF), radiation, and
     various turbulence models.
+
+    For conjugate heat transfer (CHT) cases, pass the ``regions`` parameter to
+    generate per-region field sets.  Solid regions will only receive a ``T``
+    field (no ``U``), while fluid regions receive ``U``, pressure, and
+    turbulence fields as appropriate.
 
     Attributes:
         compressible (bool): Whether the solver handles compressible flow.
@@ -22,6 +29,8 @@ class CaseFieldsManager:
         fields (Dict[str, Dict[str, Any]]): Dictionary storing the generated field configurations and initial values.
         physical_properties (Dict[str, ValueWithUnit]): Registry for physical constants (reserved for future use).
         turbulence_properties (Dict[str, Any]): Registry for turbulence constants (reserved for future use).
+        regions (list, optional): List of ``FluidRegion`` / ``SolidRegion`` objects for CHT multi-region field generation.
+        region_fields (Dict[str, Dict[str, Dict[str, Any]]]): Per-region field configurations keyed by region name.
     """
 
     def __init__(
@@ -34,6 +43,7 @@ class CaseFieldsManager:
         energy_activated: bool = False,
         with_radiation: bool = False,
         turbulence_model: Optional[str] = None,
+        regions: Optional[List[Any]] = None,
     ):
         """Initializes the CaseFieldsManager and triggers initial field generation.
 
@@ -44,8 +54,11 @@ class CaseFieldsManager:
             is_solid: Set up for solid-only heat transfer. Defaults to False.
             energy_activated: Enable temperature fields for heat transfer. Defaults to False.
             with_radiation: Enable radiation-specific fields (G, q_r). Defaults to False.
-            turbulence_model: Name of the turbulence model (e.g., "kEpsilon", "kOmegaSST"). 
-                Defaults to "kEpsilon".
+            turbulence_model: Name of the turbulence model (e.g., "kEpsilon", "kOmegaSST").
+                Defaults to None which is treated as "kEpsilon" internally.
+            regions: Optional list of ``FluidRegion`` or ``SolidRegion`` objects for
+                CHT multi-region field generation.  When provided, ``region_fields``
+                is populated with per-region field dicts.
         """
         self.compressible = compressible
         self.with_gravity = with_gravity
@@ -54,6 +67,8 @@ class CaseFieldsManager:
         self.energy_activated = energy_activated
         self.with_radiation = with_radiation
         self.turbulence_model = turbulence_model or "kEpsilon"
+        self.regions = regions
+        self.region_fields: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
         # Storage
         self.fields: Dict[str, Dict[str, Any]] = {}
@@ -62,11 +77,15 @@ class CaseFieldsManager:
 
         self._generate_fields()
 
+        # Generate per-region fields if regions were provided
+        if self.regions:
+            self._generate_region_fields()
+
     def _generate_fields(self) -> None:
         """Internal logic to populate the fields dictionary based on physical flags.
 
-        This method clears the current field list and re-evaluates which OpenFOAM 
-        files are required (e.g., deciding between 'p' and 'p_rgh' or adding 
+        This method clears the current field list and re-evaluates which OpenFOAM
+        files are required (e.g., deciding between 'p' and 'p_rgh' or adding
         turbulence scalars).
         """
         # Reset
@@ -129,6 +148,144 @@ class CaseFieldsManager:
             self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
             self.fields["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
 
+    # ------------------------------------------------------------------
+    # Multi-region field generation
+    # ------------------------------------------------------------------
+
+    def _generate_region_fields(self) -> None:
+        """Populate ``region_fields`` for each region in ``self.regions``.
+
+        Solid regions get only ``T``; fluid regions get ``U``, pressure,
+        temperature (if energy activated), and turbulence fields.
+        """
+        from foampilot.cht.regions import SolidRegion
+
+        self.region_fields = {}
+
+        for region in self.regions:
+            region_name = region.name
+            is_solid = isinstance(region, SolidRegion)
+
+            region_turbulence = (
+                region.turbulence_model
+                if hasattr(region, "turbulence_model")
+                else self.turbulence_model
+            )
+
+            region_fields: Dict[str, Dict[str, Any]] = {}
+
+            pressure_name = "p_rgh" if self.with_gravity and not self.compressible else "p"
+            region_fields[pressure_name] = {"value": ValueWithUnit(0, "Pa")}
+
+            if not is_solid:
+                region_fields["U"] = {"value": ValueWithUnit(0, "m/s")}
+
+            if self.is_vof and not is_solid:
+                region_fields["alpha.water"] = {"value": ValueWithUnit(1.0, "")}
+                region_fields["alpha.air"] = {"value": ValueWithUnit(0.0, "")}
+
+            if self.energy_activated or self.compressible:
+                region_fields["T"] = {"value": ValueWithUnit(region.temperature, "K")}
+
+            if self.with_radiation:
+                region_fields["G"] = {"value": ValueWithUnit(0, "W/m^2")}
+                region_fields["q_r"] = {"value": ValueWithUnit(0, "W/m^2")}
+
+            if region_turbulence and not is_solid:
+                self._generate_turbulence_fields_for(region_fields, region_turbulence)
+
+            if is_solid:
+                region_fields = {"T": {"value": ValueWithUnit(region.temperature, "K")}}
+
+            self.region_fields[region_name] = region_fields
+
+    @staticmethod
+    def _generate_turbulence_fields_for(
+        fields_dict: Dict[str, Dict[str, Any]], model: str
+    ) -> None:
+        """Populate ``fields_dict`` with turbulence scalars for the given model."""
+        model_lower = model.lower()
+
+        if model_lower == "laminar":
+            return
+
+        if "kepsilon" in model_lower:
+            fields_dict["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            fields_dict["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
+            fields_dict["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
+        elif "omega" in model_lower:
+            fields_dict["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            fields_dict["omega"] = {"value": ValueWithUnit(1, "1/s")}
+            fields_dict["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
+        elif "spalart" in model_lower:
+            fields_dict["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
+        elif "v2" in model_lower:
+            fields_dict["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            fields_dict["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
+            fields_dict["v2"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+        else:
+            fields_dict["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            fields_dict["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
+
+    def get_region_field_names(self, region_name: str) -> List[str]:
+        """Return the list of field names generated for a specific region.
+
+        Args:
+            region_name: Name of the region.
+
+        Returns:
+            List of field names (e.g. ``['T', 'U', 'k', 'omega', 'nut']``).
+        """
+        return list(self.region_fields.get(region_name, {}).keys())
+
+    def get_region_fields(self, region_name: str) -> Dict[str, Dict[str, Any]]:
+        """Return the field configuration dict for a specific region.
+
+        Args:
+            region_name: Name of the region.
+
+        Returns:
+            Dictionary mapping field names to their config dicts.
+        """
+        return self.region_fields.get(region_name, {})
+
+    def write_region_boundary_files(
+        self,
+        region_name: str,
+        case_path: Union[str, Path],
+        boundaries: Dict[str, Dict[str, Any]],
+        internal_field_overrides: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """Write boundary-condition field files for a specific region.
+
+        This method writes each field file into ``0/<region_name>/``
+        using :meth:`OpenFOAMFile.write_boundary_file`.
+
+        Args:
+            region_name: Name of the region (e.g. ``"fluid"``, ``"solid"``).
+            case_path: Path to the OpenFOAM case root directory.
+            boundaries: Dict mapping patch names to BC parameter dicts.
+            internal_field_overrides: Optional dict mapping field names to
+                custom ``internalField`` strings.
+        """
+        internal_field_overrides = internal_field_overrides or {}
+        foam_file = OpenFOAMFile("region_boundary")
+
+        for field_name in self.get_region_field_names(region_name):
+            region_0_path = Path(case_path) / "0" / region_name
+            region_0_path.mkdir(parents=True, exist_ok=True)
+
+            foam_file.write_boundary_file(
+                field=field_name,
+                boundaries=boundaries,
+                case_path=str(region_0_path),
+                internal_field=internal_field_overrides.get(field_name),
+            )
+
+    # ------------------------------------------------------------------
+    # Public API (backward-compatible)
+    # ------------------------------------------------------------------
+
     def get_field_names(self) -> list[str]:
         """Returns the names of all generated fields.
 
@@ -140,11 +297,11 @@ class CaseFieldsManager:
     def to_dict(self) -> Dict[str, Any]:
         """Exports the field configurations to a simplified dictionary format.
 
-        This is primarily used for serialization or for passing data to 
+        This is primarily used for serialization or for passing data to
         other OpenFOAM dictionary writers.
 
         Returns:
-            Dict[str, Any]: A dictionary where keys are field names and 
+            Dict[str, Any]: A dictionary where keys are field names and
                 values are string representations of their magnitudes and units.
         """
         return {k: str(v["value"]) for k, v in self.fields.items()}
@@ -153,6 +310,7 @@ class CaseFieldsManager:
         flags = (
             f"compressible={self.compressible}, gravity={self.with_gravity}, vof={self.is_vof}, "
             f"solid={self.is_solid}, energy={self.energy_activated}, radiation={self.with_radiation}, "
-            f"model={self.turbulence_model}"
+            f"model={self.turbulence_model}, "
+            f"regions={len(self.regions) if self.regions else 0}"
         )
         return f"<CaseFieldsManager {flags}>"

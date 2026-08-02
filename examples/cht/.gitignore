@@ -1,0 +1,32 @@
+# === Ignorer tout par défaut ===
+*
+
+# === Réautoriser la navigation dans les dossiers ===
+!*/
+
+# === Garder les scripts essentiels ===
+!*/run.py
+!*/run_post.py
+!*/run_post_direct.py
+!*/example_direct_reader.py
+!*/block_mesh.json
+!*/README.md
+!*/channel.geo
+!**/README.md
+
+# === Ignorer les fichiers générés à l'exécution ===
+**/system/
+**/constant/
+**/0/
+**/postProcessing/
+**/VTK/
+**/*.log
+**/log.*
+**/simple_heated_duct_*
+**/__pycache__/
+**/*.pyc
+
+# === Garder les exemples de résultats réduits ===
+!*/postProcessing_direct/
+!*/postProcessing_direct/*.png
+!*/postProcessing_direct/*.csv

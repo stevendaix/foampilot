@@ -11,3 +11,4 @@ from foampilot.mesh.geo_generator import (
     create_buildings_geo,
     create_motorcycle_geo,
 )
+from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter

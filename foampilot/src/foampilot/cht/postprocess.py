@@ -26,6 +26,10 @@ def calc_region_heat_flux(
     grad_T = np.gradient(T_field, dx)
     if np.ndim(grad_T) == 0:
         return np.array([0.0])
+    grad_T_arr = np.array(grad_T)
+    if grad_T_arr.ndim == 1:
+        q_mag = np.abs(thermal_conductivity * grad_T_arr)
+        return q_mag
     q_mag = np.abs(thermal_conductivity * np.linalg.norm(grad_T, axis=0))
     return q_mag
 
@@ -188,3 +192,112 @@ def calc_heat_transfer_coefficient(
     if abs(delta_T) < 1e-10:
         return 0.0
     return q_wall / delta_T
+
+
+def calc_total_heat_balance(
+    Q_in: float,
+    Q_out: float,
+    Q_stored: float,
+    tolerance: float = 1e-6,
+) -> dict:
+    """Verify the global energy conservation (heat balance).
+
+    In a steady-state CHT simulation the heat entering the domain
+    must equal the heat leaving plus the rate of energy storage.
+    For transient cases, ``Q_stored`` represents the change in stored
+    energy over the time step.
+
+    Parameters
+    ----------
+    Q_in : float
+        Total heat influx [W] (or [J] over the time step).
+    Q_out : float
+        Total heat outflux [W] (or [J] over the time step).
+    Q_stored : float
+        Rate of change of stored energy [W] (or [J] over the time step).
+        Positive means energy is being stored in the domain.
+    tolerance : float, optional
+        Relative tolerance for the balance check (default 1e-6).
+
+    Returns
+    -------
+    dict
+        Keys: ``'balance'`` (Q_in - Q_out - Q_stored),
+        ``'balance_error'`` (relative error),
+        ``'is_conserved'`` (bool).
+    """
+    balance = Q_in - Q_out - Q_stored
+    denom = max(abs(Q_in), abs(Q_out), 1e-10)
+    balance_error = abs(balance) / denom
+    is_conserved = balance_error < tolerance
+    return {
+        "balance": float(balance),
+        "balance_error": float(balance_error),
+        "is_conserved": bool(is_conserved),
+    }
+
+
+def calc_temperature_contour(
+    T_field: np.ndarray,
+    levels: Optional[int] = None,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+) -> dict:
+    """Extract isotherms (contour lines) from a 2-D temperature field.
+
+    Parameters
+    ----------
+    T_field : np.ndarray
+        2-D temperature field [K].
+    levels : int, optional
+        Number of contour levels.  If ``None``, uses 10.
+    vmin : float, optional
+        Lower temperature bound.  Defaults to ``T_field.min()``.
+    vmax : float, optional
+        Upper temperature bound.  Defaults to ``T_field.max()``.
+
+    Returns
+    -------
+    dict
+        Keys: ``'levels'`` (list of contour levels),
+        ``'T_min'``, ``'T_max'``, ``'delta_T'`` (range).
+    """
+    levels = levels or 10
+    vmin = vmin if vmin is not None else float(np.min(T_field))
+    vmax = vmax if vmax is not None else float(np.max(T_field))
+    contour_levels = np.linspace(vmin, vmax, levels)
+    return {
+        "levels": contour_levels.tolist(),
+        "T_min": vmin,
+        "T_max": vmax,
+        "delta_T": float(vmax - vmin),
+    }
+
+
+def calc_thermal_resistance(
+    T_hot: float,
+    T_cold: float,
+    Q_total: float,
+) -> float:
+    """Calculate the overall thermal resistance between two regions.
+
+    R = ΔT / Q  [K/W]
+
+    Parameters
+    ----------
+    T_hot : float
+        Temperature on the hot side (K).
+    T_cold : float
+        Temperature on the cold side (K).
+    Q_total : float
+        Total heat transfer rate between the two sides (W).
+
+    Returns
+    -------
+    float
+        Thermal resistance in K/W.
+    """
+    delta_T = T_hot - T_cold
+    if abs(Q_total) < 1e-10:
+        return 0.0
+    return delta_T / Q_total

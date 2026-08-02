@@ -1,4 +1,10 @@
 from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
+from foampilot.postprocess.openfoam_direct import (
+    OpenFOAMDirectReader,
+    CHTDirectReader,
+    read_openfoam,
+    read_cht_openfoam,
+)
 from foampilot.postprocess.web_presentation import (
     CFDDashboard,
     plotly_contour_from_mesh,

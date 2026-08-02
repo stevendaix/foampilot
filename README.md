@@ -43,6 +43,8 @@ OpenFOAM cases become *generated artifacts*, not manually maintained inputs.
 
 - **Modern post-processing**  
   3D visualization with PyVista, automatic export of figures and animations.
+  Read OpenFOAM results **directly** into PyVista without `foamToVTK`
+  via `OpenFOAMDirectReader` and `CHTDirectReader`.
 
 - **Automated reporting**  
   Generate PDF calculation notes (LaTeX) or interactive dashboards (Streamlit).

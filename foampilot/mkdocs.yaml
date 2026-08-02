@@ -48,9 +48,18 @@ nav:
   - Partie développement:
       - index: en/dev/dev_index.md
       - introduction : en/dev/dev_intro_documentation.md
-      - Modules détailés de FoamPilot : en/dev/dev_detailed_documentation.md
+      - Modules détaillés de FoamPilot : en/dev/dev_detailed_documentation.md
       - Gestion des quantités : en/dev/manage_ValueWithUnit.md
   - Partie exemples:
       - index: en/example/presentation_example.md
       - Étude de cas silencieux : en/example/muffler/detailled_example_muffler.md
-      - Étude de cas silencieux : en/example/simplecar/detailled_example.md
+      - Étude de cas simpleCar : en/example/simplecar/detailled_example.md
+      - Cavity laminar (icoFoam): en/example/cavity_laminar/tutorial.md
+      - SimpleCar turbulent (simpleFoam): en/example/simplecar_turbulent/tutorial.md
+      - Backward-facing step (simpleFoam): en/example/pitzdaily_step/tutorial.md
+      - DamBreak VOF (interFoam): en/example/dambreak_vof/tutorial.md
+      - Scalar transport (scalarTransportFoam): en/example/scalarTransport/tutorial.md
+      - Building aerodynamics (simpleFoam): en/example/buildingAero/tutorial.md
+      - MotorBike external aero (simpleFoam): en/example/motorBike/tutorial.md
+      - Thermal buoyancy (buoyantSimpleFoam): en/example/thermalBuoyancy/tutorial.md
+      - CHT heated duct (chtMultiRegionFoam): en/example/cht/cht_heated_duct.md

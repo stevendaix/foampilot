@@ -5,6 +5,8 @@ import numpy as np
 import logging
 from typing import Dict, List, Tuple, Optional, Union
 
+from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+
 logger = logging.getLogger(__name__)
 
 class GmshMesher:
@@ -719,6 +721,35 @@ class GmshMesher:
                 raise RuntimeError(f"gmshToFoam failed: {e}")
             except FileNotFoundError:
                 raise RuntimeError("gmshToFoam not found - is OpenFOAM properly sourced?")
+
+    def export_to_openfoam_direct(self, region_map: Optional[Dict[str, str]] = None) -> Union[Path, List[Path]]:
+        """Export mesh to OpenFOAM native polyMesh format directly.
+
+        Writes ``constant/polyMesh`` (or ``constant/<region>/polyMesh`` for
+        CHT multi-region meshes) files directly from the Gmsh API, without
+        invoking ``gmshToFoam``.
+
+        Requires that ``gmsh.model.mesh.generate(3)`` has already been called.
+
+        Args:
+            region_map: Optional mapping ``{volume_phys_name: region_dir}``
+                for multi-region CHT.  If *None*, a single-region mesh is
+                written to ``constant/polyMesh``.
+
+        Returns:
+            Path of the written polyMesh directory (single-region) or a
+            list of paths for multi-region.
+        """
+        folder = self.parent.case_path
+        exporter = DirectOpenFOAMExporter(folder)
+        gmsh.option.setNumber("Mesh.MshFileVersion", 2)
+
+        if region_map is not None:
+            self._log("Direct-exporting multi-region CHT mesh")
+            return exporter.export_multi_region(region_map)
+        else:
+            self._log("Direct-exporting single-region mesh")
+            return exporter.export_single_region()
 
     def visualize(self):
         """Launch Gmsh GUI to visualize the geometry and mesh."""

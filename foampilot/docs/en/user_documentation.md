@@ -227,6 +227,66 @@ foam_post.export_plot(pl_contour, current_path / "contour_plot.png")
 
 Capabilities include slices, contours, vector plots, vortex analysis, mesh statistics, and exporting data.
 
+### 6.1. Direct OpenFOAM Reading (without `foamToVTK`)
+
+For faster post-processing workflows, `foampilot` provides direct readers that
+parse OpenFOAM's native `polyMesh` and field files into PyVista objects,
+bypassing the intermediate `foamToVTK` conversion step.
+
+**Single-region cases:**
+
+```python
+from foampilot.postprocess import OpenFOAMDirectReader
+import pyvista as pv
+
+reader = OpenFOAMDirectReader("/chemin/vers/cas")
+mesh = reader.to_pyvista(fields=["U", "p"], time_step="1")
+
+print(f"Mesh: {mesh.n_points} points, {mesh.n_cells} cells")
+mesh.plot(scalars="U", cmap="viridis")
+```
+
+**Multi-region CHT cases:**
+
+```python
+from foampilot.postprocess import CHTDirectReader
+
+reader = CHTDirectReader("/chemin/vers/cas_cht")
+print("Regions:", reader.region_names)        # ["fluid", "solid"]
+print("Types:", reader.regions)               # {"fluid": "fluid", "solid": "solid"}
+
+# Load all regions with temperature field
+mb = reader.get_all_meshes(fields=["T"], time_step="0.1")
+
+# Visualize
+pl = pv.Plotter(off_screen=True)
+for name in mb.keys():
+    pl.add_mesh(mb[name], scalars="T", cmap="coolwarm", opacity=0.8)
+pl.screenshot("cht_temperature.png")
+pl.clear()
+
+# Interface temperatures
+temps = reader.get_interface_temperatures("fluid_to_solid", time_step="0.1")
+print(temps)  # {"fluid_T": ..., "solid_T": ..., "T_interface": ...}
+```
+
+**Key advantages:**
+
+- No need to run `foamToVTK` (faster, no extra disk usage)
+- Automatic detection of point vs cell fields based on `FoamFile` headers
+- Lazy loading: mesh and fields are only read when accessed
+- Built-in caching of fields across multiple requests
+- Works with gzipped field files (`.gz`)
+
+**Available classes and functions:**
+
+| Name | Purpose |
+| :--- | :--- |
+| `OpenFOAMDirectReader` | Read a single-region case into `pv.UnstructuredGrid` |
+| `CHTDirectReader` | Read a CHT multi-region case into `pv.MultiBlock` |
+| `read_openfoam()` | Convenience function for single-region cases |
+| `read_cht_openfoam()` | Convenience function for CHT cases |
+
 ## 7. LaTeX Reporting with `latex_pdf`
 
 `latex_pdf` generates structured PDF reports from Python:

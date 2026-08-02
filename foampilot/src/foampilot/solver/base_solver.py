@@ -37,6 +37,7 @@ class BaseSolver:
         "reactingFoam": "reactingFoam",
         "scalarTransportFoam": "scalarTransportFoam",
         "chtMultiRegionFoam": "chtMultiRegionFoam",
+        "chtMultiRegionSimpleFoam": "chtMultiRegionSimpleFoam",
         "compressibleSinglePhasePorosityFoam": "compressibleSinglePhasePorosityFoam",
         "porousSimpleFoam": "porousSimpleFoam",
     }

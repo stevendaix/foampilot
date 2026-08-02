@@ -20,6 +20,29 @@
 *.egg-info/
 __pycache__/
 
+# === Fichiers générés par OpenFOAM dans les exemples ===
+/constant/
+/system/
+/0*/
+/0.*/
+/postProcessing/
+/VTK/
+/processor*/
+*.vtk
+*.log
+*.e*
+*.o*
+*.png
+*.jpg
+*.gif
+*.mp4
+*.csv
+*.json
+*.pdf
+*.typst
+*.aux
+*.out
+*.toc
+*.bbl
+*.blg
 
-
-*.txt

@@ -41,7 +41,7 @@ Gère le répertoire `constant` d'OpenFOAM, y compris les propriétés de transp
 
 ### foampilot.mesh
 
-Contient les classes pour la création et la gestion des maillages, notamment `blockMesh`.
+Contient les classes pour la création et la gestion des maillages, notamment `blockMesh`, `snappyHexMesh`, et l'exportation directe Gmsh→OpenFOAM via `DirectOpenFOAMExporter`.
 
 ### foampilot.postprocess
 
@@ -387,6 +387,160 @@ BlockMeshFile(scale=1, vertices=None, blocks=None, edges=None, defaultPatch=None
 
 
 
+### `foampilot.mesh.direct_openfoam_exporter.DirectOpenFOAMExporter`
+
+La classe `DirectOpenFOAMExporter` permet d'exporter directement un maillage Gmsh
+vers le format natif OpenFOAM `polyMesh` (fichiers `points`, `faces`, `owner`,
+`neighbour`, `boundary`, `cellZones`), sans passer par l'utilitaire externe
+`gmshToFoam`.
+
+Cela offre deux avantages majeurs :
+1. **Suppression de la dépendance** à `gmshToFoam` (nécessite un environnement
+   OpenFOAM entièrement configuré).
+2. **Contrôle total** sur les noms de patches et la structure des régions
+   multi-région (CHT).
+
+**Supported Gmsh element types:**
+- 3-D cells: tetrahedra (type 4), hexahedra (type 5)
+- 2-D boundary faces: triangles (type 2), quadrangles (type 3)
+
+**Constructeur:**
+
+```python
+DirectOpenFOAMExporter(case_path)
+```
+
+- `case_path` (str | Path): Racine du cas OpenFOAM où `constant/` sera créé.
+
+**Méthodes:**
+
+- `export_single_region(region_name="fluid")`:
+  Écrit `constant/polyMesh/` pour un maillage fluide simple.
+  Retourne le `Path` du répertoire polyMesh.
+
+- `export_multi_region(region_map=None)`:
+  Écrit `constant/<regionName>/polyMesh/` pour chaque groupe physique 3-D,
+  adapté aux cas CHT (échange conjoint de chaleur) avec `chtMultiRegionFoam`.
+  Le paramètre `region_map` permet de personnaliser les noms de répertoires.
+  Retourne une liste de `Path`.
+
+**Algorithme et conventions OpenFOAM:**
+
+1. Les tags de nœuds Gmsh (1-indexés) sont remappés en indices 0-indexés
+   contigus pour OpenFOAM.
+2. Les faces des éléments (tétras, hexas) sont extraites de la connectivité
+   cellulaire et orientées vers l'extérieur via une vérification géométrique
+   (produit scalaire entre la normale de la face et le vecteur du centroïde
+   de la cellule vers le centroïde de la face).
+3. Les faces internes sont triées par (owner, neighbour) et les sommets de
+   chaque face sont cycliquement réordonnés pour que le sommet minimum soit
+   premier ("upper-triangular ordering" exigé par OpenFOAM).
+4. Les faces de surface sont associées aux groupes physiques 2-D pour la
+   dénomination des patches.
+5. Les points inutilisés sont éliminés par région (compaction).
+
+**Exemple d'utilisation (single-region):**
+
+```python
+import gmsh
+from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+
+gmsh.initialize()
+gmsh.model.add("case")
+# ... construire la géométrie, assigner les groupes physiques ...
+gmsh.model.mesh.generate(3)
+DirectOpenFOAMExporter("/chemin/vers/cas").export_single_region()
+gmsh.finalize()
+```
+
+**Exemple d'utilisation (CHT multi-région):**
+
+```python
+import gmsh
+from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+
+gmsh.initialize()
+gmsh.model.add("case")
+# ... construire géométrie avec groupes physiques FLUID + SOLID ...
+gmsh.model.mesh.generate(3)
+DirectOpenFOAMExporter("/chemin/vers/cas").export_multi_region(
+    region_map={"FLUID": "fluid", "SOLID": "solid"}
+)
+gmsh.finalize()
+```
+
+**Tests:** Les tests de validation sont dans `test/test_direct_openfoam_export.py`.
+Ils comprennent :
+- Export single-region + validation `checkMesh`
+- Export multi-région CHT + validation `checkMesh` par région
+- Comparaison des comptes de Faces/Owner avec `gmshToFoam`
+
+#### Description technique détaillée (niveau expert)
+
+**Pipeline interne de `_build_mesh_data`:**
+
+1. **`_get_node_coords()`** — Appelle `gmsh.model.mesh.getNodes()` pour récupérer
+   tous les tags de nœuds et leurs coordonnées. Construit un dictionnaire
+   `tag_to_index` mappant chaque tag Gmsh (1-indexé) vers un indice 0-indexé
+   contigu. Retourne un tableau NumPy `(N, 3)` des coordonnées et le mapping.
+
+2. **`_get_surface_patch_map(tag_to_index)`** — Parcourt tous les groupes
+   physiques de dimension 2 (surfaces). Pour chaque élément de surface
+   (triangles ou quads), calcule la clé de face `tuple(sorted(vertex_indices))`
+   en utilisant les indices remappés. Associe chaque clé à un nom de patch.
+   Le résultat est un dictionnaire `face_key → patch_name`.
+
+3. **`_collect_cells(volume_phys, tag_to_index)`** — Parcourt tous les
+   groupes physiques de dimension 3 (volumes). Pour chaque entité volume
+   et chaque type d'élément, extrait la connectivité des nœuds. Les tags
+   Gmsh sont remappés vers les indices 0-indexés OpenFOAM. Retourne
+   `(cell_nodes, zone_names, cell_types)`.
+
+4. **Construction du dictionnaire `face_orientations`** — Pour chaque cellule,
+   génère ses faces à partir de la table de topologie (`TET_FACES` / `HEX_FACES`).
+   Chaque face est orientée vers l'extérieur via `_orient_face_outward()` :
+   - Calcul de la normale géométrique par produit vectoriel
+   - Calcul du vecteur centroïde-face → centroïde-cellule
+   - Si le produit scalaire `(normal · to_face) > 0`, la normale pointe
+     déjà vers l'extérieur → conserver l'orientation
+   - Sinon, inverser l'ordre des sommets
+
+5. **Classification des faces** — Une face partagée par 2 cellules est interne ;
+   une face appartenant à une seule cellule est une face de bord.
+   - Face interne: `owner = min(cell_ids)`, `neighbour = max(cell_ids)`,
+     orientation = celle de la cellule propriétaire (owner)
+   - Face de bord: orientée vers l'extérieur, assignée au patch correspondant
+
+6. **Assemblage final:**
+   - Faces internes triées par `(owner, neighbour)` — ordering "upper triangular"
+   - Chaque face (internes + bord) cycliquement réordonnée via
+     `_to_upper_triangular()` pour que le sommet minimum soit premier
+   - Points inutilisés éliminés : seuls les sommets référencés par les faces
+     sont conservés, avec remapage d'indices contigu
+
+7. **Écriture des fichiers OpenFOAM:**
+   - `points` : `vectorField` ASCII avec en-tête FoamFile
+   - `faces` : `faceList` au format `nVertices(v0 v1 ...)`
+   - `owner` / `neighbour` : `labelList`
+   - `boundary` : `polyBoundaryMesh` avec type/nFaces/startFace par patch
+   - `cellZones` : `cellZoneList` avec entrées `cellLabels List<label>`
+
+**Gestion des régions multiples (CHT):**
+
+Pour `export_multi_region()`, chaque groupe physique 3-D est traité indépendamment.
+La méthode itère sur tous les groupes physiques de volume, extrait les cellules
+appartenant à chaque région, et applique le pipeline ci-dessus de manière isolée.
+Les points partagés entre régions (au niveau de l'interface) sont automatiquement
+éliminés dans chaque région car ils ne sont pas référencés par les faces de
+cette région.
+
+**Limites connues:**
+- Types d'éléments supportés : tétras (type 4) et hexas (type 5) en 3D,
+  triangles (type 2) et quads (type 3) en 2D
+- Les éléments de type prisme, pyramide ou éléments d'ordre supérieur ne sont
+  pas supportés
+
+
 ### `foampilot.mesh.test_snappymesh.STLAnalyzer`
 
 La classe `STLAnalyzer` est conçue pour analyser les fichiers STL, extraire des informations géométriques et préparer les données pour le maillage.
@@ -638,10 +792,230 @@ FoamPostProcessing(case_path, vtk_dir="VTK")
   - `region_name` (str): Nom de la région ("cell" ou nom de la limite).
   - `scalar_field` (str): Le champ scalaire.
   - **Retourne:** `dict` : Dictionnaire des statistiques de la région.
-  - **Lève:** `ValueError` si la région ou le champ scalaire n'est pas trouvé.
+   - **Lève:** `ValueError` si la région ou le champ scalaire n'est pas trouvé.
 
 
 
+### `foampilot.postprocess.openfoam_direct.OpenFOAMDirectReader`
+
+La classe `OpenFOAMDirectReader` permet de lire un cas OpenFOAM **directement**
+en objets PyVista, **sans passer par** l'étape intermédiaire `foamToVTK`.
+Elle parse les fichiers natifs OpenFOam (`points`, `faces`, `owner`,
+`neighbour`, `boundary`) ainsi que les champs (`volScalarField`,
+`volVectorField`, `pointScalarField`, `pointVectorField`) et construit un
+`pv.UnstructuredGrid` prêt à être visualisé ou analysé.
+
+**Constructeur:**
+
+```python
+OpenFOAMDirectReader(case_path, region=None)
+```
+
+- `case_path` (str | Path): Racine du cas OpenFOAM.
+- `region` (str, optionnel): Nom de la région multi-région. Si `None`,
+  le maillage principal `constant/polyMesh` est utilisé.
+
+**Méthodes:**
+
+- `mesh` (propriété):
+  Retourne le `pv.UnstructuredGrid` du maillage. Le chargement est
+  paresseux : les fichiers `polyMesh` ne sont lus qu'au premier accès.
+
+- `points` (propriété):
+  Tableau NumPy `(N, 3)` des coordonnées des nœuds.
+
+- `boundary_patches` (propriété):
+  Dictionnaire des patches de bordure tels que lus depuis
+  `constant/polyMesh/boundary`.
+
+- `region_names` (propriété):
+  Liste des régions détectées dans le cas (utile pour les cas CHT).
+
+- `get_time_steps()`:
+  Retourne la liste triée des répertoires de temps disponibles.
+
+- `get_latest_time()`:
+  Retourne le nom du dernier répertoire de temps.
+
+- `read_field(field_name, time_step=None, region=None)`:
+  Lit un champ scalaire ou vectoriel depuis un répertoire de temps.
+  - `field_name` (str): Nom du champ (ex. `"U"`, `"p"`, `"T"`).
+  - `time_step` (str, optionnel): Pas de temps (défaut: `"0"` ou le
+    dernier pas si le champ n'est pas trouvé dans `"0"`).
+  - `region` (str, optionnel): Sous-répertoire de région.
+  - **Retourne:** `np.ndarray` de shape `(N,)` pour les scalaires ou
+    `(N, 3)` pour les vecteurs.
+
+- `attach_field(field_name, time_step=None, region=None, as_point_data=True)`:
+  Lit un champ et l'attache automatiquement au maillage en tant que
+  `point_data` ou `cell_data` selon la classe déclarée dans l'en-tête
+  `FoamFile` du champ.
+  - **Retourne:** `pv.UnstructuredGrid` modifié.
+
+- `to_pyvista(fields=None, time_step=None, as_point_data=True)`:
+  Construit un maillage PyVista complet avec les champs demandés.
+  - `fields` (list[str], optionnel): Noms des champs à charger.
+  - `time_step` (str, optionnel): Pas de temps.
+  - **Retourne:** `pv.UnstructuredGrid`.
+
+- `to_multiblock(fields=None, time_step=None)`:
+  Construit un `pv.MultiBlock` avec toutes les régions détectées.
+  Pour un cas mono-région, le MultiBlock contient un seul bloc.
+
+- `plot(scalars=None, time_step=None, show_edges=False, opacity=1.0, cmap="coolwarm", off_screen=False, screenshot=None, **kwargs)`:
+  Visualise le maillage avec un champ scalaire optionnel.
+  - **Retourne:** `pv.Plotter`.
+
+**Exemple mono-région:**
+
+```python
+from foampilot.postprocess import OpenFOAMDirectReader
+import pyvista as pv
+
+reader = OpenFOAMDirectReader("/chemin/vers/cas")
+mesh = reader.to_pyvista(fields=["U", "p"], time_step="1")
+
+print(f"Points : {mesh.n_points}, Cells : {mesh.n_cells}")
+print(f"U range : {mesh.cell_data['U'].min()} -> {mesh.cell_data['U'].max()}")
+
+mesh.plot(scalars="U", cmap="viridis")
+```
+
+**Exemple CHT (multi-régions):**
+
+```python
+from foampilot.postprocess import CHTDirectReader
+
+reader = CHTDirectReader("/chemin/vers/cas_cht")
+print("Regions:", reader.region_names)
+print("Types:", reader.regions)  # {"fluid": "fluid", "solid": "solid"}
+
+mb = reader.get_all_meshes(fields=["T"], time_step="0.1")
+for name in mb.keys():
+    block = mb[name]
+    print(f"{name}: {block.n_points} points, {block.n_cells} cells")
+
+reader.get_mesh(region="fluid", fields=["U"], time_step="0.1").plot(scalars="U")
+```
+
+### `foampilot.postprocess.openfoam_direct.CHTDirectReader`
+
+La classe `CHTDirectReader` est un surcouche spécialisée pour les cas de
+transfert thermique conjoint (CHT). Elle détecte automatiquement les
+régions fluides et solides en se basant sur la présence du champ de
+vitesse `U` dans chaque répertoire de temps, puis expose les mêmes
+méthodes que `OpenFOAMDirectReader` adaptées au multi-région.
+
+**Constructeur:**
+
+```python
+CHTDirectReader(case_path)
+```
+
+- `case_path` (str | Path): Racine du cas OpenFOAM CHT.
+
+**Méthodes:**
+
+- `region_names` (propriété):
+  Liste triée des régions détectées.
+
+- `regions` (propriété):
+  Dictionnaire `{nom_region: "fluid" | "solid"}`. La classification
+  repose sur la présence du champ `U` dans les répertoires de temps
+  d'une région : présence de `U` → fluide, sinon → solide.
+
+- `get_mesh(region=None, fields=None, time_step=None)`:
+  Retourne le maillage PyVista d'une région spécifique.
+  - **Retourne:** `pv.UnstructuredGrid`.
+
+- `get_all_meshes(fields=None, time_step=None)`:
+  Retourne un `pv.MultiBlock` contenant toutes les régions.
+  - **Retourne:** `pv.MultiBlock`.
+
+- `get_interface_temperatures(interface_name, time_step=None)`:
+  Extrait les températures moyennes de part et d'autre d'une interface.
+  - **Retourne:** `dict` avec `fluid_T`, `solid_T`, `T_interface`.
+
+- `plot(scalars=None, time_step=None, region=None, show_edges=False, opacity=1.0, cmap="coolwarm", off_screen=False, screenshot=None, **kwargs)`:
+  Visualise une région spécifique ou la première région détectée.
+
+**Exemple complet CHT:**
+
+```python
+from foampilot.postprocess import CHTDirectReader
+import pyvista as pv
+
+case = "/chemin/vers/cas_cht"
+reader = CHTDirectReader(case)
+
+# Maillage de toutes les régions avec le champ T
+mb = reader.get_all_meshes(fields=["T"], time_step="0.1")
+
+pl = pv.Plotter(off_screen=True)
+for name in mb.keys():
+    pl.add_mesh(
+        mb[name],
+        scalars="T",
+        lighting=False,
+        scalar_bar_args={"title": f"T ({name})"},
+        cmap="coolwarm",
+        opacity=0.8,
+    )
+pl.screenshot("cht_temperature.png")
+pl.clear()
+
+# Températures d'interface
+temps = reader.get_interface_temperatures("fluid_to_solid", time_step="0.1")
+print(temps)
+```
+
+### `foampilot.postprocess.openfoam_direct.read_openfoam`
+
+Fonction de convenance pour la lecture mono-région.
+
+```python
+read_openfoam(case_path, region=None, fields=None, time_step=None) -> pv.UnstructuredGrid
+```
+
+### `foampilot.postprocess.openfoam_direct.read_cht_openfoam`
+
+Fonction de convenance pour la lecture CHT.
+
+```python
+read_cht_openfoam(case_path, fields=None, time_step=None) -> pv.MultiBlock
+```
+
+**Note sur l'attachement automatique des champs :**
+
+La méthode `attach_field` détermine automatiquement si un champ doit être
+attaché en `point_data` ou `cell_data` en inspectant l'en-tête `FoamFile`
+du fichier de champ :
+
+- `pointScalarField` / `pointVectorField` → `point_data`
+- `volScalarField` / `volVectorField` → `cell_data`
+
+Si la taille du tableau lu ne correspond pas au type attendu, un
+avertissement est émis et le champ est attaché à l'emplacement alternatif.
+
+**Architecture interne du parsing :**
+
+- `_parse_foam_header`: extrait le dictionnaire d'en-tête `FoamFile`.
+- `_read_points`: lit le `vectorField` ASCII de `points`.
+- `_read_faces`: lit le `faceList` (format `nVertices(v0 v1 ...)`).
+- `_read_label_list`: lit les listes d'entiers (`owner`, `neighbour`).
+- `_read_boundary`: parse le dictionnaire `polyBoundaryMesh`.
+- `_read_field`: parse un champ scalaire/vectoriel et retourne
+  `(valeurs, est_point_field)`.
+- `_build_cells_from_faces`: assemble la connectivité cellulaire
+  PyVista à partir de `faces`, `owner`, `neighbour`.
+- `_detect_regions`: détecte les régions dans `constant/<region>/polyMesh`
+  et dans les répertoires de temps.
+- `_get_time_dirs`: liste les répertoires de pas de temps valides.
+
+**Tests:** Les tests unitaires sont dans `test/test_direct_openfoam_reader.py`
+et couvrent la détection de régions, la lecture de champs scalaires/vectoriels,
+l'attachement automatique, et les fonctions de convenance pour les cas
+mono-région (`planarPoiseuille`) et CHT (`simple_heated_duct`).
 
 
 ### `foampilot.report.latex_pdf.LatexDocument`
