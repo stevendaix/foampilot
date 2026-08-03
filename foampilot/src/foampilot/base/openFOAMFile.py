@@ -40,7 +40,8 @@ class OpenFOAMFile:
         "k": "[0 2 -2 0 0 0 0]",
         "epsilon": "[0 2 -3 0 0 0 0]",
         "nut": "[0 2 -1 0 0 0 0]",
-        "omega": "[0 0 -1 0 0 0 0]"
+        "omega": "[0 0 -1 0 0 0 0]",
+        "T": "[0 0 0 1 0 0 0]",
     }
 
     def __init__(self, object_name: str, **attributes: Any):
@@ -138,10 +139,15 @@ class OpenFOAMFile:
 
             # tuple → OpenFOAM list
             if isinstance(value, tuple):
-                file.write(f'{indent}{key} (')
-                for item in value:
-                    file.write(f'{self._format_value(key, item)} ')
-                file.write(');\n')
+                def _write_tuple(t):
+                    parts = []
+                    for item in t:
+                        if isinstance(item, tuple):
+                            parts.append("(" + " ".join(str(x) for x in item) + ")")
+                        else:
+                            parts.append(self._format_value(key, item))
+                    return " ".join(parts)
+                file.write(f'{indent}{key} ({_write_tuple(value)});\n')
                 continue
 
             # standard key-value
@@ -231,7 +237,19 @@ class OpenFOAMFile:
                 quoted = patch if patch.startswith('"') else f'"{patch}"'
                 f.write(f'    {quoted}\n    {{\n')
                 for key, value in params.items():
-                    f.write(f'        {key:<15} {value};\n')
+                    if isinstance(value, dict):
+                        if value:
+                            f.write(f'        {key} {{\n')
+                            self._write_attributes(f, value, 3)
+                            f.write(f'        }}\n')
+                        continue
+                    if isinstance(value, tuple):
+                        f.write(f'        {key} (')
+                        for item in value:
+                            f.write(f'{self._format_value(key, item)} ')
+                        f.write(');\n')
+                        continue
+                    f.write(f'        {key:<15} {self._format_value(key, value)};\n')
                 f.write("    }\n\n")
             f.write("}\n\n")
             f.write("// ************************************************************************* //\n")

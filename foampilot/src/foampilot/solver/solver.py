@@ -121,10 +121,19 @@ class Solver:
     def _update_solver(self):
         if self._is_solid:
             solver_name = "solidDisplacement"
+            self._sub_solver = None
         elif self._is_vof:
             solver_name = "incompressibleVoF" if not self._compressible else "compressibleVoF"
+            self._sub_solver = None
+        elif self._energy_user and not self._compressible:
+            solver_name = "incompressibleFluid"
+            self._sub_solver = None
+        elif self._energy_user and self._compressible:
+            solver_name = "fluid"
+            self._sub_solver = None
         else:
-            solver_name = "fluid" if self.energy_activated else "incompressibleFluid"
+            solver_name = "incompressibleFluid"
+            self._sub_solver = None
 
         old_solver = self._solver.solver_name if self._solver else "None"
         self._notify_event("solver_change", f"Changing solver from {old_solver} to {solver_name}")
@@ -141,6 +150,7 @@ class Solver:
             turbulence_model=self._turbulence_model,
         )
 
+        self._solver._sub_solver = self._sub_solver
         self.boundary = Boundary(self._solver, fields_manager=self._solver.fields_manager, turbulence_model=self._turbulence_model)
 
     # ---------- Delegate methods ----------

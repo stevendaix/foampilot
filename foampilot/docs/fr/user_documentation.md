@@ -219,11 +219,441 @@ L'ajout d'un patch se fait principalement lors de la phase de maillage (voir Sec
 Une fois le maillage généré, le nouveau patch est automatiquement reconnu par OpenFOAM. Il suffit ensuite d'appliquer une condition limite à ce patch via `solver.boundary.apply_condition_with_wildcard(pattern="monNouveauPatch", ...)` comme décrit ci-dessus.
 \`\`\`
 
+## 3.4. Conditions aux Limites Temporelles et Spatiales depuis des Fichiers CSV
+
+### 3.4.1. Vue d'ensemble
+
+Le module  fournit une API complete pour appliquer des conditions aux limites variables dans le temps et/ou spatialement distribuees a partir de fichiers CSV ou de dataframes pandas.
+
+### 3.4.2. API de Haut Niveau
+
+####  — Conditions uniformes variables dans le temps
+
+Attache une condition limite uniforme mais variable dans le temps a un patch. Utilise OpenFOAM Function1 table avec format csv.
+
+
+
+Pour un champ vecteur, utilise :
+
+
+
+Le CSV est copie dans  sans en-tete. Le Function1  lit les colonnes par index. Le  pour un vecteur est .
+
+####  — Distributions spatiales interpolees
+
+Interpole des valeurs depuis un nuage de points CSV sur les centres de faces du patch. Requiert SciPy.
+
+
+
+Formats supportes:
+- **Point cloud** : colonnes 
+- **Long format** : colonnes 
+- **Wide format** : une ligne par temps, colonnes spatiales
+
+### 3.4.3. API de Bas Niveau
+
+#### 
+
+
+
+#### 
+
+Ecrit le CSV sans en-tete dans :
+
+
+
+####  / 
+
+Genetrent le dictionnaire OpenFOAM pour uniformFixedValue:
+
+
+
+### 3.4.4. Format des Fichiers CSV
+
+| Format | Colonnes | Exemple |
+| :--- | :--- | :--- |
+| Scalaire | time, value | 0.0, 350 |
+| Vecteur | time, vx, vy, vz | 0.0, 1.0, 0.0, 0.0 |
+| Spatial (point cloud) | time, x, y, z, value | 0.0, 0.5, 0.0, 0.05, 350 |
+
+### 3.4.5. Gestion de l'Energie (Temperature Incompressible)
+
+
+
+Le solveur reste . Le transport de T est gere par un functionObject  dans :
+
+# 0 "<stdin>"
+# 0 "<built-in>"
+# 0 "<command-line>"
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+# 0 "<command-line>" 2
+# 1 "<stdin>"
+
+D = nu / Pr.
+
+**fvSchemes automatiques :**
+
+| Entree | Valeur |
+| :--- | :--- |
+| div(phi,T) | bounded Gauss linearUpwind grad(T) |
+| laplacian(DT,T) | Gauss linear corrected |
+
+**fvSolution automatiques :**
+
+| Entree | Description |
+| :--- | :--- |
+| T solver | smoothSolver, tolerance 1e-6 |
+| TFinal | Herite de T avec relTol 0 |
+| relaxationFactors.equations.T | 0.7 |
+
+### 3.4.6. Limitations et Bonnes Pratiques
+
+1.  doit etre appele avant .
+2. Spatial CSV requiert SciPy: Requirement already satisfied: scipy in /home/steven/venv/lib/python3.10/site-packages (1.15.3)
+Requirement already satisfied: numpy<2.5,>=1.23.5 in /home/steven/venv/lib/python3.10/site-packages (from scipy) (1.26.4).
+3. Le separateur CSV est automatiquement mis entre guillemets dans le fichier OpenFOAM.
+4. Columns pour les vecteurs: format OpenFOAM utilise (0 (1 2 3)).
+5. Verifier que le solveur reste incompressibleFluid (ne pas utiliser le solveur functions).
+
+## 3.4. Conditions aux Limites Temporelles et Spatiales depuis des Fichiers CSV
+
+### 3.4.1. Vue d'ensemble
+
+Le module `foampilot.boundaries.csv_boundary_condition` fournit une API complete pour appliquer des conditions aux limites variables dans le temps et/ou spatialement distribuees a partir de fichiers CSV ou de dataframes pandas. Ce module repose sur deux mecanismes OpenFOAM :
+
+1. **Function1 `table` (format CSV)** — pour les valeurs uniformes qui varient dans le temps (ex: temperature d'entree sinusoidale).
+2. **Valeurs `nonuniformList`** — pour les distributions spatiales interpolees sur les faces du patch (ex: profil de temperature 2D imposé en entree).
+
+Le transport de l'energie/temperature (`T`) pour les echelles incompressibles s'effectue via un **functionObject `scalarTransport`** dans `system/functions`. Voir la section 5.4 pour le detail de la configuration energetique.
+
+### 3.4.2. API de Haut Niveau
+
+Deux fonctions sont exposees via `foampilot.boundaries` :
+
+#### `set_csv_condition()` — Conditions uniformes variables dans le temps
+
+Cette fonction attache une condition limite uniforme mais variable dans le temps a un patch. Elle utilise OpenFOAM's `Function1::table` avec `format csv`.
+
+**Signature :**
+
+```python
+set_csv_condition(
+    boundary,          # objet solver.boundary
+    patch_name,        # str : nom du patch (ex: "inlet")
+    field,             # str : nom du champ (ex: "T")
+    data,             # str | Path | pandas.DataFrame
+    time_column=0,     # str | int : colonne temps
+    value_column=None, # str | int : colonne valeur (scalaire)
+    value_columns=None,# list : colonnes valeurs (vecteur, 3 elements)
+    header_lines=0,    # int : lignes d'en-tete a ignorer
+    separator=",",     # str : separateur CSV
+    out_of_bounds="clamp",  # str : "clamp", "error", "warn", "zero", "repeat"
+    interpolation_scheme="linear",  # str : "linear" ou "spline"
+    default_value=None,  # float | str : valeur par defaut pour l'entree "value"
+    csv_filename=None,   # str : nom du fichier dans constant/
+)
+```
+
+**Exemple — Temperature d'entree scalaire variable dans le temps :**
+
+```python
+import pandas as pd
+from foampilot.boundaries import set_csv_condition
+
+df = pd.DataFrame({
+    "time_s": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+    "T_K": [300, 350, 320, 380, 340, 360],
+})
+
+set_csv_condition(
+    boundary=solver.boundary,
+    patch_name="inlet",
+    field="T",
+    data=df,
+    time_column="time_s",
+    value_column="T_K",
+    header_lines=0,
+    separator=",",
+    out_of_bounds="clamp",
+    interpolation_scheme="linear",
+    default_value=300,
+)
+```
+
+Le CSV est copie dans `constant/` sans en-tete. Le Function1 `table` lit les colonnes par index.
+
+**Fichier `0/T` genere :**
+
+```cpp
+boundaryField
+{
+    inlet
+    {
+        type            uniformFixedValue;
+        uniformValue    table
+        {
+            type            csv;
+            nHeaderLine     0;
+            columns         (0 1);
+            file            "constant/inlet_temperature.csv";
+            separator       ",";
+            mergeSeparators false;
+            interpolationScheme linear;
+        }
+        value           uniform 300;
+    }
+}
+```
+
+**Exemple — Vitesse d'entree vectorielle variable dans le temps :**
+
+```python
+df = pd.DataFrame({
+    "time_s": [0.0, 1.0, 2.0],
+    "Ux": [1.0, 2.0, 1.5],
+    "Uy": [0.0, 0.5, 0.3],
+    "Uz": [0.0, 0.0, 0.0],
+})
+
+set_csv_condition(
+    boundary=solver.boundary,
+    patch_name="inlet",
+    field="U",
+    data=df,
+    time_column="time_s",
+    value_columns=["Ux", "Uy", "Uz"],
+)
+```
+
+Le `columns` genere pour un champ vecteur est : `columns (0 (1 2 3));`
+
+---
+
+#### `set_spatial_csv_condition()` — Distributions spatiales interpolees
+
+Cette fonction interpole des valeurs depuis un nuage de points CSV sur les centres de faces du patch OpenFOAM, puis ecrit des listes `nonuniformList` dans les fichiers de champ temporels.
+
+**Signature :**
+
+```python
+set_spatial_csv_condition(
+    boundary,              # objet solver.boundary
+    patch_name,            # str : nom du patch
+    field,                 # str : nom du champ (ex: "T")
+    data,                  # str | Path | pandas.DataFrame
+    time_column=0,         # str | int : colonne temps
+    spatial_columns=None,  # list : colonnes [time, x, y, z, value] (point cloud)
+    face_id_column=None,   # str | int : colonne ID de face (format long)
+    value_column=None,     # str | int : colonne valeur (format long)
+    header_lines=0,        # int
+    separator=",",         # str
+    default_value=None,    # float | str
+    interpolation_method="linear",  # "linear", "nearest", "cubic"
+)
+```
+
+**Formats supportes :**
+
+1. **Format nuage de points (point cloud)** — Colonnes : `time, x, y, z, value`. Les points source sont interpoles sur les centres de faces via `scipy.interpolate.griddata`.
+
+2. **Format long avec IDs de faces** — Colonnes : `time, face_id, value`. Chaque ligne specifie une face et sa valeur a un instant donne.
+
+3. **Format large (wide)** — Une ligne par instant, une colonne par point spatial.
+
+**Exemple — Profil de temperature spatial :**
+
+```python
+import pandas as pd
+import math
+
+rows = []
+for t in [0.0, 0.5, 1.0]:
+    for i in range(10):
+        x = i * 0.2
+        y = 0.5
+        temp = 300 + 50 * math.sin(2 * math.pi * x / 2.0) + 20 * t
+        rows.append({"time_s": t, "x": x, "y": y, "z": 0.05, "T_K": temp})
+
+df = pd.DataFrame(rows)
+
+set_spatial_csv_condition(
+    boundary=solver.boundary,
+    patch_name="inlet",
+    field="T",
+    data=df,
+    time_column="time_s",
+    spatial_columns=["x", "y", "z", "T_K"],
+    header_lines=0,
+    separator=",",
+    default_value=300,
+    interpolation_method="nearest",
+)
+```
+
+**Fichiers generes :**
+
+- `0/T` — contient la distribution non-uniforme au temps initial (copiee depuis le template `0/T`).
+- `<time>/T` — un fichier par instant du CSV, avec les valeurs non-uniformes interpolees sur les faces du patch.
+
+---
+
+### 3.4.3. API de Bas Niveau (Helpers)
+
+Pour un controle fin, les fonctions suivantes sont disponibles :
+
+#### `CsvTimeSeries`
+
+Classe utilitaire pour manipuler des series temporelles CSV :
+
+```python
+from foampilot.boundaries import CsvTimeSeries
+
+ts = CsvTimeSeries(
+    csv_file,          # Path | str | DataFrame
+    time_column="time_s",
+    value_column="T_K",
+    header_lines=1,
+    separator=",",
+)
+ts.get_initial_value()  # -> float : premiere valeur
+ts.get_times()          # -> np.ndarray : colonne temps
+ts.get_values()         # -> np.ndarray : colonne valeur
+ts.get_dataframe()      # -> pd.DataFrame
+ts.write_csv_table(destination_path, header_lines=0, separator=",")
+```
+
+#### `write_csv_table()`
+
+Ecrit un CSV au format OpenFOAM-compatible dans `constant/<filename>` :
+
+```python
+from foampilot.boundaries import write_csv_table
+
+csv_path = write_csv_table(
+    case_path=solver.case_path,
+    csv_data=df_or_path,
+    time_column=0,
+    value_columns=[1, 2, 3],  # pour vecteur
+    header_lines=0,
+    separator=",",
+    filename="inlet_data.csv",
+)
+```
+
+Le CSV est ecrit **sans en-tete** (`header=False, index=False`) car le `table Function1` lit directement les colonnes par index.
+
+#### `make_uniform_fixed_value_bc()` / `make_uniform_fixed_value_vector_bc()`
+
+Generent le dictionnaire OpenFOAM pour `uniformFixedValue` :
+
+```python
+from foampilot.boundaries import make_uniform_fixed_value_bc, make_uniform_fixed_value_vector_bc
+
+bc_scalar = make_uniform_fixed_value_bc(
+    csv_path="constant/inlet_temperature.csv",
+    time_column=0,
+    value_column=1,
+    header_lines=0,
+    separator=",",
+    out_of_bounds="clamp",
+    interpolation_scheme="linear",
+    default_value=300,
+)
+
+bc_vector = make_uniform_fixed_value_vector_bc(
+    csv_path="constant/inlet_velocity.csv",
+    time_column=0,
+    value_columns=[1, 2, 3],
+)
+```
+
+Ces dictionnaires peuvent etre appliques via :
+
+```python
+solver.boundary.set_raw_condition("inlet", "T", bc_dict)
+```
+
+---
+
+### 3.4.4. Format des Fichiers CSV
+
+Le CSV source doit contenir une **colonne de temps** et **une ou trois colonnes de valeurs** :
+
+| Format | Colonnes | Exemple |
+| :--- | :--- | :--- |
+| **Scalaire** | `time, value` | `0.0, 350` |
+| **Vecteur** | `time, vx, vy, vz` | `0.0, 1.0, 0.0, 0.0` |
+| **Spatial (nuage de points)** | `time, x, y, z, value` | `0.0, 0.5, 0.0, 0.05, 350` |
+
+Le fichier est ensuite ecrit dans `constant/` (sans en-tete ni index) pour etre lu par OpenFOAM.
+
+### 3.4.5. Gestion de l'Energie (Temperature Incompressible)
+
+Pour les echelles incompressibles avec transport de la temperature :
+
+```python
+solver = Solver(case_path)
+solver.compressible = False
+solver.with_gravity = False
+solver.energy_activated = True
+solver.turbulence_model = "laminar"
+
+solver.constant.transportProperties.nu = ValueWithUnit(1.5e-5, "m^2/s")
+solver.constant.transportProperties.Pr = 0.85
+```
+
+Le solveur reste `incompressibleFluid` — le transport de `T` est gere par un `functionObject scalarTransport` dans `system/functions` :
+
+```cpp
+#includeFunc scalarTransport(T, diffusivity=constant, D = 1.76471e-05)
+```
+
+`D = nu / Pr` (diffusivite thermique constante).
+
+**Entrees fvSchemes automatiques :**
+
+| Entree | Valeur |
+| :--- | :--- |
+| `div(phi,T)` | `bounded Gauss linearUpwind grad(T)` |
+| `laplacian(DT,T)` | `Gauss linear corrected` |
+
+**Entrees fvSolution automatiques :**
+
+| Entree | Description |
+| :--- | :--- |
+| `T` solver | `smoothSolver`, tolerance 1e-6 |
+| `TFinal` | Herite de `$T` avec `relTol 0` |
+| `relaxationFactors.equations.T` | 0.7 |
+
+**Fichier `system/functions` genere :**
+
+```cpp
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      functions;
+}
+
+#includeFunc scalarTransport(T, diffusivity=constant, D = 1.76471e-05)
+```
+
+### 3.4.6. Limitations et Bonnes Pratiques
+
+1. **Ordre d'appel critique** : `write_boundary_conditions()` doit etre appele **avant** `set_spatial_csv_condition()` pour que le template `0/<field>` existe.
+2. **Spatial CSV requiert SciPy** : `pip install scipy`.
+3. **Separateur CSV** : automatiquement entoure de guillemets dans le fichier OpenFOAM.
+4. **Columns pour les vecteurs** : format OpenFOAM utilise `columns (0 (1 2 3))`.
+5. **Energie incompressible** : utiliser `incompressibleFluid` avec `scalarTransport` (le solveur `functions` ne resout pas l'ecoulement).
+
+---
+
 ## 4. Mise en Place de `system` et `constant` avec `pyfluid`
 
 Le module `pyfluid` (ou la classe `FluidMechanics` de `foampilot.utilities.fluids_theory`) est essentiel pour définir les propriétés physiques du fluide et les constantes du cas OpenFOAM.
 
-### 4.1. Définition des Constantes Physiques avec `FluidMechanics`
+#1. Définition des Constantes Physiques avec `FluidMechanics`
 
 La classe `FluidMechanics` permet de calculer les propriétés d'un fluide (comme la viscosité cinématique $\nu$) en fonction de la température et de la pression, en utilisant des données physiques intégrées.
 

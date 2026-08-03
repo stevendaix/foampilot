@@ -35,6 +35,7 @@ class TransportPropertiesFile(OpenFOAMFile):
         "tau0": None,
         "nuMin": "m^2/s",
         "nuMax": "m^2/s",
+        "Pr": None,
     }
 
     def __init__(
@@ -43,12 +44,14 @@ class TransportPropertiesFile(OpenFOAMFile):
         transportModel: str = NonNewtonianModels.NEWTONIAN,
         nu: Union[str, ValueWithUnit, float] = "1e-05",
         rho: Optional[Union[str, ValueWithUnit, float]] = None,
+        Pr: float = 0.85,
         crossPowerLawCoeffs: Optional[Dict[str, Union[str, ValueWithUnit, float]]] = None,
     ):
         self.parent = parent
         self.transportModel = transportModel
         self._nu = self._to_ValueWithUnit(nu, "nu")
         self._rho = self._to_ValueWithUnit(rho, "rho") if rho is not None else None
+        self._Pr = Pr
         self.crossPowerLawCoeffs = self._process_coeffs(crossPowerLawCoeffs) if crossPowerLawCoeffs else None
 
         # Configure les attributes pour l’écriture
@@ -78,6 +81,16 @@ class TransportPropertiesFile(OpenFOAMFile):
         self._rho = self._to_ValueWithUnit(value, "rho")
         if self.transportModel == NonNewtonianModels.NEWTONIAN or self.transportModel != NonNewtonianModels.NEWTONIAN:
             self.attributes["rho"] = self._rho.magnitude if isinstance(self._rho, ValueWithUnit) else float(self._rho)
+
+    @property
+    def Pr(self):
+        return self._Pr
+
+    @Pr.setter
+    def Pr(self, value: float):
+        self._Pr = float(value)
+        if "Pr" in self.attributes:
+            self.attributes["Pr"] = self._Pr
 
     # ------------------ Public Methods ------------------
 
@@ -127,7 +140,7 @@ class TransportPropertiesFile(OpenFOAMFile):
         return processed
 
     def _configure_attributes(self):
-        """Met à jour self.attributes selon le modèle et les coefficients."""
+        """Met a jour self.attributes selon le modele et les coeficients."""
         self.attributes = {"transportModel": self.transportModel}
 
         if self.transportModel == NonNewtonianModels.NEWTONIAN:
@@ -148,14 +161,24 @@ class TransportPropertiesFile(OpenFOAMFile):
                     k: v.magnitude if isinstance(v, ValueWithUnit) else float(v)
                     for k, v in self.crossPowerLawCoeffs.items()
                 }
-                
+
+        # Add Prandtl number when energy is activated (incompressible)
+        energy_active = False
+        if self.parent and hasattr(self.parent, "energy_activated"):
+            energy_active = self.parent.energy_activated
+        elif self.parent and hasattr(self.parent, "_energy_user"):
+            energy_active = self.parent._energy_user
+        if energy_active and self.transportModel == NonNewtonianModels.NEWTONIAN:
+            self.attributes["Pr"] = self._Pr
+
     def _configure_from_fields(self):
         if not hasattr(self.parent, "fields_manager"):
             return
         fields_manager = self.parent.fields_manager
         field_names = fields_manager.get_field_names()
-        if "T" in field_names or "h" in field_names:
-            pass  # future extensions
+        energy_active = getattr(self.parent, "energy_activated", False)
+        if "T" in field_names and energy_active and self.transportModel == NonNewtonianModels.NEWTONIAN:
+            self.attributes["Pr"] = self._Pr
 
     def to_dict(self) -> Dict[str, Any]:
         return self.attributes

@@ -68,6 +68,10 @@ class SystemDirectory:
         self.fvSchemes.write(system_path / 'fvSchemes')
         self.fvSolution.write(system_path / 'fvSolution')
 
+        # Write functions file with scalarTransport when energy is activated
+        if getattr(self.parent, "energy_activated", False):
+            self._write_functions_file(system_path)
+
         # Write decomposeParDict if created
         if self.decomposeParDict is not None:
            self.decomposeParDict.write(system_path / "decomposeParDict")
@@ -77,6 +81,68 @@ class SystemDirectory:
             file.write(system_path / file_name)
         
         return system_path
+
+    def _write_functions_file(self, system_path: Path) -> None:
+        """Write the ``system/functions`` file with a ``scalarTransport``
+        functionObject so that the incompressible flow solver also evolves
+        the temperature field ``T`` as a passive scalar.
+
+        This is the OpenFOAM 13 mechanism for adding temperature transport
+        to the ``incompressibleFluid`` solver module (which is otherwise
+        isothermal).  The ``scalarTransport`` functionObject reads the
+        volumetric flux ``phi`` produced by the flow solver at each time
+        step and solves the advection-diffusion equation for ``T``.
+        """
+        parent = self.parent
+        energy_var = getattr(parent, "energy_variable", "T")
+        field_names = getattr(parent, "fields_manager", None)
+        field_list = field_names.get_field_names() if field_names else []
+
+        if energy_var not in field_list:
+            return
+
+        # Determine thermal diffusivity: use nu/Pr if Pr is available
+        constant_dir = getattr(parent, "constant", None)
+        transport_props = getattr(constant_dir, "_transportProperties", None) if constant_dir else None
+        if transport_props is not None:
+            transport_props._configure_attributes()
+        pr = 0.85
+        if transport_props is not None:
+            try:
+                pr_raw = transport_props.attributes.get("Pr", None)
+                if pr_raw is not None:
+                    pr = float(pr_raw)
+            except (TypeError, ValueError):
+                pass
+
+        nu_val = 1e-5
+        if transport_props is not None:
+            try:
+                nu_raw = transport_props.attributes.get("nu", None)
+                if nu_raw is not None:
+                    nu_val = float(nu_raw)
+            except (TypeError, ValueError):
+                pass
+
+        D = nu_val / pr
+
+        content = (
+            "FoamFile\n"
+            "{\n"
+            "    format      ascii;\n"
+            "    class       dictionary;\n"
+            "    location    \"system\";\n"
+            "    object      functions;\n"
+            "}\n"
+            "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+            "\n"
+            f'#includeFunc scalarTransport({energy_var}, diffusivity=constant, D = {D:g})\n'
+            "\n"
+            "// ************************************************************************* //\n"
+        )
+        functions_path = system_path / "functions"
+        functions_path.write_text(content)
+        logger.info("Wrote functions file: %s", functions_path)
 
     def add_dict_file(self, file_name, file_content):
         """

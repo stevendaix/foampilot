@@ -1,0 +1,39 @@
+# Generated OpenFOAM directories
+constant/
+system/
+0/
+0.*
+
+# Simulation outputs
+postProcessing/
+VTK/
+processor*/
+log.*
+
+# Mesh and field data
+*.foam
+*.pvsm
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*All*
+Drop*
+Info*
+*.md

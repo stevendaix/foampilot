@@ -208,6 +208,338 @@ solver.run_simulation(parallel=True)
 solver.reconstruct_domain()
 ```
 
+### 3.3. Time-Varying and Spatial Boundary Conditions from CSV Files
+
+#### Overview
+
+The `foampilot.boundaries.csv_boundary_condition` module provides a comprehensive API for applying boundary conditions that vary over time and/or are spatially distributed from CSV files or pandas DataFrames. This module relies on two OpenFOAM mechanisms:
+
+1. **Function1 `table` (CSV format)** — for uniform values that vary over time (e.g., sinusoidal inlet temperature).
+2. **`nonuniformList` values** — for spatially interpolated distributions on patch faces (e.g., 2D temperature profile imposed at the inlet).
+
+Temperature/energy transport for incompressible flows is handled via a **`scalarTransport` functionObject** in `system/functions`. See section 5.4 for energy configuration details.
+
+#### High-Level API
+
+Two functions are exposed via `foampilot.boundaries`:
+
+##### `set_csv_condition()` — Uniform time-varying conditions
+
+Attaches a uniform but time-varying boundary condition to a patch using OpenFOAM's `Function1::table` with CSV format.
+
+**Signature:**
+
+```python
+set_csv_condition(
+    boundary,          # solver.boundary object
+    patch_name,        # str: patch name (e.g., "inlet")
+    field,             # str: field name (e.g., "T")
+    data,             # str | Path | pandas.DataFrame
+    time_column=0,     # str | int: column for time
+    value_column=None, # str | int: column for scalar value
+    value_columns=None,# list: columns for vector (3 items)
+    header_lines=0,    # int: header lines to skip
+    separator=",",     # str: CSV separator
+    out_of_bounds="clamp",  # str: "clamp", "error", "warn", "zero", "repeat"
+    interpolation_scheme="linear",  # str: "linear" or "spline"
+    default_value=None,  # float | str: default value for "value" entry
+    csv_filename=None,   # str: filename in constant/
+)
+```
+
+**Example — Scalar temperature with sinusoidal time variation:**
+
+```python
+import pandas as pd
+from foampilot.boundaries import set_csv_condition
+
+df = pd.DataFrame({
+    "time_s": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+    "T_K": [300, 350, 320, 380, 340, 360],
+})
+
+set_csv_condition(
+    boundary=solver.boundary,
+    patch_name="inlet",
+    field="T",
+    data=df,
+    time_column="time_s",
+    value_column="T_K",
+    header_lines=0,
+    separator=",",
+    out_of_bounds="clamp",
+    interpolation_scheme="linear",
+    default_value=300,
+)
+```
+
+The CSV is written to `constant/` without headers. The `Function1::table` reads columns by index.
+
+**Generated `0/T` file:**
+
+```cpp
+boundaryField
+{
+    inlet
+    {
+        type            uniformFixedValue;
+        uniformValue    table
+        {
+            type            csv;
+            nHeaderLine     0;
+            columns         (0 1);
+            file            "constant/inlet_temperature.csv";
+            separator       ",";
+            mergeSeparators false;
+            interpolationScheme linear;
+        }
+        value           uniform 300;
+    }
+}
+```
+
+**Example — Vector velocity with time variation:**
+
+```python
+df = pd.DataFrame({
+    "time_s": [0.0, 1.0, 2.0],
+    "Ux": [1.0, 2.0, 1.5],
+    "Uy": [0.0, 0.5, 0.3],
+    "Uz": [0.0, 0.0, 0.0],
+})
+
+set_csv_condition(
+    boundary=solver.boundary,
+    patch_name="inlet",
+    field="U",
+    data=df,
+    time_column="time_s",
+    value_columns=["Ux", "Uy", "Uz"],
+)
+```
+
+The `columns` entry for vector fields is `(0 (1 2 3))`.
+
+---
+
+##### `set_spatial_csv_condition()` — Spatially interpolated distributions
+
+Interpolates values from a point cloud CSV onto the OpenFOAM patch face centers, then writes `nonuniformList` values into time-directory field files.
+
+**Signature:**
+
+```python
+set_spatial_csv_condition(
+    boundary,              # solver.boundary object
+    patch_name,            # str: patch name
+    field,                 # str: field name (e.g., "T")
+    data,                  # str | Path | pandas.DataFrame
+    time_column=0,         # str | int: time column
+    spatial_columns=None,  # list: [time, x, y, z, value] (point cloud)
+    face_id_column=None,   # str | int: face ID column (long format)
+    value_column=None,     # str | int: value column (long format)
+    header_lines=0,        # int
+    separator=",",         # str
+    default_value=None,    # float | str
+    interpolation_method="linear",  # "linear", "nearest", "cubic"
+)
+```
+
+**Supported formats:**
+
+1. **Point cloud** — Columns: `time, x, y, z, value`. Source points interpolated onto face centers via `scipy.interpolate.griddata`.
+2. **Long format with face IDs** — Columns: `time, face_id, value`. Each row specifies a face and its value at a given time.
+3. **Wide format** — One row per time, one column per spatial point.
+
+**Example — Spatial temperature profile:**
+
+```python
+import pandas as pd
+import math
+
+rows = []
+for t in [0.0, 0.5, 1.0]:
+    for i in range(10):
+        x = i * 0.2
+        y = 0.5
+        temp = 300 + 50 * math.sin(2 * math.pi * x / 2.0) + 20 * t
+        rows.append({"time_s": t, "x": x, "y": y, "z": 0.05, "T_K": temp})
+
+df = pd.DataFrame(rows)
+
+set_spatial_csv_condition(
+    boundary=solver.boundary,
+    patch_name="inlet",
+    field="T",
+    data=df,
+    time_column="time_s",
+    spatial_columns=["x", "y", "z", "T_K"],
+    header_lines=0,
+    separator=",",
+    default_value=300,
+    interpolation_method="nearest",
+)
+```
+
+**Generated files:**
+
+- `0/T` — contains the non-uniform distribution at the initial time (copied from the `0/T` template).
+- `<time>/T` — one file per CSV time step, with interpolated non-uniform face values.
+
+---
+
+#### Low-Level Helpers
+
+##### `CsvTimeSeries`
+
+Utility class for managing time-series CSV data:
+
+```python
+from foampilot.boundaries import CsvTimeSeries
+
+ts = CsvTimeSeries(
+    csv_file,          # Path | str | DataFrame
+    time_column="time_s",
+    value_column="T_K",
+    header_lines=1,
+    separator=",",
+)
+ts.get_initial_value()  # -> float: first value
+ts.get_times()          # -> np.ndarray: time column
+ts.get_values()         # -> np.ndarray: value column
+ts.get_dataframe()      # -> pd.DataFrame
+ts.write_csv_table(destination_path, header_lines=0, separator=",")
+```
+
+##### `write_csv_table()`
+
+Writes a CSV in OpenFOAM-compatible format to `constant/<filename>` (no headers, no index):
+
+```python
+from foampilot.boundaries import write_csv_table
+
+csv_path = write_csv_table(
+    case_path=solver.case_path,
+    csv_data=df_or_path,
+    time_column=0,
+    value_columns=[1, 2, 3],  # for vector
+    header_lines=0,
+    separator=",",
+    filename="inlet_data.csv",
+)
+```
+
+##### `make_uniform_fixed_value_bc()` / `make_uniform_fixed_value_vector_bc()`
+
+Generate the OpenFOAM dictionary for `uniformFixedValue`:
+
+```python
+from foampilot.boundaries import make_uniform_fixed_value_bc
+
+bc = make_uniform_fixed_value_bc(
+    csv_path="constant/inlet_temperature.csv",
+    time_column=0,
+    value_column=1,
+    header_lines=0,
+    separator=",",
+    out_of_bounds="clamp",
+    interpolation_scheme="linear",
+    default_value=300,
+)
+solver.boundary.set_raw_condition("inlet", "T", bc)
+```
+
+For vector fields:
+
+```python
+from foampilot.boundaries import make_uniform_fixed_value_vector_bc
+
+bc = make_uniform_fixed_value_vector_bc(
+    csv_path="constant/inlet_velocity.csv",
+    time_column=0,
+    value_columns=[1, 2, 3],
+)
+solver.boundary.set_raw_condition("inlet", "U", bc)
+```
+
+---
+
+#### CSV File Format
+
+The source CSV must contain a **time column** and **one or three value columns**:
+
+| Format | Columns | Example |
+| :--- | :--- | :--- |
+| **Scalar** | `time, value` | `0.0, 350` |
+| **Vector** | `time, vx, vy, vz` | `0.0, 1.0, 0.0, 0.0` |
+| **Spatial (point cloud)** | `time, x, y, z, value` | `0.0, 0.5, 0.0, 0.05, 350` |
+
+---
+
+#### Energy Management (Incompressible Temperature)
+
+For incompressible flows with temperature transport:
+
+```python
+solver = Solver(case_path)
+solver.compressible = False
+solver.with_gravity = False
+solver.energy_activated = True
+solver.turbulence_model = "laminar"
+
+solver.constant.transportProperties.nu = ValueWithUnit(1.5e-5, "m^2/s")
+solver.constant.transportProperties.Pr = 0.85
+```
+
+The solver remains `incompressibleFluid`. Temperature transport is handled by a `scalarTransport` functionObject in `system/functions`:
+
+```cpp
+#includeFunc scalarTransport(T, diffusivity=constant, D = 1.76471e-05)
+```
+
+Where `D = nu / Pr` (thermal diffusivity).
+
+**Automatic fvSchemes entries:**
+
+| Entry | Value | Description |
+| :--- | :--- | :--- |
+| `div(phi,T)` | `bounded Gauss linearUpwind grad(T)` | Convection of T |
+| `laplacian(DT,T)` | `Gauss linear corrected` | Diffusion of T |
+
+**Automatic fvSolution entries:**
+
+| Entry | Description |
+| :--- | :--- |
+| `T` solver | `smoothSolver`, tolerance 1e-6, relTol 0.1 |
+| `TFinal` | Inherits `$T` with `relTol 0` |
+| `relaxationFactors.equations.T` | 0.7 |
+
+**Generated `system/functions` file:**
+
+```cpp
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      functions;
+}
+
+#includeFunc scalarTransport(T, diffusivity=constant, D = 1.76471e-05)
+```
+
+---
+
+#### Limitations and Best Practices
+
+1. **Critical call order**: `write_boundary_conditions()` must be called **before** `set_spatial_csv_condition()` so that the `0/<field>` template exists.
+2. **Spatial CSV requires SciPy**: `pip install scipy`.
+3. **CSV separator** is automatically quoted in the OpenFOAM file (e.g., `","`).
+4. **Vector columns format**: OpenFOAM uses `columns (0 (1 2 3))` for vector fields.
+5. **Incompressible energy**: Always use `incompressibleFluid` with `scalarTransport`. Do NOT use the `functions` solver module — it does not solve the flow.
+
+---
+
 ## 6. Post-Processing with `pyvista`
 
 ```python

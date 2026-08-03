@@ -36,8 +36,9 @@ class ControlDictFile(OpenFOAMFile):
         adaptiveTimeStep: Optional[Dict[str, Any]] = None,
         functions: Optional[List[str]] = None,
         region_solvers: Optional[Dict[str, str]] = None,
+        sub_solver: Optional[str] = None,
 
-):
+ ):
 
         # Retrieve solver name from parent if application not explicitly provided
         if application is None and parent is not None:
@@ -54,6 +55,7 @@ class ControlDictFile(OpenFOAMFile):
         self.adaptiveTimeStep = adaptiveTimeStep or {}
         self.functions = functions or []
         self.region_solvers = region_solvers or {}
+        self.sub_solver = sub_solver
 
         # Call parent constructor with all parameters
         super().__init__(
@@ -101,6 +103,8 @@ class ControlDictFile(OpenFOAMFile):
             result["functions"] = self.functions
         if self.region_solvers:
             result["regionSolvers"] = self.region_solvers
+        if self.sub_solver:
+            result["subSolver"] = self.sub_solver
         return result
 
     @classmethod
@@ -128,6 +132,7 @@ class ControlDictFile(OpenFOAMFile):
             libs=config.get('libs',()),
             functions=config.get('functions'),
             region_solvers=config.get('regionSolvers'),
+            sub_solver=config.get('subSolver'),
         )
 
     def add_library(self, lib_name: str):

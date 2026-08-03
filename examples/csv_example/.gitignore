@@ -1,0 +1,21 @@
+# Dossiers de cas générés par les exemples
+case*/
+
+# Fichiers générés par OpenFOam dans les exemples
+constant/
+system/
+0*/
+0.*/
+postProcessing/
+VTK/
+processor*/
+*.vtk
+*.log
+*.e*
+*.o*
+*.png
+*.jpg
+*.gif
+*.mp4
+*.csv
+*.json

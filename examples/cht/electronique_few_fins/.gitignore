@@ -1,0 +1,19 @@
+# === Ignorer tout par défaut ===
+*
+
+# === Réautoriser la navigation dans les dossiers ===
+!*
+
+!run.py
+!README.md
+
+# === Ignorer les fichiers générés à l'exécution ===
+**/system/
+**/constant/
+**/0/
+**/postProcessing/
+**/VTK/
+**/*.log
+**/log.*
+**/__pycache__/
+**/*.pyc

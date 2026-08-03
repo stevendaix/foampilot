@@ -100,11 +100,14 @@ class FvSchemesFile(OpenFOAMFile):
                     self.divSchemes[f"div(phirb,{field})"] = f"Gauss interfaceCompression {phase}"
 
         # Energy schemes
+        energy_active = getattr(self.parent, "energy_activated", False)
         if "T" in field_names:
             if sim_type == "boussinesq":
                 self.divSchemes["div(phi,T)"] = "bounded Gauss upwind"
             elif sim_type == "compressible":
                 self.divSchemes[f"div(phi,{energy_var})"] = "bounded Gauss upwind"
+            elif sim_type == "incompressible" and energy_active:
+                self.divSchemes["div(phi,T)"] = "bounded Gauss linearUpwind grad(T)"
 
         # --- laplacianSchemes ---
         if "T" in field_names:
@@ -112,6 +115,8 @@ class FvSchemesFile(OpenFOAMFile):
                 self.laplacianSchemes["laplacian(alphaEff,T)"] = self.DEFAULT_LAPLACIAN
             elif sim_type == "compressible":
                 self.laplacianSchemes[f"laplacian(alphaEff,{energy_var})"] = self.DEFAULT_LAPLACIAN
+            elif sim_type == "incompressible" and energy_active:
+                self.laplacianSchemes["laplacian(DT,T)"] = self.DEFAULT_LAPLACIAN
 
         # Turbulence diffusion
         if any(f in field_names for f in ["k", "epsilon", "omega"]):
@@ -138,7 +143,8 @@ class FvSchemesFile(OpenFOAMFile):
 
         divSchemes = {"default": "none"}
         sim = getattr(self.parent, "simulation_type", "incompressible")
-        energy = getattr(self.parent, "energy_variable", "e")
+        energy_var = getattr(self.parent, "energy_variable", "e")
+        energy_active = getattr(self.parent, "energy_activated", False)
 
         divSchemes["div(phi,U)"] = "Gauss upwind"
 
@@ -146,9 +152,11 @@ class FvSchemesFile(OpenFOAMFile):
         if sim == "boussinesq":
             divSchemes["div(phi,T)"] = "Gauss upwind"
         elif sim == "compressible":
-            if energy in ("e", "h", "T"):
-                divSchemes[f"div(phi,{energy})"] = "Gauss upwind"
+            if energy_var in ("e", "h", "T"):
+                divSchemes[f"div(phi,{energy_var})"] = "Gauss upwind"
             divSchemes["div(phi,(p|rho))"] = "Gauss linear"
+        elif sim == "incompressible" and energy_active:
+            divSchemes["div(phi,T)"] = "Gauss linearUpwind grad(T)"
         elif sim == "vof":
             divSchemes["div(rhoPhi,U)"] = "Gauss upwind"
             divSchemes["div(phi,alpha)"] = "Gauss MPLIC"
@@ -163,12 +171,15 @@ class FvSchemesFile(OpenFOAMFile):
 
         lapSchemes = {"default": self.DEFAULT_LAPLACIAN}
         sim = getattr(self.parent, "simulation_type", "incompressible")
-        energy = getattr(self.parent, "energy_variable", "e")
+        energy_var = getattr(self.parent, "energy_variable", "e")
+        energy_active = getattr(self.parent, "energy_activated", False)
 
         if sim == "boussinesq":
             lapSchemes["laplacian(alphaEff,T)"] = self.DEFAULT_LAPLACIAN
         elif sim == "compressible":
-            lapSchemes[f"laplacian(alphaEff,{energy})"] = self.DEFAULT_LAPLACIAN
+            lapSchemes[f"laplacian(alphaEff,{energy_var})"] = self.DEFAULT_LAPLACIAN
+        elif sim == "incompressible" and energy_active:
+            lapSchemes["laplacian(DT,T)"] = self.DEFAULT_LAPLACIAN
 
         return lapSchemes
 

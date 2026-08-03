@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import logging
 import warnings
 from typing import Dict, List, Optional, Any
 from foampilot.base.openFOAMFile import OpenFOAMFile
@@ -7,6 +8,8 @@ from foampilot.utilities.manageunits import ValueWithUnit
 from foampilot.boundaries.boundaries_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
 
 from foampilot.base.cases_variables import CaseFieldsManager
+
+logger = logging.getLogger(__name__)
 
 class Boundary:
     """

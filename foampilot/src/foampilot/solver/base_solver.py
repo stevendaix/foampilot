@@ -68,6 +68,7 @@ class BaseSolver:
         self.transient = transient
         self.turbulence_model = turbulence_model
         self.with_radiation = with_radiation
+        self._sub_solver = None
 
         # --- Field manager ---
         self.fields_manager = CaseFieldsManager(
@@ -83,6 +84,36 @@ class BaseSolver:
         self.system = SystemDirectory(self)
         self.constant = ConstantDirectory(self)
         self.boundary = Boundary(self, fields_manager=self.fields_manager, turbulence_model=turbulence_model)
+
+    @property
+    def simulation_type(self) -> str:
+        """Return the simulation type string used by fvSchemes/fvSolution."""
+        if self.is_solid:
+            return "solid"
+        if self.compressible:
+            return "compressible"
+        if self.is_vof:
+            return "vof"
+        return "incompressible"
+
+    @property
+    def energy_variable(self) -> str:
+        """Return the primary energy/temperature variable name.
+
+        ``T`` for incompressible and Boussinesq flows; ``h`` for compressible.
+        """
+        if self.compressible and not self.is_vof:
+            return "h"
+        return "T"
+
+    @property
+    def sub_solver(self) -> Optional[str]:
+        """Return the subSolver name for the ``functions`` solver module."""
+        return self._sub_solver
+
+    @sub_solver.setter
+    def sub_solver(self, value: Optional[str]):
+        self._sub_solver = value
 
     def update_case_specific_attributes(self):
         """Default: do nothing"""
