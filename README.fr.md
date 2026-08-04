@@ -1,6 +1,10 @@
 <!-- Logo -->
 <img src="foampilot/images/logo.png" alt="FoamPilot Logo" width="250">
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://badge.fury.io/py/foampilot.svg)](https://pypi.org/project/foampilot/)
+[![Docs](https://img.shields.io/badge/Docs-latest-blue.svg)](https://stevendaix.github.io/foampilot/)
+
 # foampilot 🚀
 
 🌍 **Langues :**  

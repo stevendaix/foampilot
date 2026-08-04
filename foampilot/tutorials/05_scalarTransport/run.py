@@ -1,43 +1,202 @@
 #!/usr/bin/env python3
-"""Tutoriel 5 : Transport de scalaire passif (scalarTransportFoam).
+"""Tutoriel 5 : Transport de scalaire passif (scalarTransport function object).
 
-Référence OpenFOAM-14 : tutorials/scalarTransportFoam/scalarTransport
-https://develop.openfoam.com/Development/openfoam/-/tree/master/tutorials/scalarTransportFoam/scalarTransport
+Reference OpenFOAM-13 : tutorials/fluid/stackPlume
+https://develop.openfoam.com/Development/openfoam/-/tree/master/tutorials/fluid/stackPlume
 
-Transport d'un champ scalaire passif (température, concentration) dans un
-écoulement précalculé ou simultané.
+Ecoulement laminaire dans un canal avec transport d'un scalaire passif (T).
+Le scalarTransport est configure comme function object dans controlDict.
+
+Points cles :
+- Solveur : incompressibleFluid (simpleFoam via foamRun -solver)
+- Turbulence : laminar
+- Maillage : blockMesh (canal 20x1x0.01 m)
+- Fonction : scalarTransport (function object)
+- Champs : U, p, T (scalaire passif)
+
+Pipeline :
+1. blockMesh -- maillage du canal
+2. Setup des conditions aux limites (U, p, T)
+3. Configuration du scalarTransport function object
+4. Simulation + post-traitement
+
+Usage :
+    cd foampilot/tutorials/05_scalarTransport
+    python run.py
 """
 
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
+
 from foampilot.solver import Solver
-from foampilot import ValueWithUnit
+from foampilot import Meshing
+from foampilot.utilities.function import Functions
 
 
 def main():
     case_path = Path.cwd()
 
+    # --- 1. Initialiser le solveur laminar ---
     solver = Solver(case_path)
     solver.compressible = False
     solver.with_gravity = False
     solver.turbulence_model = "laminar"
-    solver.energy_activated = True
 
+    # ControlDict -- steady state
+    solver.system.controlDict.use_solver_keyword = True
+    solver.system.controlDict.startTime = 0.0
+    solver.system.controlDict.stopAt = "endTime"
+    solver.system.controlDict.endTime = 200.0
+    solver.system.controlDict.deltaT = 1.0
+    solver.system.controlDict.writeControl = "timeStep"
+    solver.system.controlDict.writeInterval = 100
+    solver.system.controlDict.purgeWrite = 0
+
+    # SIMPLE
+    solver.system.fvSolution.SIMPLE["nNonOrthogonalCorrectors"] = "0"
+    solver.system.fvSolution.SIMPLE["pRefCell"] = "0"
+    solver.system.fvSolution.SIMPLE["pRefValue"] = "0"
+    solver.system.fvSolution.SIMPLE["residualControl"] = {
+        "p": "1e-4",
+        "U": "1e-4",
+    }
+
+    # Write system files
     solver.system.write()
+
+    # --- 2. Maillage (blockMesh) ---
+    # Canal: 20 x 1 x 0.01 m (flow in x, thin in z)
+    bmd_mesh = Meshing(case_path, mesher="blockMesh")
+    blockmesh = bmd_mesh.mesher
+    blockmesh.scale = 1.0
+    blockmesh.vertices = [
+        [0, -0.5, 0],    # 0: bottom-front-left
+        [20, -0.5, 0],   # 1: bottom-front-right
+        [20, 0.5, 0],    # 2: top-front-right
+        [0, 0.5, 0],     # 3: top-front-left
+        [0, -0.5, 0.01], # 4: bottom-back-left
+        [20, -0.5, 0.01],# 5: bottom-back-right
+        [20, 0.5, 0.01], # 6: top-back-right
+        [0, 0.5, 0.01],  # 7: top-back-left
+    ]
+    blockmesh.blocks = [
+        "hex (0 1 2 3 4 5 6 7) (40 10 1) simpleGrading (1 1 1)",
+    ]
+    blockmesh.edges = []
+    blockmesh.defaultPatch = {"type": "empty"}
+    blockmesh.boundary = {
+        "inlet": {"type": "patch", "faces": [[0, 3, 7, 4]]},
+        "outlet": {"type": "patch", "faces": [[1, 2, 6, 5]]},
+        "walls": {"type": "wall", "faces": [[0, 1, 5, 4], [2, 3, 7, 6]]},
+        "frontAndBack": {"type": "empty", "faces": [[0, 1, 2, 3], [4, 5, 6, 7]]},
+    }
+    blockmesh.mergePatchPairs = []
+    blockmesh.write(case_path / "system" / "blockMeshDict")
+    blockmesh.run()
+
+    # --- 3. Constant files ---
+    print("2. Ecriture des proprietes physiques (laminar) ...")
     solver.constant.write()
 
+    # --- 4. Generate 0/ field files ---
+    solver.setup_case()
+
+    # --- 5. Conditions aux limites ---
+    print("3. Configuration des conditions aux limites ...")
     solver.boundary.initialize_boundary()
-    solver.boundary.apply_condition_with_wildcard(
-        pattern="inlet",
-        condition_type="velocityInlet",
-        velocity=(ValueWithUnit(1, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")),
-    )
-    solver.boundary.apply_condition_with_wildcard(
-        pattern="walls",
-        condition_type="wall",
-    )
+
+    # U -- inlet velocity 1 m/s
+    solver.boundary.set_raw_condition("inlet", "U", {
+        "type": "fixedValue",
+        "value": "uniform (1 0 0)",
+    })
+    solver.boundary.set_raw_condition("outlet", "U", {
+        "type": "zeroGradient",
+    })
+    solver.boundary.set_raw_condition("walls", "U", {"type": "noSlip"})
+
+    # p
+    solver.boundary.set_raw_condition("inlet", "p", {"type": "zeroGradient"})
+    solver.boundary.set_raw_condition("outlet", "p", {"type": "fixedValue", "value": "uniform 0"})
+    solver.boundary.set_raw_condition("walls", "p", {"type": "zeroGradient"})
+
+    # T (scalar passif) -- inlet 300 K, walls zeroGradient
+    solver.boundary.set_raw_condition("inlet", "T", {
+        "type": "fixedValue",
+        "value": "uniform 300",
+    })
+    solver.boundary.set_raw_condition("outlet", "T", {"type": "zeroGradient"})
+    solver.boundary.set_raw_condition("walls", "T", {"type": "zeroGradient"})
+
+    # Write boundary condition files
     solver.boundary.write_boundary_conditions()
 
+    # --- 6. Scalar transport function object ---
+    # Create system/scalarTransport function object file
+    scalar_transport_content = """/*--------------------------------*- C++ -*----------------------------------*\\
+| =========                 |                                                 |
+| \\\\      / F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\\\    / O peration     | Version:  13                                    |
+|   \\\\  / A nd           | Website: www.openfoam.org                        |
+|    \\\\/  M anipulation  |                                                 |
+\\*-------------------------------------------------------------------------*/
+
+type            scalarTransport;
+libs            ("libsolverFunctionObjects.so");
+
+field           T;
+schemesField    T;
+diffusivity     viscosity;
+alphal          1;
+alphat          0.85;
+
+writeControl    timeStep;
+writeInterval   50;
+
+// ************************************************************************* //
+"""
+    ft_path = case_path / "system" / "functions" / "scalarTransport"
+    ft_path.parent.mkdir(parents=True, exist_ok=True)
+    ft_path.write_text(scalar_transport_content)
+
+
+    # --- 7. Lancer la simulation ---
+    print("\n" + "=" * 60)
+    print("Lancement de la simulation (incompressibleFluid -- scalarTransport)")
+    print("=" * 60)
     solver.run_simulation(nb_proc=1)
+
+    # --- 8. Post-traitement ---
+    print("\n" + "=" * 60)
+    print("Post-traitement")
+    print("=" * 60)
+    log_file = case_path / "log.incompressibleFluid"
+    if log_file.exists():
+        from foampilot.utilities.residuals import ResidualsPost
+
+        residuals = ResidualsPost(log_file)
+        residuals.process(export_csv=True, export_png=True)
+        print("Residus exportes (CSV + PNG).")
+
+    times = sorted(
+        [d.name for d in case_path.iterdir()
+         if d.is_dir()
+         and d.name not in ("constant", "system", "0", "postProcessing")
+         and Functions.is_numeric(d.name)],
+        key=float,
+    )
+
+    if times:
+        print(f"Temps disponibles : {times}")
+
+    print("\n" + "=" * 60)
+    print("Simulation terminee avec succes !")
+    print(f"  Cas      : {case_path}")
+    print(f"  Log      : {case_path / 'log.incompressibleFluid'}")
+    print(f"  Resultats: {case_path / 'postProcessing'}")
+    print("=" * 60)
 
 
 if __name__ == "__main__":

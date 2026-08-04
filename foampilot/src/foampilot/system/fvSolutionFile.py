@@ -88,8 +88,8 @@ class FvSolutionFile(OpenFOAMFile):
                 relTol=self.DEFAULT_REL_TOL,
             )
 
-        # Turbulence (k, epsilon, omega, nut)
-        for field in ["k", "epsilon", "omega", "nut"]:
+        # Turbulence (k, epsilon, omega, nut, nuTilda)
+        for field in ["k", "epsilon", "omega", "nut", "nuTilda"]:
             if field in field_names and field not in self.solvers:
                 self.solvers[field] = self._default_solver(
                     solver="smoothSolver",
@@ -145,7 +145,7 @@ class FvSolutionFile(OpenFOAMFile):
         if "equations" not in self.relaxationFactors:
             self.relaxationFactors["equations"] = {}
 
-        for field in ["U", "k", "epsilon", "omega"]:
+        for field in ["U", "k", "epsilon", "omega", "nuTilda"]:
             if field in field_names:
                 self.relaxationFactors["equations"][field] = str(self.DEFAULT_RELAXATION_FACTOR)
 

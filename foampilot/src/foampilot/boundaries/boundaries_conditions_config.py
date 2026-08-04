@@ -163,6 +163,48 @@ BOUNDARY_CONDITIONS_CONFIG = {
             "nut": {"type": "calculated", "value": "uniform 0"},
         },
     },
+    "SpalartAllmaras": {
+        "velocityInlet": {
+            "U": {"type": "fixedValue", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
+            "p": {"type": "zeroGradient"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
+            "nuTilda": {
+                "withTurbulence": {"type": "fixedValue", "value": "uniform {nut_value}"},
+                "default": {"type": "zeroGradient"},
+            },
+        },
+        "pressureInlet": {
+            "U": {"type": "zeroGradient"},
+            "p": {"type": "fixedValue", "value": "uniform {p_pa}"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
+            "nuTilda": {
+                "withTurbulence": {"type": "fixedValue", "value": "uniform {nut_value}"},
+                "default": {"type": "zeroGradient"},
+            },
+        },
+        "pressureOutlet": {
+            "U": {"type": "inletOutlet", "inletValue": "uniform (0 0 0)", "value": "uniform (0 0 0)"},
+            "p": {"type": "fixedValue", "value": "uniform 0"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
+            "nuTilda": {"type": "inletOutlet", "inletValue": "uniform {nut_value}", "value": "uniform {nut_value}"},
+        },
+        "wall": {
+            "U": {
+                "noSlip": {"type": "noSlip"},
+                "slip": {"type": "slip"},
+                "fixedValue": {"type": "fixedValue", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
+            },
+            "p": {"type": "zeroGradient"},
+            "nut": {"type": "nutkWallFunction", "value": "uniform 0"},
+            "nuTilda": {"type": "fixedValue", "value": "uniform 0"},
+        },
+        "symmetry": {
+            "U": {"type": "symmetryPlane"},
+            "p": {"type": "symmetryPlane"},
+            "nut": {"type": "symmetryPlane"},
+            "nuTilda": {"type": "symmetryPlane"},
+        },
+    },
     "kOmegaSST": {
         "velocityInlet": {
             "U": {"type": "fixedValue", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
@@ -253,6 +295,7 @@ CONDITION_CALCULATORS = {
             "u_ms": velocity[0].get_in('m/s'),
             "v_ms": velocity[1].get_in('m/s'),
             "w_ms": velocity[2].get_in('m/s'),
+            "nut_value": 0.05,
             **({} if not turbulence_intensity else {
                 "norm_u": (velocity[0].get_in("m/s")**2 + velocity[1].get_in("m/s")**2 + velocity[2].get_in("m/s")**2) ** 0.5,
                 "k_value": 1.5 * ((velocity[0].get_in("m/s")**2 + velocity[1].get_in("m/s")**2 + velocity[2].get_in("m/s")**2) ** 0.5 * turbulence_intensity) ** 2,

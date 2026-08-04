@@ -87,11 +87,13 @@ class FvSchemesFile(OpenFOAMFile):
                 self.divSchemes["div(phi,epsilon)"] = "bounded Gauss upwind"
                 self.divSchemes.setdefault("div(phi,omega)", "bounded Gauss upwind")
                 self.divSchemes["div((nuEff*dev2(T(grad(U)))))"] = "Gauss linear"
+            if "nuTilda" in field_names:
+                self.divSchemes["div(phi,nuTilda)"] = "bounded Gauss upwind"
 
         # VoF-specific schemes
         if sim_type == "vof" and any(f.startswith("alpha.") for f in field_names):
             self.divSchemes["div(phi,alpha)"] = "Gauss MPLIC"
-            self.divSchemes["div(rhoPhi,U)"] = "Gauss upwind"
+            self.divSchemes["div(rhoPhi,U)"] = "Gauss linearUpwind grad(U)"
 
             # Add interface compression for each alpha field
             for field in field_names:
@@ -106,6 +108,7 @@ class FvSchemesFile(OpenFOAMFile):
                 self.divSchemes["div(phi,T)"] = "bounded Gauss upwind"
             elif sim_type == "compressible":
                 self.divSchemes[f"div(phi,{energy_var})"] = "bounded Gauss upwind"
+                self.divSchemes["div(phi,K)"] = "bounded Gauss limitedLinear 0.2"
             elif sim_type == "incompressible" and energy_active:
                 self.divSchemes["div(phi,T)"] = "bounded Gauss linearUpwind grad(T)"
 
@@ -158,7 +161,7 @@ class FvSchemesFile(OpenFOAMFile):
         elif sim == "incompressible" and energy_active:
             divSchemes["div(phi,T)"] = "Gauss linearUpwind grad(T)"
         elif sim == "vof":
-            divSchemes["div(rhoPhi,U)"] = "Gauss upwind"
+            divSchemes["div(rhoPhi,U)"] = "Gauss linearUpwind grad(U)"
             divSchemes["div(phi,alpha)"] = "Gauss MPLIC"
             divSchemes.setdefault("div(phi,omega)", "Gauss upwind")
             divSchemes.setdefault("div(phi,k)", "Gauss upwind")

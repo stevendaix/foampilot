@@ -18,6 +18,7 @@ class ControlDictFile(OpenFOAMFile):
         self,
         parent: Optional[Any] = None,
         application: Optional[str] = None,
+        use_solver_keyword: bool = False,
         startFrom: str = "startTime",
         startTime: float = 0,
         stopAt: str = "endTime",
@@ -56,6 +57,7 @@ class ControlDictFile(OpenFOAMFile):
         self.functions = functions or []
         self.region_solvers = region_solvers or {}
         self.sub_solver = sub_solver
+        self.use_solver_keyword = use_solver_keyword
 
         # Call parent constructor with all parameters
         super().__init__(
@@ -82,7 +84,6 @@ class ControlDictFile(OpenFOAMFile):
         Convert the controlDict parameters to a dictionary.
         """
         result = {
-            'application': self.application,
             'startFrom': self.startFrom,
             'startTime': self.startTime,
             'stopAt': self.stopAt,
@@ -99,6 +100,10 @@ class ControlDictFile(OpenFOAMFile):
             'runTimeModifiable': self.runTimeModifiable,
             "libs": self.libs,
         }
+        if self.use_solver_keyword:
+            result["solver"] = self.application
+        else:
+            result["application"] = self.application
         if self.functions:
             result["functions"] = self.functions
         if self.region_solvers:
@@ -182,6 +187,10 @@ class ControlDictFile(OpenFOAMFile):
 
         if getattr(self, "region_solvers", None):
             write_attrs["regionSolvers"] = self.region_solvers
+
+        # OpenFOAM 13: use 'solver' keyword instead of 'application' for foamRun -solver
+        if getattr(self, "use_solver_keyword", False) and "application" in write_attrs:
+            write_attrs["solver"] = write_attrs.pop("application")
 
         filepath = Path(filepath)
         with open(filepath, "w", encoding="utf-8") as file:

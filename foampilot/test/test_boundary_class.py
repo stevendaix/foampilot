@@ -198,7 +198,7 @@ class MockOpenFOAMFile:
         self.field = field
         self.written_data = {}
 
-    def write_boundary_file(self, field, boundaries, case_path):
+    def write_boundary_file(self, field, boundaries, case_path, **kwargs):
         # Simuler l'écriture du fichier en stockant les données
         self.written_data[field] = {
             "boundaries": boundaries,

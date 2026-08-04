@@ -220,17 +220,22 @@ class Boundary:
         """
         Write the boundary conditions to their respective files in the 0/ directory.
         """
+        is_compressible = getattr(self.parent, "compressible", False)
         for field, boundaries in self.fields.items():
             for patch, params in boundaries.items():
                 if 'value' in params and isinstance(params['value'], str):
                     val = params['value']
+                    # Skip OpenFOAM variable references (e.g. $internalField)
+                    if val.startswith('$'):
+                        continue
                     if not val.startswith('uniform ') and not val.startswith('nonuniform '):
                         params['value'] = 'uniform ' + val
             foam_file = OpenFOAMFile(field)
             foam_file.write_boundary_file(
                 field=field,
                 boundaries=boundaries,
-                case_path=self.parent.case_path
+                case_path=self.parent.case_path,
+                compressible=is_compressible,
             )
 
 # Example Usage (for demonstration)

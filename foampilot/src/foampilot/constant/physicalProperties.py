@@ -93,10 +93,10 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         }
 
         if self._boussinesq:
-            thermoType["thermo"] = "eConst"
+            thermoType["thermo"] = "hConst"
             thermoType["equationOfState"] = "Boussinesq"
             if self._energy:
-                thermoType["energy"] = "sensibleInternalEnergy"
+                thermoType["energy"] = "sensibleEnthalpy"
         else:
             thermoType["thermo"] = "hConst"
             thermoType["equationOfState"] = "perfectGas"
@@ -120,7 +120,7 @@ class PhysicalPropertiesFile(OpenFOAMFile):
             }
             if self._energy:
                 mixture["thermodynamics"] = {
-                    "Cv": self._Cv.magnitude if isinstance(self._Cv, ValueWithUnit) else self._Cv,
+                    "Cp": self._Cp.magnitude if isinstance(self._Cp, ValueWithUnit) else self._Cp,
                     "hf": self._hf.magnitude if isinstance(self._hf, ValueWithUnit) else self._hf
                 }
         else:

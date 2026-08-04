@@ -88,6 +88,9 @@ class Solver:
 
     @property
     def energy_activated(self) -> bool:
+        # VoF with gravity uses p_rgh, not a T field — don't auto-enable energy
+        if self._is_vof:
+            return self._energy_user if self._energy_user is not None else False
         if self._compressible or self._with_gravity:
             return True
         return self._energy_user if self._energy_user is not None else False
@@ -125,10 +128,10 @@ class Solver:
         elif self._is_vof:
             solver_name = "incompressibleVoF" if not self._compressible else "compressibleVoF"
             self._sub_solver = None
-        elif self._energy_user and not self._compressible:
+        elif self.energy_activated and not self._compressible:
             solver_name = "incompressibleFluid"
             self._sub_solver = None
-        elif self._energy_user and self._compressible:
+        elif self.energy_activated and self._compressible:
             solver_name = "fluid"
             self._sub_solver = None
         else:

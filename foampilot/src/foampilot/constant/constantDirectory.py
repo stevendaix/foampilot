@@ -17,6 +17,9 @@ from foampilot.constant.physicalProperties import PhysicalPropertiesFile
 from foampilot.constant.gravityFile import GravityFile
 from foampilot.constant.pRefFile import PRefFile
 from foampilot.constant.radiationProperties import RadiationPropertiesFile, FvModelsFile
+from foampilot.constant.phasePropertiesFile import PhasePropertiesFile
+from foampilot.constant.momentumTransportFile import MomentumTransportFile
+from foampilot.constant.phasePhysicalPropertiesFile import PhasePhysicalPropertiesFile
 
 class ConstantDirectory:
     def __init__(self, solver: Solver, *, with_radiation: bool = False):
@@ -30,6 +33,11 @@ class ConstantDirectory:
         self.solver = solver
         self.with_radiation = with_radiation
 
+        # VoF-specific attributes
+        self._vof_phases: Optional[list[str]] = None
+        self._vof_sigma: float = 0.0728
+        self._vof_phase_properties: dict = {}
+
         # Initialisation des fichiers constants
         self._transportProperties = TransportPropertiesFile(self.solver)
         self._physicalProperties = PhysicalPropertiesFile(self.solver)
@@ -39,6 +47,7 @@ class ConstantDirectory:
         # Radiation files
         self._radiation: Optional[RadiationPropertiesFile] = None
         self._fvmodels: Optional[FvModelsFile] = None
+        self._turbulenceProperties: Optional[TurbulencePropertiesFile] = None
 
         if with_radiation:
             self.enable_radiation()
@@ -68,6 +77,63 @@ class ConstantDirectory:
     def radiation(self):
         return self._radiation
 
+    # VoF configuration
+    def configure_vof(self, phases=None, sigma: float = 0.0728, phase_properties: dict | None = None):
+        """Configure this ConstantDirectory for a VoF (two-phase) case.
+
+        After calling this, ``write()`` will emit ``phaseProperties``,
+        ``physicalProperties.<phase>`` and ``momentumTransport`` instead of
+        the single-phase ``transportProperties`` / ``turbulenceProperties`` /
+        ``pRef`` files.
+
+        Args:
+            phases: Ordered list of phase names, e.g. ``["water", "air"]``.
+            sigma: Surface tension coefficient (N/m).
+            phase_properties: Dict mapping phase name → {"nu": ..., "rho": ...}.
+        """
+        self._vof_phases = list(phases) if phases else ["water", "air"]
+        self._vof_sigma = float(sigma)
+        self._vof_phase_properties = phase_properties or {}
+
+    def _write_vof_constants(self, constant_path: Path):
+        """Write VoF-specific constant files and remove conflicting single-phase files."""
+        is_vof = getattr(self.solver, "is_vof", False) and self._vof_phases is not None
+
+        if not is_vof:
+            return
+
+        # --- phaseProperties ---
+        phase_props = PhasePropertiesFile(
+            parent=self.solver,
+            phases=self._vof_phases,
+            sigma=self._vof_sigma,
+        )
+        phase_props.write(constant_path / "phaseProperties")
+
+        # --- physicalProperties.<phase> ---
+        for phase in self._vof_phases:
+            props = self._vof_phase_properties.get(phase, {})
+            nu = props.get("nu", 1e-6)
+            rho = props.get("rho", 1000)
+            pp_file = PhasePhysicalPropertiesFile(
+                parent=self.solver, phase=phase, nu=nu, rho=rho
+            )
+            pp_file.write(constant_path / f"physicalProperties.{phase}")
+
+        # --- momentumTransport ---
+        simulation_type, _ = self.solver.get_turbulence_configuration()
+        mt_file = MomentumTransportFile(
+            parent=self.solver,
+            simulationType=simulation_type,
+        )
+        mt_file.write(constant_path / "momentumTransport")
+
+        # --- Remove files that conflict with the two-phase transport model ---
+        for fname in ("transportProperties", "turbulenceProperties", "pRef"):
+            fpath = constant_path / fname
+            if fpath.exists():
+                fpath.unlink()
+
     # Radiation management
     def enable_radiation(self, model: str = "P1", **kwargs):
         self.with_radiation = True
@@ -86,18 +152,28 @@ class ConstantDirectory:
         constant_path = Path(self.solver.case_path) / "constant"
         constant_path.mkdir(parents=True, exist_ok=True)
 
-        # Always write turbulence
         # --- Turbulence properties -----------------------------------------
+        # OpenFOAM 13 renamed turbulenceProperties → momentumTransport
+        # for compressible solvers (fluid, buoyantSimpleFoam, etc.)
         simulationType, model = self.solver.get_turbulence_configuration()
+        is_compressible = getattr(self.solver, "compressible", False)
 
-        turbulence = TurbulencePropertiesFile(
-            parent=self.solver,
-            simulationType=simulationType,
-            RASModel=model if simulationType == "RAS" else None,
-            LESModel=model if simulationType == "LES" else None,
-        )
-
-        turbulence.write(constant_path / "turbulenceProperties")
+        if is_compressible:
+            mt_file = MomentumTransportFile(
+                parent=self.solver,
+                simulationType=simulationType,
+                RASModel=model if simulationType == "RAS" else None,
+                LESModel=model if simulationType == "LES" else None,
+            )
+            mt_file.write(constant_path / "momentumTransport")
+        else:
+            turbulence = TurbulencePropertiesFile(
+                parent=self.solver,
+                simulationType=simulationType,
+                RASModel=model if simulationType == "RAS" else None,
+                LESModel=model if simulationType == "LES" else None,
+            )
+            turbulence.write(constant_path / "turbulenceProperties")
 
 
         # Transport / Physical
@@ -121,6 +197,9 @@ class ConstantDirectory:
                 self.enable_radiation()
             self._radiation.write(constant_path )
             self._fvmodels.write(constant_path )
+
+        # VoF-specific constant files (overwrites single-phase files + cleanup)
+        self._write_vof_constants(constant_path)
 
         logger.info(f"Constant directory written to {constant_path}")
         return self

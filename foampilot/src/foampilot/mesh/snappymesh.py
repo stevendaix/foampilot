@@ -41,6 +41,7 @@ class SnappyMesher:
             self.stl_file.stem: {
                 "type": "triSurfaceMesh",
                 "name": self.stl_file.stem,
+                "file": self.stl_file.name,
                 "regions": {}
             }
         }

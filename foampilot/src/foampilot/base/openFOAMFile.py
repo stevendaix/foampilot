@@ -37,11 +37,17 @@ class OpenFOAMFile:
     FIELD_DIMENSIONS = {
         "U": "[0 1 -1 0 0 0 0]",
         "p": "[0 2 -2 0 0 0 0]",
+        "p_rgh": "[1 -1 -2 0 0 0 0]",
         "k": "[0 2 -2 0 0 0 0]",
         "epsilon": "[0 2 -3 0 0 0 0]",
         "nut": "[0 2 -1 0 0 0 0]",
+        "nuTilda": "[0 2 -1 0 0 0 0]",
         "omega": "[0 0 -1 0 0 0 0]",
         "T": "[0 0 0 1 0 0 0]",
+        "alphat": "[1 -1 -1 0 0 0 0]",
+        "alpha.water": "[]",
+        "alpha.air": "[]",
+        "alpha": "[]",
     }
 
     def __init__(self, object_name: str, **attributes: Any):
@@ -129,10 +135,11 @@ class OpenFOAMFile:
             if value is None:
                 continue
 
-            # dictionary → block
+            # Quote keys that contain special characters when used as block headers
             if isinstance(value, dict):
                 if value:
-                    file.write(f'{indent}{key}\n{indent}{{\n')
+                    quoted_key = f'"{key}"' if any(c in key for c in '.*|()') else key
+                    file.write(f'{indent}{quoted_key}\n{indent}{{\n')
                     self._write_attributes(file, value, indent_level + 1)
                     file.write(f'{indent}}}\n')
                 continue
@@ -150,8 +157,9 @@ class OpenFOAMFile:
                 file.write(f'{indent}{key} ({_write_tuple(value)});\n')
                 continue
 
-            # standard key-value
-            file.write(f'{indent}{key} {self._format_value(key, value)};\n')
+            # standard key-value — quote regex patterns like ".*" or "alpha.*"
+            quoted_key = f'"{key}"' if any(c in key for c in '.*|()') else key
+            file.write(f'{indent}{quoted_key} {self._format_value(key, value)};\n')
 
     def write_file(self, filepath: Union[str, Path]):
         """Writes the current object as a standard OpenFOAM dictionary file.
@@ -196,7 +204,7 @@ class OpenFOAMFile:
             f"}}\n"
         )
 
-    def write_boundary_file(self, field: str, boundaries: dict, case_path: Union[str, Path], internal_field: Optional[str] = None):
+    def write_boundary_file(self, field: str, boundaries: dict, case_path: Union[str, Path], internal_field: Optional[str] = None, includeEtc: bool = True, compressible: bool = False):
         """Writes an OpenFOAM boundary condition file (usually in the '0/' directory).
 
         This method handles the creation of the directory, dimension definitions,
@@ -209,6 +217,12 @@ class OpenFOAMFile:
             case_path: Path to the OpenFOAM case root directory.
             internal_field: Override for the `internalField` entry. 
                 Defaults to sensible defaults (e.g., "uniform (0 0 0)" for U).
+            includeEtc: When True (default), writes
+                ``#includeEtc "caseDicts/setConstraintTypes"`` inside
+                the ``boundaryField`` block so that parallel-processor
+                patches are automatically typed (``processor``).
+            compressible: When True, uses dynamic pressure dimensions 
+                [1 -1 -2 0 0 0 0] for "p" instead of kinematic [0 2 -2 0 0 0 0].
         """
         base_path = Path(case_path)
         folder_0 = base_path / "0"
@@ -218,21 +232,33 @@ class OpenFOAMFile:
         # Default internal fields
         default_fields = {
             "U": "uniform (0 0 0)",
-            "p": "uniform 0",
+            "p": "uniform 1e5" if compressible else "uniform 0",
+            "p_rgh": "uniform 0",
             "k": "uniform 0.375",
             "epsilon": "uniform 0.125",
             "omega": "uniform 1.0",
-            "nut": "uniform 0"
+            "nut": "uniform 0",
+            "alpha.water": "uniform 0",
+            "alpha.air": "uniform 1",
+            "alpha": "uniform 0",
+            "T": "uniform 293" if compressible else "uniform 0",
         }
         internal_field = internal_field or default_fields.get(field, "uniform 0")
+
+        # Dimension lookup — compressible flows use dynamic pressure for 'p'
+        field_dims = dict(self.FIELD_DIMENSIONS)
+        if compressible and field == "p":
+            field_dims["p"] = "[1 -1 -2 0 0 0 0]"
 
         # Write file
         with open(file_path, "w") as f:
             f.write(self._generate_field_header(field))
-            f.write(f'\ndimensions      {self.FIELD_DIMENSIONS.get(field, "[0 0 0 0 0 0 0]")};\n')
+            f.write(f'\ndimensions      {field_dims.get(field, "[0 0 0 0 0 0 0]")};\n')
             f.write(f"internalField   {internal_field};\n\n")
 
             f.write("boundaryField\n{\n")
+            if includeEtc:
+                f.write('    #includeEtc "caseDicts/setConstraintTypes"\n\n')
             for patch, params in boundaries.items():
                 quoted = patch if patch.startswith('"') else f'"{patch}"'
                 f.write(f'    {quoted}\n    {{\n')

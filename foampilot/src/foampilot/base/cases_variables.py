@@ -139,6 +139,7 @@ class CaseFieldsManager:
             self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
         elif "spalart" in model:
             self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
+            self.fields["nuTilda"] = {"value": ValueWithUnit(0.05, "m^2/s")}
         elif "v2" in model:
             self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
             self.fields["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}

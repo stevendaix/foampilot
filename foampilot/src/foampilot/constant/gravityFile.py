@@ -34,12 +34,12 @@ class GravityFile(OpenFOAMFile):
         self.parent = parent
         self.dimensions = dimensions
 
-        # Set default gravity vector (0 -9.81 0) if no value provided
+        # Set default gravity vector (0 0 -9.81) if no value provided
         if value is None and axis is None:
             vec = (
                 ValueWithUnit(0, "m/s^2"),
-                ValueWithUnit(-9.81, "m/s^2"),
                 ValueWithUnit(0, "m/s^2"),
+                ValueWithUnit(-9.81, "m/s^2"),
             )
         elif isinstance(value, tuple):
             self._validate_ValueWithUnit_tuple(value)
@@ -49,8 +49,8 @@ class GravityFile(OpenFOAMFile):
         else:
             vec = (
                 ValueWithUnit(0, "m/s^2"),
-                ValueWithUnit(-9.81, "m/s^2"),
                 ValueWithUnit(0, "m/s^2"),
+                ValueWithUnit(-9.81, "m/s^2"),
             )
 
         # Override with dynamic configuration if parent has CaseFieldsManager

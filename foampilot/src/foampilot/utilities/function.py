@@ -1,6 +1,21 @@
 import os
 from pathlib import Path
 
+def _fmt_vec(vec):
+    """Format a coordinate tuple as ``(a b c)``."""
+    return "(" + " ".join(str(v) for v in vec) + ")"
+
+def _write_dict_inline(file, d, indent=1):
+    """Write a flat dict as OpenFOAM key-value pairs."""
+    pad = "        " * indent
+    for key, value in d.items():
+        if isinstance(value, (list, tuple)):
+            formatted = ' '.join(str(v) for v in value)
+            file.write(f"{pad}{key}         ({formatted});\n")
+        else:
+            file.write(f"{pad}{key}         {value};\n")
+
+
 class Functions:
     """A utility class for generating and writing OpenFOAM function dictionary files.
     
@@ -22,6 +37,41 @@ class Functions:
         """
         os.makedirs(path, exist_ok=True)
         return path
+
+    @staticmethod
+    def is_numeric(s: str) -> bool:
+        """Return True if a string can be parsed as a float."""
+        try:
+            float(s)
+            return True
+        except (ValueError, TypeError):
+            return False
+
+    @staticmethod
+    def restore_includetec_boundary(case_path: str | Path, field: str) -> None:
+        """Re-insert ``#includeEtc "caseDicts/setConstraintTypes"`` into the
+        ``boundaryField`` block of a 0/ field file.
+
+        OpenFOAM's ``setFields`` utility rewrites field files and strips the
+        ``#includeEtc`` directive.  Call this after ``setFields`` to
+        restore it so that parallel-processor patches are correctly typed.
+        """
+        path = Path(case_path) / "0" / field
+        if not path.exists():
+            return
+        content = path.read_text()
+        if "#includeEtc" in content:
+            return
+        marker = "boundaryField\n{"
+        idx = content.find(marker)
+        if idx == -1:
+            return
+        replacement = (
+            'boundaryField\n{\n'
+            '    #includeEtc "caseDicts/setConstraintTypes"\n\n'
+        )
+        content = content[:idx] + replacement + content[idx + len(marker):]
+        path.write_text(content)
 
     @staticmethod
     def field_average(
@@ -199,6 +249,279 @@ class Functions:
     @staticmethod
     def check_directory(path):
         Path(path).mkdir(parents=True, exist_ok=True)
+
+    @classmethod
+    def write_refine_mesh_dict(
+        cls, name, base_path, folder='system',
+        coordinate_type="global",
+        e1=(1, 0, 0),
+        e2=(0, 1, 0),
+        directions=(1, 1, 1),
+        zones=None,
+        append=False
+    ):
+        """Write a refineMeshDict configuration file.
+
+        Args:
+            name (str): Name of the file (default: "refineMeshDict")
+            base_path (str or Path): Base path of the OpenFOAM case
+            folder (str): Subfolder to write to (default: "system")
+            coordinate_type (str): Type of coordinate system (default: "global")
+            e1 (tuple): First direction vector (default: (1, 0, 0))
+            e2 (tuple): Second direction vector (default: (0, 1, 0))
+            directions (tuple): Directions to refine (default: (1, 1, 1))
+            zones (list, optional): List of zone dictionaries, each with keys:
+                'name', 'type', and zone-specific fields (default: None)
+            append (bool): Whether to append to existing file (default: False)
+        """
+        path = Path(base_path) / folder / name
+        cls.check_directory(path.parent)
+
+        with open(path, 'a' if append else 'w') as file:
+            file.write("FoamFile\n{\n")
+            file.write("    format      ascii;\n")
+            file.write("    class       dictionary;\n")
+            file.write(f"    location    \"{folder}\";\n")
+            file.write(f"    object      {name};\n")
+            file.write("}\n")
+            file.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n\n")
+
+            file.write("coordinates\n{\n")
+            file.write(f"    type        {coordinate_type};\n")
+            e1_str = ' '.join(str(v) for v in e1)
+            e2_str = ' '.join(str(v) for v in e2)
+            file.write(f"    e1          ({e1_str});\n")
+            file.write(f"    e2          ({e2_str});\n")
+            if directions == (1, 1, 1):
+                file.write("    directions  (e1 e2 e3);\n")
+            else:
+                dirs = []
+                labels = ['e1', 'e2', 'e3']
+                for i, d in enumerate(directions):
+                    if d:
+                        dirs.append(labels[i])
+                file.write(f"    directions  ({' '.join(dirs)});\n")
+            file.write("}\n\n")
+
+            if zones:
+                file.write("zones\n{\n")
+                for zone in zones:
+                    zone_name = zone.pop('name', '')
+                    zone_type = zone.pop('type', '')
+                    if zone_name:
+                        file.write(f"    {zone_name}\n    {{\n")
+                    else:
+                        file.write("    {\n")
+                    file.write(f"        type        {zone_type};\n")
+                    for key, value in zone.items():
+                        if isinstance(value, (list, tuple)):
+                            formatted = ' '.join(str(v) for v in value)
+                            file.write(f"        {key}         ({formatted});\n")
+                        else:
+                            file.write(f"        {key}         {value};\n")
+                    file.write("    }\n\n")
+                file.write("}\n")
+            file.write("\n// ************************************************************************* //\n")
+
+    @classmethod
+    def write_dynamic_mesh_dict(cls, name, base_path, folder='constant',
+                                 refinement_regions=None, refine_interval=1,
+                                 n_buffer_layers=1, max_cells=1000000,
+                                 dump_level=True, append=False):
+        """Write a dynamicMeshDict for dynamic mesh refinement.
+
+        Args:
+            refinement_regions (list): Each dict:
+                ``{"cellZone": str, "field": str, "lowerRefineLevel": float,
+                   "upperRefineLevel": float, "maxRefinement": int}``
+        """
+        path = Path(base_path) / folder / name
+        cls.check_directory(path.parent)
+
+        with open(path, 'a' if append else 'w') as file:
+            file.write("FoamFile\n{\n")
+            file.write("    format      ascii;\n")
+            file.write("    class       dictionary;\n")
+            file.write("    location    \"constant\";\n")
+            file.write(f"    object      {name};\n")
+            file.write("}\n")
+            file.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n\n")
+
+            file.write("topoChanger\n{\n")
+            file.write("    type            refiner;\n")
+            file.write("    libs            (\"libfvMeshTopoChangers.so\");\n")
+            file.write("    mover           none;\n")
+            file.write(f"    refineInterval  {refine_interval};\n")
+            if refinement_regions:
+                file.write("    refinementRegions\n")
+                file.write("    {\n")
+                for region in refinement_regions:
+                    name_r = region.pop('name', '')
+                    file.write(f"        {name_r}\n        {{\n")
+                    for k, v in region.items():
+                        file.write(f"            {k:<20} {v};\n")
+                    file.write("        }\n\n")
+                file.write("    }\n")
+            file.write(f"    nBufferLayers   {n_buffer_layers};\n")
+            file.write(f"    maxCells        {max_cells};\n")
+            if dump_level:
+                file.write("    dumpLevel       true;\n")
+            file.write("}\n")
+            file.write("\n// ************************************************************************* //\n")
+
+    @classmethod
+    def write_create_zones_dict(cls, name, base_path, folder='system', zones=None, append=False):
+        """Write a createZonesDict configuration file.
+
+        Args:
+            name (str): Name of the file (e.g. "createZonesDict")
+            base_path (str or Path): Base path of the OpenFOAM case
+            folder (str): Subfolder to write to (default: "system")
+            zones (list): List of zone dicts, each with a single top-level key:
+                ``"zoneName" -> {"type": ..., "zoneType": ..., ...}``
+            append (bool): Whether to append to existing file
+        """
+        path = Path(base_path) / folder / name
+        cls.check_directory(path.parent)
+
+        with open(path, 'a' if append else 'w') as file:
+            file.write("FoamFile\n{\n")
+            file.write("    format      ascii;\n")
+            file.write("    class       dictionary;\n")
+            file.write("    location    \"system\";\n")
+            file.write(f"    object      {name};\n")
+            file.write("}\n")
+            file.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n\n")
+
+            if zones:
+                for zone_dict in zones:
+                    for zone_name, zone_config in zone_dict.items():
+                        ztype = zone_config.pop("type", "")
+                        zone_config.pop("name", None)
+                        file.write(f"{zone_name}\n{{\n")
+                        file.write(f"    type        {ztype};\n")
+                        for key, value in zone_config.items():
+                            if isinstance(value, (list, tuple)) and len(value) == 2 and all(isinstance(v, (list, tuple)) for v in value):
+                                formatted = f"({_fmt_vec(value[0])} {_fmt_vec(value[1])})"
+                                file.write(f"    {key:<16} {formatted};\n")
+                            elif isinstance(value, (list, tuple)):
+                                formatted = ' '.join(str(v) for v in value)
+                                file.write(f"    {key:<16} ({formatted});\n")
+                            else:
+                                file.write(f"    {key:<16} {value};\n")
+                        file.write("}\n\n")
+            file.write("// ************************************************************************* //\n")
+
+    @classmethod
+    def write_create_patch_dict(cls, name, base_path, folder='system',
+                                 patches=None, append=False):
+        """Write a createPatchDict for creating new boundary patches (e.g. annulus inlet).
+
+        Args:
+            patches (list): Each dict: {"name": str, "patchInfo": dict,
+                "constructFrom": str, "zone": dict}
+        """
+        path = Path(base_path) / folder / name
+        cls.check_directory(path.parent)
+
+        with open(path, 'a' if append else 'w') as file:
+            file.write("FoamFile\n{\n")
+            file.write("    format      ascii;\n")
+            file.write("    class       dictionary;\n")
+            file.write(f"    location    \"{folder}\";\n")
+            file.write(f"    object      {name};\n")
+            file.write("}\n")
+            file.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n\n")
+
+            if patches:
+                file.write("patches\n{\n")
+                for patch in patches:
+                    pname = patch.pop('name', '')
+                    file.write(f"    {pname}\n    {{\n")
+                    if 'patchInfo' in patch:
+                        file.write("        patchInfo\n        {\n")
+                        _write_dict_inline(file, patch.pop('patchInfo'), indent=2)
+                        file.write("        }\n")
+                    if 'constructFrom' in patch:
+                        file.write(f"        constructFrom {patch.pop('constructFrom')};\n")
+                    if 'zone' in patch:
+                        zone = patch.pop('zone')
+                        file.write("        zone\n        {\n")
+                        _write_dict_inline(file, zone, indent=2)
+                        file.write("        }\n")
+                    for k, v in patch.items():
+                        file.write(f"        {k} {v};\n")
+                    file.write("    }\n\n")
+                file.write("}\n")
+            file.write("// ************************************************************************* //\n")
+
+    @classmethod
+    def write_set_fields_dict(
+        cls,
+        name,
+        base_path,
+        folder='system',
+        default_values=None,
+        zones=None,
+        append=False
+    ):
+        """Write a setFieldsDict configuration file.
+
+        Args:
+            name (str): Name of the file (default: "setFieldsDict")
+            base_path (str or Path): Base path of the OpenFOAM case
+            folder (str): Subfolder to write to (default: "system")
+            default_values (dict, optional): Default field values, e.g.
+                {"alpha.water": "0"} (default: None)
+            zones (list, optional): List of zone dictionaries, each with keys:
+                'name', 'type', and zone-specific fields (default: None)
+            append (bool): Whether to append to existing file (default: False)
+        """
+        path = Path(base_path) / folder / name
+        cls.check_directory(path.parent)
+
+        with open(path, 'a' if append else 'w') as file:
+            file.write("FoamFile\n{\n")
+            file.write("    format      ascii;\n")
+            file.write("    class       dictionary;\n")
+            file.write(f"    location    \"{folder}\";\n")
+            file.write(f"    object      {name};\n")
+            file.write("}\n")
+            file.write("// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n\n")
+
+            file.write("defaultValues\n{\n")
+            if default_values:
+                for field, value in default_values.items():
+                    file.write(f"    {field} {value};\n")
+            file.write("}\n\n")
+
+            if zones:
+                file.write("zones\n{\n")
+                for zone in zones:
+                    zone_name = zone.pop('name', '')
+                    zone_type = zone.pop('type', '')
+                    if zone_name:
+                        file.write(f"    {zone_name}\n    {{\n")
+                    else:
+                        file.write("    {\n")
+                    file.write(f"        type        {zone_type};\n")
+                    for key, value in zone.items():
+                        if isinstance(value, (list, tuple)) and len(value) == 2 and all(isinstance(v, (list, tuple)) for v in value):
+                            formatted = f"{_fmt_vec(value[0])} {_fmt_vec(value[1])}"
+                            file.write(f"        {key}         {formatted};\n")
+                        elif isinstance(value, (list, tuple)):
+                            formatted = ' '.join(str(v) for v in value)
+                            file.write(f"        {key}         ({formatted});\n")
+                        elif isinstance(value, dict):
+                            file.write(f"        {key}\n        {{\n")
+                            for k, v in value.items():
+                                file.write(f"            {k} {v};\n")
+                            file.write("        }\n")
+                        else:
+                            file.write(f"        {key}         {value};\n")
+                    file.write("    }\n\n")
+                file.write("}\n")
+            file.write("\n// ************************************************************************* //\n")
 
     @classmethod
     def write_force_coeffs_and_binfield(cls, force_tuple,  base_path, folder="system", append=False):
