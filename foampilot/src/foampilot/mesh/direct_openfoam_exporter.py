@@ -28,10 +28,12 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 # Gmsh element-type codes
-GMSH_TET = 4
-GMSH_HEX = 5
 GMSH_TRI = 2
 GMSH_QUAD = 3
+GMSH_TET = 4
+GMSH_HEX = 5
+GMSH_PRI = 6
+GMSH_PYR = 7
 
 # ---------------------------------------------------------------------------
 #  Element topology
@@ -42,6 +44,15 @@ _NODES_PER_ELEM = {
     GMSH_QUAD: 4,
     GMSH_TET: 4,
     GMSH_HEX: 8,
+    GMSH_PRI: 6,
+    GMSH_PYR: 5,
+}
+
+_GMSH_TO_OPENFOAM_CELL = {
+    GMSH_TET: "tet",
+    GMSH_HEX: "hex",
+    GMSH_PRI: "wedge",
+    GMSH_PYR: "pyr",
 }
 
 # For a tet (nodes n0..n3) the four faces in outward winding order are:
@@ -328,33 +339,226 @@ class DirectOpenFOAMExporter:
     def _get_surface_patch_map(
         self, tag_to_index: Dict[int, int]
     ) -> Dict[Tuple[int, ...], str]:
-        """Build a mapping ``sorted_face_key -> patch_name`` from all
-        2-D physical groups (surface elements).
-
-        Node indices in the face key are remapped to OpenFOAM 0-based
-        indices so they are consistent with cell-face keys.
+        """Build a mapping ``sorted_face_key -> patch_name`` from 2-D physical
+        groups when available, falling back to face-centroid classification.
         """
         patch_map: Dict[Tuple[int, ...], str] = {}
+
+        node_tags, coords, _ = gmsh.model.mesh.getNodes()
+        node_tags = [int(t) for t in list(node_tags)]
+        coords_list = list(coords)
+        coord_lookup: Dict[int, Tuple[float, float, float]] = {}
+        for i, tag in enumerate(node_tags):
+            coord_lookup[tag] = (
+                float(coords_list[3 * i]),
+                float(coords_list[3 * i + 1]),
+                float(coords_list[3 * i + 2]),
+            )
+        sorted_tags = sorted(node_tags)
+        index_to_tag = {i: tag for i, tag in enumerate(sorted_tags)}
+
         surf_groups = gmsh.model.getPhysicalGroups(dim=2)
-        for _, stag in surf_groups:
-            pname = gmsh.model.getPhysicalName(2, stag)
-            if not pname:
-                continue
-            for ent in gmsh.model.getEntitiesForPhysicalGroup(2, stag):
-                etypes, _, enodes = gmsh.model.mesh.getElements(2, ent)
-                offset = 0
-                for etype, node_list in zip(etypes, enodes):
-                    npp = _NODES_PER_ELEM.get(etype, 0)
-                    if npp == 0:
-                        continue
-                    count = len(node_list) // npp
-                    for idx in range(count):
-                        start = offset + idx * npp
-                        raw_face = [int(n) for n in node_list[start : start + npp]]
-                        of_face = [tag_to_index.get(n, n) for n in raw_face]
-                        key = _face_key(of_face)
-                        patch_map.setdefault(key, pname)
-                    offset += npp * count
+        if surf_groups:
+            all_named = True
+            for _, stag in surf_groups:
+                name = gmsh.model.getPhysicalName(2, stag)
+                if not name:
+                    all_named = False
+                    break
+            if all_named:
+                for _, stag in surf_groups:
+                    name = gmsh.model.getPhysicalName(2, stag) or "patch"
+                    entities = gmsh.model.getEntitiesForPhysicalGroup(2, stag)
+                    etypes, _, enodes = gmsh.model.mesh.getElements(2, stag)
+                    for etype, node_list in zip(etypes, enodes):
+                        npp = _NODES_PER_ELEM.get(etype, 3)
+                        count = len(node_list) // npp
+                        for idx in range(count):
+                            start = idx * npp
+                            raw_nodes = [int(n) for n in node_list[start : start + npp]]
+                            of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
+                            key = _face_key(of_nodes)
+                            patch_map.setdefault(key, name)
+                return patch_map
+
+        vol_groups = gmsh.model.getPhysicalGroups(dim=3)
+        entities = []
+        for _, tag in vol_groups:
+            name = gmsh.model.getPhysicalName(3, tag) or "FLUID"
+            entities.extend(
+                (ent, name) for ent in gmsh.model.getEntitiesForPhysicalGroup(3, tag)
+            )
+        if not entities:
+            return patch_map
+
+        all_coords = np.array(
+            [coord_lookup.get(index_to_tag.get(i, 0), (0.0, 0.0, 0.0)) for i in range(len(tag_to_index))]
+        )
+        if all_coords.shape[0] == 0:
+            return patch_map
+
+        xmin = float(all_coords[:, 0].min())
+        ymin = float(all_coords[:, 1].min())
+        zmin = float(all_coords[:, 2].min())
+        xmax = float(all_coords[:, 0].max())
+        ymax = float(all_coords[:, 1].max())
+        zmax = float(all_coords[:, 2].max())
+
+        TET_FACES = [(1, 2, 3), (0, 3, 2), (0, 1, 3), (0, 2, 1)]
+        HEX_FACES = [
+            (0, 3, 2, 1),
+            (4, 5, 6, 7),
+            (0, 1, 5, 4),
+            (3, 2, 6, 7),
+            (0, 3, 7, 4),
+            (1, 2, 6, 5),
+        ]
+        _FACE_TABLE = {
+            GMSH_TET: TET_FACES,
+            GMSH_HEX: HEX_FACES,
+        }
+
+        for ent_tag, _zone_name in entities:
+            etypes, _, enodes = gmsh.model.mesh.getElements(3, ent_tag)
+            for etype, node_list in zip(etypes, enodes):
+                npp = _NODES_PER_ELEM.get(etype)
+                if npp is None:
+                    continue
+                count = len(node_list) // npp
+                for idx in range(count):
+                    start = idx * npp
+                    raw_nodes = [int(n) for n in node_list[start : start + npp]]
+                    of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
+                    face_defs = _FACE_TABLE.get(etype, [])
+                    for fdef in face_defs:
+                        face_nodes = [of_nodes[i] for i in fdef]
+                        face_pts = all_coords[np.array(face_nodes)]
+                        face_centroid = face_pts.mean(axis=0)
+                        cx, cy, cz = (
+                            float(face_centroid[0]),
+                            float(face_centroid[1]),
+                            float(face_centroid[2]),
+                        )
+                        tol = 1e-4
+                        if abs(cx - xmin) <= tol:
+                            patch = "inlet"
+                        elif abs(cx - xmax) <= tol:
+                            patch = "outlet"
+                        elif abs(cy - ymin) <= tol:
+                            patch = "side_left"
+                        elif abs(cy - ymax) <= tol:
+                            patch = "side_right"
+                        elif abs(cz - zmax) <= tol:
+                            patch = "top"
+                        elif abs(cz - zmin) <= tol:
+                            patch = "ground"
+                        else:
+                            patch = "buildings"
+                        key = _face_key(face_nodes)
+                        patch_map.setdefault(key, patch)
+
+        return patch_map
+
+        surf_groups = gmsh.model.getPhysicalGroups(dim=2)
+        if surf_groups:
+            all_named = True
+            for _, stag in surf_groups:
+                name = gmsh.model.getPhysicalName(2, stag)
+                if not name:
+                    all_named = False
+                    break
+            if all_named:
+                for _, stag in surf_groups:
+                    name = gmsh.model.getPhysicalName(2, stag) or "patch"
+                    entities = gmsh.model.getEntitiesForPhysicalGroup(2, stag)
+                    etypes, _, enodes = gmsh.model.mesh.getElements(2, stag)
+                    for etype, node_list in zip(etypes, enodes):
+                        npp = _NODES_PER_ELEM.get(etype, 3)
+                        count = len(node_list) // npp
+                        for idx in range(count):
+                            start = idx * npp
+                            raw_nodes = [int(n) for n in node_list[start : start + npp]]
+                            of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
+                            key = _face_key(of_nodes)
+                            patch_map.setdefault(key, name)
+                return patch_map
+
+        vol_groups = gmsh.model.getPhysicalGroups(dim=3)
+        entities = []
+        for _, tag in vol_groups:
+            name = gmsh.model.getPhysicalName(3, tag) or "FLUID"
+            entities.extend(
+                (ent, name) for ent in gmsh.model.getEntitiesForPhysicalGroup(3, tag)
+            )
+        if not entities:
+            return patch_map
+
+        all_coords = np.array(
+            [coord_lookup.get(index_to_tag.get(i, 0), (0.0, 0.0, 0.0)) for i in range(len(tag_to_index))]
+        )
+        if all_coords.shape[0] == 0:
+            return patch_map
+
+        xmin = float(all_coords[:, 0].min())
+        ymin = float(all_coords[:, 1].min())
+        zmin = float(all_coords[:, 2].min())
+        xmax = float(all_coords[:, 0].max())
+        ymax = float(all_coords[:, 1].max())
+        zmax = float(all_coords[:, 2].max())
+
+        TET_FACES = [(1, 2, 3), (0, 3, 2), (0, 1, 3), (0, 2, 1)]
+        HEX_FACES = [
+            (0, 3, 2, 1),
+            (4, 5, 6, 7),
+            (0, 1, 5, 4),
+            (3, 2, 6, 7),
+            (0, 3, 7, 4),
+            (1, 2, 6, 5),
+        ]
+        _FACE_TABLE = {
+            GMSH_TET: TET_FACES,
+            GMSH_HEX: HEX_FACES,
+        }
+
+        for ent_tag, _zone_name in entities:
+            etypes, _, enodes = gmsh.model.mesh.getElements(3, ent_tag)
+            for etype, node_list in zip(etypes, enodes):
+                npp = _NODES_PER_ELEM.get(etype)
+                if npp is None:
+                    continue
+                count = len(node_list) // npp
+                for idx in range(count):
+                    start = idx * npp
+                    raw_nodes = [int(n) for n in node_list[start : start + npp]]
+                    of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
+                    face_defs = _FACE_TABLE.get(etype, [])
+                    for fdef in face_defs:
+                        face_nodes = [of_nodes[i] for i in fdef]
+                        face_pts = all_coords[np.array(face_nodes)]
+                        face_centroid = face_pts.mean(axis=0)
+                        cx, cy, cz = (
+                            float(face_centroid[0]),
+                            float(face_centroid[1]),
+                            float(face_centroid[2]),
+                        )
+                        tol = 1e-4
+                        if abs(cx - xmin) <= tol:
+                            patch = "inlet"
+                        elif abs(cx - xmax) <= tol:
+                            patch = "outlet"
+                        elif abs(cy - ymin) <= tol:
+                            patch = "side_left"
+                        elif abs(cy - ymax) <= tol:
+                            patch = "side_right"
+                        elif abs(cz - zmax) <= tol:
+                            patch = "top"
+                        elif abs(cz - zmin) <= tol:
+                            patch = "ground"
+                        else:
+                            patch = "buildings"
+                        key = _face_key(face_nodes)
+                        patch_map.setdefault(key, patch)
+
         return patch_map
 
     def _collect_cells(
@@ -375,20 +579,18 @@ class DirectOpenFOAMExporter:
 
         for ent_tag, zone_name in entities:
             etypes, _, enodes = gmsh.model.mesh.getElements(3, ent_tag)
-            offset = 0
             for etype, node_list in zip(etypes, enodes):
-                npp = _NODES_PER_ELEM.get(etype, 0)
-                if npp == 0:
+                npp = _NODES_PER_ELEM.get(etype)
+                if npp is None:
                     continue
                 count = len(node_list) // npp
                 for idx in range(count):
-                    start = offset + idx * npp
+                    start = idx * npp
                     raw_nodes = [int(n) for n in node_list[start : start + npp]]
                     of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
                     cell_nodes_list.append(of_nodes)
                     zone_names.append(zone_name)
                     cell_types.append(etype)
-                offset += npp * count
 
         if not cell_nodes_list:
             raise RuntimeError(
@@ -449,24 +651,51 @@ class DirectOpenFOAMExporter:
         internal_faces_list: List[Tuple[int, int, List[int]]] = []
         boundary_faces_list: List[Tuple[str, List[int]]] = []
 
+        xmin = float(node_coords[:, 0].min())
+        ymin = float(node_coords[:, 1].min())
+        zmin = float(node_coords[:, 2].min())
+        xmax = float(node_coords[:, 0].max())
+        ymax = float(node_coords[:, 1].max())
+        zmax = float(node_coords[:, 2].max())
+
         for key, cell_faces in face_orientations.items():
             cell_ids = list(cell_faces.keys())
             if len(cell_ids) == 1:
-                patch = patch_map.get(key, "patch0")
-                boundary_faces_list.append((patch, cell_faces[cell_ids[0]]))
+                face_nodes = cell_faces[cell_ids[0]]
+                patch = patch_map.get(_face_key(face_nodes))
+                if patch is None:
+                    face_pts = node_coords[np.array(face_nodes)]
+                    centroid = face_pts.mean(axis=0)
+                    cx, cy, cz = float(centroid[0]), float(centroid[1]), float(centroid[2])
+                    tol = 1e-4
+                    if abs(cx - xmin) <= tol:
+                        patch = "inlet"
+                    elif abs(cx - xmax) <= tol:
+                        patch = "outlet"
+                    elif abs(cy - ymin) <= tol:
+                        patch = "side_left"
+                    elif abs(cy - ymax) <= tol:
+                        patch = "side_right"
+                    elif abs(cz - zmax) <= tol:
+                        patch = "top"
+                    elif abs(cz - zmin) <= tol:
+                        patch = "ground"
+                    else:
+                        patch = "buildings"
+                boundary_faces_list.append((patch, face_nodes))
             else:
                 owner_cell = min(cell_ids)
                 neighbour_cell = max(cell_ids)
-                # owner's outward normal already points toward neighbour
+                owner_face = cell_faces[owner_cell]
+                face_nodes = owner_face
+                
                 internal_faces_list.append(
-                    (owner_cell, neighbour_cell, cell_faces[owner_cell])
+                    (owner_cell, neighbour_cell, face_nodes)
                 )
 
         # OpenFOAM requires internal faces sorted by (owner, neighbour)
-        # — this is the "upper triangular" ordering.
         internal_faces_list.sort(key=lambda x: (x[0], x[1]))
 
-        # ---- assemble faces / owner / neighbour ----
         faces_out: List[Tuple[int, List[int]]] = []
         owner_out: List[int] = []
         neighbour_out: List[int] = []
@@ -477,10 +706,13 @@ class DirectOpenFOAMExporter:
             owner_out.append(owner_cell)
             neighbour_out.append(neighbour_cell)
 
-        # boundary faces -- grouped by patch
         patch_order: "OrderedDict[str, List[List[int]]]" = OrderedDict()
         for patch, face_nodes in boundary_faces_list:
             patch_order.setdefault(patch, []).append(face_nodes)
+
+        print(f"DEBUG boundary patches: {list(patch_order.keys())}")
+        for patch, flist in patch_order.items():
+            print(f"  DEBUG {patch}: {len(flist)} faces")
 
         boundary_out: List[Tuple[str, str, int, int]] = []
         for patch, flist in patch_order.items():
@@ -493,36 +725,20 @@ class DirectOpenFOAMExporter:
                 owner_out.append(cell_ids[0])
             boundary_out.append((patch, "patch", len(flist), start_face))
 
-        # ---- cell zones ----
-        zone_groups: Dict[str, List[int]] = {}
-        for cell_id, zn in enumerate(zone_names):
-            zone_groups.setdefault(zn, []).append(cell_id)
-        cell_zones_out = [
-            (zn, sorted(members)) for zn, members in zone_groups.items()
-        ]
+        cell_zones_out: List[Tuple[str, List[int]]] = []
+        if cell_nodes_list:
+            zone_map: Dict[str, List[int]] = {}
+            for idx, zname in enumerate(zone_names):
+                zone_map.setdefault(zname, []).append(idx)
+            for zname, indices in zone_map.items():
+                cell_zones_out.append((zname, indices))
 
-        # ---- compact points (remove unused, remap indices) ----
-        # Collect all vertex labels actually referenced by faces
-        used_vertices: Set[int] = set()
-        for _, face_nodes in faces_out:
-            used_vertices.update(face_nodes)
-
-        # Build old-index -> new-index map (sorted for determinism)
-        remap: Dict[int, int] = {
-            old: new for new, old in enumerate(sorted(used_vertices))
-        }
-
-        compacted_points = node_coords[np.array(sorted(used_vertices), dtype=int)]
-
-        # Remap face vertex lists
-        compacted_faces = [
-            (n, [remap[v] for v in face_nodes])
-            for n, face_nodes in faces_out
-        ]
-        faces_out = compacted_faces
+        points_out, faces_out = self._compact_points(
+            node_coords, faces_out
+        )
 
         return (
-            compacted_points,
+            points_out,
             faces_out,
             owner_out,
             neighbour_out,
@@ -530,9 +746,23 @@ class DirectOpenFOAMExporter:
             cell_zones_out,
         )
 
-    # ==================================================================
-    #  File writers
-    # ==================================================================
+    def _compact_points(
+        self,
+        node_coords: np.ndarray,
+        faces: List[Tuple[int, List[int]]],
+    ) -> Tuple[np.ndarray, List[Tuple[int, List[int]]]]:
+        """Remove unused points and remap face vertex indices."""
+        used = set()
+        for _, verts in faces:
+            used.update(verts)
+        if not used:
+            return node_coords, faces
+
+        sorted_used = sorted(used)
+        old_to_new = {old: new for new, old in enumerate(sorted_used)}
+        new_coords = node_coords[np.array(sorted_used)]
+        new_faces = [(n, [old_to_new[v] for v in verts]) for n, verts in faces]
+        return new_coords, new_faces
 
     def _write_all(self, polyMesh_dir: Path, data: Tuple) -> None:
         points, faces, owner, neighbour, boundary, cell_zones = data
@@ -544,42 +774,52 @@ class DirectOpenFOAMExporter:
         self._write_label_list(
             polyMesh_dir / "neighbour", neighbour, "neighbour"
         )
-        self._write_boundary(polyMesh_dir / "boundary", boundary)
+        self._write_boundary(
+            polyMesh_dir / "boundary", boundary
+        )
         self._write_cell_zones(polyMesh_dir / "cellZones", cell_zones)
 
-    def _write_points(self, filepath: Path, points: np.ndarray) -> None:
+    def _write_label_list(
+        self,
+        filepath: Path,
+        values: List[int],
+        name: str,
+    ) -> None:
+        with filepath.open("w") as f:
+            f.write(_of_header("labelList", name))
+            f.write(f"{len(values)}\n(\n")
+            for v in values:
+                f.write(f"{v}\n")
+            f.write(")\n\n")
+            f.write(_OF_FOOTER)
+
+    def _write_points(
+        self,
+        filepath: Path,
+        points: np.ndarray,
+    ) -> None:
         with filepath.open("w") as f:
             f.write(_of_header("vectorField", "points"))
-            f.write(f"{len(points)}\n(\n")
-            for p in points:
-                f.write(f"({p[0]:.10g} {p[1]:.10g} {p[2]:.10g})\n")
+            f.write(f"{len(points)}\n")
+            f.write("(\n")
+            for x, y, z in points:
+                f.write(f"({x} {y} {z})\n")
             f.write(")\n\n")
             f.write(_OF_FOOTER)
 
     def _write_faces(
-        self, filepath: Path, faces: List[Tuple[int, List[int]]]
+        self,
+        filepath: Path,
+        faces: List[Tuple[int, List[int]]],
     ) -> None:
         with filepath.open("w") as f:
             f.write(_of_header("faceList", "faces"))
             f.write(f"{len(faces)}\n(\n")
-            for nVerts, face_nodes in faces:
-                nodes_str = " ".join(str(n) for n in face_nodes)
-                f.write(f"{nVerts}({nodes_str})\n")
+            for nverts, verts in faces:
+                f.write(f"{nverts}(")
+                f.write(" ".join(str(v) for v in verts))
+                f.write(")\n")
             f.write(")\n\n")
-            f.write(_OF_FOOTER)
-
-    def _write_label_list(
-        self, filepath: Path, values: List[int], name: str
-    ) -> None:
-        with filepath.open("w") as f:
-            f.write(_of_header("labelList", name))
-            if not values:
-                f.write("0()\n\n")
-            else:
-                f.write(f"{len(values)}\n(\n")
-                for v in values:
-                    f.write(f"{v}\n")
-                f.write(")\n\n")
             f.write(_OF_FOOTER)
 
     def _write_boundary(

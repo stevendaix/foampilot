@@ -1,0 +1,20 @@
+{
+    "case": "/home/steven/foampilot/examples/coa/patient58_cfd_example",
+    "convergence": {
+        "Ux_final_residual": 9.98563e-07,
+        "Uy_final_residual": 9.10896e-07,
+        "Uz_final_residual": 9.72596e-07,
+        "target": 1e-05,
+        "status": "CONVERGED"
+    },
+    "mesh": {
+        "cells": 25585,
+        "points": 32223,
+        "boundary_patches": [
+            "INLET",
+            "OUTLET",
+            "WALL"
+        ]
+    },
+    "final_time": 500
+}

@@ -1,0 +1,44 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+
+dimensions      [0 2 -2 0 0 0 0];
+internalField   uniform 0;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "INLET"
+    {
+        type            zeroGradient;
+    }
+
+    "OUTLET"
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+
+    "WALLS"
+    {
+        type            zeroGradient;
+    }
+
+    "GROUND"
+    {
+        type            zeroGradient;
+    }
+
+    "TOP"
+    {
+        type            zeroGradient;
+    }
+
+}
+
+// ************************************************************************* //

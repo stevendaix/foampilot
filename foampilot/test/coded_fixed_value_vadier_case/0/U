@@ -1,0 +1,57 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "INLET"
+    {
+        type            codedFixedValue;
+        name            inletVelocityProfile;
+        value           uniform (0 0 0);
+        code            #{
+const vectorField& cf = this->patch().Cf();
+vectorField vel(cf.size());
+forAll(cf, i)
+{
+    scalar z = cf[i].z();
+    scalar u_star = 8.0 * 0.41 / Foam::log(10.0 / 0.03);
+    scalar u_mag = u_star / 0.41 * Foam::log(Foam::max(z / 0.03, 1.0 + SMALL));
+    vel[i] = vector(u_mag, 0, 0);
+}
+operator==(vel);
+#};
+    }
+
+    "OUTLET"
+    {
+        type            zeroGradient;
+    }
+
+    "WALLS"
+    {
+        type            noSlip;
+    }
+
+    "GROUND"
+    {
+        type            noSlip;
+    }
+
+    "TOP"
+    {
+        type            slip;
+    }
+
+}
+
+// ************************************************************************* //

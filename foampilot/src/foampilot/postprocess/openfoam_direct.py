@@ -44,13 +44,29 @@ def _parse_foam_header(lines: list) -> dict:
     return header
 
 
-def _read_points(filepath: Path) -> np.ndarray:
-    with open(filepath, "r") as f:
-        content = f.read()
-    lines = content.split("\n")
-    n_points = None
+def _skip_foam_header(lines: list) -> int:
+    in_header = False
+    brace_depth = 0
     for i, line in enumerate(lines):
         stripped = line.strip()
+        if stripped == "FoamFile":
+            in_header = True
+            brace_depth = 0
+            continue
+        if in_header:
+            brace_depth += stripped.count("{") - stripped.count("}")
+            if brace_depth <= 0:
+                return i + 1
+    return 0
+
+
+def _read_points(filepath: Path) -> np.ndarray:
+    with open(filepath, "r") as f:
+        lines = f.read().split("\n")
+    data_start = _skip_foam_header(lines)
+    n_points = None
+    for i in range(data_start, len(lines)):
+        stripped = lines[i].strip()
         if stripped.isdigit():
             n_points = int(stripped)
             data_start = i + 1
@@ -73,11 +89,11 @@ def _read_points(filepath: Path) -> np.ndarray:
 
 def _read_faces(filepath: Path) -> List[np.ndarray]:
     with open(filepath, "r") as f:
-        content = f.read()
-    lines = content.split("\n")
+        lines = f.read().split("\n")
+    data_start = _skip_foam_header(lines)
     n_faces = None
-    for i, line in enumerate(lines):
-        stripped = line.strip()
+    for i in range(data_start, len(lines)):
+        stripped = lines[i].strip()
         if stripped.isdigit():
             n_faces = int(stripped)
             data_start = i + 1
@@ -113,11 +129,11 @@ def _read_faces(filepath: Path) -> List[np.ndarray]:
 
 def _read_label_list(filepath: Path) -> np.ndarray:
     with open(filepath, "r") as f:
-        content = f.read()
-    lines = content.split("\n")
+        lines = f.read().split("\n")
+    data_start = _skip_foam_header(lines)
     n_vals = None
-    for i, line in enumerate(lines):
-        stripped = line.strip()
+    for i in range(data_start, len(lines)):
+        stripped = lines[i].strip()
         if stripped.isdigit():
             n_vals = int(stripped)
             data_start = i + 1
@@ -138,13 +154,13 @@ def _read_label_list(filepath: Path) -> np.ndarray:
 
 def _read_boundary(filepath: Path) -> Dict[str, dict]:
     with open(filepath, "r") as f:
-        content = f.read()
-    lines = content.split("\n")
+        lines = f.read().split("\n")
+    data_start = _skip_foam_header(lines)
     patches = {}
     current_patch = None
     in_patches = False
-    for line in lines:
-        stripped = line.strip()
+    for i in range(data_start, len(lines)):
+        stripped = lines[i].strip()
         if stripped == ")":
             break
         if not stripped or stripped.startswith("//"):
@@ -184,8 +200,7 @@ def _read_boundary(filepath: Path) -> Dict[str, dict]:
 
 def _read_field(filepath: Path) -> Tuple[np.ndarray, bool]:
     with open(filepath, "r") as f:
-        content = f.read()
-    lines = content.split("\n")
+        lines = f.read().split("\n")
     header = {}
     in_header = False
     current_header_key = None
@@ -230,7 +245,16 @@ def _read_field(filepath: Path) -> Tuple[np.ndarray, bool]:
     field_class = header.get("FoamFile", {}).get("class", header.get("class", ""))
     is_point_field = field_class.startswith("point")
     is_vector = "Vector" in field_class
-    is_scalar = "Scalar" in field_class
+    is_symm_tensor = "symmTensor" in field_class
+    is_tensor = "tensor" in field_class and not is_symm_tensor
+    if is_vector:
+        n_components = 3
+    elif is_symm_tensor:
+        n_components = 6
+    elif is_tensor:
+        n_components = 9
+    else:
+        n_components = 1
 
     internal_field = None
     boundary_field = {}
@@ -244,24 +268,13 @@ def _read_field(filepath: Path) -> Tuple[np.ndarray, bool]:
             rest = stripped.split("internalField", 1)[1].strip().rstrip(";")
             parts = rest.split(None, 1)
             if len(parts) == 1:
-                try:
-                    internal_field = float(parts[0])
-                except ValueError:
-                    internal_field = parts[0]
-            elif len(parts) == 2:
-                val_str = parts[1].strip()
-                if val_str.startswith("(") and val_str.endswith(")"):
-                    val_str = val_str[1:-1]
-                    try:
-                        vals = [float(v) for v in val_str.split()]
-                        internal_field = np.array(vals, dtype=float)
-                    except ValueError:
-                        internal_field = val_str
-                else:
-                    try:
-                        internal_field = float(val_str)
-                    except ValueError:
-                        internal_field = val_str
+                internal_field = parts[0]
+            elif parts[0] == "nonuniform":
+                internal_field = "nonuniform"
+            elif parts[0] == "uniform":
+                internal_field = "uniform " + parts[1].strip()
+            else:
+                internal_field = parts[1].strip()
             continue
         if stripped == "boundaryField":
             in_bf = True
@@ -283,41 +296,57 @@ def _read_field(filepath: Path) -> Tuple[np.ndarray, bool]:
                 if len(parts) >= 2:
                     boundary_field[current_bc][parts[0]] = parts[1]
 
-    data_start = None
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith("internalField"):
-            for j in range(i + 1, len(lines)):
-                if lines[j].strip().startswith("("):
-                    data_start = j
+    if isinstance(internal_field, str):
+        if internal_field.startswith("uniform"):
+            val_str = internal_field[len("uniform"):].strip()
+            if val_str.startswith("(") and val_str.endswith(")"):
+                val_str = val_str[1:-1].strip()
+                vals = [float(v) for v in val_str.split()]
+                if len(vals) == n_components:
+                    internal_field = np.array(vals, dtype=float)
+                elif len(vals) == 1:
+                    internal_field = np.array(vals, dtype=float)
+                else:
+                    internal_field = np.array(vals, dtype=float)
+            else:
+                internal_field = np.array([float(val_str)], dtype=float)
+        elif internal_field == "nonuniform":
+            data_start = None
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith("internalField"):
+                    for j in range(i + 1, len(lines)):
+                        if lines[j].strip().startswith("("):
+                            data_start = j
+                            break
                     break
-            break
+            if data_start is not None:
+                data_lines = []
+                for line in lines[data_start:]:
+                    stripped = line.strip()
+                    if stripped == ")":
+                        break
+                    if stripped and not stripped.startswith("//"):
+                        data_lines.append(stripped)
+                data_str = " ".join(data_lines)
+                data_str = data_str.replace("(", "").replace(")", "")
+                values = [float(x) for x in data_str.split()]
+                internal_field = np.array(values, dtype=float)
+            else:
+                internal_field = np.array([])
+        else:
+            internal_field = np.array([])
+    elif internal_field is None:
+        internal_field = np.array([])
 
-    if data_start is None:
-        if internal_field is not None:
-            if isinstance(internal_field, np.ndarray):
-                return internal_field, is_point_field
-            return np.full(1, internal_field, dtype=float), is_point_field
-        return np.array([]), is_point_field
+    if isinstance(internal_field, np.ndarray):
+        if is_vector or is_symm_tensor or is_tensor:
+            if internal_field.size % n_components == 0:
+                internal_field = internal_field.reshape(-1, n_components)
+    elif internal_field is not None and not isinstance(internal_field, np.ndarray):
+        internal_field = np.array(internal_field, dtype=float)
 
-    data_lines = []
-    for line in lines[data_start:]:
-        stripped = line.strip()
-        if stripped == ")":
-            break
-        if stripped and not stripped.startswith("//"):
-            data_lines.append(stripped)
-
-    data_str = " ".join(data_lines)
-    data_str = data_str.replace("(", "").replace(")", "")
-    values = [float(x) for x in data_str.split()]
-
-    if is_vector:
-        values = np.array(values, dtype=float).reshape(-1, 3)
-    else:
-        values = np.array(values, dtype=float)
-
-    return values, is_point_field
+    return internal_field, is_point_field
 
 
 def _build_cells_from_faces(
@@ -336,14 +365,13 @@ def _build_cells_from_faces(
     cells = []
     cell_types = []
     for cf in cell_faces:
-        cf_sorted = sorted(cf, key=lambda fi: len(faces[fi]), reverse=True)
-        n_face_pts = sum(len(faces[fi]) for fi in cf_sorted)
-        cell_conn = [n_face_pts]
-        for fi in cf_sorted:
-            for pt in faces[fi]:
-                cell_conn.append(int(pt))
-        cells.extend(cell_conn)
-        cell_types.append(pv.CellType.POLYGON)
+        face_stream = [len(cf)]
+        for fi in cf:
+            face_pts = faces[fi]
+            face_stream.append(len(face_pts))
+            face_stream.extend(int(pt) for pt in face_pts)
+        cells.extend([len(face_stream), *face_stream])
+        cell_types.append(pv.CellType.POLYHEDRON)
 
     cells = np.array(cells, dtype=int)
     cell_types = np.array(cell_types, dtype=int)
@@ -470,6 +498,8 @@ class OpenFOAMDirectReader:
 
         if neighbour_file.exists():
             self._neighbour = _read_label_list(neighbour_file)
+            if self._neighbour is not None and len(self._neighbour) > 0:
+                self._n_cells = max(self._n_cells, int(self._neighbour.max()) + 1)
         else:
             self._neighbour = None
 
@@ -503,6 +533,29 @@ class OpenFOAMDirectReader:
         """Return the mesh points array."""
         self._ensure_mesh_loaded()
         return self._points
+
+    def get_patch_cells(self, patch_name: str) -> np.ndarray:
+        """Get the cell indices adjacent to a boundary patch.
+
+        Parameters
+        ----------
+        patch_name : str
+            Name of the boundary patch.
+
+        Returns
+        -------
+        np.ndarray
+            Unique cell indices adjacent to the patch faces.
+        """
+        self._ensure_mesh_loaded()
+        if patch_name not in self._boundary:
+            raise KeyError(f"Patch '{patch_name}' not found in boundary")
+        patch_info = self._boundary[patch_name]
+        start_face = int(patch_info.get("startFace", 0))
+        n_faces = int(patch_info.get("nFaces", 0))
+        face_indices = np.arange(start_face, start_face + n_faces)
+        cell_indices = self._owner[face_indices]
+        return np.unique(cell_indices)
 
     @property
     def boundary_patches(self) -> Dict[str, dict]:
@@ -589,7 +642,7 @@ class OpenFOAMDirectReader:
         field_name: str,
         time_step: Optional[str] = None,
         region: Optional[str] = None,
-        as_point_data: bool = True,
+        as_point_data: Optional[bool] = None,
     ) -> pv.UnstructuredGrid:
         """Read a field and attach it to the mesh as point or cell data.
 
@@ -602,8 +655,10 @@ class OpenFOAMDirectReader:
         region : str, optional
             Region subdirectory name.
         as_point_data : bool, optional
-            If ``True`` (default), attach as point data. If ``False``,
-            attach as cell data.
+            If ``True``, attach as point data. If ``False``, attach
+            as cell data. If ``None`` (default), the location is
+            determined automatically from the field header
+            (``pointField`` → point data, ``volField`` → cell data).
 
         Returns
         -------
@@ -615,28 +670,29 @@ class OpenFOAMDirectReader:
         time_step = time_step or "0"
         cache_key = f"{region_dir}:{time_step}:{field_name}"
         values = self.read_field(field_name, time_step=time_step, region=region)
-        is_point = self._field_is_point.get(cache_key, as_point_data)
+        is_point_field = self._field_is_point.get(cache_key, False)
+        is_point = is_point_field if as_point_data is None else as_point_data
+
+        target_len = mesh.n_points if is_point else mesh.n_cells
+
+        # Expand uniform fields (single value) to match mesh size
+        if values.ndim == 1 and len(values) == 1 and target_len > 1:
+            values = np.full(target_len, values[0], dtype=float)
+        elif values.ndim == 2 and values.shape[0] == 1 and target_len > 1:
+            values = np.full((target_len, values.shape[1]), values[0], dtype=float)
 
         target = mesh.point_data if is_point else mesh.cell_data
-        if values.ndim == 1 and len(values) == (mesh.n_points if is_point else mesh.n_cells):
+        expected_len = mesh.n_points if is_point else mesh.n_cells
+
+        if len(values) == expected_len:
             target[field_name] = values
-        elif values.ndim == 2 and values.shape[0] == (mesh.n_points if is_point else mesh.n_cells):
-            target[field_name] = values
-        elif is_point and values.ndim == 1 and len(values) == mesh.n_cells:
-            logger.warning(
-                "Field '%s' has %d values (n_cells=%d), "
-                "attaching as cell data instead of point data.",
-                field_name, len(values), mesh.n_cells,
-            )
-            mesh.cell_data[field_name] = values
-        elif not is_point and values.ndim == 1 and len(values) == mesh.n_points:
-            logger.warning(
-                "Field '%s' has %d values (n_points=%d), "
-                "attaching as point data instead of cell data.",
-                field_name, len(values), mesh.n_points,
-            )
-            mesh.point_data[field_name] = values
         else:
+            logger.warning(
+                "Field '%s' has %d values but mesh has %d %s — "
+                "attaching raw values anyway.",
+                field_name, len(values), expected_len,
+                "points" if is_point else "cells",
+            )
             target[field_name] = values
 
         return mesh
@@ -645,7 +701,7 @@ class OpenFOAMDirectReader:
         self,
         fields: Optional[List[str]] = None,
         time_step: Optional[str] = None,
-        as_point_data: bool = True,
+        as_point_data: Optional[bool] = None,
     ) -> pv.UnstructuredGrid:
         """Build a complete PyVista mesh with attached fields.
 
@@ -658,7 +714,8 @@ class OpenFOAMDirectReader:
             Time directory name.
         as_point_data : bool, optional
             Attach fields as point data (``True``) or cell data
-            (``False``).
+            (``False``). If ``None`` (default), the location is
+            determined automatically from each field's header.
 
         Returns
         -------
@@ -685,8 +742,8 @@ class OpenFOAMDirectReader:
     ) -> pv.MultiBlock:
         """Build a PyVista MultiBlock with all regions.
 
-        For single-region cases, returns a MultiBlock with one block.
-        For multi-region CHT cases, each region becomes a separate block.
+        For single-region cases, returns a MultiBlock with the main mesh.
+        For multi-region cases, each region becomes a separate block.
 
         Parameters
         ----------
@@ -702,10 +759,17 @@ class OpenFOAMDirectReader:
         """
         mb = pv.MultiBlock()
         regions = self.region_names if self.region is None else [self.region]
+        if not regions and self.region is None:
+            reader = OpenFOAMDirectReader(
+                case_path=self.case_path,
+                region=None,
+            )
+            mesh = reader.to_pyvista(fields=fields, time_step=time_step)
+            mb.append(mesh, name="main")
         for reg in regions:
             reader = OpenFOAMDirectReader(
                 case_path=self.case_path,
-                region=reg if reg != "main" else None,
+                region=reg,
             )
             mesh = reader.to_pyvista(
                 fields=fields,
@@ -801,9 +865,10 @@ class CHTDirectReader:
                     break
             self._regions[reg] = "fluid" if has_velocity else "solid"
 
-        main_mesh = self.case_path / "constant" / "polyMesh"
-        if main_mesh.exists() and not self._regions:
-            self._regions["main"] = "fluid"
+        self._has_main_mesh = (
+            (self.case_path / "constant" / "polyMesh").exists()
+            and not self._regions
+        )
 
     def _get_reader(self, region: Optional[str] = None) -> OpenFOAMDirectReader:
         reg_key = region or "main"
@@ -836,7 +901,8 @@ class CHTDirectReader:
         Parameters
         ----------
         region : str, optional
-            Region name. If ``None``, uses the first detected region.
+            Region name. If ``None``, uses the first detected region
+            or the main mesh for single-region cases.
         fields : list of str, optional
             Field names to attach.
         time_step : str, optional
@@ -847,6 +913,15 @@ class CHTDirectReader:
         pv.UnstructuredGrid
             The mesh with attached field data.
         """
+        if region is None:
+            if self._regions:
+                region = next(iter(self._regions))
+            elif self._has_main_mesh:
+                region = None
+            else:
+                raise FileNotFoundError(
+                    "No regions detected and no main polyMesh found."
+                )
         reader = self._get_reader(region)
         return reader.to_pyvista(fields=fields, time_step=time_step)
 
@@ -856,6 +931,9 @@ class CHTDirectReader:
         time_step: Optional[str] = None,
     ) -> pv.MultiBlock:
         """Get meshes for all regions as a MultiBlock.
+
+        For single-region cases, returns a MultiBlock with the main mesh.
+        For multi-region CHT cases, each region becomes a separate block.
 
         Parameters
         ----------
@@ -869,9 +947,18 @@ class CHTDirectReader:
         pv.MultiBlock
             MultiBlock with one block per region.
         """
-        return self._get_reader().to_multiblock(
-            fields=fields, time_step=time_step,
-        )
+        mb = pv.MultiBlock()
+        if self._has_main_mesh:
+            reader = OpenFOAMDirectReader(
+                case_path=self.case_path,
+                region=None,
+            )
+            mesh = reader.to_pyvista(fields=fields, time_step=time_step)
+            mb.append(mesh, name="main")
+        for reg in self._regions:
+            mesh = self.get_mesh(region=reg, fields=fields, time_step=time_step)
+            mb.append(mesh, name=reg)
+        return mb
 
     def get_interface_temperatures(
         self,
@@ -880,10 +967,13 @@ class CHTDirectReader:
     ) -> Dict[str, float]:
         """Extract interface temperatures from fluid and solid regions.
 
+        The temperature is computed as the average over cells adjacent
+        to the specified interface patch in each region.
+
         Parameters
         ----------
         interface_name : str
-            Name of the interface patch.
+            Name of the interface boundary patch.
         time_step : str, optional
             Time directory name.
 
@@ -891,20 +981,23 @@ class CHTDirectReader:
         -------
         dict
             Dictionary with ``'fluid_T'``, ``'solid_T'``, and
-            ``'T_interface'`` (average).
+            ``'T_interface'`` (average of fluid and solid interface
+            temperatures) when both regions are available.
         """
         result = {}
         for reg_name, reg_type in self._regions.items():
-            reader = self._get_reader(reg_name if reg_name != "main" else None)
+            reader = self._get_reader(reg_name)
             try:
+                patch_cells = reader.get_patch_cells(interface_name)
                 T = reader.read_field("T", time_step=time_step)
-                result[f"{reg_name}_T"] = float(np.mean(T))
+                result[f"{reg_name}_T"] = float(np.mean(T[patch_cells]))
             except (FileNotFoundError, KeyError):
                 logger.warning(
-                    "Temperature field 'T' not found in region '%s'", reg_name
+                    "Temperature field 'T' or patch '%s' not found in region '%s'",
+                    interface_name, reg_name,
                 )
-        if len(result) == 2:
-            result["T_interface"] = float(np.mean(list(result.values())))
+        if "fluid_T" in result and "solid_T" in result:
+            result["T_interface"] = (result["fluid_T"] + result["solid_T"]) / 2.0
         return result
 
     def plot(

@@ -1,0 +1,56 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      epsilon;
+}
+
+dimensions      [0 2 -3 0 0 0 0];
+internalField   uniform 0.125;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "INLET"
+    {
+        type            codedFixedValue;
+        value           uniform 0.1;
+        code            #{
+const vector& pos = pos();
+    scalar z = pos.z;
+    scalar z0 = 0.03;
+    scalar u_ref = 8.0;
+    scalar z_ref = 10.0;
+    scalar kappa = 0.41;
+    scalar I = 0.08;
+    scalar u_star = u_ref * kappa / Foam::log(z_ref / z0);
+    scalar u_mag = u_star / kappa * Foam::log(Foam::max(z / z0, 1.0 + SMALL));
+    result = 1.5 * pow(I * u_mag, 2);
+#};
+    }
+
+    "OUTLET"
+    {
+        type            zeroGradient;
+    }
+
+    "WALLS"
+    {
+        type            epsilonWallFunction;
+    }
+
+    "GROUND"
+    {
+        type            epsilonWallFunction;
+    }
+
+    "TOP"
+    {
+        type            zeroGradient;
+    }
+
+}
+
+// ************************************************************************* //

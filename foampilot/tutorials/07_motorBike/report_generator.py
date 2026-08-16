@@ -26,6 +26,23 @@ def main():
     results_path = case_path / "postProcessing"
     results_path.mkdir(exist_ok=True)
 
+    # Load statistics from post-processing if available
+    stats_file = case_path / "all_stats.json"
+    stats = {}
+    if stats_file.exists():
+        import json
+        with open(stats_file, "r") as f:
+            stats = json.load(f)
+
+    cell_stats = stats.get("cell_region_stats_U", {})
+    mesh_stats = stats.get("mesh_stats", {})
+
+    u_mean = cell_stats.get("mean", 20.0)
+    u_min = cell_stats.get("min", 0.0)
+    u_max = cell_stats.get("max", 30.0)
+    num_cells = mesh_stats.get("num_cells", "N/A")
+    num_points = mesh_stats.get("num_points", "N/A")
+
     # ------------------------------------------------------------------
     # 1. CFDReportGenerator — HTML report
     # ------------------------------------------------------------------
@@ -36,11 +53,12 @@ def main():
     )
 
     report.add_statistic("Re_L", 4e6, "", "Reynolds number (car length L=2m)")
-    report.add_statistic("U_inlet", 30.0, "m/s", "Inlet velocity (108 km/h)")
-    report.add_statistic("Cd", 0.35, "", "Drag coefficient")
-    report.add_statistic("Cl", 0.05, "", "Lift coefficient")
-    report.add_statistic("F_drag", 225, "N", "Drag force (~)")
-    report.add_statistic("A_frontal", 0.7, "m²", "Frontal area")
+    report.add_statistic("U_inlet", 20.0, "m/s", "Inlet velocity")
+    report.add_statistic("U_mean", round(u_mean, 3), "m/s", "Mean velocity in domain")
+    report.add_statistic("U_min", round(u_min, 3), "m/s", "Min velocity in domain")
+    report.add_statistic("U_max", round(u_max, 3), "m/s", "Max velocity in domain")
+    report.add_statistic("num_cells", num_cells, "", "Number of cells")
+    report.add_statistic("num_points", num_points, "", "Number of points")
 
     html_path = report.save_html_report(filename="motorbike_report.html")
     print(f"HTML report generated: {html_path}")
@@ -57,27 +75,28 @@ def main():
     doc.add_title()
     doc.add_toc()
     doc.add_abstract(
-        "Ce rapport présente la simulation aérodynamique externe à haute vitesse "
-        "autour d'une moto avec simpleFoam et le modèle k-omega SST."
+        "Ce rapport presente la simulation aerodynamique externe a haute vitesse "
+        "autour d'une moto avec simpleFoam et le modele SpalartAllmaras."
     )
 
     # Drag equation
-    doc.add_section("Equation de traînée", "")
+    doc.add_section("Equation de trainee", "")
     doc.add_math(r"C_d = \frac{F_d}{\frac{1}{2} \rho U^2 A}")
 
     # Reynolds number
     doc.add_section("Nombre de Reynolds", "")
-    doc.add_math(r"Re_L = \frac{U L}{\nu} = \frac{30 \times 2}{1.5 \times 10^{-5}} = 4 \times 10^6")
+    doc.add_math(r"Re_L = \frac{U L}{\nu} = \frac{20 \times 2}{1.5 \times 10^{-5}} \approx 2.7 \times 10^6")
 
     # Results
     doc.add_section("Resultats aerodynamiques", "")
     doc.add_table(
-        [["Coefficient", "Valeur", "Unité"],
-         ["Cd", "0.35", ""],
-         ["Cl", "0.05", ""],
-         ["Force traînée", "225", "N"],
-         ["A frontale", "0.7", "m²"]],
-        headers=["Coefficient", "Valeur", "Unité"],
+        [["Coefficient", "Valeur", "Unite"],
+         ["U_mean", f"{u_mean:.3f}", "m/s"],
+         ["U_min", f"{u_min:.3f}", "m/s"],
+         ["U_max", f"{u_max:.3f}", "m/s"],
+         ["Num cells", str(num_cells), ""],
+         ["Num points", str(num_points), ""]],
+        headers=["Coefficient", "Valeur", "Unite"],
         caption="Aerodynamic results",
     )
 
@@ -92,7 +111,7 @@ def main():
         author="FoamPilot",
     )
     typst_doc.add_section("Introduction",
-        "High-speed external flow around a motorcycle using RANS k-omega SST."
+        "High-speed external flow around a motorcycle using RANS SpalartAllmaras."
     )
     typst_doc.add_equation(
         r"C_d = F_d / (\frac{1}{2} \rho U^2 A)",
@@ -100,7 +119,7 @@ def main():
         label="eq:cd",
     )
     typst_doc.add_table(
-        [["Parameter", "Value"], ["Re_L", "4e6"], ["Cd", "0.35"], ["Cl", "0.05"]],
+        [["Parameter", "Value"], ["Re_L", "2.7e6"], ["U_mean", f"{u_mean:.3f}"], ["U_max", f"{u_max:.3f}"]],
         headers=["Parameter", "Value"],
         caption="Aerodynamic coefficients",
     )

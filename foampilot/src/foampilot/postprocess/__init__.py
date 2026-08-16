@@ -5,6 +5,7 @@ from foampilot.postprocess.openfoam_direct import (
     read_openfoam,
     read_cht_openfoam,
 )
+from foampilot.postprocess.boundary_viewer import BoundaryViewer
 from foampilot.postprocess.web_presentation import (
     CFDDashboard,
     plotly_contour_from_mesh,

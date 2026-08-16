@@ -286,15 +286,14 @@ class GmshMesher:
         patch_map: Dict[str, List[int]] = {}
 
         for _, face in faces:
-            edges = gmsh.model.getBoundary([face])
+            edges = gmsh.model.getBoundary([(2, face)])
             if len(edges) >= 3:
-                nodes = gmsh.model.mesh.getNodes(2, face[1])
-                node_tags = nodes[1][:3]
-                coord = gmsh.model.mesh.getCoordinates()
+                node_tags, coords, _ = gmsh.model.mesh.getNodes(2, face)
+                node_tags = [int(t) for t in node_tags[:3]]
                 pts = np.array(
                     [
-                        [coord[3 * i], coord[3 * i + 1], coord[3 * i + 2]]
-                        for i in node_tags
+                        [coords[3 * i], coords[3 * i + 1], coords[3 * i + 2]]
+                        for i in range(min(3, len(node_tags)))
                     ]
                 )
                 v1 = pts[1] - pts[0]
@@ -322,8 +321,14 @@ class GmshMesher:
 
         volumes = [v[1] for v in gmsh.model.getEntities(dim=3)]
         if volumes:
-            gid = gmsh.model.addPhysicalGroup(3, volumes)
-            gmsh.model.setPhysicalName(3, gid, "FLUID")
+            existing_groups = gmsh.model.getPhysicalGroups(dim=3)
+            fluid_group_exists = any(
+                name == "FLUID" for (dim, tag) in existing_groups
+                for name in [gmsh.model.getPhysicalName(dim, tag)]
+            )
+            if not fluid_group_exists:
+                gid = gmsh.model.addPhysicalGroup(3, volumes)
+                gmsh.model.setPhysicalName(3, gid, "FLUID")
 
         gmsh.model.occ.synchronize()
         return patch_map
@@ -361,7 +366,15 @@ class GmshMesher:
             if dot > np.cos(np.radians(tol)):
                 return name
             if dot < -np.cos(np.radians(tol)):
-                return name
+                opposite = {
+                    'INLET': 'OUTLET',
+                    'OUTLET': 'INLET',
+                    'SIDE_NORTH': 'SIDE_SOUTH',
+                    'SIDE_SOUTH': 'SIDE_NORTH',
+                    'TOP': 'GROUND',
+                    'GROUND': 'TOP',
+                }.get(name, name)
+                return opposite
 
         return self.unassigned_tag
 
@@ -438,19 +451,15 @@ class GmshMesher:
             normal = None
             try:
                 # Get the normal by getting boundary edges and computing cross product
-                edges = gmsh.model.getBoundary([face])
+                edges = gmsh.model.getBoundary([(2, face)])
                 if len(edges) >= 3:
-                    # Get coordinates of first 3 vertices to compute normal
-                    nodes = gmsh.model.mesh.getNodes(2, face[1])
-                    if nodes[0] >= 3:
-                        # Get node coordinates
-                        node_tags = nodes[1][:3]
-                        coord = gmsh.model.mesh.getCoordinates()
+                    # Get node coordinates
+                    node_tags_arr, coords, _ = gmsh.model.mesh.getNodes(2, face)
+                    if len(node_tags_arr) >= 3:
                         # Extract coordinates of the 3 nodes
                         pts = []
-                        for nt in node_tags:
-                            idx = list(nodes[1]).index(nt)
-                            pts.append([nodes[2][3*idx], nodes[2][3*idx+1], nodes[2][3*idx+2]])
+                        for i in range(3):
+                            pts.append([coords[3*i], coords[3*i+1], coords[3*i+2]])
                         # Compute two edge vectors
                         v1 = [pts[1][0]-pts[0][0], pts[1][1]-pts[0][1], pts[1][2]-pts[0][2]]
                         v2 = [pts[2][0]-pts[0][0], pts[2][1]-pts[0][1], pts[2][2]-pts[0][2]]
@@ -482,9 +491,57 @@ class GmshMesher:
             gmsh.model.setPhysicalName(3, gid, "FLUID")
 
         gmsh.model.occ.synchronize()
+    def compute_bbox(self, xmin=None, xmax=None, ymin=None, ymax=None,
+                     zmin=None, zmax=None):
+        """Compute the bounding box for boundary patch assignment.
 
+        If explicit values are provided, returns them directly.
+        Otherwise, computes from the current Gmsh model's bounding box.
 
+        Args:
+            xmin, xmax, ymin, ymax, zmin, zmax: Explicit bounding box values.
+                If provided, these are returned as-is.
 
+        Returns:
+            Dictionary with keys xmin, xmax, ymin, ymax, zmin, zmax.
+        """
+        if xmin is not None:
+            return {
+                "xmin": xmin, "xmax": xmax,
+                "ymin": ymin, "ymax": ymax,
+                "zmin": zmin, "zmax": zmax,
+            }
+
+        volumes = gmsh.model.getEntities(dim=3)
+        if volumes:
+            bbox = gmsh.model.occ.getBoundingBox(3, volumes[0][1])
+            return {
+                "xmin": bbox[0], "xmax": bbox[3],
+                "ymin": bbox[1], "ymax": bbox[4],
+                "zmin": bbox[2], "zmax": bbox[5],
+            }
+        return {"xmin": 0, "xmax": 0, "ymin": 0, "ymax": 0, "zmin": 0, "zmax": 0}
+
+    def fragment_volumes(self):
+        """Fragment all 3D volumes so overlapping faces become separate entities.
+
+        This ensures that boundary faces between the fluid domain and buildings
+        are properly separated for patch assignment.
+        """
+        volumes = gmsh.model.getEntities(dim=3)
+        if not volumes:
+            return
+
+        try:
+            gmsh.model.occ.fragment(volumes, [])
+        except Exception:
+            for v in volumes:
+                try:
+                    gmsh.model.occ.fragment([(3, v)], [])
+                except Exception:
+                    pass
+
+        gmsh.model.occ.synchronize()
 
     def set_material(self, name: str, volume_tags: List[int]):
         """Assign a material name to volume(s).
@@ -497,21 +554,29 @@ class GmshMesher:
         self._log(f"Assigned material \'{name}\' to {len(volume_tags)} volumes")
 
     def mesh_volume(self, lc_min: float = 1, lc_max: float = 5,
-                    refine_regions: Optional[Dict[Tuple[float, float, float], Tuple[float, float]]] = None):
+                    refine_regions: Optional[Dict[Tuple[float, float, float], Tuple[float, float]]] = None,
+                    boundary_layers: Optional[Dict[str, float]] = None,
+                    refinement_boxes: Optional[List[Tuple[float, float, float, float, float, float, float]]] = None,
+                    optimize: bool = True,
+                    algorithm_3d: int = 4):
         """Generate a 3D mesh using TetGen and verify tetrahedra exist for OpenFOAM.
 
         Args:
             lc_min: Minimum characteristic length.
             lc_max: Maximum characteristic length.
             refine_regions: Optional dict {center: (radius, refined_lc)} for local refinement.
+            boundary_layers: Optional dict {patch_name: lc} for wall-adjacent mesh size.
+            refinement_boxes: Optional list of (xmin, ymin, zmin, xmax, ymax, zmax, refined_lc).
+            optimize: If True, run 3D mesh optimization after generation.
+            algorithm_3d: 3D meshing algorithm (1=MeshAdapt, 2=Automatic, 4=TetGen).
         """
-        self._log(f"Generating 3D mesh (TetGen) with lc_min={lc_min}, lc_max={lc_max}")
+        self._log(f"Generating 3D mesh (algorithm={algorithm_3d}) with lc_min={lc_min}, lc_max={lc_max}")
 
         # Set global mesh size
         gmsh.option.setNumber("Mesh.CharacteristicLengthMin", lc_min)
         gmsh.option.setNumber("Mesh.CharacteristicLengthMax", lc_max)
         gmsh.option.setNumber("Mesh.MshFileVersion", 2)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 4)  # TetGen
+        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
 
         # Remove duplicates
         gmsh.model.occ.removeAllDuplicates()
@@ -526,6 +591,23 @@ class GmshMesher:
                 )
                 if entities:
                     gmsh.model.mesh.setSize(entities, refined_lc)
+
+        # Apply box refinements
+        if refinement_boxes:
+            for xmin, ymin, zmin, xmax, ymax, zmax, refined_lc in refinement_boxes:
+                entities = gmsh.model.getEntitiesInBoundingBox(
+                    xmin, ymin, zmin, xmax, ymax, zmax
+                )
+                if entities:
+                    gmsh.model.mesh.setSize(entities, refined_lc)
+
+        # Apply boundary layer refinement on wall faces
+        if boundary_layers:
+            for patch_name, wall_lc in boundary_layers.items():
+                if patch_name in self.boundary_conditions:
+                    face_tags = self.boundary_conditions[patch_name]
+                    if face_tags:
+                        gmsh.model.mesh.setSize([(2, tag) for tag in face_tags], wall_lc)
 
         # Retrieve volumes
         volumes = [v[1] for v in gmsh.model.getEntities(dim=3)]
@@ -544,8 +626,24 @@ class GmshMesher:
             gmsh.model.addPhysicalGroup(3, volumes, name="FLUID")
             self._log(f"Physical Group 'FLUID' created for volumes: {volumes}")
 
+        # Mesh quality options for OpenFOAM compatibility
+        gmsh.option.setNumber("Mesh.Optimize", 1)
+        gmsh.option.setNumber("Mesh.OptimizeThreshold", 0.3)
+        gmsh.option.setNumber("Mesh.QualityType", 2)
+        gmsh.option.setNumber("Mesh.Smoothing", 1)
+        gmsh.option.setNumber("Mesh.SmoothNormals", 1)
+        gmsh.option.setNumber("Mesh.CharacteristicLengthFromCurvature", 1)
+        gmsh.option.setNumber("Mesh.Algorithm", 1)  # MeshAdapt for 2D
+        gmsh.option.setNumber("Mesh.Algorithm3D", 4)  # TetGen for 3D
+
         # Generate 3D mesh
         gmsh.model.mesh.generate(3)
+
+        # Optimize mesh quality if requested
+        if optimize:
+            self._log("Optimizing 3D mesh quality")
+            gmsh.model.mesh.optimize("Netgen", niter=2)
+            gmsh.model.mesh.optimize("Relocate3D", niter=2)
 
     def get_unassigned_faces(self) -> list[int]:
         """Return the tags of faces in the 'UNASSIGNED' physical group (2D)."""
@@ -756,8 +854,9 @@ class GmshMesher:
         self._log("Launching Gmsh GUI")
         gmsh.fltk.run()
 
-    def add_rectangle(self, x0: float, y0: float, z0: float, dx: float, dy: float,
-                      dz: float, name: str, layer_thickness: Optional[float] = None) -> int:
+    def add_box(
+        self, x0: float, y0: float, z0: float, dx: float, dy: float,
+        dz: float, name: str, layer_thickness: Optional[float] = None) -> int:
         """Create a 3D rectangular box by extruding a surface with optional boundary layers.
 
         Args:
@@ -803,8 +902,8 @@ class GmshMesher:
         self._log(f"Box '{name}' created at ({x0},{y0},{z0}) dims=({dx},{dy},{dz})")
         return surface
 
-    def add_circle(self, cx: float, cy: float, z0: float, radius: float,
-                    name: str, layer_thickness: Optional[float] = None) -> int:
+    def add_cylinder(self, cx: float, cy: float, z0: float, radius: float,
+                     name: str, layer_thickness: Optional[float] = None) -> int:
         """Create a circular cylinder by extruding a circle with optional boundary layers.
 
         Args:
@@ -937,18 +1036,25 @@ class GmshMesher:
         self._log(f"Surface {surface_tag} extruded by ({dx}, {dy}, {dz}) with name='{name}'")
         return result
 
-    def assign_physical_groups(self, patch_map: Dict[str, List[Tuple[int, int]]]) -> None:
+    def assign_physical_groups(self, patch_map: Dict[str, List[Union[int, Tuple[int, int]]]]) -> None:
         """Assign physical groups to entities by patch name.
 
         Args:
             patch_map: Dictionary mapping patch names to lists of
-                (dimension, tag) tuples.
+                entity tags (int) or (dimension, tag) tuples.
+                For 2D face tags, plain integers are accepted.
         """
         for pname, entities in patch_map.items():
             if not entities:
                 continue
-            dim = entities[0][0]
-            tags = [e[1] for e in entities]
+            # Handle both plain int tags (from get_unassigned_faces)
+            # and (dim, tag) tuples
+            if isinstance(entities[0], int):
+                dim = 2
+                tags = list(entities)
+            else:
+                dim = entities[0][0]
+                tags = [e[1] for e in entities]
             gid = gmsh.model.addPhysicalGroup(dim, tags)
             gmsh.model.setPhysicalName(dim, gid, pname)
             self._log(f"Physical group '{pname}' assigned to {len(tags)} entity(ies)")

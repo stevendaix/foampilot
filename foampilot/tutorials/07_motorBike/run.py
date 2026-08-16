@@ -33,9 +33,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot.solver import Solver
-from foampilot import Meshing
+from foampilot import Meshing, postprocess, latex_pdf
 from foampilot.mesh.snappymesh import SnappyMesher
-from foampilot.utilities.function import Functions
+import numpy as np
+import pyvista as pv
+import json
+import pandas as pd
 
 
 def main():
@@ -244,19 +247,195 @@ def main():
         from foampilot.utilities.residuals import ResidualsPost
 
         residuals = ResidualsPost(log_file)
-        residuals.process(export_csv=True, export_png=True)
-        print("Residus exportes (CSV + PNG).")
+        residuals.process(export_csv=True, export_json=True, export_png=True, export_html=True)
+        print("Residus exportes (CSV, JSON, PNG, HTML).")
 
-    times = sorted(
-        [d.name for d in case_path.iterdir()
-         if d.is_dir()
-         and d.name not in ("constant", "system", "0", "postProcessing")
-         and Functions.is_numeric(d.name)],
-        key=float,
-    )
+    foam_post = postprocess.FoamPostProcessing(case_path=case_path)
+    foam_post.foamToVTK()
 
-    if times:
-        print(f"Temps disponibles : {times}")
+    time_steps = foam_post.get_all_time_steps()
+    print(f"Available time steps: {time_steps}")
+
+    if time_steps:
+        latest_time_step = time_steps[-1]
+        structure = foam_post.load_time_step(latest_time_step)
+        cell_mesh = structure["cell"]
+        boundaries = structure["boundaries"]
+        print(f"Main mesh loaded for time step {latest_time_step}")
+        print(f"Boundaries loaded: {list(boundaries.keys())}")
+
+        print("\n--- Visualisations ---")
+
+        print("Generating a slice plot...")
+        foam_post.plot_slice(
+            structure=structure,
+            plane="z",
+            scalars="U",
+            opacity=0.25,
+            path_filename=case_path / "slice_plot.png",
+        )
+
+        print("Generating a contour plot...")
+        pl_contour = pv.Plotter(off_screen=True)
+        pl_contour.add_mesh(cell_mesh, scalars="p", show_scalar_bar=True)
+        foam_post.export_plot(pl_contour, case_path / "contour_plot.png")
+
+        print("Generating a vector plot...")
+        bounds = cell_mesh.bounds
+        domain_length = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+        glyph_factor = domain_length * 0.002
+
+        n_cells = cell_mesh.n_cells
+        max_glyphs = 2000
+        if n_cells > max_glyphs:
+            step = max(1, n_cells // max_glyphs)
+            cell_mesh_reduced = cell_mesh.extract_cells(np.arange(0, n_cells, step))
+        else:
+            cell_mesh_reduced = cell_mesh
+
+        pl_vectors = pv.Plotter(off_screen=True)
+        pl_vectors.set_background("white")
+        cell_mesh_reduced.set_active_vectors("U")
+        arrows = cell_mesh_reduced.glyph(orient="U", factor=glyph_factor, clamping=True)
+        pl_vectors.add_mesh(arrows, color="blue")
+        pl_vectors.add_mesh(cell_mesh_reduced, style="wireframe", color="lightgray", line_width=0.5)
+        pl_vectors.reset_camera()
+        foam_post.export_plot(pl_vectors, case_path / "vector_plot.png")
+
+        print("Generating a mesh style plot...")
+        pl_mesh_style = pv.Plotter(off_screen=True)
+        pl_mesh_style.add_mesh(cell_mesh, style="wireframe", show_edges=True, color="red")
+        foam_post.export_plot(pl_mesh_style, case_path / "mesh_style_plot.png")
+
+        print("\n--- Analyse avancee de l'ecoulement ---")
+
+        print("Calculating Q-criterion...")
+        mesh_with_q = foam_post.calculate_q_criterion(mesh=cell_mesh, velocity_field="U")
+        if "q_criterion" in mesh_with_q.point_data:
+            print(f"Q-criterion calcule. Plage : {mesh_with_q.point_data['q_criterion'].min():.2e} a {mesh_with_q.point_data['q_criterion'].max():.2e}")
+        else:
+            print("Echec du calcul du Q-criterion.")
+
+        print("Calculating vorticity...")
+        mesh_with_vorticity = foam_post.calculate_vorticity(mesh=cell_mesh, velocity_field="U")
+        if "vorticity" in mesh_with_vorticity.point_data:
+            print(f"Vorticity calculee. Plage : {mesh_with_vorticity.point_data['vorticity'].min():.2e} a {mesh_with_vorticity.point_data['vorticity'].max():.2e}")
+        else:
+            print("Echec du calcul de la vorticity.")
+
+        print("\n--- Analyse statistique ---")
+
+        print("Calculating mesh statistics...")
+        mesh_stats = foam_post.get_mesh_statistics(cell_mesh)
+        print(f"Mesh statistics: {mesh_stats}")
+
+        print("Calculating statistics for 'cell' region and 'U' field...")
+        cell_region_stats = foam_post.get_region_statistics(structure, "cell", "U")
+        print(f"'Cell' region statistics for 'U': {cell_region_stats}")
+
+        boundary_names = [name for name in boundaries.keys() if name not in ("front", "back", "upperWall")]
+        if boundary_names:
+            first_boundary = boundary_names[0]
+            print(f"Calculating statistics for '{first_boundary}' region and 'p' field...")
+            try:
+                boundary_region_stats = foam_post.get_region_statistics(structure, first_boundary, "p")
+                print(f"'{first_boundary}' region statistics for 'p': {boundary_region_stats}")
+            except ValueError as exc:
+                print(f"Impossible de calculer les statistiques pour '{first_boundary}': {exc}")
+                boundary_region_stats = None
+        else:
+            boundary_region_stats = None
+
+        print("Exporting 'cell' region data to CSV file...")
+        foam_post.export_region_data_to_csv(structure, "cell", ["U", "p"], case_path / "cell_data.csv")
+
+        print("Exporting statistics to JSON file...")
+        all_stats = {
+            "mesh_stats": mesh_stats,
+            "cell_region_stats_U": cell_region_stats,
+            "boundary_region_stats_p": boundary_region_stats if boundary_region_stats is not None else "N/A",
+        }
+        foam_post.export_statistics_to_json(all_stats, case_path / "all_stats.json")
+
+        print("Creating an animation...")
+        try:
+            foam_post.create_animation(scalars="U", filename=case_path / "animation_test.gif", fps=5)
+        except Exception as exc:
+            print(f"Animation non creee : {exc}")
+
+    else:
+        print("No time steps found, unable to test the class.")
+
+    # --- 8. Generation du rapport LaTeX ---
+    print("\n" + "=" * 60)
+    print("Generation du rapport")
+    print("=" * 60)
+
+    stats_file = case_path / "all_stats.json"
+    if stats_file.exists():
+        with open(stats_file, "r") as f:
+            stats = json.load(f)
+
+        cell_csv = case_path / "cell_data.csv"
+        if cell_csv.exists():
+            cell_df = pd.read_csv(cell_csv)
+
+        doc = latex_pdf.LatexDocument(
+            title="Simulation Report: MotorBike External Aero",
+            author="Automated Report",
+            filename="motorbike_report",
+            output_dir=case_path,
+        )
+
+        doc.add_title()
+        doc.add_toc()
+        doc.add_abstract(
+            "Ce rapport presente les resultats de la simulation aerodynamique externe "
+            "a haute vitesse autour d'une moto avec simpleFoam et le modele SpalartAllmaras."
+        )
+
+        doc.add_section("Proprietes du fluide", "Ecoulement incompressible, air a 20 degres C, vitesse d'entree 20 m/s.")
+
+        mesh_stats = stats.get("mesh_stats", {})
+        doc.add_section("Statistiques du maillage", "Resume des metriques de qualite du maillage :")
+        mesh_table_data = [[k, v] for k, v in mesh_stats.items()]
+        doc.add_table(
+            mesh_table_data,
+            headers=["Statistique", "Valeur"],
+            caption="Qualite du maillage",
+        )
+
+        doc.add_section("Statistiques du champ de vitesse (region cell)", "Statistiques du champ de vitesse dans le domaine fluide.")
+        cell_stats = stats.get("cell_region_stats_U", {})
+        cell_table_data = [[k, v] for k, v in cell_stats.items()]
+        doc.add_table(
+            cell_table_data,
+            headers=["Statistique", "Valeur"],
+            caption="Statistiques du champ 'U'",
+        )
+
+        boundary_stats = stats.get("boundary_region_stats_p", {})
+        if isinstance(boundary_stats, dict) and boundary_stats != "N/A":
+            doc.add_section("Statistiques du champ de pression (frontiere)", "Statistiques de la pression sur la frontiere de la moto.")
+            boundary_table_data = [[k, v] for k, v in boundary_stats.items()]
+            doc.add_table(
+                boundary_table_data,
+                headers=["Statistique", "Valeur"],
+                caption="Statistiques du champ 'p'",
+            )
+
+        doc.add_section("Visualisations", "Figures representant l'ecoulement, la pression, les vecteurs vitesse et le maillage.")
+        for img_name in ["slice_plot.png", "contour_plot.png", "vector_plot.png", "mesh_style_plot.png"]:
+            img_path = case_path / img_name
+            if img_path.exists():
+                doc.add_figure(str(img_path), caption=img_name.replace("_", " ").title(), width="0.7\\textwidth")
+
+        doc.add_appendix("Export des donnees", f"Les donnees de la region 'cell' ont ete exportees dans {cell_csv.name} pour analyse ulterieure.")
+
+        doc.generate_document(output_format="pdf")
+        print("Rapport PDF genere avec succes.")
+    else:
+        print("Fichier all_stats.json introuvable, generation du rapport ignoree.")
 
     print("\n" + "=" * 60)
     print("Simulation terminee avec succes !")

@@ -1,4 +1,11 @@
 # Ignorer tout
 *
 !*.py
+!*.md
+!*.gmsh
 !.gitignore
+!old/
+!old/*
+!PLAN.md
+!data/*
+!data/

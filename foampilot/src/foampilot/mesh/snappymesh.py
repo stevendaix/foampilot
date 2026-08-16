@@ -14,22 +14,18 @@ class SnappyMesher:
     - snappy_hex_mesh_dict_path (Path): Path to the snappyHexMeshDict file.
     """
 
-    def __init__(self, parent, stl_file, castellatedMesh=True, snap=True, addLayers=False):
-        """
-        Initialize snappyHexMesh main options.
+    def __init__(self, parent=None, stl_file=None, case_path=None, castellatedMesh=True, snap=True, addLayers=False):
+        if parent is not None:
+            self.parent = parent
+            self.case_path = parent.case_path
+        elif case_path is not None:
+            self.parent = None
+            self.case_path = Path(case_path)
+        else:
+            raise ValueError("Either parent with case_path or direct case_path must be provided")
 
-        Args:
-            base_path (str): Path to the OpenFOAM directory containing the case.
-            stl_file (str): Path to the STL geometry file.
-            castellatedMesh (bool): Enable initial castellated mesh structure.
-            snap (bool): Enable mesh projection onto the STL surface.
-            addLayers (bool): Enable the addition of boundary layers.
-        """
-        
-        self.parent = parent                       
-        self.case_path = parent.case_path 
         self.snappy_hex_mesh_dict_path = self.case_path / "system" / "snappyHexMeshDict"
-        self.stl_file = Path(stl_file)
+        self.stl_file = Path(stl_file) if stl_file else None
         
         self.locationInMesh = (0.1, 0.1, 0.1)
 
@@ -37,14 +33,13 @@ class SnappyMesher:
         self.snap = snap
         self.addLayers = addLayers
         
-        self.geometry = {
-            self.stl_file.stem: {
-                "type": "triSurfaceMesh",
-                "name": self.stl_file.stem,
-                "file": self.stl_file.name,
-                "regions": {}
-            }
-        }
+        self.geometry = {}
+        if self.stl_file:
+            self.add_geometry(self.stl_file.stem, self.stl_file)
+        
+        default_refinement = {}
+        if self.stl_file:
+            default_refinement[self.stl_file.stem] = {"level": (2, 3)}
         
         self.castellatedMeshControls = {
             "maxLocalCells": 100000,
@@ -52,9 +47,7 @@ class SnappyMesher:
             "minRefinementCells": 10,
             "nCellsBetweenLevels": 3,
             "locationInMesh": self.locationInMesh,
-            "refinementSurfaces": {
-                self.stl_file.stem: {"level": (2, 3)}
-            },
+            "refinementSurfaces": default_refinement,
             "features": [],
             "refinementRegions": {}
         }
@@ -137,6 +130,16 @@ class SnappyMesher:
             "file": feature_file,
             "level": level
         })
+
+    def add_geometry(self, name, stl_path, geo_type="triSurfaceMesh"):
+        """Add an STL geometry to the snappyHexMesh configuration."""
+        stl_file = Path(stl_path)
+        self.geometry[name] = {
+            "type": geo_type,
+            "name": name,
+            "file": stl_file.name,
+            "regions": {}
+        }
     # ----------------------
     # SurfaceFeaturesDict
     # ----------------------
@@ -185,9 +188,41 @@ class SnappyMesher:
     def run_surface_feature_extract(self):
         """
         Runs surfaceFeatureExtract utility for the case.
+        Creates a default surfaceFeaturesDict if none exists.
         """
-        cmd = ["surfaceFeatures", "-case", str(self.case_path)]
-        print(cmd)
+        system_path = self.case_path / "system"
+        system_path.mkdir(parents=True, exist_ok=True)
+        dict_file = system_path / "surfaceFeaturesDict"
+
+        if not dict_file.exists():
+            stl_names = [geo.get("name", geo["file"]) for geo in self.geometry.values()]
+            lines = [
+                "FoamFile",
+                "{",
+                "    version     2.0;",
+                "    format      ascii;",
+                "    class       dictionary;",
+                "    location    \"system\";",
+                "    object      surfaceFeaturesDict;",
+                "}",
+                "",
+                "module(s) (surfaceFeatures);",
+                "",
+                "surfaces",
+                "(",
+            ]
+            for name in stl_names:
+                lines.append(f'    "{name}"')
+            lines.append(");")
+            lines.append("")
+            lines.append("includedAngle 60;")
+            lines.append("")
+            lines.append("featureEndPoints true;")
+            lines.append("featureSnapRefine true;")
+            lines.append("")
+            dict_file.write_text("\n".join(lines))
+
+        cmd = ["surfaceFeatureExtract", "-case", str(self.case_path)]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print("Error running surfaceFeatureExtract:")
@@ -220,9 +255,9 @@ class SnappyMesher:
         self.addLayersControls["layers"][surface] = {"nSurfaceLayers": n_surface_layers}
 
     def write_block_mesh_dict(
-    self,
-    padding: float = 0.2,
-    base_cell_size: float = None
+        self,
+        padding: float = 0.2,
+        base_cell_size: float = None
     ):
         """
         Generate a blockMeshDict that encloses the STL geometry.
@@ -232,13 +267,29 @@ class SnappyMesher:
                             0.2 means +20% in each direction.
             base_cell_size (float): Target cell size. If None, estimated automatically.
         """
-        print(self.stl_file.name)
-        stl_path = self.case_path / "constant" / "triSurface" / self.stl_file.name
-        if not stl_path.exists():
-            raise FileNotFoundError(f"STL not found at {stl_path}")
+        tri_surface_dir = self.case_path / "constant" / "triSurface"
+        bounds = None
+        for name, geo in self.geometry.items():
+            stl_path = tri_surface_dir / geo["file"]
+            if not stl_path.exists():
+                continue
+            mesh = pv.read(str(stl_path))
+            if bounds is None:
+                bounds = mesh.bounds
+            else:
+                bounds = (
+                    min(bounds[0], mesh.bounds[0]),
+                    min(bounds[1], mesh.bounds[1]),
+                    min(bounds[2], mesh.bounds[2]),
+                    max(bounds[3], mesh.bounds[3]),
+                    max(bounds[4], mesh.bounds[4]),
+                    max(bounds[5], mesh.bounds[5]),
+                )
 
-        mesh = pv.read(stl_path)
-        xmin, xmax, ymin, ymax, zmin, zmax = mesh.bounds
+        if bounds is None:
+            raise FileNotFoundError(f"No STL files found in {tri_surface_dir}")
+
+        xmin, xmax, ymin, ymax, zmin, zmax = bounds
 
         # Expand bounding box
         dx = xmax - xmin

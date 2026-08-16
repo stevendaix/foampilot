@@ -1,0 +1,29 @@
+{
+  "metrics": {
+    "sweep": {
+      "hausdorff_mm": 42.668845336885084,
+      "mean_distance_mm": 12.219025294013134,
+      "cad_volume": 5.1428334469187585e-06,
+      "ref_volume": null
+    },
+    "loft_stl": {
+      "hausdorff_mm": 35.512760184287394,
+      "mean_distance_mm": 8.164265677950596,
+      "cad_volume": 6.240137014304791e-05,
+      "ref_volume": null
+    }
+  },
+  "verify": {
+    "aorta_sweep_direct_v2.step": true,
+    "aorta_sweep_direct_v2.stl": true,
+    "aorta_loft_occ.step": true,
+    "aorta_loft_occ.stl": true,
+    "aorta_loft_stl_sections.step": true,
+    "aorta_loft_stl_sections.stl": true,
+    "aorta_gmsh_loft.stl": false,
+    "centerline_reconstructed.npy": true,
+    "aorta_sweep_direct_v2.stl_watertight": true,
+    "aorta_loft_occ.stl_watertight": true,
+    "aorta_loft_stl_sections.stl_watertight": true
+  }
+}

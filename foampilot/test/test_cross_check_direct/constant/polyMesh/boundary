@@ -15,27 +15,13 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-3
+1
 (
-    WALLS
+    inlet
     {
         type            patch;
-        nFaces          360;
+        nFaces          540;
         startFace       2010;
-    }
-
-    OUTLET
-    {
-        type            patch;
-        nFaces          90;
-        startFace       2370;
-    }
-
-    INLET
-    {
-        type            patch;
-        nFaces          90;
-        startFace       2460;
     }
 
 )

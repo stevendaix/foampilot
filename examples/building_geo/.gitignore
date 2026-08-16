@@ -1,0 +1,47 @@
+# Generated CFD cases
+neighborhood_demo/neighborhood_case/
+neighborhood_demo/test_case/
+neighborhood_demo/test_full_pipeline/
+neighborhood_demo/test_polygon_buildings/
+cases/
+
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Generated output directories
+neighborhood_demo/output/
+neighborhood_demo/post/
+post/
+
+# Cache directories
+cache/
+.neighborhood_demo/cache/
+
+# Generated images and plots
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Generated mesh/geometry files
+*.msh
+*.vtk
+*.vtu
+*.stl
+
+# OpenFOAM logs
+log.*
+
+# Backup files
+*.bak
+
+# Editor/IDE files
+.vscode/
+.idea/
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

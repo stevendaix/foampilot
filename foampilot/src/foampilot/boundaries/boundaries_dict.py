@@ -216,10 +216,16 @@ class Boundary:
         return formatted_config
 
 
-    def write_boundary_conditions(self):
+    def write_boundary_conditions(self, internal_field_overrides: Optional[Dict[str, str]] = None):
         """
         Write the boundary conditions to their respective files in the 0/ directory.
+
+        Args:
+            internal_field_overrides: Optional dict mapping field names to
+                custom internalField values (e.g., {"U": "uniform (10 0 0)"}).
         """
+        if internal_field_overrides is None:
+            internal_field_overrides = {}
         is_compressible = getattr(self.parent, "compressible", False)
         for field, boundaries in self.fields.items():
             for patch, params in boundaries.items():
@@ -235,6 +241,7 @@ class Boundary:
                 field=field,
                 boundaries=boundaries,
                 case_path=self.parent.case_path,
+                internal_field=internal_field_overrides.get(field),
                 compressible=is_compressible,
             )
 

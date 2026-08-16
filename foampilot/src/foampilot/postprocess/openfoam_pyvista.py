@@ -241,6 +241,7 @@ class FoamPostProcessing:
 
         y_slice = structure["cell"].slice(plane)
         pl = pv.Plotter(off_screen=off_screen)
+        pl.set_background("white")
 
         pl.add_mesh(
             y_slice,
@@ -249,17 +250,25 @@ class FoamPostProcessing:
             scalar_bar_args={"title": scalars},
         )
 
-        # pl.add_mesh(structure["cell"], color="w", opacity=opacity)
+        # Add full cell mesh as wireframe context (transparency breaks on some VTK versions)
+        pl.add_mesh(structure["cell"], style="wireframe", color="lightgray", line_width=0.5)
         for name, mesh in structure.get("boundaries", {}).items():
-            pl.add_mesh(mesh, opacity=0.5)
+            pl.add_mesh(mesh, color="black", style="wireframe", line_width=1)
+
+        # Use a standard orthogonal view so the full domain is visible
+        # (reset_camera alone can leave a cut-away appearance for thin slices)
+        pl.reset_camera()
+        view_map = {"x": "yz", "y": "xz", "z": "xy"}
+        pl.camera_position = view_map.get(plane, "xy")
 
         if path_filename is not None:
-            # Exporte l'image directement
+            pl.render()
             pl.screenshot(path_filename)
             logger.info(f"Image sauvegardée : {path_filename}")
         else:
             # Affiche le rendu à l'écran
             pl.show()
+        return pl
 
 
     def plot_contour(self, mesh, scalars: str, is_filled: bool = True, opacity: float = 1.0):
@@ -551,6 +560,7 @@ class FoamPostProcessing:
         if filename.suffix != f".{image_format}":
             filename = filename.with_suffix(f".{image_format}")
 
+        plotter.render()
         plotter.screenshot(str(filename))  # PyVista attend une string
         logger.info(f"Plot exported to {filename}")
 
@@ -673,7 +683,7 @@ class FoamPostProcessing:
             
             # If scalar_field is point data, transfer it to cell data for weighted average
             if scalar_field in mesh.point_data:
-                cell_data_from_points = mesh_with_volumes.point_data_to_cell_data([scalar_field])
+                cell_data_from_points = mesh_with_volumes.point_data_to_cell_data(pass_point_data=False)
                 data_for_weighted_avg = cell_data_from_points.cell_data[scalar_field]
             elif scalar_field in mesh.cell_data:
                 data_for_weighted_avg = mesh.cell_data[scalar_field]

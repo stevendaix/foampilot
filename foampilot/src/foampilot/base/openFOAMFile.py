@@ -158,8 +158,14 @@ class OpenFOAMFile:
                 continue
 
             # standard key-value — quote regex patterns like ".*" or "alpha.*"
+            # multi-line values (e.g. codedFixedValue #{ ... #};) must not
+            # get a trailing ';' because the delimiter already includes it
             quoted_key = f'"{key}"' if any(c in key for c in '.*|()') else key
-            file.write(f'{indent}{quoted_key} {self._format_value(key, value)};\n')
+            fmt_val = self._format_value(key, value)
+            if "\n" in fmt_val:
+                file.write(f'{indent}{quoted_key} {fmt_val}\n')
+            else:
+                file.write(f'{indent}{quoted_key} {fmt_val};\n')
 
     def write_file(self, filepath: Union[str, Path]):
         """Writes the current object as a standard OpenFOAM dictionary file.
@@ -275,7 +281,11 @@ class OpenFOAMFile:
                             f.write(f'{self._format_value(key, item)} ')
                         f.write(');\n')
                         continue
-                    f.write(f'        {key:<15} {self._format_value(key, value)};\n')
+                    fmt_val = self._format_value(key, value)
+                    if "\n" in fmt_val:
+                        f.write(f'        {key:<15} {fmt_val}\n')
+                    else:
+                        f.write(f'        {key:<15} {fmt_val};\n')
                 f.write("    }\n\n")
             f.write("}\n\n")
             f.write("// ************************************************************************* //\n")

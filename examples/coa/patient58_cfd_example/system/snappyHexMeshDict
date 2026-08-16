@@ -1,0 +1,75 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      snappyHexMeshDict;
+}
+
+castellatedMesh true;
+snap true;
+addLayers false;
+
+geometry
+{
+    wall_aorta
+    {
+        type triSurfaceMesh;
+        file "tbad_TL_walls.stl";
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 10000000;
+    maxGlobalCells 100000000;
+    minRefinementCells 0;
+    nCellsBetweenLevels 4;
+    locationInMesh (0.251947 0.229793 0.050520);
+    features ();
+    refinementSurfaces
+    {
+        wall_aorta { level (3 3); }
+    }
+    allowFreeStandingZoneFaces true;
+    resolveFeatureAngle 30;
+}
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 4.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+    nFeatureSnapIter 10;
+}
+
+addLayersControls
+{
+    relativeSizes true;
+    layers {};
+}
+
+meshQualityControls
+{
+    maxNonOrtho 75;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    minVol 1e-13;
+    minTetQuality 1e-15;
+    minArea -1;
+    minTwist 0.02;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist -1;
+    minFlatness 0.5;
+    nSmoothScale 4;
+    errorReduction 0.75;
+}
+
+debug 0;
+writeFlags (scalarLevels);
+mergeTolerance 1e-06;

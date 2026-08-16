@@ -13,6 +13,7 @@ class NonNewtonianModels:
     HERSCHEL_BULKLEY = "HerschelBulkley"
     CASSON = "Casson"
     STRAIN_RATE = "strainRateFunction"
+    CARREAU_YASUDA = "CarreauYasuda"
 
     @classmethod
     def list_models(cls):
@@ -30,8 +31,10 @@ class TransportPropertiesFile(OpenFOAMFile):
         "nu0": "m^2/s",
         "nuInf": "m^2/s",
         "k": "s",
+        "lambda": "s",
         "m": None,
         "n": None,
+        "a": None,
         "tau0": None,
         "nuMin": "m^2/s",
         "nuMax": "m^2/s",
@@ -133,8 +136,9 @@ class TransportPropertiesFile(OpenFOAMFile):
     def _process_coeffs(self, coeffs: Dict[str, Union[str, ValueWithUnit, float]]) -> Dict[str, float]:
         processed = {}
         for key, value in coeffs.items():
-            if key in self.DEFAULT_UNITS["crossPowerLawCoeffs"]:
-                processed[key] = self._to_ValueWithUnit(value, f"crossPowerLawCoeffs.{key}")
+            expected_unit = self.DEFAULT_UNITS.get(key)
+            if expected_unit:
+                processed[key] = self._to_ValueWithUnit(value, key)
             else:
                 processed[key] = float(value)
         return processed

@@ -14,11 +14,11 @@ CONSTANTS = {
 WALL_FUNCTIONS = {
     "kEpsilon": {
         "k": {
-            "noSlip": {"type": "kqRWallFunction", "value": "uniform 0"},
-            "fixedValue": {"type": "kqRWallFunction", "value": "uniform 0"},
+            "noSlip": {"type": "kqRWallFunction", "value": "uniform 0.375"},
+            "fixedValue": {"type": "kqRWallFunction", "value": "uniform 0.375"},
         },
         "epsilon": {
-            "default": {"type": "epsilonWallFunction", "value": "uniform 0", **CONSTANTS},
+            "default": {"type": "epsilonWallFunction", "value": "uniform 0.1", **CONSTANTS},
         },
         "nut": {
             "default": {"type": "nutkWallFunction", "value": "uniform 0", **CONSTANTS},
@@ -26,11 +26,11 @@ WALL_FUNCTIONS = {
     },
     "kOmegaSST": {
         "k": {
-            "noSlip": {"type": "kqRWallFunction", "value": "uniform 0"},
-            "fixedValue": {"type": "kqRWallFunction", "value": "uniform 0"},
+            "noSlip": {"type": "kqRWallFunction", "value": "uniform 0.375"},
+            "fixedValue": {"type": "kqRWallFunction", "value": "uniform 0.375"},
         },
         "omega": {
-            "default": {"type": "omegaWallFunction", "value": "uniform 0"},
+            "default": {"type": "omegaWallFunction", "value": "uniform 1"},
         },
         "nut": {
             "default": {"type": "nutkWallFunction", "value": "uniform 0", **CONSTANTS},
@@ -72,6 +72,9 @@ BOUNDARY_CONDITIONS_CONFIG = {
         "noFrictionWall": {
             "U": {"type": "slip"},
             "p": {"type": "zeroGradient"},
+            "k": {"type": "zeroGradient"},
+            "epsilon": {"type": "zeroGradient"},
+            "nut": {"type": "zeroGradient"},
         },
         "uniformNormalFixedValue": {
             "U": {"type": "uniformNormalFixedValue", "value": "uniform {ref_value}"},
@@ -135,18 +138,18 @@ BOUNDARY_CONDITIONS_CONFIG = {
             "nut": {"type": "wallFunction", "function": "nut"},
         },
         "symmetry": {
-            "U": {"type": "empty"},
-            "p": {"type": "empty"},
-            "k": {"type": "empty"},
-            "epsilon": {"type": "empty"},
-            "nut": {"type": "empty"},
+            "U": {"type": "symmetryPlane"},
+            "p": {"type": "symmetryPlane"},
+            "k": {"type": "symmetryPlane"},
+            "epsilon": {"type": "symmetryPlane"},
+            "nut": {"type": "symmetryPlane"},
         },
         "noFrictionWall": {
             "U": {"type": "slip"},
             "p": {"type": "zeroGradient"},
             "k": {"type": "zeroGradient"},
             "epsilon": {"type": "zeroGradient"},
-            "nut": {"type": "wallFunction", "function": "nut"},
+            "nut": {"type": "zeroGradient"},
         },
         "uniformNormalFixedValue": {
             "U": {"type": "uniformNormalFixedValue", "value": "uniform {ref_value}"},
@@ -254,6 +257,7 @@ BOUNDARY_CONDITIONS_CONFIG = {
             },
             "p": {"type": "zeroGradient"},
             "k": {"type": "wallFunction", "function": "k"},
+            "epsilon": {"type": "epsilonWallFunction", "value": "uniform 0.1"},
             "omega": {"type": "wallFunction", "function": "omega"},
             "nut": {"type": "wallFunction", "function": "nut"},
         },

@@ -8,10 +8,13 @@ from foampilot.solver.base_solver import BaseSolver
 # Importer la classe Solver générique (interface principale pour l'utilisateur)
 from foampilot.solver.solver import Solver
 
+# Importer le module de suivi de convergence
+# Convergence monitoring is handled by SimulationReport in foampilot.reporting
+
 # Liste des classes disponibles pour une utilisation facile
 __all__ = [
-    "Solver",  # Interface principale recommandée
-    "BaseSolver",  # Pour un usage avancé ou interne
+    "Solver",
+    "BaseSolver",
     "incompressibleFluid",
     "Fluid",
     "IncompressibleVoF",

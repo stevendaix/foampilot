@@ -48,9 +48,13 @@ dependencies = [
   "typst",
   "scikit-image",
   "nibabel",
-  "trimesh", 
+  "trimesh",
+  "pyfqmr",
   "pyacvd",
-  "kagglehub"
+  "kagglehub",
+  "vmtk",
+  "geomdl",
+  "opencascade"
 ]
 
 [project.optional-dependencies]
@@ -73,6 +77,14 @@ docs = [
   "mkdocs-static-i18n",
   "mkdocstrings",
   "mkdocstrings-python"
+]
+urban = [
+  "osmnx>=1.7.0",
+  "geopandas>=1.0.0",
+  "pyproj>=3.5.0",
+  "rasterio",
+  "laspy",
+  "lazrs"
 ]
 
 [project.urls]

@@ -1,0 +1,7 @@
+dynamicCode/
+1/
+0/org/
+*.log
+*.tmp
+pyCache/
+__pycache__/

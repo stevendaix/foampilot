@@ -66,56 +66,58 @@ class FvSolutionFile(OpenFOAMFile):
         # Pression : p ou p_rgh
         pressure_field = "p_rgh" if "p_rgh" in field_names else "p"
         if pressure_field not in self.solvers:
-            self.solvers[pressure_field] = self._default_solver(
-                solver="GAMG",
-                tolerance=self.DEFAULT_TOLERANCE,
-                relTol=self.DEFAULT_REL_TOL,
-                smoother="GaussSeidel",
-                nPreSweeps="0",
-                nPostSweeps="2",
-                cacheAgglomeration="on",
-                agglomerator="faceAreaPair",
-                nCellsInCoarsestLevel="10",
-                mergeLevels="1",
-            )
+            self.solvers[pressure_field] = {
+                "solver": "GAMG",
+                "smoother": "DICGaussSeidel",
+                "tolerance": "1e-7",
+                "relTol": "0.01",
+                "nCellsInCoarsestLevel": "20",
+                "cacheAgglomeration": "true",
+                "agglomerator": "faceAreaPair",
+                "mergeLevels": "1",
+            }
 
         # Vitesse
         if "U" in field_names and "U" not in self.solvers:
-            self.solvers["U"] = self._default_solver(
-                solver="smoothSolver",
-                smoother="symGaussSeidel",
-                tolerance=1e-5,
-                relTol=self.DEFAULT_REL_TOL,
-            )
+            self.solvers["U"] = {
+                "solver": "smoothSolver",
+                "smoother": "symGaussSeidel",
+                "nSweeps": "2",
+                "tolerance": "1e-08",
+                "relTol": "0",
+            }
 
         # Turbulence (k, epsilon, omega, nut, nuTilda)
         for field in ["k", "epsilon", "omega", "nut", "nuTilda"]:
             if field in field_names and field not in self.solvers:
-                self.solvers[field] = self._default_solver(
-                    solver="smoothSolver",
-                    smoother="symGaussSeidel",
-                    tolerance=1e-5,
-                    relTol=self.DEFAULT_REL_TOL,
-                )
+                self.solvers[field] = {
+                    "solver": "smoothSolver",
+                    "smoother": "symGaussSeidel",
+                    "nSweeps": "2",
+                    "tolerance": "1e-08",
+                    "relTol": "0",
+                }
 
         # Énergie (T, e, h)
         if energy_active and energy_var in field_names and energy_var not in self.solvers:
-            self.solvers[energy_var] = self._default_solver(
-                solver="smoothSolver",
-                smoother="symGaussSeidel",
-                tolerance=1e-5,
-                relTol=self.DEFAULT_REL_TOL,
-            )
+            self.solvers[energy_var] = {
+                "solver": "smoothSolver",
+                "smoother": "symGaussSeidel",
+                "nSweeps": "2",
+                "tolerance": "1e-08",
+                "relTol": "0",
+            }
 
         # VoF : alpha.water, alpha.air, etc.
         for field in field_names:
             if field.startswith("alpha.") and field not in self.solvers:
-                self.solvers[field] = self._default_solver(
-                    solver="smoothSolver",
-                    smoother="symGaussSeidel",
-                    tolerance=1e-5,
-                    relTol=self.DEFAULT_REL_TOL,
-                )
+                self.solvers[field] = {
+                    "solver": "smoothSolver",
+                    "smoother": "symGaussSeidel",
+                    "nSweeps": "2",
+                    "tolerance": "1e-08",
+                    "relTol": "0",
+                }
 
         # PIMPLE : champs finals
         if (algo == "PIMPLE" or transient) and (sim_type in ["compressible", "incompressible"] or energy_active):
@@ -164,24 +166,23 @@ class FvSolutionFile(OpenFOAMFile):
             return solvers.copy()
 
         solvers = {
-            "p": self._default_solver(
-                solver="GAMG",
-                tolerance=self.DEFAULT_TOLERANCE,
-                relTol=self.DEFAULT_REL_TOL,
-                smoother="GaussSeidel",
-                nPreSweeps="0",
-                nPostSweeps="2",
-                cacheAgglomeration="on",
-                agglomerator="faceAreaPair",
-                nCellsInCoarsestLevel="10",
-                mergeLevels="1",
-            ),
-            "U": self._default_solver(
-                solver="smoothSolver",
-                smoother="symGaussSeidel",
-                tolerance=1e-5,
-                relTol=self.DEFAULT_REL_TOL,
-            ),
+            "p": {
+                "solver": "GAMG",
+                "smoother": "DICGaussSeidel",
+                "tolerance": "1e-7",
+                "relTol": "0.01",
+                "nCellsInCoarsestLevel": "20",
+                "cacheAgglomeration": "true",
+                "agglomerator": "faceAreaPair",
+                "mergeLevels": "1",
+            },
+            "U": {
+                "solver": "smoothSolver",
+                "smoother": "symGaussSeidel",
+                "nSweeps": "2",
+                "tolerance": "1e-08",
+                "relTol": "0",
+            },
         }
 
         self._extend_solvers_for_simulation_type(solvers)
@@ -203,27 +204,30 @@ class FvSolutionFile(OpenFOAMFile):
         energy_var = getattr(self.parent, "energy_variable", "e")
 
         if sim_type == "boussinesq":
-            solvers["T"] = self._default_solver(
-                solver="smoothSolver",
-                smoother="symGaussSeidel",
-                tolerance=1e-5,
-                relTol=self.DEFAULT_REL_TOL,
-            )
+            solvers["T"] = {
+                "solver": "smoothSolver",
+                "smoother": "symGaussSeidel",
+                "nSweeps": "2",
+                "tolerance": "1e-08",
+                "relTol": "0",
+            }
 
         if sim_type == "compressible" or energy_active:
-            solvers[energy_var] = self._default_solver(
-                solver="smoothSolver",
-                smoother="symGaussSeidel",
-                tolerance=1e-5,
-                relTol=self.DEFAULT_REL_TOL,
-            )
+            solvers[energy_var] = {
+                "solver": "smoothSolver",
+                "smoother": "symGaussSeidel",
+                "nSweeps": "2",
+                "tolerance": "1e-08",
+                "relTol": "0",
+            }
             if sim_type == "compressible":
-                solvers["rho"] = self._default_solver(
-                    solver="smoothSolver",
-                    smoother="symGaussSeidel",
-                    tolerance=1e-6,
-                    relTol=self.DEFAULT_REL_TOL,
-                )
+                solvers["rho"] = {
+                    "solver": "smoothSolver",
+                    "smoother": "symGaussSeidel",
+                    "nSweeps": "2",
+                    "tolerance": "1e-06",
+                    "relTol": "0",
+                }
 
         if (algo == "PIMPLE" or transient) and (sim_type in ["compressible", "incompressible"] or energy_active):
             solvers["pFinal"] = {"$p": "", "relTol": "0"}
@@ -239,10 +243,11 @@ class FvSolutionFile(OpenFOAMFile):
             return SIMPLE.copy()
 
         SIMPLE = {
-            "nNonOrthogonalCorrectors": "0",
+            "nNonOrthogonalCorrectors": "2",
             "residualControl": {
-                "p": "1e-2",
+                "p": "1e-4",
                 "U": "1e-4",
+                "(k|epsilon|omega)": "1e-4",
             },
             "pRefCell": "0",
             "pRefValue": "0",
@@ -284,9 +289,9 @@ class FvSolutionFile(OpenFOAMFile):
             return relaxationFactors.copy()
 
         relaxationFactors = {
-            "fields": {"p": str(self.DEFAULT_RELAXATION_FACTOR)},
+            "fields": {"p": "0.3"},
             "equations": {
-                "U": str(self.DEFAULT_RELAXATION_FACTOR),
+                "U": "0.7",
             },
         }
 
@@ -295,11 +300,11 @@ class FvSolutionFile(OpenFOAMFile):
         energy_var = getattr(self.parent, "energy_variable", "e")
 
         if sim_type == "boussinesq":
-            relaxationFactors["equations"]["T"] = str(self.DEFAULT_RELAXATION_FACTOR)
+            relaxationFactors["equations"]["T"] = "0.7"
         elif sim_type == "compressible" or energy_active:
-            relaxationFactors["equations"][energy_var] = str(self.DEFAULT_RELAXATION_FACTOR)
+            relaxationFactors["equations"][energy_var] = "0.7"
             if sim_type == "compressible":
-                relaxationFactors["equations"]["rho"] = str(self.DEFAULT_RELAXATION_FACTOR)
+                relaxationFactors["equations"]["rho"] = "0.7"
 
         return relaxationFactors
 

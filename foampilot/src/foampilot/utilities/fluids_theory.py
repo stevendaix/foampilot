@@ -161,7 +161,7 @@ class FluidMechanics:
         if self.velocity is None or self.characteristic_length is None:
             raise ValueError("Reynolds number calculation requires both velocity and characteristic_length")
         
-        props = self.get_fluid_properties(self.temperature)
+        props = self.get_fluid_properties()
         return (props['density'].get_in('kg/m^3') * self.velocity.get_in('m/s') * 
                 self.characteristic_length.get_in('m')) / props['dynamic_viscosity'].get_in('Pa.s')
 
@@ -192,7 +192,7 @@ class FluidMechanics:
         Returns:
             float: Prandtl number (Pr = μ·c_p/k)
         """
-        props = self.get_fluid_properties(self.temperature)
+        props = self.get_fluid_properties()
         return ((props['dynamic_viscosity'].get_in('Pa.s') * 
                 props['specific_heat'].get_in('J/(kg.K)')) / 
                 props['thermal_conductivity'].get_in('W/(m.K)'))
@@ -230,9 +230,9 @@ class FluidMechanics:
             float: Rayleigh number (Ra = g·β·ΔT·L³/(ν·α))
         """
         temp_ave = (temperature1.get_in("K") + temperature2.get_in("K"))/2
-        props1 = self.get_fluid_properties(temperature1)
-        props2 = self.get_fluid_properties(temperature2)
-        props_ave = self.get_fluid_properties(ValueWithUnit(temp_ave, "K"))
+        props1 = self.get_fluid_properties()
+        props2 = self.get_fluid_properties()
+        props_ave = self.get_fluid_properties()
 
         density = (props1['density'].get_in('kg/m^3') + props2['density'].get_in('kg/m^3'))/2
         viscosity = (props1['dynamic_viscosity'].get_in('Pa.s') + props2['dynamic_viscosity'].get_in('Pa.s'))/2

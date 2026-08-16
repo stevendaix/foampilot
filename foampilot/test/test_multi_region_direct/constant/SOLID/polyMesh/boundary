@@ -15,13 +15,20 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-1
+2
 (
-    patch0
+    inlet
     {
         type            patch;
-        nFaces          402;
+        nFaces          68;
         startFace       1191;
+    }
+
+    outlet
+    {
+        type            patch;
+        nFaces          334;
+        startFace       1259;
     }
 
 )

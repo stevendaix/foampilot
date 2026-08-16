@@ -1,0 +1,21 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+application     foamRun;
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         1;
+deltaT          1;
+writeInterval   1;
+writeControl    timeStep;
+writeFormat     ascii;
+    solver          incompressibleFluid;
+purgeWrite      1;
+writeCompression off;
+timeFormat      general;
+runTimeModifiable true;

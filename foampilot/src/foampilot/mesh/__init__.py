@@ -12,3 +12,13 @@ from foampilot.mesh.geo_generator import (
     create_motorcycle_geo,
 )
 from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+from foampilot.mesh.quality import (
+    GmshQualityAnalyzer,
+    QualityThresholds,
+    QualityReport,
+    ElementQuality,
+    CheckMeshParser,
+    QualityGate,
+    OpenFOAMQualityAnalyzer,
+)
+from foampilot.mesh.adaptation import AdaptiveMeshImprover

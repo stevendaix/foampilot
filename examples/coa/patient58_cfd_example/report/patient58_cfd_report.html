@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset='utf-8'>
+<title>Patient58 CFD Simulation Report</title>
+<script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>
+<style>body { font-family: sans-serif; margin: 2em; max-width: 1200px; }h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }h2 { margin-top: 1.5em; }table { border-collapse: collapse; margin: 1em 0; }th, td { border: 1px solid #ccc; padding: 6px 12px; text-align: left; }th { background: #f0f0f0; }.figure-container { margin: 2em 0; }</style>
+</head>
+<body>
+<h1>Patient58 CFD Simulation Report</h1>
+<p><strong>Author:</strong> foampilot</p>
+<p><strong>Case:</strong> /home/steven/foampilot/examples/coa/patient58_cfd_example</p>
+<h2>Summary Statistics</h2>
+<table><tr><th>Parameter</th><th>Value</th><th>Unit</th><th>Description</th></tr>
+<tr><td>Ux Final Residual</td><td>9.98563e-07</td><td></td><td>Final residual for Ux at time=500</td></tr>
+<tr><td>Uy Final Residual</td><td>9.10896e-07</td><td></td><td>Final residual for Uy at time=500</td></tr>
+<tr><td>Uz Final Residual</td><td>9.72596e-07</td><td></td><td>Final residual for Uz at time=500</td></tr>
+<tr><td>Convergence Target</td><td>1e-05</td><td></td><td>Residual threshold for convergence</td></tr>
+<tr><td>Convergence Status</td><td>CONVERGED</td><td></td><td>All residuals < 1e-5</td></tr>
+<tr><td>Mesh Cells</td><td>25585</td><td></td><td>Total number of cells in mesh</td></tr>
+<tr><td>Mesh Points</td><td>32223</td><td></td><td>Total number of points in mesh</td></tr>
+<tr><td>Boundary Patches</td><td>3</td><td></td><td>INLET, OUTLET, WALL</td></tr>
+<tr><td>End Time</td><td>500</td><td>s</td><td>Final simulation time</td></tr>
+<tr><td>Velocity Mean X</td><td>0.0014642050955444574</td><td>m/s</td><td>Mean Velocity X-component</td></tr>
+<tr><td>Velocity Min X</td><td>-10.478099822998047</td><td>m/s</td><td>Min Velocity X-component</td></tr>
+<tr><td>Velocity Max X</td><td>11.946700096130371</td><td>m/s</td><td>Max Velocity X-component</td></tr>
+<tr><td>Velocity Mean Y</td><td>0.0018758561927825212</td><td>m/s</td><td>Mean Velocity Y-component</td></tr>
+<tr><td>Velocity Min Y</td><td>-0.6527429819107056</td><td>m/s</td><td>Min Velocity Y-component</td></tr>
+<tr><td>Velocity Max Y</td><td>0.8795943260192871</td><td>m/s</td><td>Max Velocity Y-component</td></tr>
+<tr><td>Velocity Mean Z</td><td>-0.0021118391305208206</td><td>m/s</td><td>Mean Velocity Z-component</td></tr>
+<tr><td>Velocity Min Z</td><td>-1.546791434288025</td><td>m/s</td><td>Min Velocity Z-component</td></tr>
+<tr><td>Velocity Max Z</td><td>1.5774248838424683</td><td>m/s</td><td>Max Velocity Z-component</td></tr>
+<tr><td>Pressure Mean</td><td>0.0</td><td>Pa</td><td>Mean Pressure</td></tr>
+<tr><td>Pressure Min</td><td>0.0</td><td>Pa</td><td>Minimum Pressure</td></tr>
+<tr><td>Pressure Max</td><td>0.0</td><td>Pa</td><td>Maximum Pressure</td></tr>
+<tr><td>OUTLET U Mean</td><td>-6.499561450252476e-28</td><td>m/s</td><td>Mean velocity on OUTLET patch</td></tr>
+<tr><td>OUTLET p Mean</td><td>0.0</td><td>Pa</td><td>Mean pressure on OUTLET patch</td></tr>
+<tr><td>WALL U Mean</td><td>0.0</td><td>m/s</td><td>Mean velocity on WALL patch</td></tr>
+<tr><td>WALL p Mean</td><td>0.0</td><td>Pa</td><td>Mean pressure on WALL patch</td></tr>
+<tr><td>INLET U Mean</td><td>0.13333334028720856</td><td>m/s</td><td>Mean velocity on INLET patch</td></tr>
+<tr><td>INLET p Mean</td><td>0.0</td><td>Pa</td><td>Mean pressure on INLET patch</td></tr>
+</table>
+<h2>Figures</h2>
+<div class="figure-container">
+<h3>CFD Results Overview</h3>
+<img src="patient58_results.png" alt="CFD Results Overview" style="max-width:100%;">
+</div>
+<div class="figure-container">
+<h3>Post-processing Results</h3>
+<img src="patient58_post_processing.png" alt="Post-processing Results" style="max-width:100%;">
+</div>
+<div class="figure-container">
+<h3>Mesh Visualization</h3>
+<img src="patient58_mesh_viz.png" alt="Mesh Visualization" style="max-width:100%;">
+</div>
+<h2>Tables</h2>
+<h3>Mesh Statistics</h3>
+<table>
+<tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Metric</td><td>Value</td></tr>
+<tr><td>Cells</td><td>34905</td></tr>
+<tr><td>Points</td><td>49485</td></tr>
+<tr><td>Bounds X</td><td>0.1992 - 0.3221</td></tr>
+<tr><td>Bounds Y</td><td>0.1796 - 0.3369</td></tr>
+<tr><td>Bounds Z</td><td>0.0034 - 0.0600</td></tr>
+</table>
+</body>
+</html>

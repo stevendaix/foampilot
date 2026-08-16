@@ -117,3 +117,234 @@ def test_field_header_parsing():
     vals, is_point = _read_field(U_path)
     assert is_point is False
     assert vals.shape == (40, 3)
+
+
+def test_attach_field_auto_location(tmp_path):
+    """as_point_data=None should auto-detect field location from header."""
+    case = tmp_path / "case"
+    polymesh = case / "constant" / "polyMesh"
+    polymesh.mkdir(parents=True)
+
+    (polymesh / "points").write_text(
+        "/*--------------------------------*- C++ -*----------------------------------*\\\\\n"
+        "  =========                 |\n"
+        "  \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox\n"
+        "   \\\\    /   O peration     | Website:  https://openfoam.org\n"
+        "    \\\\  /    A nd           | Version:  13\n"
+        "     \\\\/     M anipulation  |\n"
+        "\\*---------------------------------------------------------------------------*/\n"
+        "FoamFile\n"
+        "{\n"
+        "    format      ascii;\n"
+        "    class       vectorField;\n"
+        '    location    "constant/polyMesh";\n'
+        "    object      points;\n"
+        "}\n"
+        "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+        "\n"
+        "8\n"
+        "(\n"
+        "(0 0 0)\n"
+        "(1 0 0)\n"
+        "(1 1 0)\n"
+        "(0 1 0)\n"
+        "(0 0 1)\n"
+        "(1 0 1)\n"
+        "(1 1 1)\n"
+        "(0 1 1)\n"
+        ")\n"
+    )
+
+    (polymesh / "faces").write_text(
+        "/*--------------------------------*- C++ -*----------------------------------*\\\\\n"
+        "  =========                 |\n"
+        "  \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox\n"
+        "   \\\\    /   O peration     | Website:  https://openfoam.org\n"
+        "    \\\\  /    A nd           | Version:  13\n"
+        "     \\\\/     M anipulation  |\n"
+        "\\*---------------------------------------------------------------------------*/\n"
+        "FoamFile\n"
+        "{\n"
+        "    format      ascii;\n"
+        "    class       faceList;\n"
+        '    location    "constant/polyMesh";\n'
+        "    object      faces;\n"
+        "}\n"
+        "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+        "\n"
+        "4\n"
+        "(\n"
+        "3(0 1 2)\n"
+        "3(0 1 3)\n"
+        "3(1 2 3)\n"
+        "3(0 2 3)\n"
+        ")\n"
+    )
+
+    (polymesh / "owner").write_text(
+        "/*--------------------------------*- C++ -*----------------------------------*\\\\\n"
+        "  =========                 |\n"
+        "  \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox\n"
+        "   \\\\    /   O peration     | Website:  https://openfoam.org\n"
+        "    \\\\  /    A nd           | Version:  13\n"
+        "     \\\\/     M anipulation  |\n"
+        "\\*---------------------------------------------------------------------------*/\n"
+        "FoamFile\n"
+        "{\n"
+        "    format      ascii;\n"
+        "    class       labelList;\n"
+        '    note        "nPoints:8  nCells:1  nFaces:4  nInternalFaces:0";\n'
+        '    location    "constant/polyMesh";\n'
+        "    object      owner;\n"
+        "}\n"
+        "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+        "\n"
+        "4\n"
+        "(\n"
+        "0\n"
+        "0\n"
+        "0\n"
+        "0\n"
+        ")\n"
+    )
+
+    time_dir = case / "0"
+    time_dir.mkdir()
+
+    (time_dir / "U").write_text(
+        "/*--------------------------------*- C++ -*----------------------------------*\\\\\n"
+        "  =========                 |\n"
+        "  \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox\n"
+        "   \\\\    /   O peration     | Website:  https://openfoam.org\n"
+        "    \\\\  /    A nd           | Version:  13\n"
+        "     \\\\/     M anipulation  |\n"
+        "\\*---------------------------------------------------------------------------*/\n"
+        "FoamFile\n"
+        "{\n"
+        "    format      ascii;\n"
+        "    class       volVectorField;\n"
+        '    location    "0";\n'
+        "    object      U;\n"
+        "}\n"
+        "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+        "\n"
+        "dimensions      [0 1 -1 0 0 0 0];\n"
+        "\n"
+        "internalField   nonuniform List<vector> \n"
+        "1\n"
+        "(\n"
+        "(1 0 0)\n"
+        ")\n"
+        "\n"
+        "boundaryField\n"
+        "{\n"
+        "    patch1\n"
+        "    {\n"
+        "        type            fixedValue;\n"
+        "        value           uniform (0 0 0);\n"
+        "    }\n"
+        "}\n"
+    )
+
+    (time_dir / "pointP").write_text(
+        "/*--------------------------------*- C++ -*----------------------------------*\\\\\n"
+        "  =========                 |\n"
+        "  \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox\n"
+        "   \\\\    /   O peration     | Website:  https://openfoam.org\n"
+        "    \\\\  /    A nd           | Version:  13\n"
+        "     \\\\/     M anipulation  |\n"
+        "\\*---------------------------------------------------------------------------*/\n"
+        "FoamFile\n"
+        "{\n"
+        "    format      ascii;\n"
+        "    class       pointScalarField;\n"
+        '    location    "0";\n'
+        "    object      pointP;\n"
+        "}\n"
+        "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+        "\n"
+        "dimensions      [0 2 -2 0 0 0 0];\n"
+        "\n"
+        "internalField   nonuniform List<scalar> \n"
+        "8\n"
+        "(\n"
+        "0.0\n"
+        "1.0\n"
+        "2.0\n"
+        "3.0\n"
+        "4.0\n"
+        "5.0\n"
+        "6.0\n"
+        "7.0\n"
+        ")\n"
+        "\n"
+        "boundaryField\n"
+        "{\n"
+        "    patch1\n"
+        "    {\n"
+        "        type            calculated;\n"
+        "        value           uniform 0;\n"
+        "    }\n"
+        "}\n"
+    )
+
+    (time_dir / "pointQ").write_text(
+        "/*--------------------------------*- C++ -*----------------------------------*\\\\\n"
+        "  =========                 |\n"
+        "  \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox\n"
+        "   \\\\    /   O peration     | Website:  https://openfoam.org\n"
+        "    \\\\  /    A nd           | Version:  13\n"
+        "     \\\\/     M anipulation  |\n"
+        "\\*---------------------------------------------------------------------------*/\n"
+        "FoamFile\n"
+        "{\n"
+        "    format      ascii;\n"
+        "    class       pointScalarField;\n"
+        '    location    "0";\n'
+        "    object      pointQ;\n"
+        "}\n"
+        "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+        "\n"
+        "dimensions      [0 2 -2 0 0 0 0];\n"
+        "\n"
+        "internalField   nonuniform List<scalar> \n"
+        "1\n"
+        "(\n"
+        "3.0\n"
+        ")\n"
+        "\n"
+        "boundaryField\n"
+        "{\n"
+        "    patch1\n"
+        "    {\n"
+        "        type            calculated;\n"
+        "        value           uniform 0;\n"
+        "    }\n"
+        "}\n"
+    )
+
+    # Use a fresh reader per assertion so the mesh is not mutated across calls
+    reader = OpenFOAMDirectReader(case)
+
+    mesh = reader.attach_field("U")
+    assert "U" in mesh.cell_data
+    assert mesh.cell_data["U"].shape == (1, 3)
+    assert "U" not in mesh.point_data
+
+    reader = OpenFOAMDirectReader(case)
+    mesh = reader.attach_field("pointP")
+    assert "pointP" in mesh.point_data
+    assert mesh.point_data["pointP"].shape == (8,)
+    assert "pointP" not in mesh.cell_data
+
+    reader = OpenFOAMDirectReader(case)
+    mesh = reader.attach_field("pointQ", as_point_data=False)
+    assert "pointQ" in mesh.cell_data
+    assert mesh.cell_data["pointQ"].shape == (1,)
+    assert "pointQ" not in mesh.point_data
+
+    reader = OpenFOAMDirectReader(case)
+    mesh = reader.attach_field("U", as_point_data=True)
+    assert "U" in mesh.point_data
+    assert mesh.point_data["U"].shape == (8, 3)
+    assert "U" not in mesh.cell_data

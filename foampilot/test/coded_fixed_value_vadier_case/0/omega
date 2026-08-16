@@ -1,0 +1,56 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      omega;
+}
+
+dimensions      [0 0 -1 0 0 0 0];
+internalField   uniform 1.0;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "INLET"
+    {
+        type            codedFixedValue;
+        name            inletOmegaProfile;
+        value           uniform 1.0;
+        code            #{
+const vectorField& cf = this->patch().Cf();
+scalarField omval(cf.size());
+forAll(cf, i)
+{
+    scalar z = cf[i].z();
+    scalar u_star = 8.0 * 0.41 / Foam::log(10.0 / 0.03);
+    omval[i] = u_star / (0.41 * Foam::max(z, 1e-12));
+}
+operator==(omval);
+#};
+    }
+
+    "OUTLET"
+    {
+        type            zeroGradient;
+    }
+
+    "WALLS"
+    {
+        type            omegaWallFunction;
+    }
+
+    "GROUND"
+    {
+        type            omegaWallFunction;
+    }
+
+    "TOP"
+    {
+        type            zeroGradient;
+    }
+
+}
+
+// ************************************************************************* //

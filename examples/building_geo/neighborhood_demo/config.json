@@ -1,0 +1,37 @@
+{
+  "aoi": {
+    "rectangle_vertices": [
+      [2.3225, 48.8515],
+      [2.3245, 48.8515],
+      [2.3245, 48.8528],
+      [2.3225, 48.8528]
+    ]
+  },
+  "voxcity": {
+    "meshsize": 5.0,
+    "building_source": "Overture",
+    "dem_source": "None",
+    "canopy_height_source": "None"
+  },
+  "domain": {
+    "upstream": 100.0,
+    "downstream": 150.0,
+    "lateral": 60.0,
+    "top": 40.0,
+    "bottom_offset": 5.0
+  },
+  "mesh": {
+    "mesh_size": 8.0,
+    "margin": 50.0
+  },
+  "solver": {
+    "end_time": 2000,
+    "delta_t": 1.0,
+    "write_interval": 100,
+    "turbulence_model": "kEpsilon",
+    "u_ref": 10.0,
+    "z0": 0.3,
+    "z_ref": 10.0,
+    "turbulence_intensity": 0.1
+  }
+}

@@ -226,7 +226,11 @@ class BaseSolver:
         # Ask the system directory to prepare decomposeParDict
         if hasattr(self.system, "ensure_decomposeParDict"):
             self.system.ensure_decomposeParDict(nb_proc)
-            self.system.write()
+            # Only write decomposeParDict; do NOT overwrite existing system files
+            system_path = Path(self.case_path) / "system"
+            system_path.mkdir(parents=True, exist_ok=True)
+            if self.system.decomposeParDict is not None:
+                self.system.decomposeParDict.write(system_path / "decomposeParDict")
 
         # 1. decomposePar
         logger.info("Running decomposePar ...")
@@ -244,7 +248,7 @@ class BaseSolver:
         with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write("\n=== mpirun foamRun ===\n")
             subprocess.run(
-                ["mpirun", "-np", str(nb_proc), "foamRun", "-solver", self.foamrun_module, "-parallel"],
+                ["mpirun", "--oversubscribe", "-np", str(nb_proc), "foamRun", "-solver", self.foamrun_module, "-parallel"],
                 cwd=self.case_path,
                 stdout=log_file,
                 stderr=subprocess.STDOUT,

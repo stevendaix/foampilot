@@ -1,0 +1,57 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      k;
+}
+
+dimensions      [0 2 -2 0 0 0 0];
+internalField   uniform 0.375;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "INLET"
+    {
+        type            codedFixedValue;
+        name            inletTkeProfile;
+        value           uniform 0.614400;
+        code            #{
+const vectorField& cf = this->patch().Cf();
+scalarField kval(cf.size());
+forAll(cf, i)
+{
+    scalar z = cf[i].z();
+    scalar u_star = 8.0 * 0.41 / Foam::log(10.0 / 0.03);
+    scalar u_mag = u_star / 0.41 * Foam::log(Foam::max(z / 0.03, 1.0 + SMALL));
+    kval[i] = 1.5 * pow(0.08 * u_mag, 2);
+}
+operator==(kval);
+#};
+    }
+
+    "OUTLET"
+    {
+        type            zeroGradient;
+    }
+
+    "WALLS"
+    {
+        type            kqRWallFunction;
+    }
+
+    "GROUND"
+    {
+        type            kqRWallFunction;
+    }
+
+    "TOP"
+    {
+        type            zeroGradient;
+    }
+
+}
+
+// ************************************************************************* //

@@ -219,10 +219,27 @@ if time_steps:
     # Create a velocity vector field visualization
     print("Generating a vector plot...")
     pl_vectors = pv.Plotter(off_screen=True)
+    pl_vectors.set_background('white')
     cell_mesh.set_active_vectors('U')
-    # Create arrow glyphs oriented by velocity field
-    arrows = cell_mesh.glyph(orient='U', factor=0.0003)
+    # Compute glyph factor from domain size for visibility
+    domain_length = max(
+        cell_mesh.bounds[1] - cell_mesh.bounds[0],
+        cell_mesh.bounds[3] - cell_mesh.bounds[2],
+        cell_mesh.bounds[5] - cell_mesh.bounds[4],
+    )
+    glyph_factor = domain_length * 0.001
+    # Subsample arrows for clarity on large meshes
+    n_cells = cell_mesh.n_cells
+    max_glyphs = 2000
+    if n_cells > max_glyphs:
+        step = max(1, n_cells // max_glyphs)
+        cell_mesh_reduced = cell_mesh.extract_cells(np.arange(0, n_cells, step))
+    else:
+        cell_mesh_reduced = cell_mesh
+    cell_mesh_reduced.set_active_vectors('U')
+    arrows = cell_mesh_reduced.glyph(orient='U', factor=glyph_factor, clamping=True)
     pl_vectors.add_mesh(arrows, color='blue')
+    pl_vectors.reset_camera()
     foam_post.export_plot(pl_vectors, current_path / "vector_plot.png")
 
     # Create a mesh wireframe visualization

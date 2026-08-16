@@ -1,0 +1,35 @@
+{
+  "patient_id": 58,
+  "data_dir": "imageTBAD",
+  "output_dir": "pipeline_output",
+  "centerline_spacing_mm": 2.0,
+  "mesh": {
+    "lc_min": 0.5,
+    "lc_max": 4.0,
+    "boundary_layers": 3,
+    "boundary_layer_factor": 0.5,
+    "decimate": false,
+    "target_faces": 50000
+  },
+  "fluid": {
+    "name": "Blood",
+    "rho": 1060,
+    "nu": 3.77e-6,
+    "non_newtonian": false
+  },
+  "rheology": {
+    "model": "Newtonian",
+    "carreau_yasuda": {
+      "nu0": 13.96e-6,
+      "nuInf": 3.77e-6,
+      "lambda": 12.3,
+      "a": 0.6,
+      "n": 0.216
+    }
+  },
+  "solver": {
+    "turbulence": "laminar",
+    "transient": false,
+    "endTime": 1
+  }
+}

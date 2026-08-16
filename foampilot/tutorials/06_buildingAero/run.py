@@ -17,6 +17,9 @@ Le pipeline de maillage :
 import sys
 from pathlib import Path
 
+import numpy as np
+import pyvista as pv
+
 # Add src to path for tutorial execution from any directory
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
@@ -24,6 +27,75 @@ from foampilot.solver import Solver
 from foampilot import Meshing
 from foampilot.mesh.snappymesh import SnappyMesher
 from foampilot.utilities.function import Functions
+from foampilot.postprocess import FoamPostProcessing
+
+
+def _box_triangles(cx: float, cy: float, cz: float,
+                   lx: float, ly: float, lz: float) -> list:
+    """Return the 12 triangles (two per face) for an axis-aligned box."""
+    x0, x1 = cx - lx / 2, cx + lx / 2
+    y0, y1 = cy - ly / 2, cy + ly / 2
+    z0, z1 = cz - lz / 2, cz + lz / 2
+
+    v = {
+        "000": (x0, y0, z0), "100": (x1, y0, z0),
+        "110": (x1, y1, z0), "010": (x0, y1, z0),
+        "001": (x0, y0, z1), "101": (x1, y0, z1),
+        "111": (x1, y1, z1), "011": (x0, y1, z1),
+    }
+    # 6 faces, each split into 2 triangles (outward-facing)
+    faces = [
+        ("000", "100", "110", "010"),  # -z (bottom)
+        ("001", "000", "010", "011"),  # -x (left)
+        ("101", "111", "110", "100"),  # +x (right)
+        ("000", "001", "101", "100"),  # -y (front)
+        ("010", "110", "111", "011"),  # +y (back)
+        ("011", "111", "101", "001"),  # +z (top)
+    ]
+    tris = []
+    for a, b, c, d in faces:
+        tris.append((v[a], v[b], v[c]))
+        tris.append((v[a], v[c], v[d]))
+    return tris
+
+
+def generate_buildings_stl(stl_file: Path) -> None:
+    """Generate an STL with multiple buildings clustered at the centre of the
+    wind-tunnel domain (x=100, y=50).
+
+    Domain: 200 x 100 x 50 m  (x streamwise, y transverse, z vertical).
+    Several buildings of varying height create a realistic urban array that
+    produces interesting wake interactions and street-canyon flows.
+    """
+
+    buildings = [
+        # (x_center, y_center, z_center, x_len, y_len, z_len)
+        (100,  50, 15, 25, 25, 30),    # main tall building
+        ( 85,  35, 10, 20, 15, 20),    # south-west building
+        ( 85,  65, 10, 20, 15, 20),    # north-west building
+        (115,  40,  8, 15, 10, 16),    # south-east building
+        (115,  60,  8, 15, 10, 16),    # north-east building
+    ]
+
+    lines = ["solid buildings"]
+    for cx, cy, cz, lx, ly, lz in buildings:
+        for tri in _box_triangles(cx, cy, cz, lx, ly, lz):
+            (v1, v2, v3) = tri
+            nx = (v2[1] - v1[1]) * (v3[2] - v1[2]) - (v2[2] - v1[2]) * (v3[1] - v1[1])
+            ny = (v2[2] - v1[2]) * (v3[0] - v1[0]) - (v2[0] - v1[0]) * (v3[2] - v1[0])
+            nz = (v2[0] - v1[0]) * (v3[1] - v1[1]) - (v2[1] - v1[1]) * (v3[0] - v1[0])
+            norm = (nx * nx + ny * ny + nz * nz) ** 0.5
+            if norm > 0:
+                nx, ny, nz = nx / norm, ny / norm, nz / norm
+            lines.append(f"facet normal {nx:.6f} {ny:.6f} {nz:.6f}")
+            lines.append("outer loop")
+            for vx, vy, vz in (v1, v2, v3):
+                lines.append(f"vertex {vx:.6f} {vy:.6f} {vz:.6f}")
+            lines.append("endloop")
+            lines.append("endfacet")
+    lines.append("endsolid buildings")
+
+    stl_file.write_text("\n".join(lines) + "\n")
 
 
 def main():
@@ -104,94 +176,7 @@ def main():
 
     # Create STL if it does not exist (protects against rm -rf constant cleanup)
     if not stl_file.exists():
-        building_stl = """solid building
-facet normal 0 0 1
-outer loop
-vertex 100 100 0
-vertex 120 100 0
-vertex 120 120 0
-endloop
-endfacet
-facet normal 0 0 1
-outer loop
-vertex 120 120 0
-vertex 100 120 0
-vertex 100 100 0
-endloop
-endfacet
-facet normal 0 0 -1
-outer loop
-vertex 100 100 20
-vertex 120 100 20
-vertex 120 120 20
-endloop
-endfacet
-facet normal 0 0 -1
-outer loop
-vertex 120 120 20
-vertex 100 120 20
-vertex 100 100 20
-endloop
-endfacet
-facet normal 0 -1 0
-outer loop
-vertex 100 100 0
-vertex 120 100 0
-vertex 120 100 20
-endloop
-endfacet
-facet normal 0 -1 0
-outer loop
-vertex 120 100 20
-vertex 100 100 20
-vertex 100 100 0
-endloop
-endfacet
-facet normal 0 1 0
-outer loop
-vertex 100 120 0
-vertex 100 120 20
-vertex 120 120 20
-endloop
-endfacet
-facet normal 0 1 0
-outer loop
-vertex 120 120 20
-vertex 120 120 0
-vertex 100 120 0
-endloop
-endfacet
-facet normal -1 0 0
-outer loop
-vertex 100 100 0
-vertex 100 100 20
-vertex 100 120 20
-endloop
-endfacet
-facet normal -1 0 0
-outer loop
-vertex 100 120 20
-vertex 100 120 0
-vertex 100 100 0
-endloop
-endfacet
-facet normal 1 0 0
-outer loop
-vertex 120 100 0
-vertex 120 120 0
-vertex 120 120 20
-endloop
-endfacet
-facet normal 1 0 0
-outer loop
-vertex 120 120 20
-vertex 120 100 20
-vertex 120 100 0
-endloop
-endfacet
-endsolid
-"""
-        stl_file.write_text(building_stl)
+        generate_buildings_stl(stl_file)
     snappy = SnappyMesher(
         parent=solver._solver,
         stl_file=str(stl_file),
@@ -327,30 +312,142 @@ endsolid
     print("\n" + "=" * 60)
     print("Post-traitement")
     print("=" * 60)
+
+    # --- 8a. Résidus ---
     log_file = case_path / "log.incompressibleFluid"
     if log_file.exists():
         from foampilot.utilities.residuals import ResidualsPost
 
         residuals = ResidualsPost(log_file)
-        residuals.process(export_csv=True, export_png=True)
-        print("Residus exportes (CSV + PNG).")
+        residuals.process(export_csv=True, export_json=True, export_png=True, export_html=True)
+        print("Résidus exportés (CSV + JSON + PNG + HTML).")
 
-    times = sorted(
-        [d.name for d in case_path.iterdir()
-         if d.is_dir()
-         and d.name not in ("constant", "system", "0", "postProcessing")
-         and Functions.is_numeric(d.name)],
-        key=float,
-    )
+    # --- 8b. FoamPostProcessing — conversion VTK et visualisations ---
+    foam_post = FoamPostProcessing(case_path=case_path)
+    foam_post.foamToVTK()
+    print("Conversion foamToVTK terminée.")
 
-    if times:
-        print(f"Temps disponibles : {times}")
+    time_steps = foam_post.get_all_time_steps()
+    print(f"Pas de temps disponibles : {time_steps}")
+
+    if time_steps:
+        latest_time_step = time_steps[-1]
+        structure = foam_post.load_time_step(latest_time_step)
+        cell_mesh = structure["cell"]
+        boundaries = structure["boundaries"]
+        print(f"Maillage principal chargé (pas de temps {latest_time_step}) : {cell_mesh.n_cells} cellules")
+        print(f"Frontières chargées : {list(boundaries.keys())}")
+
+        # --- Visualisations ---
+        print("\n--- Génération de visualisations ---")
+
+        # Plot slice (pression)
+        print("Génération du plot de coupe (p)...")
+        foam_post.plot_slice(
+            structure=structure,
+            plane="z",
+            scalars="p",
+            opacity=0.25,
+            path_filename=case_path / "slice_plot.png",
+        )
+
+        # Contour plot (pression)
+        print("Génération du contour de pression...")
+        pl_contour = pv.Plotter(off_screen=True)
+        pl_contour.add_mesh(cell_mesh, scalars="p", show_scalar_bar=True)
+        foam_post.export_plot(pl_contour, case_path / "contour_plot.png")
+
+        # Vector plot (vitesse) — factor adapté à la taille du domaine
+        print("Génération du champ de vecteurs (U)...")
+        bounds = cell_mesh.bounds
+        domain_length = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+        glyph_factor = domain_length * 0.002
+
+        # Subsample arrows for clarity — keep ~2000 glyphs max
+        n_cells = cell_mesh.n_cells
+        max_glyphs = 2000
+        if n_cells > max_glyphs:
+            step = max(1, n_cells // max_glyphs)
+            subsample_indices = np.arange(0, n_cells, step)
+            cell_mesh_reduced = cell_mesh.extract_cells(subsample_indices)
+        else:
+            cell_mesh_reduced = cell_mesh
+
+        pl_vectors = pv.Plotter(off_screen=True)
+        pl_vectors.set_background("white")
+        cell_mesh_reduced.set_active_vectors("U")
+        arrows = cell_mesh_reduced.glyph(orient="U", factor=glyph_factor, clamping=True)
+        pl_vectors.add_mesh(arrows, color="blue")
+        pl_vectors.add_mesh(cell_mesh_reduced, style="wireframe", color="lightgray", line_width=0.5)
+        pl_vectors.reset_camera()
+        foam_post.export_plot(pl_vectors, case_path / "vector_plot.png")
+
+        # Mesh wireframe
+        print("Génération du maillage fil de fer...")
+        pl_mesh_style = pv.Plotter(off_screen=True)
+        pl_mesh_style.add_mesh(cell_mesh, style="wireframe", show_edges=True, color="red")
+        foam_post.export_plot(pl_mesh_style, case_path / "mesh_style_plot.png")
+
+        # --- Analyse de flux avancée ---
+        print("\n--- Analyse de flux avancée ---")
+
+        # Q-criterion
+        print("Calcul du critère Q...")
+        mesh_with_q = foam_post.calculate_q_criterion(mesh=cell_mesh, velocity_field="U")
+        if "q_criterion" in mesh_with_q.point_data:
+            q_range = mesh_with_q.point_data["q_criterion"]
+            print(f"  Critère Q : min={q_range.min():.2e}, max={q_range.max():.2e}")
+
+        # Vorticité
+        print("Calcul de la vorticité...")
+        mesh_with_vorticity = foam_post.calculate_vorticity(mesh=cell_mesh, velocity_field="U")
+        if "vorticity" in mesh_with_vorticity.point_data:
+            vort_range = mesh_with_vorticity.point_data["vorticity"]
+            print(f"  Vorticité : min={vort_range.min():.2e}, max={vort_range.max():.2e}")
+
+        # --- Statistiques ---
+        print("\n--- Statistiques ---")
+
+        mesh_stats = foam_post.get_mesh_statistics(cell_mesh)
+        print(f"Statistiques du maillage : {mesh_stats}")
+
+        cell_region_stats = foam_post.get_region_statistics(structure, "cell", "U")
+        print(f"Statistiques de la région 'cell' pour 'U' : {cell_region_stats}")
+
+        cell_p_stats = foam_post.get_region_statistics(structure, "cell", "p")
+        print(f"Statistiques de la région 'cell' pour 'p' : {cell_p_stats}")
+
+        # Export cell data to CSV
+        print("Export des données de la région 'cell' vers CSV...")
+        foam_post.export_region_data_to_csv(structure, "cell", ["U", "p"], case_path / "cell_data.csv")
+
+        # Compile and export statistics to JSON
+        all_stats = {
+            "mesh_stats": mesh_stats,
+            "cell_region_stats_U": cell_region_stats,
+            "cell_region_stats_p": cell_p_stats,
+        }
+        foam_post.export_statistics_to_json(all_stats, case_path / "all_stats.json")
+        print("Statistiques exportées vers all_stats.json.")
+
+        # Animation
+        print("Création d'une animation du champ de vitesse...")
+        foam_post.create_animation(scalars="U", filename=case_path / "animation_test.gif", fps=5)
+
+    else:
+        print("Aucun pas de temps trouvé.")
 
     print("\n" + "=" * 60)
-    print("Simulation terminee avec succes !")
+    print("Simulation terminée avec succès !")
     print(f"  Cas      : {case_path}")
     print(f"  Log      : {case_path / 'log.incompressibleFluid'}")
-    print(f"  Resultats: {case_path / 'postProcessing'}")
+    print(f"  Résultats: {case_path / 'postProcessing'}")
+    print(f"  Visualisations: {case_path / 'slice_plot.png'}")
+    print(f"  Contour  : {case_path / 'contour_plot.png'}")
+    print(f"  Vecteurs : {case_path / 'vector_plot.png'}")
+    print(f"  Maillage : {case_path / 'mesh_style_plot.png'}")
+    print(f"  Stats    : {case_path / 'all_stats.json'}")
+    print(f"  Données  : {case_path / 'cell_data.csv'}")
     print("=" * 60)
 
 

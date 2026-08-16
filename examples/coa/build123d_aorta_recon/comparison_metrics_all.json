@@ -1,0 +1,44 @@
+{
+  "sweep_direct": {
+    "stl_vertices": 130280,
+    "stl_faces": 260560,
+    "stl_volume": null,
+    "stl_area": 0.025150440505897435,
+    "cad_vertices": 8064,
+    "cad_faces": 16124,
+    "cad_volume": 4.279790318772721e-06,
+    "cad_area": 0.0029106059555560624,
+    "hausdorff_distance": 0.053166132758870076,
+    "mean_distance": 0.013925866697478933,
+    "volume_ratio": null,
+    "area_ratio": 8.640963733990752
+  },
+  "loft_oriented": {
+    "stl_vertices": 130280,
+    "stl_faces": 260560,
+    "stl_volume": null,
+    "stl_area": 0.025150440505897435,
+    "cad_vertices": 16750,
+    "cad_faces": 33496,
+    "cad_volume": 4.068931737721203e-06,
+    "cad_area": 0.002785138034184219,
+    "hausdorff_distance": 0.0533912383377034,
+    "mean_distance": 0.013984173667775619,
+    "volume_ratio": null,
+    "area_ratio": 9.030231247861337
+  },
+  "sweep_vanilla": {
+    "stl_vertices": 130280,
+    "stl_faces": 260560,
+    "stl_volume": null,
+    "stl_area": 0.025150440505897435,
+    "cad_vertices": 37814,
+    "cad_faces": 75624,
+    "cad_volume": 2.5406956676202473e-07,
+    "cad_area": 0.0018854624481722533,
+    "hausdorff_distance": 0.053389391000934525,
+    "mean_distance": 0.014494352209556405,
+    "volume_ratio": null,
+    "area_ratio": 13.339136258204451
+  }
+}
