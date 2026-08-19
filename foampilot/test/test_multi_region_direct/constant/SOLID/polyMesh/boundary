@@ -15,20 +15,48 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-2
+6
 (
-    inlet
+    buildings
     {
         type            patch;
         nFaces          68;
         startFace       1191;
     }
 
+    side_right
+    {
+        type            patch;
+        nFaces          68;
+        startFace       1259;
+    }
+
+    ground
+    {
+        type            patch;
+        nFaces          66;
+        startFace       1327;
+    }
+
     outlet
     {
         type            patch;
-        nFaces          334;
-        startFace       1259;
+        nFaces          66;
+        startFace       1393;
+    }
+
+    side_left
+    {
+        type            patch;
+        nFaces          68;
+        startFace       1459;
+    }
+
+    top
+    {
+        type            patch;
+        nFaces          66;
+        startFace       1527;
     }
 
 )

@@ -15,13 +15,48 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-1
+6
 (
+    top
+    {
+        type            patch;
+        nFaces          66;
+        startFace       1250;
+    }
+
+    side_right
+    {
+        type            patch;
+        nFaces          66;
+        startFace       1316;
+    }
+
+    ground
+    {
+        type            patch;
+        nFaces          68;
+        startFace       1382;
+    }
+
     inlet
     {
         type            patch;
-        nFaces          400;
-        startFace       1250;
+        nFaces          66;
+        startFace       1450;
+    }
+
+    buildings
+    {
+        type            patch;
+        nFaces          66;
+        startFace       1516;
+    }
+
+    side_left
+    {
+        type            patch;
+        nFaces          68;
+        startFace       1582;
     }
 
 )

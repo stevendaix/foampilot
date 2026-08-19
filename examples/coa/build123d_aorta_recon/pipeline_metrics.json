@@ -1,14 +1,14 @@
 {
   "metrics": {
     "sweep": {
-      "hausdorff_mm": 42.668845336885084,
-      "mean_distance_mm": 12.219025294013134,
+      "hausdorff_mm": 42.89773486439496,
+      "mean_distance_mm": 12.330245194211074,
       "cad_volume": 5.1428334469187585e-06,
       "ref_volume": null
     },
     "loft_stl": {
-      "hausdorff_mm": 35.512760184287394,
-      "mean_distance_mm": 8.164265677950596,
+      "hausdorff_mm": 36.765663803228996,
+      "mean_distance_mm": 8.094957761255513,
       "cad_volume": 6.240137014304791e-05,
       "ref_volume": null
     }

@@ -45,3 +45,6 @@ __pycache__/
 *.bbl
 *.blg
 
+# === Embedded git repositories ===
+/test/vmtk-test-data/
+
