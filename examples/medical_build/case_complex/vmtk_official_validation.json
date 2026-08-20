@@ -1,0 +1,100 @@
+{
+  "surface": {
+    "points": 6468,
+    "cells": 12932,
+    "bounds": [
+      205.61859130859375,
+      239.92254638671875,
+      97.6685791015625,
+      181.62542724609375,
+      12.454675674438477,
+      35.359859466552734
+    ]
+  },
+  "centerline": {
+    "points": 409,
+    "cells": 2
+  },
+  "branches": {
+    "points": 417,
+    "cells": 6
+  },
+  "references": {
+    "aorta-surface.stl": true,
+    "aorta-surface-open-ends.stl": true,
+    "aorta-surface-branch-split.vtp": true,
+    "aorta-surface-connectivity-reference.stl": true,
+    "aorta-surface-segment-2.stl": true,
+    "aorta-centerline-attribute-branches.vtp": true,
+    "aorta-centerline-referencesystem.vtp": true,
+    "aorta-mesh.vtu": true
+  },
+  "sample_plane_intersections": [
+    {
+      "point_id": 0,
+      "points": 294,
+      "cells": 294
+    },
+    {
+      "point_id": 34,
+      "points": 301,
+      "cells": 301
+    },
+    {
+      "point_id": 68,
+      "points": 298,
+      "cells": 298
+    },
+    {
+      "point_id": 102,
+      "points": 329,
+      "cells": 329
+    },
+    {
+      "point_id": 136,
+      "points": 366,
+      "cells": 366
+    },
+    {
+      "point_id": 170,
+      "points": 182,
+      "cells": 182
+    },
+    {
+      "point_id": 204,
+      "points": 141,
+      "cells": 141
+    },
+    {
+      "point_id": 238,
+      "points": 298,
+      "cells": 298
+    },
+    {
+      "point_id": 272,
+      "points": 299,
+      "cells": 299
+    },
+    {
+      "point_id": 306,
+      "points": 344,
+      "cells": 344
+    },
+    {
+      "point_id": 340,
+      "points": 389,
+      "cells": 389
+    },
+    {
+      "point_id": 374,
+      "points": 211,
+      "cells": 211
+    },
+    {
+      "point_id": 408,
+      "points": 152,
+      "cells": 152
+    }
+  ],
+  "elapsed_seconds": 0.295557
+}
