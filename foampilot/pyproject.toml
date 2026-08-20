@@ -47,6 +47,7 @@ dependencies = [
   "build123d",
   "typst",
   "scikit-image",
+  "networkx>=3.0",
   "nibabel",
   "trimesh",
   "pyfqmr",
