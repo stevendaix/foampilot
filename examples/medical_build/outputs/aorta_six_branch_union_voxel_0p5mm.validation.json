@@ -1,0 +1,28 @@
+{
+  "file": "/tmp/vmtk_six_voxel_union_closing/aorta_union_pitch_0.5_closing_1.stl",
+  "vertices": 30016,
+  "faces": 60032,
+  "components": 1,
+  "component_faces": [
+    60032
+  ],
+  "boundary_edges": 0,
+  "nonmanifold_edges": 0,
+  "watertight": true,
+  "winding_consistent": true,
+  "finite": true,
+  "volume": 11238.098958333334,
+  "area": 5643.666558334706,
+  "bounds": [
+    [
+      205.75,
+      101.25,
+      13.25
+    ],
+    [
+      239.75,
+      178.25,
+      34.75
+    ]
+  ]
+}
