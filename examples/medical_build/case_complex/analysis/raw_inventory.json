@@ -1,0 +1,160 @@
+{
+  "source_campaign": "/home/ubuntu/vmtk_audit_extract/medical_build_complex_source_cap4",
+  "points": 1694,
+  "lines": 8,
+  "point_arrays": [
+    "Abscissas",
+    "Blanking",
+    "CenterlineIds",
+    "Curvature",
+    "EdgeArray",
+    "EdgePCoordArray",
+    "FrenetTangent",
+    "GroupIds",
+    "MaximumInscribedSphereRadius",
+    "ParallelTransportBinormals",
+    "ParallelTransportNormals",
+    "Torsion",
+    "Tortuosity",
+    "TraceCellIds",
+    "TracePCoords",
+    "TractIds"
+  ],
+  "branches": [
+    {
+      "branch_id": 0,
+      "n_points": 263,
+      "length": 259.5920557744265,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -86.21701049804688,
+        199.35084533691406,
+        0.3426187336444855
+      ]
+    },
+    {
+      "branch_id": 1,
+      "n_points": 282,
+      "length": 278.44281688048966,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -88.29796600341797,
+        210.99215698242188,
+        0.04533877223730087
+      ]
+    },
+    {
+      "branch_id": 2,
+      "n_points": 287,
+      "length": 282.6547357356679,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -84.1793441772461,
+        215.20106506347656,
+        0.36481648683547974
+      ]
+    },
+    {
+      "branch_id": 3,
+      "n_points": 257,
+      "length": 253.50561499097316,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -37.598331451416016,
+        -24.42308235168457,
+        42.74538803100586
+      ]
+    },
+    {
+      "branch_id": 4,
+      "n_points": 96,
+      "length": 93.59518992765287,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -114.3180160522461,
+        11.016538619995117,
+        49.194889068603516
+      ]
+    },
+    {
+      "branch_id": 5,
+      "n_points": 205,
+      "length": 202.25211001492664,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -72.85195922851562,
+        19.584253311157227,
+        49.14260482788086
+      ]
+    },
+    {
+      "branch_id": 6,
+      "n_points": 135,
+      "length": 131.69807496632362,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -114.4818115234375,
+        56.88560485839844,
+        49.3513069152832
+      ]
+    },
+    {
+      "branch_id": 7,
+      "n_points": 169,
+      "length": 166.22952314436554,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -68.95539093017578,
+        94.6186752319336,
+        49.331153869628906
+      ]
+    }
+  ],
+  "files": [
+    "branch_00.npz",
+    "branch_01.npz",
+    "branch_02.npz",
+    "branch_03.npz",
+    "branch_04.npz",
+    "branch_05.npz",
+    "branch_06.npz",
+    "branch_07.npz",
+    "centerlines.vtp",
+    "medical_build_vmtk_diagnostics.json",
+    "preprocess_quality.json",
+    "summary.json",
+    "topology.json"
+  ]
+}

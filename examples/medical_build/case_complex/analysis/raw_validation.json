@@ -1,0 +1,1254 @@
+{
+  "branches": 8,
+  "all_ok": true,
+  "results": [
+    {
+      "file": "branch_00.npz",
+      "ok": true,
+      "arrays": {
+        "points": {
+          "shape": [
+            263,
+            3
+          ],
+          "finite": true
+        },
+        "Abscissas": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "Blanking": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "CenterlineIds": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "Curvature": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "EdgeArray": {
+          "shape": [
+            263,
+            2
+          ],
+          "finite": true
+        },
+        "EdgePCoordArray": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 0.996,
+          "in_01": true
+        },
+        "FrenetTangent": {
+          "shape": [
+            263,
+            3
+          ],
+          "finite": true
+        },
+        "GroupIds": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "MaximumInscribedSphereRadius": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "ParallelTransportBinormals": {
+          "shape": [
+            263,
+            3
+          ],
+          "finite": true
+        },
+        "ParallelTransportNormals": {
+          "shape": [
+            263,
+            3
+          ],
+          "finite": true
+        },
+        "Torsion": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "Tortuosity": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "TraceCellIds": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        },
+        "TracePCoords": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 1.0,
+          "in_01": true
+        },
+        "TractIds": {
+          "shape": [
+            263,
+            1
+          ],
+          "finite": true
+        }
+      },
+      "points_shape": [
+        263,
+        3
+      ],
+      "finite_points": true
+    },
+    {
+      "file": "branch_01.npz",
+      "ok": true,
+      "arrays": {
+        "points": {
+          "shape": [
+            282,
+            3
+          ],
+          "finite": true
+        },
+        "Abscissas": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "Blanking": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "CenterlineIds": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "Curvature": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "EdgeArray": {
+          "shape": [
+            282,
+            2
+          ],
+          "finite": true
+        },
+        "EdgePCoordArray": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 0.996,
+          "in_01": true
+        },
+        "FrenetTangent": {
+          "shape": [
+            282,
+            3
+          ],
+          "finite": true
+        },
+        "GroupIds": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "MaximumInscribedSphereRadius": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "ParallelTransportBinormals": {
+          "shape": [
+            282,
+            3
+          ],
+          "finite": true
+        },
+        "ParallelTransportNormals": {
+          "shape": [
+            282,
+            3
+          ],
+          "finite": true
+        },
+        "Torsion": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "Tortuosity": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "TraceCellIds": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        },
+        "TracePCoords": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 1.0,
+          "in_01": true
+        },
+        "TractIds": {
+          "shape": [
+            282,
+            1
+          ],
+          "finite": true
+        }
+      },
+      "points_shape": [
+        282,
+        3
+      ],
+      "finite_points": true
+    },
+    {
+      "file": "branch_02.npz",
+      "ok": true,
+      "arrays": {
+        "points": {
+          "shape": [
+            287,
+            3
+          ],
+          "finite": true
+        },
+        "Abscissas": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "Blanking": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "CenterlineIds": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "Curvature": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "EdgeArray": {
+          "shape": [
+            287,
+            2
+          ],
+          "finite": true
+        },
+        "EdgePCoordArray": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 0.996,
+          "in_01": true
+        },
+        "FrenetTangent": {
+          "shape": [
+            287,
+            3
+          ],
+          "finite": true
+        },
+        "GroupIds": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "MaximumInscribedSphereRadius": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "ParallelTransportBinormals": {
+          "shape": [
+            287,
+            3
+          ],
+          "finite": true
+        },
+        "ParallelTransportNormals": {
+          "shape": [
+            287,
+            3
+          ],
+          "finite": true
+        },
+        "Torsion": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "Tortuosity": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "TraceCellIds": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        },
+        "TracePCoords": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 1.0,
+          "in_01": true
+        },
+        "TractIds": {
+          "shape": [
+            287,
+            1
+          ],
+          "finite": true
+        }
+      },
+      "points_shape": [
+        287,
+        3
+      ],
+      "finite_points": true
+    },
+    {
+      "file": "branch_03.npz",
+      "ok": true,
+      "arrays": {
+        "points": {
+          "shape": [
+            257,
+            3
+          ],
+          "finite": true
+        },
+        "Abscissas": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "Blanking": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "CenterlineIds": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "Curvature": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "EdgeArray": {
+          "shape": [
+            257,
+            2
+          ],
+          "finite": true
+        },
+        "EdgePCoordArray": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 0.996,
+          "in_01": true
+        },
+        "FrenetTangent": {
+          "shape": [
+            257,
+            3
+          ],
+          "finite": true
+        },
+        "GroupIds": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "MaximumInscribedSphereRadius": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "ParallelTransportBinormals": {
+          "shape": [
+            257,
+            3
+          ],
+          "finite": true
+        },
+        "ParallelTransportNormals": {
+          "shape": [
+            257,
+            3
+          ],
+          "finite": true
+        },
+        "Torsion": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "Tortuosity": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "TraceCellIds": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        },
+        "TracePCoords": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 1.0,
+          "in_01": true
+        },
+        "TractIds": {
+          "shape": [
+            257,
+            1
+          ],
+          "finite": true
+        }
+      },
+      "points_shape": [
+        257,
+        3
+      ],
+      "finite_points": true
+    },
+    {
+      "file": "branch_04.npz",
+      "ok": true,
+      "arrays": {
+        "points": {
+          "shape": [
+            96,
+            3
+          ],
+          "finite": true
+        },
+        "Abscissas": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "Blanking": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "CenterlineIds": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "Curvature": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "EdgeArray": {
+          "shape": [
+            96,
+            2
+          ],
+          "finite": true
+        },
+        "EdgePCoordArray": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 0.996,
+          "in_01": true
+        },
+        "FrenetTangent": {
+          "shape": [
+            96,
+            3
+          ],
+          "finite": true
+        },
+        "GroupIds": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "MaximumInscribedSphereRadius": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "ParallelTransportBinormals": {
+          "shape": [
+            96,
+            3
+          ],
+          "finite": true
+        },
+        "ParallelTransportNormals": {
+          "shape": [
+            96,
+            3
+          ],
+          "finite": true
+        },
+        "Torsion": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "Tortuosity": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "TraceCellIds": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        },
+        "TracePCoords": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 1.0,
+          "in_01": true
+        },
+        "TractIds": {
+          "shape": [
+            96,
+            1
+          ],
+          "finite": true
+        }
+      },
+      "points_shape": [
+        96,
+        3
+      ],
+      "finite_points": true
+    },
+    {
+      "file": "branch_05.npz",
+      "ok": true,
+      "arrays": {
+        "points": {
+          "shape": [
+            205,
+            3
+          ],
+          "finite": true
+        },
+        "Abscissas": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "Blanking": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "CenterlineIds": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "Curvature": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "EdgeArray": {
+          "shape": [
+            205,
+            2
+          ],
+          "finite": true
+        },
+        "EdgePCoordArray": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 0.996,
+          "in_01": true
+        },
+        "FrenetTangent": {
+          "shape": [
+            205,
+            3
+          ],
+          "finite": true
+        },
+        "GroupIds": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "MaximumInscribedSphereRadius": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "ParallelTransportBinormals": {
+          "shape": [
+            205,
+            3
+          ],
+          "finite": true
+        },
+        "ParallelTransportNormals": {
+          "shape": [
+            205,
+            3
+          ],
+          "finite": true
+        },
+        "Torsion": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "Tortuosity": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "TraceCellIds": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        },
+        "TracePCoords": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 1.0,
+          "in_01": true
+        },
+        "TractIds": {
+          "shape": [
+            205,
+            1
+          ],
+          "finite": true
+        }
+      },
+      "points_shape": [
+        205,
+        3
+      ],
+      "finite_points": true
+    },
+    {
+      "file": "branch_06.npz",
+      "ok": true,
+      "arrays": {
+        "points": {
+          "shape": [
+            135,
+            3
+          ],
+          "finite": true
+        },
+        "Abscissas": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "Blanking": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "CenterlineIds": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "Curvature": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "EdgeArray": {
+          "shape": [
+            135,
+            2
+          ],
+          "finite": true
+        },
+        "EdgePCoordArray": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 0.996,
+          "in_01": true
+        },
+        "FrenetTangent": {
+          "shape": [
+            135,
+            3
+          ],
+          "finite": true
+        },
+        "GroupIds": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "MaximumInscribedSphereRadius": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "ParallelTransportBinormals": {
+          "shape": [
+            135,
+            3
+          ],
+          "finite": true
+        },
+        "ParallelTransportNormals": {
+          "shape": [
+            135,
+            3
+          ],
+          "finite": true
+        },
+        "Torsion": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "Tortuosity": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "TraceCellIds": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        },
+        "TracePCoords": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 1.0,
+          "in_01": true
+        },
+        "TractIds": {
+          "shape": [
+            135,
+            1
+          ],
+          "finite": true
+        }
+      },
+      "points_shape": [
+        135,
+        3
+      ],
+      "finite_points": true
+    },
+    {
+      "file": "branch_07.npz",
+      "ok": true,
+      "arrays": {
+        "points": {
+          "shape": [
+            169,
+            3
+          ],
+          "finite": true
+        },
+        "Abscissas": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "Blanking": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "CenterlineIds": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "Curvature": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "EdgeArray": {
+          "shape": [
+            169,
+            2
+          ],
+          "finite": true
+        },
+        "EdgePCoordArray": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 0.996,
+          "in_01": true
+        },
+        "FrenetTangent": {
+          "shape": [
+            169,
+            3
+          ],
+          "finite": true
+        },
+        "GroupIds": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "MaximumInscribedSphereRadius": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "ParallelTransportBinormals": {
+          "shape": [
+            169,
+            3
+          ],
+          "finite": true
+        },
+        "ParallelTransportNormals": {
+          "shape": [
+            169,
+            3
+          ],
+          "finite": true
+        },
+        "Torsion": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "Tortuosity": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "TraceCellIds": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        },
+        "TracePCoords": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true,
+          "min": 0.0,
+          "max": 1.0,
+          "in_01": true
+        },
+        "TractIds": {
+          "shape": [
+            169,
+            1
+          ],
+          "finite": true
+        }
+      },
+      "points_shape": [
+        169,
+        3
+      ],
+      "finite_points": true
+    }
+  ],
+  "inventory": {
+    "source_campaign": "/home/ubuntu/vmtk_audit_extract/medical_build_complex_source_cap4",
+    "points": 1694,
+    "lines": 8,
+    "point_arrays": [
+      "Abscissas",
+      "Blanking",
+      "CenterlineIds",
+      "Curvature",
+      "EdgeArray",
+      "EdgePCoordArray",
+      "FrenetTangent",
+      "GroupIds",
+      "MaximumInscribedSphereRadius",
+      "ParallelTransportBinormals",
+      "ParallelTransportNormals",
+      "Torsion",
+      "Tortuosity",
+      "TraceCellIds",
+      "TracePCoords",
+      "TractIds"
+    ],
+    "branches": [
+      {
+        "branch_id": 0,
+        "n_points": 263,
+        "length": 259.5920557744265,
+        "start": [
+          -122.81626892089844,
+          -24.47833824157715,
+          47.47580337524414
+        ],
+        "end": [
+          -86.21701049804688,
+          199.35084533691406,
+          0.3426187336444855
+        ]
+      },
+      {
+        "branch_id": 1,
+        "n_points": 282,
+        "length": 278.44281688048966,
+        "start": [
+          -122.81626892089844,
+          -24.47833824157715,
+          47.47580337524414
+        ],
+        "end": [
+          -88.29796600341797,
+          210.99215698242188,
+          0.04533877223730087
+        ]
+      },
+      {
+        "branch_id": 2,
+        "n_points": 287,
+        "length": 282.6547357356679,
+        "start": [
+          -122.81626892089844,
+          -24.47833824157715,
+          47.47580337524414
+        ],
+        "end": [
+          -84.1793441772461,
+          215.20106506347656,
+          0.36481648683547974
+        ]
+      },
+      {
+        "branch_id": 3,
+        "n_points": 257,
+        "length": 253.50561499097316,
+        "start": [
+          -122.81626892089844,
+          -24.47833824157715,
+          47.47580337524414
+        ],
+        "end": [
+          -37.598331451416016,
+          -24.42308235168457,
+          42.74538803100586
+        ]
+      },
+      {
+        "branch_id": 4,
+        "n_points": 96,
+        "length": 93.59518992765287,
+        "start": [
+          -122.81626892089844,
+          -24.47833824157715,
+          47.47580337524414
+        ],
+        "end": [
+          -114.3180160522461,
+          11.016538619995117,
+          49.194889068603516
+        ]
+      },
+      {
+        "branch_id": 5,
+        "n_points": 205,
+        "length": 202.25211001492664,
+        "start": [
+          -122.81626892089844,
+          -24.47833824157715,
+          47.47580337524414
+        ],
+        "end": [
+          -72.85195922851562,
+          19.584253311157227,
+          49.14260482788086
+        ]
+      },
+      {
+        "branch_id": 6,
+        "n_points": 135,
+        "length": 131.69807496632362,
+        "start": [
+          -122.81626892089844,
+          -24.47833824157715,
+          47.47580337524414
+        ],
+        "end": [
+          -114.4818115234375,
+          56.88560485839844,
+          49.3513069152832
+        ]
+      },
+      {
+        "branch_id": 7,
+        "n_points": 169,
+        "length": 166.22952314436554,
+        "start": [
+          -122.81626892089844,
+          -24.47833824157715,
+          47.47580337524414
+        ],
+        "end": [
+          -68.95539093017578,
+          94.6186752319336,
+          49.331153869628906
+        ]
+      }
+    ],
+    "files": [
+      "branch_00.npz",
+      "branch_01.npz",
+      "branch_02.npz",
+      "branch_03.npz",
+      "branch_04.npz",
+      "branch_05.npz",
+      "branch_06.npz",
+      "branch_07.npz",
+      "centerlines.vtp",
+      "medical_build_vmtk_diagnostics.json",
+      "preprocess_quality.json",
+      "summary.json",
+      "topology.json"
+    ]
+  }
+}

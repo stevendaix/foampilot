@@ -1,0 +1,102 @@
+{
+  "branches": [
+    {
+      "branch_id": 0,
+      "ok": true,
+      "n_sections_total": 100,
+      "sections_used": 20,
+      "blocks": 152,
+      "vertices": 319,
+      "time_s": 0.6111273439601064,
+      "blockMeshDict": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_00_ogrid_blockMeshDict",
+      "debug_vtk": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_00_ogrid_debug.vtk"
+    },
+    {
+      "branch_id": 1,
+      "ok": true,
+      "n_sections_total": 100,
+      "sections_used": 20,
+      "blocks": 152,
+      "vertices": 319,
+      "time_s": 0.431557166040875,
+      "blockMeshDict": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_01_ogrid_blockMeshDict",
+      "debug_vtk": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_01_ogrid_debug.vtk"
+    },
+    {
+      "branch_id": 2,
+      "ok": true,
+      "n_sections_total": 100,
+      "sections_used": 20,
+      "blocks": 152,
+      "vertices": 319,
+      "time_s": 0.5566377139184624,
+      "blockMeshDict": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_02_ogrid_blockMeshDict",
+      "debug_vtk": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_02_ogrid_debug.vtk"
+    },
+    {
+      "branch_id": 3,
+      "ok": true,
+      "n_sections_total": 100,
+      "sections_used": 20,
+      "blocks": 152,
+      "vertices": 319,
+      "time_s": 0.6833258039550856,
+      "blockMeshDict": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_03_ogrid_blockMeshDict",
+      "debug_vtk": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_03_ogrid_debug.vtk"
+    },
+    {
+      "branch_id": 4,
+      "ok": true,
+      "n_sections_total": 100,
+      "sections_used": 20,
+      "blocks": 152,
+      "vertices": 319,
+      "time_s": 0.4511936081107706,
+      "blockMeshDict": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_04_ogrid_blockMeshDict",
+      "debug_vtk": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_04_ogrid_debug.vtk"
+    },
+    {
+      "branch_id": 5,
+      "ok": true,
+      "n_sections_total": 100,
+      "sections_used": 20,
+      "blocks": 152,
+      "vertices": 319,
+      "time_s": 0.6411719339666888,
+      "blockMeshDict": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_05_ogrid_blockMeshDict",
+      "debug_vtk": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_05_ogrid_debug.vtk"
+    },
+    {
+      "branch_id": 6,
+      "ok": true,
+      "n_sections_total": 100,
+      "sections_used": 20,
+      "blocks": 152,
+      "vertices": 319,
+      "time_s": 0.5523366930428892,
+      "blockMeshDict": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_06_ogrid_blockMeshDict",
+      "debug_vtk": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_06_ogrid_debug.vtk"
+    },
+    {
+      "branch_id": 7,
+      "ok": true,
+      "n_sections_total": 100,
+      "sections_used": 20,
+      "blocks": 152,
+      "vertices": 319,
+      "time_s": 0.572353212046437,
+      "blockMeshDict": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_07_ogrid_blockMeshDict",
+      "debug_vtk": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/classy_blocks_benchmark/branch_07_ogrid_debug.vtk"
+    }
+  ],
+  "parameters": {
+    "stations": 20,
+    "radial_sectors": 8,
+    "inner_scale": 0.35,
+    "cells_per_block": [
+      2,
+      2,
+      4
+    ]
+  }
+}

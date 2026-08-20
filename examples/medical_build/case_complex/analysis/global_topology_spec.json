@@ -1,0 +1,29 @@
+{
+  "schema": "foampilot.medical_build.global_blockmesh.v1",
+  "source_cap_id": 4,
+  "target_cap_ids": [0, 1, 2, 3, 5, 6, 7, 8],
+  "branch_ids": [0, 1, 2, 3, 4, 5, 6, 7],
+  "global_domain_required": true,
+  "branch_components_must_be_connected": true,
+  "junction": {
+    "required": true,
+    "type": "multi_block_ported_core",
+    "ports": 8,
+    "radial_sectors": 8,
+    "must_share_faces": true,
+    "allow_disconnected_fallback": false
+  },
+  "patches": {
+    "inlet": {"cap_id": 4, "type": "patch"},
+    "outlets": [0, 1, 2, 3, 5, 6, 7, 8],
+    "wall": {"type": "wall"}
+  },
+  "validation": {
+    "require_single_component": true,
+    "max_face_usage": 2,
+    "terminal_face_usage": 1,
+    "internal_face_usage": 2,
+    "reject_degenerate_blocks": true,
+    "reject_non_manifold_faces": true
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "ok": true,
+  "n_vertices": 2545,
+  "n_blocks": 1200,
+  "internal_faces": 2328,
+  "boundary_faces": 2544,
+  "nonmanifold_faces": 0,
+  "degenerate_blocks": [],
+  "components": [
+    150,
+    150,
+    150,
+    150,
+    150,
+    150,
+    150,
+    150
+  ],
+  "connected": false,
+  "connected_required_result": {
+    "ok": false,
+    "n_vertices": 2545,
+    "n_blocks": 1200,
+    "internal_faces": 2328,
+    "boundary_faces": 2544,
+    "nonmanifold_faces": 0,
+    "degenerate_blocks": [],
+    "components": [
+      150,
+      150,
+      150,
+      150,
+      150,
+      150,
+      150,
+      150
+    ],
+    "connected": false
+  },
+  "skipped_blocks": [
+    {
+      "branch_id": 0,
+      "sector": 0,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 0,
+      "sector": 7,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 1,
+      "sector": 0,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 1,
+      "sector": 7,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 2,
+      "sector": 0,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 2,
+      "sector": 7,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 3,
+      "sector": 0,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 3,
+      "sector": 7,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 4,
+      "sector": 0,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 4,
+      "sector": 7,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 5,
+      "sector": 0,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 5,
+      "sector": 7,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 6,
+      "sector": 0,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 6,
+      "sector": 7,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 7,
+      "sector": 0,
+      "error": "degenerate block with repeated vertices"
+    },
+    {
+      "branch_id": 7,
+      "sector": 7,
+      "error": "degenerate block with repeated vertices"
+    }
+  ]
+}
