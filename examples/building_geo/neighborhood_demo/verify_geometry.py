@@ -5,7 +5,7 @@ Compares raw footprints from HDF5 with processed individual footprints
 after cleaning, simplification, and filtering.
 
 Usage:
-    PYTHONPATH=../../foampilot/src:. python3 verify_geometry.py \
+    PYTHONPATH=../../../src:. python3 verify_geometry.py \
         --hdf5 output/voxcity.h5 \
         --output geometry_verification.png \
         --mesh-size 5.0
@@ -15,7 +15,7 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent / "voxcity_export_work" / "src"))
 
 import numpy as np

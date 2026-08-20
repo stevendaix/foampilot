@@ -13,7 +13,7 @@ from typing import Optional
 
 import gmsh
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from build123d import Solid
 

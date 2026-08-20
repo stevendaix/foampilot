@@ -6,7 +6,7 @@ Downloads building footprints from OSM for a given place name,
 builds an UrbanModel, and generates a CFD case with foampilot.urban.
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 osm_neighborhood_example.py \
+    PYTHONPATH=../../src python3 osm_neighborhood_example.py \
         --place "Paris, France" \
         --distance 500 \
         --direction 270 \
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot import Meshing, FluidMechanics, ValueWithUnit
 from foampilot.solver import Solver

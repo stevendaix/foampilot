@@ -3,7 +3,7 @@
 Generate and run a single wind direction CFD case.
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 run_single_wind_case.py \
+    PYTHONPATH=../../src python3 run_single_wind_case.py \
         --direction 270 \
         --speed 10.0 \
         --z0 0.3 \
@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot import Meshing, FluidMechanics, ValueWithUnit
 from foampilot.solver import Solver
@@ -455,7 +455,7 @@ def main():
         run_case(case_dir, nb_proc=args.nb_proc, sigfpe=args.sigfpe)
     else:
         print(f"\nCase generated but not run: {case_dir}")
-        print(f"To run later: PYTHONPATH=../../foampilot/src python3 run_all_cases.py --cases-dir {output_dir}")
+        print(f"To run later: PYTHONPATH=../../src python3 run_all_cases.py --cases-dir {output_dir}")
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ Produces a complete OpenFOAM case for 1 building so that checkMesh passes.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot.urban import (
     Building,

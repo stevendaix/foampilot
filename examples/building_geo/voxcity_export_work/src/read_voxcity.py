@@ -3,7 +3,7 @@
 Read VoxCity model and extract data for CFD geometry generation.
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 src/read_voxcity.py \
+    PYTHONPATH=../../../src python3 src/read_voxcity.py \
         --output output/voxcity_test \
         --meshsize 5.0 \
         --use-voxcity \
@@ -14,7 +14,7 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "src"))
 
 from foampilot.urban.readers.voxcity_reader import VoxCityReader
 

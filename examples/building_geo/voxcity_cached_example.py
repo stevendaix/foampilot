@@ -6,7 +6,7 @@ This script loads a pre-downloaded VoxCity HDF5 model and converts it
 to OpenFOAM using the vector Gmsh path (no STL).
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 voxcity_cached_example.py \
+    PYTHONPATH=../../src python3 voxcity_cached_example.py \
         --hdf5 /home/steven/foampilot/output/voxcity_test/voxcity.h5 \
         --output cases/voxcity_cached_demo
 """
@@ -14,7 +14,7 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 import h5py
 import numpy as np

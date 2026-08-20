@@ -52,11 +52,11 @@ Construire un exemple complet et fonctionnel d'urban CFD dans `examples/building
 cd /home/steven/foampilot/examples/building_geo/neighborhood_demo
 
 # Utiliser un HDF5 local (pas de téléchargement)
-PYTHONPATH=../../foampilot/src:../voxcity_export_work/src:. python3 generate.py --voxcity-h5 output/voxcity.h5 --skip-run --mesh-constraint proximity
+PYTHONPATH=../../src:../voxcity_export_work/src:. python3 generate.py --voxcity-h5 output/voxcity.h5 --skip-run --mesh-constraint proximity
 
 # Lancer la simulation via foampilot
-PYTHONPATH=../../foampilot/src:../voxcity_export_work/src:. python3 generate.py --voxcity-h5 output/voxcity.h5
+PYTHONPATH=../../src:../voxcity_export_work/src:. python3 generate.py --voxcity-h5 output/voxcity.h5
 
 # Post-traiter un cas existant
-PYTHONPATH=../../foampilot/src python3 postprocess.py --case neighborhood_case
+PYTHONPATH=../../src python3 postprocess.py --case neighborhood_case
 ```

@@ -11,13 +11,13 @@ This script demonstrates the complete chain using real VoxCity data:
     6. Post-process with VoxCity-aware analysis
 
 Usage:
-    PYTHONPATH=../../foampilot/src:../voxcity_export_work/src:. python3 run_full_voxcity_pipeline.py \
+    PYTHONPATH=../../../src:../voxcity_export_work/src:. python3 run_full_voxcity_pipeline.py \
         --hdf5 output/voxcity.h5 \
         --output neighborhood_case \
         --skip-run
 
     # Full run
-    PYTHONPATH=../../foampilot/src:../voxcity_export_work/src:. python3 run_full_voxcity_pipeline.py \
+    PYTHONPATH=../../../src:../voxcity_export_work/src:. python3 run_full_voxcity_pipeline.py \
         --hdf5 output/voxcity.h5 \
         --output neighborhood_case
 """
@@ -30,7 +30,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent / "voxcity_export_work" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 

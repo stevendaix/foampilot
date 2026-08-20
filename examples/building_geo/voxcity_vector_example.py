@@ -11,11 +11,11 @@ This script demonstrates the complete pipeline:
 
 Usage:
     # Synthetic data (no VoxCity/EE cost)
-    PYTHONPATH=../../foampilot/src python3 voxcity_vector_example.py \
+    PYTHONPATH=../../src python3 voxcity_vector_example.py \
         --output cases/voxcity_vector_demo
 
     # Real VoxCity data (requires EE auth)
-    PYTHONPATH=../../foampilot/src python3 voxcity_vector_example.py \
+    PYTHONPATH=../../src python3 voxcity_vector_example.py \
         --use-voxcity \
         --rectangle-vertices 2.3225 48.8515 2.3225 48.8528 2.3240 48.8528 2.3240 48.8515 \
         --output cases/voxcity_vector_demo
@@ -24,7 +24,7 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent / "voxcity_export_work" / "src"))
 
 from foampilot import FluidMechanics, ValueWithUnit

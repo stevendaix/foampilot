@@ -3,7 +3,7 @@
 Post-process a single wind CFD case.
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 wind_postprocess.py \
+    PYTHONPATH=../../src python3 wind_postprocess.py \
         --case cases/wind_270deg \
         --pedestrian-height 1.75
 """
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 import numpy as np
 import pyvista as pv

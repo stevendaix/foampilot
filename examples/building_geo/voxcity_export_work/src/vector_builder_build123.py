@@ -6,7 +6,7 @@ from UrbanModel + CFDTerrain using native Gmsh geometry.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "src"))
 
 import gmsh
 import numpy as np
