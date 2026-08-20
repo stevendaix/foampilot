@@ -1,4 +1,9 @@
 from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
+from foampilot.postprocess.jos3_openfoam import (
+    OpenFOAMJOS3Coupler,
+    NodalThermalExchange,
+    JOS3_SEGMENT_NAMES,
+)
 from foampilot.postprocess.openfoam_direct import (
     OpenFOAMDirectReader,
     CHTDirectReader,

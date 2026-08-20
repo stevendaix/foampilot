@@ -1,0 +1,57 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointScalarField;
+    location    "0";
+    object      qJOS3;
+}
+
+dimensions      [1 -2 -3 0 0 0 0];
+internalField   nonuniform List<scalar>
+34
+(
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+-40
+)
+;
+boundaryField
+{
+    walls
+    {
+        type calculated;
+        value $internalField;
+    }
+}
