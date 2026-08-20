@@ -20,7 +20,10 @@ config = SnappyExportConfig(
 case = MedicalSnappyExporter(config).export(
     patch_dir="analysis/cfd_patches",
     case_dir="case_snappy_aorta",
+    template_case="examples/coa/patient58_cfd_example",
 )
+
+Lorsque `template_case` est fourni, `controlDict`, `fvSchemes`, `fvSolution` et `transportProperties` sont copiés depuis le cas coa et conservés. Le nouvel export remplace uniquement la géométrie STL et les fichiers nécessaires au maillage.
 ```
 
 Le répertoire `patch_dir` doit contenir `inlet.stl`, au moins un fichier `outlet_*.stl` et `wall.stl`. La classe copie ces surfaces vers `constant/triSurface`, crée `blockMeshDict`, `surfaceFeaturesDict`, `snappyHexMeshDict`, les champs `0/U` et `0/p`, ainsi que `constant/transportProperties`.

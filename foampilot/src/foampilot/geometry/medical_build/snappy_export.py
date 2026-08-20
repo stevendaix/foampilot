@@ -64,9 +64,21 @@ class MedicalSnappyExporter:
             + f"dimensions [0 2 -2 0 0 0 0];\ninternalField uniform 0;\nboundaryField\n{{\n    inlet {{ type zeroGradient; }}\n{outlet_p}\n    wall {{ type zeroGradient; }}\n}}\n"
         )
 
-    def export(self, patch_dir: str | Path, case_dir: str | Path) -> Path:
+    def export(self, patch_dir: str | Path, case_dir: str | Path, template_case: str | Path | None = None) -> Path:
         patch_dir = Path(patch_dir)
         case = Path(case_dir)
+        template = Path(template_case) if template_case is not None else None
+        if template is not None:
+            for relative in (
+                Path("constant/transportProperties"),
+                Path("system/controlDict"),
+                Path("system/fvSchemes"),
+                Path("system/fvSolution"),
+            ):
+                source = template / relative
+                if source.exists():
+                    (case / relative).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(source, case / relative)
         tri = case / "constant" / "triSurface"
         tri.mkdir(parents=True, exist_ok=True)
         (case / "system").mkdir(parents=True, exist_ok=True)
@@ -101,5 +113,6 @@ class MedicalSnappyExporter:
         mesher.write_block_mesh_dict(padding=self.config.padding, base_cell_size=self.config.base_cell_size)
         mesher.write_surface_features_dict(patch_names, included_angle=30)
         mesher.write()
-        self._write_fields(case, [path.stem for path in outlet_files])
+        if template is None:
+            self._write_fields(case, [path.stem for path in outlet_files])
         return case
