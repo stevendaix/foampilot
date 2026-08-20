@@ -1,0 +1,40 @@
+{
+  "reference": {
+    "file": "/tmp/vmtk-test-data/input/aorta-surface.stl",
+    "points": 6468,
+    "cells": 12932,
+    "area": 4517.763081539069,
+    "volume": 13184.266682666812,
+    "boundary_edge_cells": 0,
+    "components": 1,
+    "bounds": [
+      205.61859130859375,
+      239.92254638671875,
+      97.6685791015625,
+      181.62542724609375,
+      12.454675674438477,
+      35.359859466552734
+    ]
+  },
+  "candidate": {
+    "file": "examples/medical_build/outputs/aorta_six_branch_union_voxel_0p5mm.stl",
+    "points": 30016,
+    "cells": 60032,
+    "area": 5643.666558330803,
+    "volume": 11238.098958333707,
+    "boundary_edge_cells": 0,
+    "components": 1,
+    "bounds": [
+      205.75,
+      239.75,
+      101.25,
+      178.25,
+      13.25,
+      34.75
+    ]
+  },
+  "relative_volume_error": -0.14761289127226973,
+  "relative_area_error": 0.24921702543289892,
+  "vtk_version": "9.6.2",
+  "vmtk_module": "/usr/local/lib/python3.12/dist-packages/vmtk/vtkvmtk.py"
+}
