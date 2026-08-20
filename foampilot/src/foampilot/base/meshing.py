@@ -1,9 +1,5 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from pathlib import Path
-from foampilot.mesh.BlockMeshFile import BlockMesher
-from foampilot.mesh.gmsh_mesher import GmshMesher
-from foampilot.mesh.snappymesh import SnappyMesher
-
 import json
 import subprocess
 from typing import Union, Dict, Any
@@ -38,6 +34,10 @@ class Meshing:
             ValueError: If the provided `mesher` string does not match a 
                 supported meshing backend.
         """
+        from foampilot.mesh.BlockMeshFile import BlockMesher
+        from foampilot.mesh.gmsh_mesher import GmshMesher
+        from foampilot.mesh.snappymesh import SnappyMesher
+
         self.case_path = Path(case_path)
         self.mesher_name = mesher
 

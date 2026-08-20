@@ -53,12 +53,12 @@ dependencies = [
   "pyfqmr",
   "pyacvd",
   "kagglehub",
-  "vmtk",
   "geomdl",
   "opencascade"
 ]
 
 [project.optional-dependencies]
+vmtk-reference = ["vmtk"]
 gnn = [
   "torch>=2.5.0,<2.6.0",
   "torch-scatter",
