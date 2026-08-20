@@ -13,6 +13,7 @@ Le script `medical_build_end_to_end.py` montre le passage du contrat d’analyse
 | Sections détaillées | VTP/VTK | généré par l’exporteur de sections | VTK | Étape section dédiée |
 | CAD | STEP/BREP/STL | généré par `Build123dReconstruction` | Build123d/OCC | Option `--cad` |
 | Surface CFD | STL séparés | `inlet.stl`, `outlet_*.stl`, `wall.stl` | VTK ou pipeline surface | Cas complexe/exporteur |
+| STL direct par sections | STL binaire | `branch_XX.stl`, `aorta_manual_sections.stl` | NumPy | `section_stl_reconstruction.py` |
 | Maillage OpenFOAM | blockMesh | `system/blockMeshDict` | OpenFOAM pour validation | Cas complexe |
 | Maillage OpenFOAM | snappyHexMesh | `system/snappyHexMeshDict` | OpenFOAM | Cas complexe |
 | Validation | JSON/Markdown | `export_manifest.json`, `export_report.md` | Python standard | Toujours |
@@ -33,6 +34,6 @@ Le fichier `analysis_sections.json` complet n’est pas commité dans cet exempl
 
 ## Validation
 
-Après export, vérifier `export_manifest.json`, relire les NPZ avec NumPy et visualiser les VTP/VTK dans ParaView ou PyVista. Pour le CAD, vérifier `is_valid`, l’orientation et le volume signé de chaque branche avant une union globale. Pour OpenFOAM, exécuter `blockMesh`, `surfaceFeatureExtract`, `snappyHexMesh -overwrite` puis `checkMesh`.
+Après export, vérifier `export_manifest.json`, relire les NPZ avec NumPy et visualiser les VTP/VTK dans ParaView ou PyVista. Lorsque les points ordonnés des sections sont disponibles, le STL peut être reconstruit directement sans OCC : `section_stl_reconstruction.py` resample les contours, verrouille leur phase, triangule les bandes et ferme les extrémités. Le résultat doit ensuite être contrôlé par `verify_manual_stl.py` avec fusion des sommets avant de conclure à la fermeture. Pour le CAD, vérifier `is_valid`, l’orientation et le volume signé de chaque branche avant une union globale. Pour OpenFOAM, exécuter `blockMesh`, `surfaceFeatureExtract`, `snappyHexMesh -overwrite` puis `checkMesh`.
 
 Les STL commités dans le cas complexe sont des artefacts de campagne et doivent être contrôlés dans une installation OpenFOAM réelle. La reconstruction propre des caps est fournie par `validation_scripts/rebuild_clean_cfd_stl.py` lorsque la surface non cappée source est disponible.
