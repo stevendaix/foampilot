@@ -1,0 +1,40 @@
+{
+  "reference": {
+    "file": "/tmp/vmtk-test-data/input/aorta-surface.stl",
+    "points": 6468,
+    "cells": 12932,
+    "area": 4517.763081539069,
+    "volume": 13184.266682666812,
+    "boundary_edge_cells": 0,
+    "components": 1,
+    "bounds": [
+      205.61859130859375,
+      239.92254638671875,
+      97.6685791015625,
+      181.62542724609375,
+      12.454675674438477,
+      35.359859466552734
+    ]
+  },
+  "candidate": {
+    "file": "/tmp/vmtk_dense_morph/dense_union_e1.stl",
+    "points": 11917,
+    "cells": 23854,
+    "area": 5128.433701699312,
+    "volume": 13148.384765625,
+    "boundary_edge_cells": 0,
+    "components": 1,
+    "bounds": [
+      206.625,
+      239.625,
+      100.125,
+      178.125,
+      13.875,
+      34.875
+    ]
+  },
+  "relative_volume_error": -0.00272157093795633,
+  "relative_area_error": 0.13517101475631277,
+  "vtk_version": "9.6.2",
+  "vmtk_module": "/usr/local/lib/python3.12/dist-packages/vmtk/vtkvmtk.py"
+}

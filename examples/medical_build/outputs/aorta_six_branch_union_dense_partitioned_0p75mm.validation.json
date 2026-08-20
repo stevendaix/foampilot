@@ -1,0 +1,28 @@
+{
+  "file": "examples/medical_build/outputs/aorta_six_branch_union_dense_partitioned_0p75mm.stl",
+  "vertices": 11917,
+  "faces": 23854,
+  "components": 1,
+  "component_faces": [
+    23854
+  ],
+  "boundary_edges": 0,
+  "nonmanifold_edges": 0,
+  "watertight": true,
+  "winding_consistent": true,
+  "finite": true,
+  "volume": 13148.384765625,
+  "area": 5128.433701699121,
+  "bounds": [
+    [
+      206.625,
+      100.125,
+      13.875
+    ],
+    [
+      239.625,
+      178.125,
+      34.875
+    ]
+  ]
+}
