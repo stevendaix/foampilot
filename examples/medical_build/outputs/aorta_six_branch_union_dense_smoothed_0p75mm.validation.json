@@ -1,0 +1,28 @@
+{
+  "file": "examples/medical_build/outputs/aorta_six_branch_union_dense_smoothed_0p75mm.stl",
+  "vertices": 11917,
+  "faces": 23854,
+  "components": 1,
+  "component_faces": [
+    23854
+  ],
+  "boundary_edges": 0,
+  "nonmanifold_edges": 0,
+  "watertight": true,
+  "winding_consistent": true,
+  "finite": true,
+  "volume": 13142.713523567887,
+  "area": 4770.532422106004,
+  "bounds": [
+    [
+      206.55429077148438,
+      100.18245697021484,
+      13.811697006225586
+    ],
+    [
+      239.6888885498047,
+      178.021240234375,
+      34.85023880004883
+    ]
+  ]
+}
