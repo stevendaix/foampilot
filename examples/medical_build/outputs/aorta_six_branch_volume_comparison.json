@@ -1,0 +1,308 @@
+{
+  "source": "/tmp/vmtk_six_branch_sections/vmtk_real_sections.json",
+  "surface_points": 6468,
+  "surface_cells": 12932,
+  "centerline_points": 417,
+  "branch_count": 6,
+  "branches": [
+    {
+      "branch_id": 0,
+      "section_count": 7,
+      "volume_section_integral": 6369.489108803983,
+      "centerline_length": 33.991819888729935,
+      "area_min": 176.53232819185908,
+      "area_max": 195.53117718203023,
+      "area_mean": 187.03238350772992,
+      "first_point_id": 0,
+      "last_point_id": 77,
+      "first_center": [
+        222.09629821777344,
+        175.86996459960938,
+        21.673107147216797
+      ],
+      "last_center": [
+        222.06471252441406,
+        142.0056915283203,
+        23.631290435791016
+      ]
+    },
+    {
+      "branch_id": 1,
+      "section_count": 2,
+      "volume_section_integral": 676.426414785832,
+      "centerline_length": 3.5512106388505282,
+      "area_min": 189.85627957439112,
+      "area_max": 191.0997857128533,
+      "area_mean": 190.4780326436222,
+      "first_point_id": 78,
+      "last_point_id": 98,
+      "first_center": [
+        222.55067443847656,
+        140.65298461914062,
+        23.771286010742188
+      ],
+      "last_center": [
+        223.72564697265625,
+        137.30274963378906,
+        23.690898895263672
+      ]
+    },
+    {
+      "branch_id": 2,
+      "section_count": 10,
+      "volume_section_integral": 2674.3435559782197,
+      "centerline_length": 33.516943277116944,
+      "area_min": 60.063779531567704,
+      "area_max": 197.41401536048846,
+      "area_mean": 90.20247324884815,
+      "first_point_id": 99,
+      "last_point_id": 214,
+      "first_center": [
+        225.06373596191406,
+        134.7054443359375,
+        23.557090759277344
+      ],
+      "last_center": [
+        234.6387481689453,
+        103.19628143310547,
+        28.619592666625977
+      ]
+    },
+    {
+      "branch_id": 3,
+      "section_count": 7,
+      "volume_section_integral": 6588.227283542143,
+      "centerline_length": 35.09375745886785,
+      "area_min": 176.53232819185908,
+      "area_max": 195.53117718203023,
+      "area_mean": 188.14423078709316,
+      "first_point_id": 215,
+      "last_point_id": 287,
+      "first_center": [
+        222.09629821777344,
+        175.86996459960938,
+        21.673107147216797
+      ],
+      "last_center": [
+        220.890380859375,
+        140.92050170898438,
+        23.996870040893555
+      ]
+    },
+    {
+      "branch_id": 4,
+      "section_count": 3,
+      "volume_section_integral": 1200.1269776715476,
+      "centerline_length": 6.25156150864069,
+      "area_min": 189.2914255517856,
+      "area_max": 198.4125297455333,
+      "area_mean": 192.6650631123707,
+      "first_point_id": 288,
+      "last_point_id": 313,
+      "first_center": [
+        220.890380859375,
+        140.92050170898438,
+        23.996870040893555
+      ],
+      "last_center": [
+        218.7115020751953,
+        135.12928771972656,
+        24.861173629760742
+      ]
+    },
+    {
+      "branch_id": 5,
+      "section_count": 9,
+      "volume_section_integral": 2738.0297686968447,
+      "centerline_length": 32.18085359922757,
+      "area_min": 58.53743067428762,
+      "area_max": 199.04356959563808,
+      "area_mean": 94.92245629625053,
+      "first_point_id": 314,
+      "last_point_id": 416,
+      "first_center": [
+        218.53140258789062,
+        134.76171875,
+        24.90955924987793
+      ],
+      "last_center": [
+        210.587158203125,
+        104.39842224121094,
+        30.726497650146484
+      ]
+    }
+  ],
+  "sum_branch_volume_section_integral": 20246.64310947857,
+  "shared_centerline_point_ids": [],
+  "stl": {
+    "file": "examples/medical_build/outputs/aorta_six_branch_union_voxel_0p5mm.stl",
+    "volume": 11238.098958333334,
+    "watertight": true,
+    "components": 1,
+    "area": 5643.666558334706
+  },
+  "relative_difference_stl_vs_sum_sections": -0.44494013661592324,
+  "networkx": {
+    "nodes": 12,
+    "edges": 18,
+    "connected_components": 1,
+    "degrees": {
+      "('endpoint', 0, 'first')": 2,
+      "('endpoint', 0, 'last')": 5,
+      "('endpoint', 1, 'first')": 4,
+      "('endpoint', 1, 'last')": 5,
+      "('endpoint', 2, 'first')": 2,
+      "('endpoint', 2, 'last')": 1,
+      "('endpoint', 3, 'first')": 2,
+      "('endpoint', 3, 'last')": 5,
+      "('endpoint', 4, 'first')": 5,
+      "('endpoint', 4, 'last')": 2,
+      "('endpoint', 5, 'first')": 2,
+      "('endpoint', 5, 'last')": 1
+    },
+    "is_tree": false,
+    "spatial_contact_threshold": 5.0,
+    "closest_endpoint_pairs": [
+      {
+        "a": 0,
+        "a_end": "first",
+        "b": 3,
+        "b_end": "first",
+        "distance": 0.0
+      },
+      {
+        "a": 3,
+        "a_end": "last",
+        "b": 4,
+        "b_end": "first",
+        "distance": 0.0
+      },
+      {
+        "a": 4,
+        "a_end": "last",
+        "b": 5,
+        "b_end": "first",
+        "distance": 0.41216979640359713
+      },
+      {
+        "a": 0,
+        "a_end": "last",
+        "b": 1,
+        "b_end": "first",
+        "distance": 1.4441515588980476
+      },
+      {
+        "a": 0,
+        "a_end": "last",
+        "b": 3,
+        "b_end": "last",
+        "distance": 1.6402256708059137
+      },
+      {
+        "a": 0,
+        "a_end": "last",
+        "b": 4,
+        "b_end": "first",
+        "distance": 1.6402256708059137
+      },
+      {
+        "a": 1,
+        "a_end": "first",
+        "b": 3,
+        "b_end": "last",
+        "distance": 1.6967699657949153
+      },
+      {
+        "a": 1,
+        "a_end": "first",
+        "b": 4,
+        "b_end": "first",
+        "distance": 1.6967699657949153
+      },
+      {
+        "a": 1,
+        "a_end": "last",
+        "b": 2,
+        "b_end": "first",
+        "distance": 2.9247874402556033
+      },
+      {
+        "a": 1,
+        "a_end": "last",
+        "b": 3,
+        "b_end": "last",
+        "distance": 4.606569477676313
+      },
+      {
+        "a": 1,
+        "a_end": "last",
+        "b": 4,
+        "b_end": "first",
+        "distance": 4.606569477676313
+      },
+      {
+        "a": 0,
+        "a_end": "last",
+        "b": 1,
+        "b_end": "last",
+        "distance": 4.987977433102065
+      },
+      {
+        "a": 1,
+        "a_end": "last",
+        "b": 4,
+        "b_end": "last",
+        "distance": 5.588839655851291
+      },
+      {
+        "a": 1,
+        "a_end": "last",
+        "b": 5,
+        "b_end": "first",
+        "distance": 5.909496234108928
+      },
+      {
+        "a": 3,
+        "a_end": "last",
+        "b": 4,
+        "b_end": "last",
+        "distance": 6.2476149784739805
+      },
+      {
+        "a": 1,
+        "a_end": "first",
+        "b": 2,
+        "b_end": "first",
+        "distance": 6.460231671283624
+      },
+      {
+        "a": 2,
+        "a_end": "first",
+        "b": 4,
+        "b_end": "last",
+        "distance": 6.498549891987287
+      },
+      {
+        "a": 3,
+        "a_end": "last",
+        "b": 5,
+        "b_end": "first",
+        "distance": 6.657956714594071
+      },
+      {
+        "a": 4,
+        "a_end": "first",
+        "b": 5,
+        "b_end": "first",
+        "distance": 6.657956714594071
+      },
+      {
+        "a": 2,
+        "a_end": "first",
+        "b": 5,
+        "b_end": "first",
+        "distance": 6.671110637452053
+      }
+    ]
+  }
+}
