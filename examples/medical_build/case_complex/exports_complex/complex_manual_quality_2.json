@@ -1,0 +1,30 @@
+{
+  "file": "/tmp/medical_build_complex_manual_branches/branch_2/manual_branch_02.stl",
+  "raw": {
+    "vertices": 19200,
+    "faces": 6400,
+    "watertight": false
+  },
+  "merged": {
+    "vertices": 3202,
+    "faces": 6400,
+    "watertight": true,
+    "winding_consistent": true,
+    "volume": 49908.481583147855,
+    "euler_number": 2,
+    "edge_report": {
+      "edges": 9600,
+      "boundary": 0,
+      "nonmanifold": 0,
+      "histogram": {
+        "2": 9600
+      }
+    }
+  },
+  "vtk": {
+    "points": 3202,
+    "cells": 6400,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0
+  }
+}

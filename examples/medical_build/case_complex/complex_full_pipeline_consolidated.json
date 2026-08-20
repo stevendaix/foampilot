@@ -1,0 +1,166 @@
+{
+  "branches": [
+    {
+      "branch_id": 0,
+      "section_count": 100,
+      "manual_stl": {
+        "path": "/tmp/medical_build_complex_manual_branches/branch_0/manual_branch_00.stl",
+        "bytes": 320084,
+        "seconds": 0.404115,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "build123d": {
+        "step": "/tmp/medical_build_complex_cad_branches/branch_0/build123d_branch_00.step",
+        "step_bytes": 1200600,
+        "stl": "/tmp/medical_build_complex_cad_branches/branch_0/build123d_branch_00.stl",
+        "is_valid": true,
+        "volume": 47616.77804899097,
+        "seconds": 13.093918
+      }
+    },
+    {
+      "branch_id": 1,
+      "section_count": 100,
+      "manual_stl": {
+        "path": "/tmp/medical_build_complex_manual_branches/branch_1/manual_branch_01.stl",
+        "bytes": 320084,
+        "seconds": 0.380602,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "build123d": {
+        "step": "/tmp/medical_build_complex_cad_branches/branch_1/build123d_branch_01.step",
+        "step_bytes": 1210687,
+        "stl": "/tmp/medical_build_complex_cad_branches/branch_1/build123d_branch_01.stl",
+        "is_valid": true,
+        "volume": 75602.72836419502,
+        "seconds": 11.867065
+      }
+    },
+    {
+      "branch_id": 2,
+      "section_count": 100,
+      "manual_stl": {
+        "path": "/tmp/medical_build_complex_manual_branches/branch_2/manual_branch_02.stl",
+        "bytes": 320084,
+        "seconds": 0.406631,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "build123d": {
+        "step": "/tmp/medical_build_complex_cad_branches/branch_2/build123d_branch_02.step",
+        "step_bytes": 1209021,
+        "stl": "/tmp/medical_build_complex_cad_branches/branch_2/build123d_branch_02.stl",
+        "is_valid": true,
+        "volume": 49029.85511137291,
+        "seconds": 14.014562
+      }
+    },
+    {
+      "branch_id": 3,
+      "section_count": 100,
+      "manual_stl": {
+        "path": "/tmp/medical_build_complex_manual_branches/branch_3/manual_branch_03.stl",
+        "bytes": 320084,
+        "seconds": 0.395735,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "build123d": {
+        "step": "/tmp/medical_build_complex_cad_branches/branch_3/build123d_branch_03.step",
+        "step_bytes": 1202989,
+        "stl": "/tmp/medical_build_complex_cad_branches/branch_3/build123d_branch_03.stl",
+        "is_valid": true,
+        "volume": 19502.011954497124,
+        "seconds": 12.201633
+      }
+    },
+    {
+      "branch_id": 4,
+      "section_count": 100,
+      "manual_stl": {
+        "path": "/tmp/medical_build_complex_manual_branches/branch_4/manual_branch_04.stl",
+        "bytes": 320084,
+        "seconds": 0.384847,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "build123d": {
+        "step": "/tmp/medical_build_complex_cad_branches/branch_4/build123d_branch_04.step",
+        "step_bytes": 1228316,
+        "stl": null,
+        "is_valid": true,
+        "volume": 3070.1778725657136,
+        "seconds": 0.473175
+      }
+    },
+    {
+      "branch_id": 5,
+      "section_count": 100,
+      "manual_stl": {
+        "path": "/tmp/medical_build_complex_manual_branches/branch_5/manual_branch_05.stl",
+        "bytes": 320084,
+        "seconds": 0.386335,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "build123d": {
+        "step": "/tmp/medical_build_complex_cad_branches/branch_5/build123d_branch_05.step",
+        "step_bytes": 1207933,
+        "stl": null,
+        "is_valid": true,
+        "volume": 52787.94291859087,
+        "seconds": 0.548201
+      }
+    },
+    {
+      "branch_id": 6,
+      "section_count": 100,
+      "manual_stl": {
+        "path": "/tmp/medical_build_complex_manual_branches/branch_6/manual_branch_06.stl",
+        "bytes": 320084,
+        "seconds": 0.388911,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "build123d": {
+        "step": "/tmp/medical_build_complex_cad_branches/branch_6/build123d_branch_06.step",
+        "step_bytes": 1202857,
+        "stl": null,
+        "is_valid": true,
+        "volume": 11285.459626956368,
+        "seconds": 0.556392
+      }
+    },
+    {
+      "branch_id": 7,
+      "section_count": 100,
+      "manual_stl": {
+        "path": "/tmp/medical_build_complex_manual_branches/branch_7/manual_branch_07.stl",
+        "bytes": 320084,
+        "seconds": 0.392296,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "build123d": {
+        "step": "/tmp/medical_build_complex_cad_branches/branch_7/build123d_branch_07.step",
+        "step_bytes": 1205508,
+        "stl": null,
+        "is_valid": true,
+        "volume": 25970.496291054853,
+        "seconds": 0.535628
+      }
+    }
+  ],
+  "totals": {
+    "branches": 8,
+    "sections": 800,
+    "manual_stl_seconds": 3.139472,
+    "build123d_seconds": 53.290574,
+    "all_occ_valid": true,
+    "manual_boundary_edges": 0,
+    "manual_nonmanifold_edges": 0,
+    "negative_volumes": []
+  }
+}
