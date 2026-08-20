@@ -6,10 +6,12 @@ from UrbanModel + CFDTerrain using native Gmsh geometry.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "foampilot" / "src"))
 
 import gmsh
 import numpy as np
+import shapely.geometry
+import shapely.ops
 from foampilot.urban.model.urban_model import Building, UrbanModel
 from foampilot.urban.model.terrain import CFDTerrain
 from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
@@ -44,7 +46,7 @@ class VectorGmshBuilder:
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Geometry.Tolerance", 1e-6)
         gmsh.option.setNumber("Mesh.Algorithm", 1)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 10)
         gmsh.option.setNumber("Mesh.Optimize", 1)
         gmsh.option.setNumber("Mesh.OptimizeNetgen", 1)
         gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.05)
@@ -174,60 +176,40 @@ class VectorGmshBuilder:
 
         building_tags = []
         for building in self.urban.buildings():
-            fp = building.footprint
-            if fp is None or fp.is_empty:
-                continue
-            ll = fp.bounds
-            bdx = ll[2] - ll[0]
-            bdy = ll[3] - ll[1]
-            if bdx <= 0 or bdy <= 0:
-                continue
-            base_z = building.ground_z if building.ground_z is not None else 0.0
-            roof_z = building.roof_z if building.roof_z is not None else (base_z + 10.0)
-            height = roof_z - base_z
-            if height <= 0:
-                height = 10.0
-            cx = (ll[0] + ll[2]) / 2.0
-            cy = (ll[1] + ll[3]) / 2.0
-            tag = gmsh.model.occ.addBox(cx - bdx / 2.0, cy - bdy / 2.0, base_z, bdx, bdy, height)
-            building_tags.append(tag)
+            tag = self._create_building_volume(building)
+            if tag is not None:
+                building_tags.append(tag)
         gmsh.model.occ.synchronize()
 
         if building_tags:
-            print(f"  Subtracting {len(building_tags)} building volume(s)...")
+            print(f"  Subtracting {len(building_tags)} polygonal building volume(s)...")
             try:
-                gmsh.model.occ.cut(
+                cut_result, _ = gmsh.model.occ.cut(
                     [(3, fluid_tag)],
                     [(3, t) for t in building_tags],
-                    removeTool=False,
+                    removeObject=True,
+                    removeTool=True,
                 )
                 gmsh.model.occ.synchronize()
+                fluid_candidates = [tag for dim, tag in cut_result if dim == 3]
+                if not fluid_candidates:
+                    raise RuntimeError("The fluid domain disappeared after building subtraction")
+                masses = [(tag, abs(gmsh.model.occ.getMass(3, tag))) for tag in fluid_candidates]
+                self.fluid_tag = max(masses, key=lambda item: item[1])[0]
+                debris = [tag for tag, _ in masses if tag != self.fluid_tag]
+                if debris:
+                    gmsh.model.occ.remove([(3, tag) for tag in debris], recursive=True)
+                    gmsh.model.occ.synchronize()
             except Exception as exc:
-                print(f"  WARNING: cut failed ({exc})")
+                raise RuntimeError(f"Polygonal building cut failed: {exc}") from exc
+        else:
+            self.fluid_tag = fluid_tag
 
-            try:
-                gmsh.model.occ.remove([(3, t) for t in building_tags])
-                gmsh.model.occ.synchronize()
-            except Exception as exc:
-                print(f"  WARNING: could not remove building tools ({exc})")
-
-            try:
-                gmsh.model.occ.removeAllDuplicates()
-                gmsh.model.occ.synchronize()
-            except Exception:
-                pass
-
-        all_vols = gmsh.model.getEntities(dim=3)
-        masses = []
-        for dim, tag in all_vols:
-            try:
-                masses.append((tag, abs(gmsh.model.occ.getMass(dim, tag))))
-            except Exception:
-                masses.append((tag, 0.0))
-        if not masses:
-            raise RuntimeError("No 3D volume available after geometry construction.")
-        self.fluid_tag = max(masses, key=lambda x: x[1])[0]
-        print(f"  Fluid volume tag: {self.fluid_tag} (mass={dict(masses)[self.fluid_tag]:.1f})")
+        try:
+            gmsh.model.occ.removeAllDuplicates()
+            gmsh.model.occ.synchronize()
+        except Exception:
+            pass
 
         self.buildings = [b.id for b in self.urban.buildings()]
         self._built = True
@@ -331,22 +313,27 @@ class VectorGmshBuilder:
                 continue
             try:
                 footprint = footprint.simplify(
-                    tolerance=self.mesh_size * 0.5, preserve_topology=True
+                    tolerance=min(0.5, max(0.05, self.mesh_size * 0.1)),
+                    preserve_topology=True,
                 )
             except Exception:
                 pass
             if footprint.is_empty:
                 continue
-            cleaned = Building(
-                id=b.id,
-                footprint=footprint,
-                ground_z=b.ground_z,
-                roof_z=b.roof_z,
-                source=b.source,
-                confidence=b.confidence,
-                attributes=getattr(b, "attributes", {}),
-            )
-            clean_buildings.append(cleaned)
+            polygons = [footprint] if footprint.geom_type == "Polygon" else list(footprint.geoms)
+            for part_index, polygon in enumerate(polygons):
+                if polygon.is_empty or polygon.area < min_area:
+                    continue
+                cleaned = Building(
+                    id=f"{b.id}_{part_index}" if len(polygons) > 1 else b.id,
+                    footprint=polygon,
+                    ground_z=b.ground_z,
+                    roof_z=b.roof_z,
+                    source=b.source,
+                    confidence=b.confidence,
+                    attributes=getattr(b, "attributes", {}),
+                )
+                clean_buildings.append(cleaned)
         if len(clean_buildings) < len(buildings):
             print(f"  Filtered {len(buildings) - len(clean_buildings)} invalid/degenerate buildings")
 
@@ -404,11 +391,11 @@ class VectorGmshBuilder:
         height = roof_z - base_z
         if height <= 0:
             return None
-        min_area = max(1.0, self.mesh_size * self.mesh_size)
+        min_area = 1.0
         if footprint.area < min_area:
             return None
         try:
-            return self._extrude_polygon(footprint, base_z, height, eps_ground=5.0)
+            return self._extrude_polygon(footprint, base_z, height, eps_ground=0.0)
         except Exception as exc:
             print(f"  WARNING: Polygon extrusion failed for {building.id}: {exc}")
             return None
@@ -421,7 +408,7 @@ class VectorGmshBuilder:
             return None
         else:
             return None
-        actual_base = base_z - eps_ground - 0.1
+        actual_base = base_z - eps_ground
         actual_height = height + eps_ground
         all_lines = []
         for ring in rings:
@@ -619,7 +606,8 @@ class VectorGmshBuilder:
             patch_to_surfaces.setdefault(patch, []).append(face)
         for patch_name, tags in patch_to_surfaces.items():
             if tags:
-                gmsh.model.addPhysicalGroup(2, tags, name=patch_name)
+                group_tag = gmsh.model.addPhysicalGroup(2, tags)
+                gmsh.model.setPhysicalName(2, int(group_tag), patch_name)
         volumes = gmsh.model.getEntities(dim=3)
         if not volumes:
             raise RuntimeError("No 3D volume available for physical group 'fluid'.")
@@ -633,7 +621,8 @@ class VectorGmshBuilder:
         if not masses:
             raise RuntimeError("No 3D volume mass available for physical group 'fluid'.")
         self.fluid_tag = max(masses, key=lambda x: x[1])[0]
-        gmsh.model.addPhysicalGroup(3, [self.fluid_tag], name="fluid")
+        fluid_group = gmsh.model.addPhysicalGroup(3, [self.fluid_tag])
+        gmsh.model.setPhysicalName(3, fluid_group, "fluid")
         building_tags = [tag for tag, mass in masses if tag != self.fluid_tag and mass > 0.0]
         if building_tags:
             print(f"  Removing {len(building_tags)} residual building volume(s)...")
@@ -644,8 +633,27 @@ class VectorGmshBuilder:
                 print(f"  Warning: could not remove residual volumes: {exc}")
         self._patches_assigned = True
         self._patch_to_surfaces = patch_to_surfaces
+        self._restore_physical_names()
         print(f"  Patches assigned: {list(patch_to_surfaces.keys())}")
         print(f"  Fluid volumes: 1, Building volumes: {len(building_tags)}")
+
+    def _restore_physical_names(self):
+        """Ensure physical names survive mesh generation and group recreation."""
+        xmin, ymin, zmin, xmax, ymax, zmax = self._domain_bbox
+        for _, group_tag in gmsh.model.getPhysicalGroups(2):
+            entities = gmsh.model.getEntitiesForPhysicalGroup(2, group_tag)
+            if len(entities) == 0:
+                continue
+            try:
+                cx, cy, cz = gmsh.model.occ.getCenterOfMass(2, int(entities[0]))
+                patch_name = self._classify_patch(cx, cy, cz, xmin, ymin, zmin, xmax, ymax, zmax)
+                gmsh.model.setPhysicalName(2, int(group_tag), patch_name)
+            except Exception:
+                continue
+        for _, group_tag in gmsh.model.getPhysicalGroups(3):
+            entities = set(gmsh.model.getEntitiesForPhysicalGroup(3, group_tag))
+            if self.fluid_tag in entities:
+                gmsh.model.setPhysicalName(3, int(group_tag), "fluid")
 
     def _classify_patch(self, cx, cy, cz, xmin, ymin, zmin, xmax, ymax, zmax):
         """Classify a face center into a patch name with robust tolerances."""
@@ -731,10 +739,10 @@ class VectorGmshBuilder:
         except Exception as exc:
             print(f"  WARNING: mesh optimization failed ({exc})")
 
-        gmsh.model.removePhysicalGroups()
-        self._patches_assigned = False
-        self.assign_patches()
-
+        # Keep the physical groups created before meshing: Gmsh preserves their
+        # entity associations and names, while removing/recreating them here can
+        # silently produce unnamed groups in the exported mesh.
+        self._restore_physical_names()
         self._meshed = True
 
     def export_openfoam(self, case_path: Path):
@@ -744,7 +752,8 @@ class VectorGmshBuilder:
 
         if not gmsh.model.getPhysicalGroups(dim=3) and self.fluid_tag is not None:
             try:
-                gmsh.model.addPhysicalGroup(3, [self.fluid_tag], name="fluid")
+                fluid_group = gmsh.model.addPhysicalGroup(3, [self.fluid_tag])
+                gmsh.model.setPhysicalName(3, fluid_group, "fluid")
             except Exception:
                 pass
 

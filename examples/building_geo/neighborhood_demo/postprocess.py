@@ -3,7 +3,7 @@
 Post-process the neighborhood CFD case.
 
 Usage:
-    PYTHONPATH=../../../src python3 postprocess.py --case neighborhood_case
+    PYTHONPATH=../../../foampilot/src python3 postprocess.py --case neighborhood_case
 """
 
 import argparse

@@ -28,7 +28,7 @@ import gmsh
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
 from foampilot import Meshing, FluidMechanics, ValueWithUnit
 from foampilot.solver import Solver

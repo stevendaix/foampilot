@@ -9,7 +9,7 @@ to visually verify the geometry pipeline.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
 from foampilot.urban import (
     Building,

@@ -5,7 +5,7 @@ Vector Gmsh builder: build OpenFOAM-ready single-region mesh from UrbanModel + C
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "foampilot" / "src"))
 
 import gmsh
 import shapely.geometry
@@ -42,7 +42,7 @@ class VectorGmshBuilder:
         gmsh.option.setNumber("General.Terminal", 1)
         gmsh.option.setNumber("Geometry.Tolerance", 1e-6)
         gmsh.option.setNumber("Mesh.Algorithm", 1)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 10)
         gmsh.option.setNumber("Mesh.Optimize", 1)
         gmsh.option.setNumber("Mesh.OptimizeNetgen", 1)
         gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.05)
@@ -579,7 +579,8 @@ class VectorGmshBuilder:
             patch_to_surfaces.setdefault(patch, []).append(face)
         for patch_name, tags in patch_to_surfaces.items():
             if tags:
-                gmsh.model.addPhysicalGroup(2, tags, name=patch_name)
+                group_tag = gmsh.model.addPhysicalGroup(2, tags)
+                gmsh.model.setPhysicalName(2, int(group_tag), patch_name)
         volumes = gmsh.model.getEntities(dim=3)
         if not volumes:
             raise RuntimeError("No 3D volume available for physical group 'fluid'.")
@@ -660,13 +661,14 @@ class VectorGmshBuilder:
         gmsh.option.setNumber("Mesh.Optimize", 1)
         gmsh.option.setNumber("Mesh.OptimizeNetgen", 1)
         gmsh.option.setNumber("Mesh.ElementOrder", 1)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 10)
         gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.1)
         gmsh.option.setNumber("Mesh.Smoothing", 10)
 
-        gmsh.model.removePhysicalGroups()
-        self._patches_assigned = False
-        self.assign_patches()
+        # Assign physical groups once before meshing and keep them through export.
+        # Recreating them after mesh generation can drop their names.
+        if not self._patches_assigned:
+            self.assign_patches()
 
         gmsh.option.setNumber("Mesh.CharacteristicLengthMin", mesh_size * 0.5)
         gmsh.option.setNumber("Mesh.CharacteristicLengthMax", mesh_size * 2.0)
@@ -678,7 +680,7 @@ class VectorGmshBuilder:
         gmsh.option.setNumber("Mesh.Optimize", 1)
         gmsh.option.setNumber("Mesh.OptimizeNetgen", 1)
         gmsh.option.setNumber("Mesh.ElementOrder", 1)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 1)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 10)
         gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.1)
         gmsh.option.setNumber("Mesh.Smoothing", 10)
 
@@ -712,7 +714,8 @@ class VectorGmshBuilder:
 
         if not gmsh.model.getPhysicalGroups(dim=3) and self.fluid_tag is not None:
             try:
-                gmsh.model.addPhysicalGroup(3, [self.fluid_tag], name="fluid")
+                fluid_group = gmsh.model.addPhysicalGroup(3, [self.fluid_tag])
+                gmsh.model.setPhysicalName(3, int(fluid_group), "fluid")
             except Exception:
                 pass
 

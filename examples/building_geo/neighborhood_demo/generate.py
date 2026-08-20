@@ -11,10 +11,10 @@ Complete pipeline for a realistic urban neighborhood:
   6. Post-process: slices, Cp on buildings, mesh quality, statistics.
 
 Usage:
-    PYTHONPATH=../../../src python3 generate.py
-    PYTHONPATH=../../../src python3 generate.py --skip-run
-    PYTHONPATH=../../../src python3 generate.py --post-only
-    PYTHONPATH=../../../src python3 generate.py --use-cache
+    PYTHONPATH=../../../foampilot/src python3 generate.py
+    PYTHONPATH=../../../foampilot/src python3 generate.py --skip-run
+    PYTHONPATH=../../../foampilot/src python3 generate.py --post-only
+    PYTHONPATH=../../../foampilot/src python3 generate.py --use-cache
 """
 
 import argparse
@@ -27,7 +27,7 @@ import gmsh
 import numpy as np
 import shapely.ops
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "foampilot" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "voxcity_export_work" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -81,11 +81,21 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
         if gdf is not None and len(gdf) > 0:
             try:
                 import pyproj
-                project = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:32631", always_xy=True).transform
+                source_crs = getattr(gdf, "crs", None)
+                if source_crs is not None:
+                    source_crs = pyproj.CRS.from_user_input(source_crs)
+                else:
+                    minx, miny, maxx, maxy = gdf.total_bounds
+                    looks_like_lonlat = max(abs(minx), abs(maxx)) <= 180 and max(abs(miny), abs(maxy)) <= 90
+                    source_crs = pyproj.CRS.from_epsg(4326) if looks_like_lonlat else None
                 gdf_proj = gdf.copy()
-                gdf_proj.geometry = gdf_proj.geometry.apply(lambda geom: shapely.ops.transform(project, geom) if geom is not None else None)
-            except Exception:
-                gdf_proj = gdf
+                if source_crs is not None and source_crs != pyproj.CRS.from_epsg(32631):
+                    gdf_proj = gdf_proj.to_crs("EPSG:32631")
+                elif source_crs is None:
+                    print("  WARNING: VoxCity building CRS is unknown; preserving native coordinates")
+            except Exception as exc:
+                print(f"  WARNING: could not normalize VoxCity CRS: {exc}")
+                gdf_proj = gdf.copy()
 
             def clean_footprint(geom, min_area_m2=1.0, simplify_tol=0.5, rounding_precision=1):
                 if geom is None or geom.is_empty:
@@ -209,7 +219,11 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
                     if cleaned is None:
                         continue
                     cleaned_footprints.append(cleaned)
-                    height = float(getattr(row, "height", 9.0) or 9.0)
+                    raw_height = getattr(row, "height", None)
+                    try:
+                        height = float(raw_height) if raw_height is not None and float(raw_height) > 0 else 9.0
+                    except (TypeError, ValueError):
+                        height = 9.0
                     cleaned_heights.append(height)
 
             polys_heights = list(zip(cleaned_footprints, cleaned_heights))
@@ -590,9 +604,9 @@ def main():
     print(f"Case directory: {case_dir}")
     print(f"Buildings: {urban.building_count()}")
     print("\nTo run post-processing:")
-    print(f"  PYTHONPATH=../../../src python3 postprocess.py --case {case_dir}")
+    print(f"  PYTHONPATH=../../../foampilot/src python3 postprocess.py --case {case_dir}")
     print("\nOr rerun simulation:")
-    print(f"  PYTHONPATH=../../../src python3 generate.py --output-dir {case_dir}")
+    print(f"  PYTHONPATH=../../../foampilot/src python3 generate.py --output-dir {case_dir}")
 
     # Auto-run post-processing if simulation completed
     if not args.skip_run:

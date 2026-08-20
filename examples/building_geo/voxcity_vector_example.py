@@ -24,7 +24,7 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent / "voxcity_export_work" / "src"))
 
 from foampilot import FluidMechanics, ValueWithUnit
