@@ -101,6 +101,10 @@ T_surface[K]  snGrad  valueFraction
 
 Le pilote lit `deltaT` dans `system/controlDict` et le transmet comme `dtime` à JOS-3. Cette synchronisation est obligatoire dans un calcul transitoire.
 
+Pour rendre cette synchronisation vérifiable, le pilote produit aussi `coupling_trace.csv`, avec une ligne par échange, et `coupling_zone_trace.csv`, avec 17 lignes par échange. Ces fichiers contiennent `exchange_id`, `time_cfd_s`, `time_jos3_s`, `deltaT_cfd_s`, `dtime_jos3_s`, le nombre de faces, l’aire totale, les statistiques de température et HTC, les flux et puissances intégrés ainsi que `time_error_s`. Les fichiers `data.in` et `data.out` ne sont pas modifiés, car OpenFOAM attend leur format strict.
+
+Sur le test plafond ouvert, quatre échanges donnent `0,05`, `0,10`, `0,15` et `0,20 s` côté CFD et exactement les mêmes temps côté JOS-3, avec `time_error_s = 0` à chaque ligne. Le rapport détaillé est disponible dans `../../validation/coupling_trace_validation.md`.
+
 ## Référence JOS-3 seule
 
 Pour comparer la dynamique physiologique sans CFD :
@@ -130,7 +134,7 @@ Le cas réellement ouvert au plafond a été testé avec Boussinesq et gravité 
 
 La référence JOS-3 seule sur 29,2 s donne une température cutanée moyenne de 34,382 à 34,312 °C, avec une plage finale de 33,765 à 35,412 °C. Les différences de plage sont attendues : le calcul couplé retourne une température distribuée par face sous-relaxée, tandis que JOS-3 seul expose ses 17 températures cutanées physiologiques.
 
-Le rapport détaillé est disponible dans `../../validation/long_coupled_vs_jos3_only.md`, et le rapport de stabilité CFD dans `../../validation/openfoam_stability_tests.md`.
+Le rapport détaillé est disponible dans `../../validation/long_coupled_vs_jos3_only.md`, le rapport de stabilité CFD dans `../../validation/openfoam_stability_tests.md`, et le rapport de traçabilité temporelle dans `../../validation/coupling_trace_validation.md`.
 
 ## Visualisation FoamPilot/PyVista
 

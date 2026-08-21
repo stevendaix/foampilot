@@ -63,6 +63,38 @@ provider = provider_module.OpenFOAM13TemperatureProvider(
     radiative_temperature=20.0,
 )
 
+# Les fichiers natifs externalCoupled restent strictement inchangés. La
+# traçabilité détaillée est écrite dans deux fichiers latéraux CSV.
+TRACE = CASE / "coupling_trace.csv"
+ZONE_TRACE = CASE / "coupling_zone_trace.csv"
+TRACE.parent.mkdir(parents=True, exist_ok=True)
+with TRACE.open("w", newline="", encoding="utf-8") as stream:
+    csv.writer(stream).writerow([
+        "exchange_id", "time_cfd_s", "time_jos3_s", "deltaT_cfd_s", "dtime_jos3_s",
+        "n_faces", "area_total_m2", "h_area_mean_W_m2_K", "h_min_W_m2_K",
+        "h_max_W_m2_K", "Ta_area_mean_C", "Tsurf_cfd_area_mean_C",
+        "Tsurf_cfd_min_C", "Tsurf_cfd_max_C", "qDot_area_mean_W_m2",
+        "qDot_min_W_m2", "qDot_max_W_m2", "qDot_integral_W",
+        "Ttarget_area_mean_C", "Ttarget_min_C", "Ttarget_max_C",
+        "Treturn_area_mean_C", "Treturn_min_C", "Treturn_max_C",
+        "environment_power_W", "body_power_W", "time_error_s",
+    ])
+with ZONE_TRACE.open("w", newline="", encoding="utf-8") as stream:
+    csv.writer(stream).writerow([
+        "exchange_id", "time_cfd_s", "time_jos3_s", "zone_id", "zone_name",
+        "zone_area_m2", "zone_air_temperature_C", "zone_h_mean_W_m2_K",
+        "zone_body_power_W", "zone_surface_temperature_area_mean_C",
+    ])
+
+exchange_id = 0
+cfd_time_s = 0.0
+jos3_time_s = 0.0
+
+def _area_mean(values, areas):
+    values = np.asarray(values, dtype=float)
+    areas = np.asarray(areas, dtype=float)
+    return float(np.sum(values * areas) / np.sum(areas))
+
 # externalCoupledTemperature attend une valeur initiale avant de produire data.out.
 COMMS.mkdir(parents=True, exist_ok=True)
 patch_faces = COMMS / "patchFaces"
@@ -98,6 +130,8 @@ while True:
             surface_temperature=fields["surface_temperature"],
         )
 
+    exchange_id += 1
+    cfd_time_s = exchange_id * cfd_dtime
     exchange = network.step(
         fields["h"],
         fields["air_temperature"],
@@ -114,6 +148,49 @@ while True:
     )
     network.surface_temperature = relaxed_temperature.copy()
     provider.write_surface_temperature(relaxed_temperature)
+    jos3_time_s += cfd_dtime
+    area_total = float(np.sum(fields["areas"]))
+    q_dot = np.asarray(fields["q_dot"], dtype=float)
+    environment_power = float(np.sum(exchange.environment_power))
+    body_power = float(np.sum(exchange.body_power))
+    time_error = cfd_time_s - jos3_time_s
+    with TRACE.open("a", newline="", encoding="utf-8") as stream:
+        csv.writer(stream).writerow([
+            exchange_id, f"{cfd_time_s:.16g}", f"{jos3_time_s:.16g}",
+            f"{cfd_dtime:.16g}", f"{cfd_dtime:.16g}", n, f"{area_total:.16g}",
+            f"{_area_mean(fields['h'], fields['areas']):.16g}",
+            f"{fields['h'].min():.16g}", f"{fields['h'].max():.16g}",
+            f"{_area_mean(fields['air_temperature'], fields['areas']):.16g}",
+            f"{_area_mean(fields['surface_temperature'], fields['areas']):.16g}",
+            f"{fields['surface_temperature'].min():.16g}",
+            f"{fields['surface_temperature'].max():.16g}",
+            f"{_area_mean(q_dot, fields['areas']):.16g}", f"{q_dot.min():.16g}",
+            f"{q_dot.max():.16g}", f"{np.sum(q_dot * fields['areas']):.16g}",
+            f"{_area_mean(target_temperature, fields['areas']):.16g}",
+            f"{target_temperature.min():.16g}", f"{target_temperature.max():.16g}",
+            f"{_area_mean(relaxed_temperature, fields['areas']):.16g}",
+            f"{relaxed_temperature.min():.16g}", f"{relaxed_temperature.max():.16g}",
+            f"{environment_power:.16g}", f"{body_power:.16g}", f"{time_error:.16g}",
+        ])
+    zone_area = network.zone_area
+    zone_ta = np.zeros(17)
+    zone_h = np.zeros(17)
+    zone_surface = np.zeros(17)
+    np.add.at(zone_ta, network.mapping.zone_ids, fields["air_temperature"] * fields["areas"])
+    np.add.at(zone_h, network.mapping.zone_ids, fields["h"] * fields["areas"])
+    np.add.at(zone_surface, network.mapping.zone_ids, relaxed_temperature * fields["areas"])
+    zone_ta = np.divide(zone_ta, zone_area, out=np.zeros(17), where=zone_area > 0)
+    zone_h = np.divide(zone_h, zone_area, out=np.zeros(17), where=zone_area > 0)
+    zone_surface = np.divide(zone_surface, zone_area, out=np.zeros(17), where=zone_area > 0)
+    with ZONE_TRACE.open("a", newline="", encoding="utf-8") as stream:
+        writer = csv.writer(stream)
+        for zone_id, zone_name in enumerate(jos3_embedded.BODY_NAMES):
+            writer.writerow([
+                exchange_id, f"{cfd_time_s:.16g}", f"{jos3_time_s:.16g}", zone_id,
+                zone_name, f"{zone_area[zone_id]:.16g}", f"{zone_ta[zone_id]:.16g}",
+                f"{zone_h[zone_id]:.16g}", f"{exchange.zone_body_power[zone_id]:.16g}",
+                f"{zone_surface[zone_id]:.16g}",
+            ])
     print(
         f"step: faces={n} dt={cfd_dtime:.6g} alpha={surface_relaxation:.3g} h=[{fields['h'].min():.4g},{fields['h'].max():.4g}] "
         f"Ttarget=[{target_temperature.min():.4g},{target_temperature.max():.4g}] "
