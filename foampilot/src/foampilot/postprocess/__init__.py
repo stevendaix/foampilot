@@ -6,6 +6,7 @@ from foampilot.postprocess.jos3_openfoam import (
 )
 from foampilot.postprocess.openfoam_external_coupled import (
     OpenFOAMExternalCoupledProvider,
+    OpenFOAM13TemperatureProvider,
 )
 from foampilot.postprocess.openfoam_direct import (
     OpenFOAMDirectReader,
