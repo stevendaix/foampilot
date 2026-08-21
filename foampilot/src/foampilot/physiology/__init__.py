@@ -3,6 +3,8 @@
 from .jos3 import JOS3
 from .coupling import (
     JOS3NodeCoupler,
+    DistributedSurfaceExchange,
+    DistributedSurfaceNetwork,
     CallbackFieldProvider,
     NodalFieldProvider,
     SurfaceMapping,
@@ -12,6 +14,8 @@ from .coupling import (
 __all__ = [
     "JOS3",
     "JOS3NodeCoupler",
+    "DistributedSurfaceExchange",
+    "DistributedSurfaceNetwork",
     "CallbackFieldProvider",
     "NodalFieldProvider",
     "SurfaceMapping",

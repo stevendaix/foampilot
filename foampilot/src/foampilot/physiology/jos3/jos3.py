@@ -223,7 +223,10 @@ class JOS3():
         self._hc = None
         self._hr = None
         self.ex_q = np.zeros(NUM_NODES)
-        self._t = dt.timedelta(0) # Elapsed time
+        # In external_surface mode, the distributed surface network handles
+        # the dry exchange with the CFD environment.
+        self.environment_mode = "native"
+        self._t = dt.timedelta(0) # Elapsed time [sec]
         self._cycle = 0 # Cycle time
         self.model_name = "JOS3"
         self.options = {
@@ -304,6 +307,12 @@ class JOS3():
                 # self.history.append(dictdata)
                 self._history.append(dictdata)
 
+
+    def set_environment_mode(self, mode):
+        """Choisit ``native`` ou ``external_surface`` pour l’échange sec."""
+        if mode not in ("native", "external_surface"):
+            raise ValueError("mode doit être 'native' ou 'external_surface'")
+        self.environment_mode = mode
 
     def _run(self, dtime=60, passive=False, output=True):
         """
@@ -416,6 +425,8 @@ class JOS3():
 
         # Sensible heat loss [W]
         shlsk = (tsk - to) / r_t * self._bsa
+        if self.environment_mode == "external_surface":
+            shlsk = np.zeros(17)
 
         # Cardiac output [L/h]
         co = threg.sum_bf(
@@ -451,7 +462,8 @@ class JOS3():
         arr_cdt *= dtime # Change unit [/sec] to [-]
 
         arrB = np.zeros(NUM_NODES)
-        arrB[INDEX["skin"]] += 1/r_t*self._bsa
+        if self.environment_mode == "native":
+            arrB[INDEX["skin"]] += 1/r_t*self._bsa
         arrB /= self._cap # Change unit [W/K] to [/sec]
         arrB *= dtime # Change unit [/sec] to [-]
 

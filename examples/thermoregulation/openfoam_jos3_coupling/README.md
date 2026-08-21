@@ -2,6 +2,8 @@
 
 La version recommandée est désormais le couplage Python en mémoire avec le JOS-3 embarqué dans FoamPilot. Le lecteur OpenFOAM par fichiers reste disponible comme adaptateur de compatibilité, mais il n’est plus nécessaire pour le couplage principal.
 
+Le couplage réellement nodal utilise `DistributedSurfaceNetwork`. Chaque point CFD possède une température indépendante, une capacité thermique et une conductance vers la température cutanée de sa zone JOS-3. Les capacités et conductances sont réparties proportionnellement aux aires duales ; leurs sommes par zone sont exactement conservées. `JOS3NodeCoupler` est conservé uniquement comme ancienne interface agrégée et ne doit pas être utilisé pour prétendre à une température nodale indépendante.
+
 Le modèle embarqué se trouve dans `foampilot/src/foampilot/physiology/jos3/`. Il reprend le modèle JOS-3 validé et expose en plus `set_external_heat_flux`, `external_heat_flux` et `clear_external_heat_flux`.
 
 
@@ -37,7 +39,35 @@ python3 examples/thermoregulation/openfoam_jos3_coupling/validate_coupling.py
 
 Le test reproduit d’abord un cas JOS-3 de référence avec `q=0`, puis compare les températures cutanées et centrales du modèle natif et du modèle couplé. Il vérifie ensuite l’intégration analytique d’un flux de 40 W/m². Le résultat attendu est une puissance de `-0.8 W` par segment dans le maillage synthétique fourni.
 
-## Utilisation avec un cas OpenFOAM réel
+## Réseau distribué et utilisation avec un cas OpenFOAM réel
+
+```python
+from foampilot.physiology import (
+    CallbackFieldProvider, DistributedSurfaceNetwork, JOS3, SurfaceMapping,
+)
+
+model = JOS3(ex_output="all")
+network = DistributedSurfaceNetwork(
+    model,
+    SurfaceMapping(zone_ids, node_areas, points),
+)
+provider = CallbackFieldProvider(
+    reader=lambda: {"h": h_nodes, "air_temperature": Ta_nodes},
+    writer=lambda q_nodes: openfoam_boundary.set_heat_flux(q_nodes),
+)
+network.run_transient(provider, dtime=1.0, steps=100)
+```
+
+La couche distribuée utilise le bilan local :
+
+```text
+C_i dT_surface_i/dt = -Q_i,body - Q_i,environment
+Q_i,body          = G_i (T_surface_i - T_skin_zone)
+Q_i,environment   = h_i A_i (T_surface_i - T_air_i)
+```
+
+La puissance `Q_i,body` est envoyée au nœud cutané JOS-3 de la zone correspondante. Le flux `Q_i,environment` est renvoyé à OpenFOAM. Ainsi, les températures `T_surface_i` ne sont pas des copies de `Tsk` : elles sont des états dynamiques indépendants.
+
 
 Le branchement recommandé avec OpenFOAM Python est basé sur deux callbacks, sans fichier intermédiaire :
 
