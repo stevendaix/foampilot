@@ -32,6 +32,12 @@ class SectionRecord:
     equivalent_radius: float
     valid: bool = True
     metadata: Dict[str, Any] = field(default_factory=dict)
+    closed: bool = True
+    min_size: float = 0.0
+    max_size: float = 0.0
+    shape: float = 1.0
+    status: str = "VALID"
+    rejection_reason: str = ""
 
     def __post_init__(self) -> None:
         self.center = _array(self.center, (3,))
@@ -46,6 +52,10 @@ class SectionRecord:
             raise ValueError("phase_locked_points must be an N x 3 array")
         if self.area < 0 or self.perimeter < 0 or self.equivalent_radius < 0:
             raise ValueError("Section measures must be non-negative")
+        if self.min_size < 0 or self.max_size < 0 or not (0.0 <= self.shape <= 1.0):
+            raise ValueError("Section shape measures are invalid")
+        if self.status not in {"VALID", "JUNCTION", "REJECTED"}:
+            raise ValueError(f"Unknown section status: {self.status}")
 
     def as_dict(self) -> Dict[str, Any]:
         data = asdict(self)

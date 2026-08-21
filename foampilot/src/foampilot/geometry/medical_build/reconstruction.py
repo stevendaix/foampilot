@@ -25,6 +25,9 @@ class SectionLoftInput:
     tangent: np.ndarray
     radius: float
     metadata: Dict[str, Any] = field(default_factory=dict)
+    closed: bool = True
+    status: str = "VALID"
+    rejection_reason: str = ""
 
 
 def normalize_sections(sections: Iterable[Any]) -> list[SectionLoftInput]:
@@ -38,12 +41,18 @@ def normalize_sections(sections: Iterable[Any]) -> list[SectionLoftInput]:
             radius_value = get("radius", get("equivalent_radius", 0.0))
             metadata_value = dict(get("metadata", {}))
             if "branch_id" in section: metadata_value.setdefault("branch_id", section["branch_id"])
+            closed_value = bool(get("closed", metadata_value.get("closed", True)))
+            status_value = str(get("status", metadata_value.get("status", "VALID")))
+            rejection_reason = str(get("rejection_reason", metadata_value.get("rejection_reason", "")))
         else:
             center_value = getattr(section, "center")
             points_value = getattr(section, "phase_locked_points", getattr(section, "points"))
             tangent_value = getattr(section, "direction", getattr(section, "tangent", np.zeros(3)))
             radius_value = getattr(section, "radius", getattr(section, "equivalent_radius", 0.0))
             metadata_value = dict(getattr(section, "metadata", {}))
+            closed_value = bool(getattr(section, "closed", metadata_value.get("closed", True)))
+            status_value = str(getattr(section, "status", metadata_value.get("status", "VALID")))
+            rejection_reason = str(getattr(section, "rejection_reason", metadata_value.get("rejection_reason", "")))
         center = np.asarray(center_value, dtype=float)
         points = np.asarray(points_value, dtype=float)
         tangent = np.asarray(tangent_value, dtype=float)
@@ -61,7 +70,7 @@ def normalize_sections(sections: Iterable[Any]) -> list[SectionLoftInput]:
         points = np.asarray(cleaned, dtype=float)
         if len(points) < 3:
             raise ValueError("Section degenerates after removal of duplicate points")
-        normalized.append(SectionLoftInput(center=center, points=points, tangent=tangent, radius=radius, metadata=metadata_value))
+        normalized.append(SectionLoftInput(center=center, points=points, tangent=tangent, radius=radius, metadata=metadata_value, closed=closed_value, status=status_value, rejection_reason=rejection_reason))
     if len(normalized) < 2:
         raise ValueError("At least two sections are required for a loft")
     return normalized
@@ -81,6 +90,9 @@ class Build123dReconstruction:
         groups: Dict[int, list[SectionLoftInput]] = {}
         for section in normalized:
             branch_id = int(section.metadata.get("branch_id", 0))
+            if not section.closed or section.status != "VALID":
+                logger.info("Skipping section on branch %d: status=%s closed=%s reason=%s", branch_id, section.status, section.closed, section.rejection_reason)
+                continue
             groups.setdefault(branch_id, []).append(section)
 
         lofts = []

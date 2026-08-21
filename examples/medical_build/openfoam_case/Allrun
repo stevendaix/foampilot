@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+. /opt/openfoam13/etc/bashrc
+python3 "$(dirname "$0")/create_snappy_case.py"
+surfaceCheck constant/triSurface/aorta_multiregion.stl
+rm -rf constant/polyMesh
+blockMesh
+snappyHexMesh -overwrite
+checkMesh

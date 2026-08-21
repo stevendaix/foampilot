@@ -1,0 +1,82 @@
+{
+  "input": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/analysis/centerlines.vtp",
+  "vmtk_nonblanked_cells": [
+    2,
+    6,
+    7
+  ],
+  "vmtk_blankeds_cells": [
+    0,
+    1,
+    3,
+    4,
+    5
+  ],
+  "rows": [
+    {
+      "cell_id": 0,
+      "group_id": 0,
+      "blanking": 1,
+      "points": 263,
+      "radius_min": 1.3298802091658213,
+      "radius_max": 8.9167381393677
+    },
+    {
+      "cell_id": 1,
+      "group_id": 1,
+      "blanking": 1,
+      "points": 282,
+      "radius_min": 1.3298802091658213,
+      "radius_max": 9.602598340990017
+    },
+    {
+      "cell_id": 2,
+      "group_id": 2,
+      "blanking": 0,
+      "points": 287,
+      "radius_min": 1.3298802091658213,
+      "radius_max": 9.602598340990017
+    },
+    {
+      "cell_id": 3,
+      "group_id": 3,
+      "blanking": 1,
+      "points": 257,
+      "radius_min": 1.3298802091658213,
+      "radius_max": 5.9719072530581085
+    },
+    {
+      "cell_id": 4,
+      "group_id": 4,
+      "blanking": 1,
+      "points": 96,
+      "radius_min": 1.1248844381310956,
+      "radius_max": 3.4726461279562657
+    },
+    {
+      "cell_id": 5,
+      "group_id": 5,
+      "blanking": 1,
+      "points": 205,
+      "radius_min": 1.3298802091658213,
+      "radius_max": 5.9719072530581085
+    },
+    {
+      "cell_id": 6,
+      "group_id": 6,
+      "blanking": 0,
+      "points": 135,
+      "radius_min": 1.1603003644334238,
+      "radius_max": 4.866063843846082
+    },
+    {
+      "cell_id": 7,
+      "group_id": 7,
+      "blanking": 0,
+      "points": 169,
+      "radius_min": 0.7704299567012538,
+      "radius_max": 7.525501798414273
+    }
+  ],
+  "rule": "Use only Blanking=0 for branch sections; handle Blanking=1 with bifurcation sections"
+}

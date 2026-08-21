@@ -27,6 +27,8 @@ Les profils doivent être nettoyés, fermés et projetés sur leur plan local av
 
 La surface finale destinée à OpenFOAM doit être contrôlée avec au moins un lecteur STL indépendant et, dans une installation OpenFOAM, avec `surfaceCheck`, `snappyHexMesh` et `checkMesh`. Il faut vérifier l’absence d’arêtes frontières non désirées, les faces non-manifold, les normales, la fermeture du volume et la présence des patches `inlet`, `outlet_*` et `wall`.
 
+La procédure complète de préparation STL, d’export multi-régions et de validation OpenFOAM 13 est décrite dans [`STL_OPENFOAM_SNAPPY_GUIDE.md`](STL_OPENFOAM_SNAPPY_GUIDE.md). Le cas reproductible se trouve dans `examples/medical_build/openfoam_case`. Il couvre l’aorte complexe à huit sorties et documente les contrôles `surfaceCheck`, `blockMesh`, `snappyHexMesh` et `checkMesh`.
+
 ## Déformation locale optionnelle
 
 Une déformation géométrique locale peut être appliquée entre l’analyse et la reconstruction à l’aide de `LocalDeformationSpec` et `apply_local_deformation`. Cette fonctionnalité s’inspire du paramétrage par sections d’AneuPy, mais conserve les contours réels extraits par notre pipeline au lieu de les remplacer par des cercles.

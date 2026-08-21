@@ -1,0 +1,4 @@
+constant/polyMesh/
+log.*
+processor*/
+*.foam

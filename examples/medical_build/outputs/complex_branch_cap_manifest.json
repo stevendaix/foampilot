@@ -1,0 +1,160 @@
+{
+  "centerlines": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/centerlines.vtp",
+  "surface_manifest": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/openfoam_surface_patches/patch_manifest.json",
+  "n_cells": 8,
+  "n_caps": 9,
+  "cells": [
+    {
+      "cell_id": 0,
+      "n_points": 263,
+      "length": 259.5920557744265,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -86.21701049804688,
+        199.35084533691406,
+        0.3426187336444855
+      ],
+      "nearest_start_cap": "4",
+      "nearest_start_distance": 0.3033697548949501,
+      "nearest_end_cap": "0",
+      "nearest_end_distance": 0.6946296016973319
+    },
+    {
+      "cell_id": 1,
+      "n_points": 282,
+      "length": 278.44281688048966,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -88.29796600341797,
+        210.99215698242188,
+        0.04533877223730087
+      ],
+      "nearest_start_cap": "4",
+      "nearest_start_distance": 0.3033697548949501,
+      "nearest_end_cap": "1",
+      "nearest_end_distance": 0.11142144755295988
+    },
+    {
+      "cell_id": 2,
+      "n_points": 287,
+      "length": 282.6547357356679,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -84.1793441772461,
+        215.20106506347656,
+        0.36481648683547974
+      ],
+      "nearest_start_cap": "4",
+      "nearest_start_distance": 0.3033697548949501,
+      "nearest_end_cap": "2",
+      "nearest_end_distance": 0.9954954562157047
+    },
+    {
+      "cell_id": 3,
+      "n_points": 257,
+      "length": 253.50561499097316,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -37.598331451416016,
+        -24.42308235168457,
+        42.74538803100586
+      ],
+      "nearest_start_cap": "4",
+      "nearest_start_distance": 0.3033697548949501,
+      "nearest_end_cap": "3",
+      "nearest_end_distance": 0.45259317418742295
+    },
+    {
+      "cell_id": 4,
+      "n_points": 96,
+      "length": 93.59518992765287,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -114.3180160522461,
+        11.016538619995117,
+        49.194889068603516
+      ],
+      "nearest_start_cap": "4",
+      "nearest_start_distance": 0.3033697548949501,
+      "nearest_end_cap": "5",
+      "nearest_end_distance": 0.32507832567216843
+    },
+    {
+      "cell_id": 5,
+      "n_points": 205,
+      "length": 202.25211001492664,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -72.85195922851562,
+        19.584253311157227,
+        49.14260482788086
+      ],
+      "nearest_start_cap": "4",
+      "nearest_start_distance": 0.3033697548949501,
+      "nearest_end_cap": "6",
+      "nearest_end_distance": 0.40047991464068117
+    },
+    {
+      "cell_id": 6,
+      "n_points": 135,
+      "length": 131.69807496632362,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -114.4818115234375,
+        56.88560485839844,
+        49.3513069152832
+      ],
+      "nearest_start_cap": "4",
+      "nearest_start_distance": 0.3033697548949501,
+      "nearest_end_cap": "7",
+      "nearest_end_distance": 0.2143670050322045
+    },
+    {
+      "cell_id": 7,
+      "n_points": 169,
+      "length": 166.22952314436554,
+      "start": [
+        -122.81626892089844,
+        -24.47833824157715,
+        47.47580337524414
+      ],
+      "end": [
+        -68.95539093017578,
+        94.6186752319336,
+        49.331153869628906
+      ],
+      "nearest_start_cap": "4",
+      "nearest_start_distance": 0.3033697548949501,
+      "nearest_end_cap": "8",
+      "nearest_end_distance": 0.20028379851776842
+    }
+  ]
+}
