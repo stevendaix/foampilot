@@ -135,3 +135,110 @@ case_project/
 ```
 
 Keep generated output separate from source geometry and CSV inputs. This makes it possible to remove a case directory and rebuild it from the script without losing the scientific provenance of the run.
+
+## Field types and derived quantities
+
+Post-processing should distinguish between **point data**, **cell data**, and **surface data**. A velocity vector stored at cell centres is not interchangeable with a value interpolated to vertices. Surface pressure and wall shear stress must be integrated on the actual wall patch, while volume averages require cell volumes.
+
+Common derived quantities include:
+
+| Quantity | Typical definition or use |
+| --- | --- |
+| Velocity magnitude | $|\mathbf{U}|$ for speed maps and threshold zones. |
+| Vorticity | $\nabla\times\mathbf{U}$ for rotational structures. |
+| Q-criterion | Identifies regions where rotation dominates strain. |
+| Wall shear stress | Tangential traction at a wall; sensitive to near-wall mesh. |
+| Pressure coefficient | $C_p=(p-p_\infty)/(\tfrac12\rho U_\infty^2)$ for external flows. |
+| Heat flux | Normal conductive or total thermal flux at a surface. |
+| Nusselt number | Dimensionless heat transfer based on a stated characteristic length. |
+| Phase fraction | Interface location and liquid-volume diagnostics in VOF. |
+| Scalar mixing index | Uniformity or variance of a transported concentration. |
+
+The definition, reference state, sign convention, and averaging operation must accompany every exported quantity.
+
+## Residuals and convergence
+
+The residual is an algebraic measure of how well a discretised equation is satisfied during an iteration. It is not automatically an error estimate for the physical quantity of interest. A case can have small residuals and an incorrect drag coefficient, heat balance, or outlet flow split.
+
+A robust post-processing report should therefore contain:
+
+1. solver residual histories for every region and field;
+2. monitored forces, fluxes, temperatures, or scalar averages;
+3. continuity errors and volume conservation;
+4. final mesh statistics;
+5. the final time, timestep, Courant number, and iteration counts;
+6. the convergence criterion used for the engineering output.
+
+`ResidualsPost` can transform solver logs into CSV, JSON, PNG, or HTML artefacts. Keep the original log file because parsed summaries can hide warnings, floating-point exceptions, or solver restarts.
+
+## Boundary and patch analysis
+
+Patch-level analysis is essential for external aerodynamics, biomedical flow, and CHT. A reliable patch report identifies the patch name, patch type, area, number of faces, min/max/mean field values, and integrated flux or force where applicable.
+
+For a vehicle, report forces by patch and by direction. For a vascular model, report flow rate and pressure at every inlet/outlet and verify conservation. For CHT, report heat flux independently on the fluid side and solid side of the interface, with the normal convention made explicit.
+
+## Wind ensembles and multiple cases
+
+The wind-analysis module provides objects such as `WindRose`, `WindCaseResult`, `WindEnsemble`, `LawsonProcessor`, and `LawsonVisualizer`. These can organise several wind directions or atmospheric cases and combine their results into directional summaries. They do not replace the physical definition of the inlet profile or the selection of a comfort criterion.
+
+A wind ensemble should record for every case:
+
+| Metadata | Example |
+| --- | --- |
+| Direction | Meteorological or Cartesian convention, stated explicitly. |
+| Reference speed | Height and averaging period. |
+| Atmospheric profile | Log law, power law, measured profile, or precursor field. |
+| Stability | Neutral, stable, unstable, or unknown. |
+| Solver/model | RANS closure, wall functions, timestep, and discretisation. |
+| Weight | Frequency or probability assigned to the case. |
+
+## CHT post-processing
+
+For a CHT case, load all regions at the same physical time. Comparing a fluid field at one time to a solid field at another time can create a false interface mismatch. The direct `CHTDirectReader` can load temperature fields as a `MultiBlock` object; the CHT utilities can calculate interface temperatures, heat fluxes, thermal resistance, heat-transfer coefficients, and Nusselt numbers.
+
+A minimum CHT report should include:
+
+- fluid and solid region names;
+- material properties and temperature dependence;
+- interface patch pairs;
+- temperature continuity at the interface;
+- heat-flux continuity at the interface;
+- total heat entering, leaving, and stored;
+- local and integrated Nusselt numbers;
+- mesh resolution normal to the interface;
+- the convergence history.
+
+## Data export and provenance
+
+When exporting a field to CSV, JSON, VTK, or images, write a metadata file containing:
+
+```text
+case identifier
+OpenFOAM version
+FoamPilot commit
+mesh cell count
+physical time
+field names and locations
+units
+coordinate system
+filter/interpolation operation
+reference values
+```
+
+This is especially important for biomedical and urban cases, where a visualisation can be detached from the original geometry, coordinate reference system, or patient/environmental input.
+
+## Report types
+
+FoamPilot supports several report levels:
+
+| Report | Best use |
+| --- | --- |
+| Residual CSV/PNG/HTML | Fast numerical-health check during development. |
+| Mesh-quality report | Geometry and discretisation review before solving. |
+| Simulation report | Reproducible case summary with figures and tables. |
+| Parallel-study report | Processor-count comparison and decomposition diagnostics. |
+| LaTeX PDF | Formal calculation note or publication-style report. |
+| Typst document | Structured scientific document without requiring a LaTeX workflow. |
+| Streamlit/Plotly dashboard | Interactive exploration for engineers and collaborators. |
+
+Do not use a dashboard as the only archive. Interactive state can be lost; the case script, dictionaries, solver log, raw data, and static summary remain the reproducible record.

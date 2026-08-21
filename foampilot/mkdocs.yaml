@@ -44,16 +44,23 @@ nav:
       - OpenFOAM: en/install_openfoam.md
   - FoamPilot overview: en/presentation.md
   - Architecture and workflow: en/architecture.md
-  - Theory: en/fluids_theory.md
   - User guide: en/user_documentation.md
+  - Meshing:
+      - Meshing strategy and cases: en/meshing_cases.md
   - Post-processing and reporting: en/postprocessing_and_reporting.md
-  - Advanced workflows: en/advanced_workflows.md
+  - Advanced workflows:
+      - Overview: en/advanced_workflows.md
+      - CHT workflow and data setup: en/cht_workflow.md
+  - Theory:
+      - Fundamentals: en/fluids_theory.md
+      - Applied theory: en/theory_applied.md
   - Developer guide:
       - Overview: en/dev/dev_index.md
       - Introduction: en/dev/dev_intro_documentation.md
       - Detailed modules: en/dev/dev_detailed_documentation.md
       - Quantities and units: en/dev/manage_quantity.md
   - Examples:
+      - Complete catalogue: en/examples_catalog.md
       - Overview: en/example/presentation_example.md
       - Muffler case study: en/example/muffler/detailled_example_muffler.md
       - SimpleCar case study: en/example/simplecar/detailled_example.md

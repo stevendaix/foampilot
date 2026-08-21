@@ -93,10 +93,13 @@ OpenFOAM installation and system setup are documented separately.
 The documentation includes:
 - OpenFOAM and WSL installation guides
 - Architecture, generated-case validation, and project structure
-- Meshing, solver control, boundary conditions, and CSV-driven inputs
-- Native OpenFOAM reading, PyVista/Plotly visualisation, and reporting
+- The complete examples and tutorials catalogue
+- Meshing strategies, mesh-quality checks, and geometry-specific cases
+- Solver control, boundary conditions, and CSV-driven inputs
+- Native OpenFOAM reading, PyVista/Plotly visualisation, residual analysis, and reporting
+- Detailed CHT data setup, interfaces, execution, and thermal-balance validation
+- Applied theory for biomedical flow, outdoor wind, atmospheric boundary layers, and thermoregulation
 - CHT, urban CFD, weather, physiological, and geometry-conversion workflows
-- Tutorials for cavity, external aerodynamics, VOF, scalar transport, buoyancy, and CHT
 
 ### MakeHuman and JOS-3 thermoregulation
 
