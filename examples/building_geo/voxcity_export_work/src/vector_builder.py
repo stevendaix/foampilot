@@ -47,37 +47,24 @@ class VectorGmshBuilder:
         gmsh.option.setNumber("Mesh.OptimizeNetgen", 1)
         gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.05)
 
-    def _extrude_polygon(self, footprint, base_z, height, eps_ground=1.0):
+    def _extrude_polygon(self, footprint, base_z, height, eps_ground=0.0):
         try:
-            base_polygon = shapely.geometry.Polygon([(x, y) for x, y in footprint.exterior.coords])
-            if not base_polygon.is_valid:
-                base_polygon = base_polygon.buffer(0)
-            if base_polygon.is_empty or base_polygon.area < 1e-6:
+            if footprint.geom_type != "Polygon":
                 return None
-            ll = base_polygon.bounds
-            dx = ll[2] - ll[0]
-            dy = ll[3] - ll[1]
-            dz = max(1.0, height - base_z)
-            cx = (ll[0] + ll[2]) / 2.0
-            cy = (ll[1] + ll[3]) / 2.0
-            cz = base_z + dz / 2.0
-            base_tag = gmsh.model.occ.addBox(cx - dx / 2.0, cy - dy / 2.0, base_z, dx, dy, dz)
+            polygon = footprint.buffer(0.0)
+            if polygon.is_empty or polygon.area < 1e-6:
+                return None
+            rings = [polygon.exterior] + list(polygon.interiors)
+            loops = []
+            for ring in rings:
+                coords = list(ring.coords)[:-1]
+                points = [gmsh.model.occ.addPoint(float(x), float(y), float(base_z - eps_ground)) for x, y in coords]
+                lines = [gmsh.model.occ.addLine(points[i], points[(i + 1) % len(points)]) for i in range(len(points))]
+                loops.append(gmsh.model.occ.addCurveLoop(lines))
+            surface = gmsh.model.occ.addPlaneSurface(loops)
             gmsh.model.occ.synchronize()
-            terrain_polygon = shapely.geometry.Polygon([
-                (self.terrain.xmin, self.terrain.ymin),
-                (self.terrain.xmax, self.terrain.ymin),
-                (self.terrain.xmax, self.terrain.ymax),
-                (self.terrain.xmin, self.terrain.ymax),
-            ])
-            try:
-                base_polygon_proj = shapely.ops.transform(lambda x, y: (x, y), base_polygon)
-            except Exception:
-                base_polygon_proj = base_polygon
-            if terrain_polygon.contains(base_polygon_proj) or terrain_polygon.intersects(base_polygon_proj):
-                return base_tag
-            gmsh.model.occ.remove([(3, base_tag)])
-            gmsh.model.occ.synchronize()
-            return None
+            result = gmsh.model.occ.extrude([(2, surface)], 0, 0, float(height + eps_ground))
+            return next((tag for dim, tag in result if dim == 3), None)
         except Exception:
             return None
 
@@ -326,7 +313,7 @@ class VectorGmshBuilder:
                 continue
             try:
                 footprint = footprint.simplify(
-                    tolerance=self.mesh_size * 0.5, preserve_topology=True
+                    tolerance=min(0.5, max(0.05, self.mesh_size * 0.1)), preserve_topology=True
                 )
             except Exception:
                 pass
@@ -364,11 +351,11 @@ class VectorGmshBuilder:
         height = roof_z - base_z
         if height <= 0:
             return None
-        min_area = max(1.0, self.mesh_size * self.mesh_size)
+        min_area = 1.0
         if footprint.area < min_area:
             return None
         try:
-            return self._extrude_polygon(footprint, base_z, height, eps_ground=5.0)
+            return self._extrude_polygon(footprint, base_z, height, eps_ground=0.0)
         except Exception as exc:
             print(f"  WARNING: Polygon extrusion failed for {building.id}: {exc}")
             return None
@@ -687,6 +674,8 @@ class VectorGmshBuilder:
         all_surfaces = gmsh.model.getEntities(dim=2)
         if all_surfaces:
             gmsh.model.mesh.setSize(all_surfaces, mesh_size)
+        if self.mesh_constraint == "proximity":
+            self._setup_proximity_field()
 
         try:
             gmsh.model.mesh.clear()

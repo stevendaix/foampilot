@@ -8,7 +8,7 @@
     ]
   },
   "voxcity": {
-    "meshsize": 5.0,
+    "meshsize": 2.0,
     "building_source": "Overture",
     "dem_source": "None",
     "canopy_height_source": "None"
@@ -21,8 +21,8 @@
     "bottom_offset": 5.0
   },
   "mesh": {
-    "mesh_size": 8.0,
-    "margin": 50.0
+    "mesh_size": 2.5,
+    "margin": 35.0
   },
   "solver": {
     "end_time": 2000,

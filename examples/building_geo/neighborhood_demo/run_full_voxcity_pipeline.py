@@ -39,7 +39,7 @@ from foampilot.urban import Building, UrbanModel
 from foampilot.urban.model.terrain import CFDTerrain
 from foampilot.solver import Solver
 from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
-from vector_builder import VectorGmshBuilder
+from vector_builder_build123 import VectorGmshBuilder
 from wind_profile import KAPPA, Z_REF
 
 RHO_AIR = 1.225
@@ -75,19 +75,21 @@ def load_voxcity_hdf5_urban(hdf5_path: str) -> tuple[UrbanModel, CFDTerrain]:
         gdf = voxcity.building_gdf
     if gdf is not None and len(gdf) > 0:
         try:
-            from voxcity.geoprocessor.overlap import process_building_footprints_by_overlap
-            gdf = process_building_footprints_by_overlap(gdf, overlap_threshold=0.5)
-            print(f"  VoxCity overlap processing: merged buildings with >50% overlap")
+            print(f"  VoxCity raw building records: {len(gdf)} (no winner-takes-all overlap filtering)")
         except Exception as e:
             print(f"  WARNING: VoxCity overlap processing failed ({e}), using raw GDF")
 
         try:
             import pyproj
-            project = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:32631", always_xy=True).transform
-            gdf_proj = gdf.copy()
-            gdf_proj.geometry = gdf_proj.geometry.apply(
-                lambda geom: shapely.ops.transform(project, geom) if geom is not None else None
-            )
+            source_crs = getattr(gdf, "crs", None)
+            if source_crs is not None:
+                source_crs = pyproj.CRS.from_user_input(source_crs)
+            else:
+                minx, miny, maxx, maxy = gdf.total_bounds
+                looks_like_lonlat = max(abs(minx), abs(maxx)) <= 180 and max(abs(miny), abs(maxy)) <= 90
+                source_crs = pyproj.CRS.from_epsg(4326) if looks_like_lonlat else None
+            target_crs = pyproj.CRS.from_epsg(32631)
+            gdf_proj = gdf.to_crs(target_crs) if source_crs is not None and source_crs != target_crs else gdf.copy()
         except Exception:
             gdf_proj = gdf
 
@@ -353,12 +355,12 @@ def main():
     parser = argparse.ArgumentParser(description="VoxCity -> OpenFOAM full pipeline with VoxCity post-processing")
     parser.add_argument("--hdf5", required=True, help="Path to VoxCity HDF5 file")
     parser.add_argument("--output-dir", default="neighborhood_case", help="Output case directory")
-    parser.add_argument("--mesh-size", type=float, default=6.0, help="Gmsh mesh size (m)")
+    parser.add_argument("--mesh-size", type=float, default=2.5, help="Gmsh mesh size (m)")
     parser.add_argument("--margin", type=float, default=None, help="Domain margin around buildings (m). None = automatic (4H/7.5H/2D/1.25H)")
     parser.add_argument("--skip-run", action="store_true", help="Skip simulation, only mesh + case setup")
     parser.add_argument("--post-only", action="store_true", help="Only run post-processing")
     parser.add_argument("--fill-gaps", action="store_true", help="Fill small gaps between buildings")
-    parser.add_argument("--mesh-constraint", default="none", choices=["none", "proximity"],
+    parser.add_argument("--mesh-constraint", default="proximity", choices=["none", "proximity"],
                         help="Mesh sizing constraint")
     args = parser.parse_args()
 

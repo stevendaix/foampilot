@@ -229,15 +229,15 @@ class VectorGmshBuilder:
             gmsh.model.mesh.field.setNumbers(field_id, "FacesList", surface_tags)
             threshold_id = gmsh.model.mesh.field.add("Threshold")
             gmsh.model.mesh.field.setNumber(threshold_id, "InField", field_id)
-            gmsh.model.mesh.field.setNumber(threshold_id, "LcMin", self.mesh_size * 0.5)
-            gmsh.model.mesh.field.setNumber(threshold_id, "LcMax", self.mesh_size * 3.0)
-            gmsh.model.mesh.field.setNumber(threshold_id, "DistMin", self.mesh_size * 0.5)
+            gmsh.model.mesh.field.setNumber(threshold_id, "LcMin", max(0.25, self.mesh_size * 0.25))
+            gmsh.model.mesh.field.setNumber(threshold_id, "LcMax", self.mesh_size)
+            gmsh.model.mesh.field.setNumber(threshold_id, "DistMin", self.mesh_size)
             gmsh.model.mesh.field.setNumber(threshold_id, "DistMax", self.mesh_size * 6.0)
             gmsh.model.mesh.field.setNumber(threshold_id, "StopAtDistMax", 1)
             gmsh.model.mesh.field.setAsBackgroundMesh(threshold_id)
             gmsh.option.setNumber("Mesh.MeshSizeFromPoints", 0)
             gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
-            print(f"  Proximity field set: LcMin={self.mesh_size * 0.5}, LcMax={self.mesh_size * 3.0}")
+            print(f"  Proximity field set: LcMin={max(0.25, self.mesh_size * 0.25)}, LcMax={self.mesh_size}")
         except Exception as exc:
             print(f"  WARNING: Could not set proximity field ({exc})")
 
@@ -337,44 +337,17 @@ class VectorGmshBuilder:
         if len(clean_buildings) < len(buildings):
             print(f"  Filtered {len(buildings) - len(clean_buildings)} invalid/degenerate buildings")
 
-        clean_buildings = self._remove_overlapping_buildings(clean_buildings)
-
+        # Do not discard overlapping footprints: VoxCity can contain adjacent
+        # or partially overlapping source records, and dropping one loses geometry.
         self.urban = UrbanModel()
+
         for b in clean_buildings:
             self.urban.add_building(b)
         print(f"  Kept {len(clean_buildings)} individual buildings")
 
     def _remove_overlapping_buildings(self, buildings: list[Building]) -> list[Building]:
-        """Remove buildings whose bounding boxes overlap in 3D."""
-        if len(buildings) <= 1:
-            return buildings
-        bboxes = []
-        for b in buildings:
-            ll = b.footprint.bounds
-            bboxes.append((ll[0], ll[1], b.ground_z, ll[2], ll[3], b.roof_z))
-        keep = [True] * len(buildings)
-        for i in range(len(buildings)):
-            if not keep[i]:
-                continue
-            for j in range(i + 1, len(buildings)):
-                if not keep[j]:
-                    continue
-                xmin1, ymin1, zmin1, xmax1, ymax1, zmax1 = bboxes[i]
-                xmin2, ymin2, zmin2, xmax2, ymax2, zmax2 = bboxes[j]
-                if (xmax1 > xmin2 and xmax2 > xmin1 and
-                    ymax1 > ymin2 and ymax2 > ymin1 and
-                    zmax1 > zmin2 and zmax2 > zmin1):
-                    area_i = (xmax1 - xmin1) * (ymax1 - ymin1)
-                    area_j = (xmax2 - xmin2) * (ymax2 - ymin2)
-                    if area_i >= area_j:
-                        keep[j] = False
-                    else:
-                        keep[i] = False
-                        break
-        filtered = [b for b, k in zip(buildings, keep) if k]
-        if len(filtered) < len(buildings):
-            print(f"  Removed {len(buildings) - len(filtered)} overlapping building(s)")
-        return filtered
+        """Compatibility hook that preserves all valid source buildings."""
+        return list(buildings)
 
     def _create_building_volume(self, building: Building):
         """Create a building volume from the real footprint polygon if possible."""
@@ -633,6 +606,7 @@ class VectorGmshBuilder:
                 print(f"  Warning: could not remove residual volumes: {exc}")
         self._patches_assigned = True
         self._patch_to_surfaces = patch_to_surfaces
+        self._building_surface_tags = list(patch_to_surfaces.get("buildings", []))
         self._restore_physical_names()
         print(f"  Patches assigned: {list(patch_to_surfaces.keys())}")
         print(f"  Fluid volumes: 1, Building volumes: {len(building_tags)}")
@@ -699,8 +673,9 @@ class VectorGmshBuilder:
             except Exception as exc:
                 print(f"  Warning: duplicate surface removal failed: {exc}")
 
-        gmsh.option.setNumber("Mesh.CharacteristicLengthMin", mesh_size * 0.5)
-        gmsh.option.setNumber("Mesh.CharacteristicLengthMax", mesh_size * 2.0)
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMin", max(0.25, mesh_size * 0.25))
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMax", mesh_size)
+
         gmsh.option.setNumber("Mesh.MshFileVersion", 2)
         gmsh.option.setNumber("Mesh.CharacteristicLengthFromCurvature", 0)
         gmsh.option.setNumber("Mesh.MinimumElementsPerTwoPi", 1)
@@ -709,24 +684,25 @@ class VectorGmshBuilder:
         gmsh.option.setNumber("Mesh.Optimize", 1)
         gmsh.option.setNumber("Mesh.OptimizeNetgen", 1)
         gmsh.option.setNumber("Mesh.ElementOrder", 1)
-        gmsh.option.setNumber("Mesh.Algorithm3D", 3)
+        gmsh.option.setNumber("Mesh.Algorithm3D", 10)
         gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.1)
         gmsh.option.setNumber("Mesh.Smoothing", 10)
 
         all_surfaces = gmsh.model.getEntities(dim=2)
         if all_surfaces:
             gmsh.model.mesh.setSize(all_surfaces, mesh_size)
+        self._setup_proximity_field()
 
         try:
             gmsh.model.mesh.generate(2)
             gmsh.model.mesh.generate(3)
         except Exception as exc:
             print(f"WARNING: Gmsh 3D meshing failed ({exc})")
-            print("  Trying with Mesh.Algorithm3D=1...")
+            print("  Trying with Mesh.Algorithm3D=3...")
             try:
-                gmsh.option.setNumber("Mesh.Algorithm3D", 1)
+                gmsh.option.setNumber("Mesh.Algorithm3D", 3)
                 gmsh.model.mesh.generate(3)
-                print("  3D meshing succeeded with Algorithm3D=1")
+                print("  3D meshing succeeded with Algorithm3D=3")
             except Exception as exc2:
                 print(f"  Retry also failed ({exc2})")
                 raise

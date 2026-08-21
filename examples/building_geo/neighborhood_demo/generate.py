@@ -330,7 +330,7 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
     return reader.read(aoi)
 
 
-def build_mesh(urban: UrbanModel, terrain: CFDTerrain, config: dict, mesh_constraint: str = "none", fill_gaps: bool = False):
+def build_mesh(urban: UrbanModel, terrain: CFDTerrain, config: dict, mesh_constraint: str = "proximity", fill_gaps: bool = False):
     """Build Gmsh geometry and export to OpenFOAM."""
     mesh_cfg = config["mesh"]
     domain_cfg = config["domain"]
@@ -554,7 +554,7 @@ def main():
     parser.add_argument("--post-only", action="store_true", help="Only run post-processing")
     parser.add_argument("--use-cache", action="store_true", help="Use cached VoxCity HDF5 if available")
     parser.add_argument("--voxcity-h5", default=None, help="Path to VoxCity HDF5 file to load directly (skips download)")
-    parser.add_argument("--mesh-constraint", default="none", choices=["none", "proximity"], help="Mesh sizing constraint")
+    parser.add_argument("--mesh-constraint", default="proximity", choices=["none", "proximity"], help="Mesh sizing constraint")
     parser.add_argument("--fill-gaps", action="store_true", help="Fill small gaps between nearby buildings")
     args = parser.parse_args()
 
