@@ -4,6 +4,9 @@ from foampilot.postprocess.jos3_openfoam import (
     NodalThermalExchange,
     JOS3_SEGMENT_NAMES,
 )
+from foampilot.postprocess.openfoam_external_coupled import (
+    OpenFOAMExternalCoupledProvider,
+)
 from foampilot.postprocess.openfoam_direct import (
     OpenFOAMDirectReader,
     CHTDirectReader,
