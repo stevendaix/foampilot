@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable, Mapping, Protocol, Sequence
+import csv
 
 import numpy as np
 
@@ -56,6 +58,29 @@ class SurfaceMapping:
             if points.shape != (zone_ids.size, 3):
                 raise ValueError("points doit être de forme (nombre_de_noeuds, 3)")
             object.__setattr__(self, "points", points)
+
+    @classmethod
+    def from_csv(cls, path, *, points=None):
+        """Construit un mapping à partir de ``zone_mapping.csv``.
+
+        Le CSV doit contenir ``zone_id`` et ``area_m2``. Les colonnes de nom
+        et d’unités sont contrôlées lorsqu’elles sont présentes.
+        """
+        rows = list(csv.DictReader(Path(path).open(newline="", encoding="utf-8")))
+        if not rows:
+            raise ValueError("Le fichier de mapping est vide")
+        required = {"zone_id", "area_m2"}
+        if not required.issubset(rows[0]):
+            raise ValueError("Le mapping doit contenir zone_id et area_m2")
+        if "temperature_unit" in rows[0] and any(r["temperature_unit"] != "K" for r in rows):
+            raise ValueError("Le mapping CFD doit déclarer temperature_unit=K")
+        if "h_unit" in rows[0] and any(r["h_unit"] != "W/m2/K" for r in rows):
+            raise ValueError("Unité h inattendue dans le mapping")
+        return cls(
+            zone_ids=np.array([int(r["zone_id"]) for r in rows]),
+            areas=np.array([float(r["area_m2"]) for r in rows]),
+            points=points,
+        )
 
     @property
     def zone_areas(self) -> np.ndarray:
