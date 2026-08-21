@@ -41,18 +41,16 @@ OpenFOAM cases become *generated artifacts*, not manually maintained inputs.
   Generate `system`, `constant`, and `0/` files programmatically, consistently, and reproducibly.
 
 - **Mesh orchestration**  
-  Native support for `blockMesh` and `snappyHexMesh`, with an extensible architecture.
+  Support for `blockMesh`, Gmsh, snappyHexMesh, direct OpenFOAM mesh export, and experimental urban geometry/mesh workflows.
 
 - **Simulation control**  
   Launch and manage OpenFOAM solvers directly from Python.
 
 - **Modern post-processing**  
-  3D visualization with PyVista, automatic export of figures and animations.
-  Read OpenFOAM results **directly** into PyVista without `foamToVTK`
-  via `OpenFOAMDirectReader` and `CHTDirectReader`.
+  3D visualisation with PyVista, Plotly-based web presentations, automatic export of figures and animations, wind-analysis helpers, and native OpenFOAM readers. Read single-region and multi-region CHT results **directly** into PyVista without `foamToVTK` via `OpenFOAMDirectReader` and `CHTDirectReader`.
 
 - **Automated reporting**  
-  Generate PDF calculation notes (LaTeX) or interactive dashboards (Streamlit).
+  Generate mesh-quality and convergence reports, compare parallel decompositions, create PDF calculation notes with LaTeX or Typst, and build interactive dashboards with Plotly/Streamlit.
 
 ---
 
@@ -93,10 +91,12 @@ OpenFOAM installation and system setup are documented separately.
 **https://stevendaix.github.io/foampilot/**
 
 The documentation includes:
-- OpenFOAM & WSL installation guides
-- Project structure and concepts
-- Meshing, solver control, and post-processing
-- Reporting and visualization workflows
+- OpenFOAM and WSL installation guides
+- Architecture, generated-case validation, and project structure
+- Meshing, solver control, boundary conditions, and CSV-driven inputs
+- Native OpenFOAM reading, PyVista/Plotly visualisation, and reporting
+- CHT, urban CFD, weather, physiological, and geometry-conversion workflows
+- Tutorials for cavity, external aerodynamics, VOF, scalar transport, buoyancy, and CHT
 
 ### MakeHuman and JOS-3 thermoregulation
 

@@ -1,11 +1,22 @@
-# Home
+# FoamPilot documentation
 
-Welcome to the FoamPilot documentation.
+FoamPilot is a Python orchestration layer for **OpenFOAM**. It helps engineers and researchers generate cases, configure physics, run solvers, inspect native results, and produce reproducible reports without manually maintaining every dictionary file.
 
-- [About](about.md)
-- [Install OpenFOAM](install_openfoam.md)
-- [FOAMPilot Presentation](presentation.md)
-- [Fluid Mechanics Theory Guide](fluids_theory.md)
-- [User Guide](user_documentation.md)
-- [Developer Section](dev/dev_index.md)
-- [Examples](example/presentation_example.md)
+> FoamPilot does not replace OpenFOAM. It makes OpenFOAM workflows programmable, inspectable, and repeatable.
+
+## Choose a starting point
+
+| If you want to… | Start here |
+| --- | --- |
+| Install the simulation environment | [OpenFOAM installation](install_openfoam.md) |
+| Understand the project’s design | [Architecture and workflow](architecture.md) |
+| Build a first case | [User guide](user_documentation.md) and [examples](example/presentation_example.md) |
+| Read results without `foamToVTK` | [Post-processing and reporting](postprocessing_and_reporting.md) |
+| Configure CHT, urban CFD, weather, or physiological utilities | [Advanced workflows](advanced_workflows.md) |
+| Extend FoamPilot or contribute code | [Developer guide](dev/dev_index.md) |
+
+## Main capabilities
+
+FoamPilot covers case generation, boundary conditions, `blockMesh`, Gmsh and snappyHexMesh workflows, serial and parallel execution, CSV-driven conditions, CHT multi-region setup, direct OpenFOAM readers, PyVista/Plotly visualisation, mesh and convergence reporting, and specialised geometry or atmospheric utilities.
+
+The English documentation is the primary maintained reference. Tutorial pages are executable guides where available; always inspect the generated files and validate the case with the OpenFOAM tools installed on your system.

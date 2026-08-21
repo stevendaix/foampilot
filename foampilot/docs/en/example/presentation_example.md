@@ -1,8 +1,8 @@
 # FOAMPilot Examples
 
-FOAMPilot is a Python library designed to simplify the creation, configuration, and execution of OpenFOAM simulations. It provides a modular and intuitive approach to manage CFD cases, mesh generation, boundary conditions, function objects, and post-processing of results.
+FoamPilot is a Python library designed to simplify the creation, configuration, and execution of OpenFOAM simulations. It provides a modular and intuitive approach to manage CFD cases, mesh generation, boundary conditions, function objects, and post-processing of results.
 
-This section presents different examples illustrating the advantages and flexibility of FOAMPilot for automating CFD workflows and facilitating learning OpenFOAM with Python.
+This section presents different examples illustrating the advantages and flexibility of FoamPilot for automating CFD workflows and facilitating learning OpenFOAM with Python.
 
 ## Objectives of the Examples
 
@@ -37,7 +37,7 @@ configurations using FoamPilot.
 ### Buoyancy & Conjugate Heat Transfer
 
 - [Thermal Buoyancy](thermalBuoyancy/tutorial.md): Natural convection in a heated room using Boussinesq approximation.
-- [CHT Heated Duct](cmt/cht_heated_duct.md): Conjugate heat transfer between air and copper wall using `chtMultiRegionFoam`.
+- [CHT Heated Duct](cht/cht_heated_duct.md): Conjugate heat transfer between air and a copper wall using `chtMultiRegionFoam`.
 
 ### Muffler Studies
 
@@ -50,7 +50,7 @@ Each example comes with a standalone Python script that:
 
 1. Defines the case path (`current_path`).
 2. Initializes fluid properties (density, viscosity, pressure, temperature, etc.).
-3. Initializes the FOAMPilot solver and system/constant folders.
+3. Initializes the FoamPilot solver and system/constant folders.
 4. Generates the mesh from a JSON file.
 5. Adds the necessary `functionObjects` (field average, reference pressure, run-time control, etc.).
 6. Manipulates OpenFOAM dictionaries for patch creation and zone definition.

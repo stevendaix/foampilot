@@ -42,24 +42,27 @@ nav:
   - About: en/about.md
   - Installation:
       - OpenFOAM: en/install_openfoam.md
-  - Présentation de FOAMPilot: en/presentation.md
-  - Guide théorique: en/fluids_theory.md
-  - Guide utilisateur: en/user_documentation.md
-  - Partie développement:
-      - index: en/dev/dev_index.md
-      - introduction : en/dev/dev_intro_documentation.md
-      - Modules détaillés de FoamPilot : en/dev/dev_detailed_documentation.md
-      - Gestion des quantités : en/dev/manage_ValueWithUnit.md
-  - Partie exemples:
-      - index: en/example/presentation_example.md
-      - Étude de cas silencieux : en/example/muffler/detailled_example_muffler.md
-      - Étude de cas simpleCar : en/example/simplecar/detailled_example.md
+  - FoamPilot overview: en/presentation.md
+  - Architecture and workflow: en/architecture.md
+  - Theory: en/fluids_theory.md
+  - User guide: en/user_documentation.md
+  - Post-processing and reporting: en/postprocessing_and_reporting.md
+  - Advanced workflows: en/advanced_workflows.md
+  - Developer guide:
+      - Overview: en/dev/dev_index.md
+      - Introduction: en/dev/dev_intro_documentation.md
+      - Detailed modules: en/dev/dev_detailed_documentation.md
+      - Quantities and units: en/dev/manage_quantity.md
+  - Examples:
+      - Overview: en/example/presentation_example.md
+      - Muffler case study: en/example/muffler/detailled_example_muffler.md
+      - SimpleCar case study: en/example/simplecar/detailled_example.md
       - Cavity laminar (icoFoam): en/example/cavity_laminar/tutorial.md
       - SimpleCar turbulent (simpleFoam): en/example/simplecar_turbulent/tutorial.md
       - Backward-facing step (simpleFoam): en/example/pitzdaily_step/tutorial.md
       - DamBreak VOF (interFoam): en/example/dambreak_vof/tutorial.md
       - Scalar transport (scalarTransportFoam): en/example/scalarTransport/tutorial.md
       - Building aerodynamics (simpleFoam): en/example/buildingAero/tutorial.md
-      - MotorBike external aero (simpleFoam): en/example/motorBike/tutorial.md
+      - MotorBike external aerodynamics (simpleFoam): en/example/motorBike/tutorial.md
       - Thermal buoyancy (buoyantSimpleFoam): en/example/thermalBuoyancy/tutorial.md
       - CHT heated duct (chtMultiRegionFoam): en/example/cht/cht_heated_duct.md
