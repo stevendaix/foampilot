@@ -1,4 +1,9 @@
-# Couplage OpenFOAM–JOS-3
+# Couplage OpenFOAM–JOS-3 en mémoire
+
+La version recommandée est désormais le couplage Python en mémoire avec le JOS-3 embarqué dans FoamPilot. Le lecteur OpenFOAM par fichiers reste disponible comme adaptateur de compatibilité, mais il n’est plus nécessaire pour le couplage principal.
+
+Le modèle embarqué se trouve dans `foampilot/src/foampilot/physiology/jos3/`. Il reprend le modèle JOS-3 validé et expose en plus `set_external_heat_flux`, `external_heat_flux` et `clear_external_heat_flux`.
+
 
 Ce cas montre l’intégration de la classe `OpenFOAMJOS3Coupler` dans FoamPilot. L’échange thermique est réalisé à partir de trois champs scalaires OpenFOAM associés aux nœuds de la surface humaine : `h` en W/m²/K, `Ta` en °C et `T` en °C.
 
@@ -13,6 +18,16 @@ Le flux `q_out` est positif du corps vers le fluide. Le flux `q_body` est positi
 
 ## Exécution de la validation
 
+Le test mémoire autonome se lance ainsi :
+
+```bash
+cd /home/ubuntu/foampilot
+python3 examples/thermoregulation/openfoam_jos3_coupling/test_memory_coupling.py
+```
+
+Il vérifie un échange steady par moyenne pondérée sur les zones et un échange transitoire à chaque pas avec un provider Python simulant OpenFOAM.
+
+
 Depuis le dépôt FoamPilot, avec le dépôt JOS-3 présent à côté :
 
 ```bash
@@ -23,6 +38,29 @@ python3 examples/thermoregulation/openfoam_jos3_coupling/validate_coupling.py
 Le test reproduit d’abord un cas JOS-3 de référence avec `q=0`, puis compare les températures cutanées et centrales du modèle natif et du modèle couplé. Il vérifie ensuite l’intégration analytique d’un flux de 40 W/m². Le résultat attendu est une puissance de `-0.8 W` par segment dans le maillage synthétique fourni.
 
 ## Utilisation avec un cas OpenFOAM réel
+
+Le branchement recommandé avec OpenFOAM Python est basé sur deux callbacks, sans fichier intermédiaire :
+
+```python
+from foampilot.physiology import (
+    CallbackFieldProvider, JOS3, JOS3NodeCoupler, SurfaceMapping,
+)
+
+model = JOS3(ex_output="all")
+coupler = JOS3NodeCoupler(model, SurfaceMapping(zone_ids, areas, points))
+provider = CallbackFieldProvider(
+    reader=lambda: {
+        "h": h_nodes,
+        "surface_temperature": T_nodes,
+        "air_temperature": Ta_nodes,
+    },
+    writer=lambda q_nodes: openfoam_boundary.set_heat_flux(q_nodes),
+)
+coupler.run_transient(provider, dtime=1.0, steps=100)
+```
+
+Pour un calcul stationnaire, l’échange est effectué ponctuellement avec `step_steady(...)`. Pour un calcul transitoire, `run_transient(...)` relit les champs et écrit le flux sur tous les points à chaque pas. JOS-3 reçoit ensuite la puissance intégrée par zone, car sa matrice physiologique possède 17 nœuds cutanés locaux.
+
 
 Le mapping doit être construit à partir du maillage humain. `segment_ids[i]` est l’indice JOS-3 du nœud `i`, selon l’ordre `Head`, `Neck`, `Chest`, `Back`, `Pelvis`, `LShoulder`, `LArm`, `LHand`, `RShoulder`, `RArm`, `RHand`, `LThigh`, `LLeg`, `LFoot`, `RThigh`, `RLeg`, `RFoot`. `node_areas[i]` est l’aire duale du nœud en m².
 
