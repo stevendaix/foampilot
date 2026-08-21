@@ -98,6 +98,10 @@ The documentation includes:
 - Meshing, solver control, and post-processing
 - Reporting and visualization workflows
 
+### MakeHuman and JOS-3 thermoregulation
+
+The repository includes a reproducible MakeHuman-to-STL workflow for thermoregulation experiments. It exports the MakeHuman body through the local socket API, filters the main skin group, and generates 17 JOS-3 surface patches plus a `zone_mapping.csv` for later CFD coupling. See [`examples/thermoregulation/makehuman/README.md`](examples/thermoregulation/makehuman/README.md) for Ubuntu installation, socket configuration, export, zoning, and validation steps.
+
 ---
 
 ## Project Status
