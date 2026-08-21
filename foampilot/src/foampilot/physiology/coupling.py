@@ -259,12 +259,21 @@ class DistributedSurfaceNetwork:
         self.last_exchange: DistributedSurfaceExchange | None = None
         model.set_environment_mode("external_surface")
 
-    def step(self, h, air_temperature, *, dtime=1.0, hr=0.0):
-        """Avance le réseau et JOS-3 d’un pas en échangeant tous les points."""
+    def step(self, h, air_temperature, *, radiative_temperature=None,
+             dtime=1.0, hr=0.0):
+        """Avance le réseau d’un pas avec convection et rayonnement locaux.
+
+        ``h`` et ``hr`` sont des coefficients [W/m²/K]. ``air_temperature``
+        et ``radiative_temperature`` sont en °C. Les puissances internes sont
+        stockées en W ; le provider OpenFOAM reçoit ensuite un flux en W/m².
+        """
         h = np.asarray(h, dtype=float).reshape(-1)
         ta = np.asarray(air_temperature, dtype=float).reshape(-1)
-        if h.size != self.mapping.zone_ids.size or ta.size != h.size:
-            raise ValueError("h et air_temperature ne correspondent pas au mapping")
+        tr = ta if radiative_temperature is None else np.asarray(
+            radiative_temperature, dtype=float
+        ).reshape(-1)
+        if h.size != self.mapping.zone_ids.size or ta.size != h.size or tr.size != h.size:
+            raise ValueError("h, air_temperature et radiative_temperature doivent correspondre au mapping")
         if np.any(h < 0) or hr < 0:
             raise ValueError("Les coefficients d’échange doivent être positifs")
         zone_ta = np.zeros(17)
@@ -273,7 +282,10 @@ class DistributedSurfaceNetwork:
         self.model.Ta = zone_ta
         skin_temperature = self.model.Tsk[self.mapping.zone_ids]
         body_power = self.anchor_conductance * (self.surface_temperature - skin_temperature)
-        environment_power = (h + hr) * (self.surface_temperature - ta) * self.mapping.areas
+        environment_power = (
+            h * (self.surface_temperature - ta)
+            + hr * (self.surface_temperature - tr)
+        ) * self.mapping.areas
         self.model.set_external_heat_flux(
             np.bincount(self.mapping.zone_ids, weights=body_power, minlength=17),
             tissue="skin",
@@ -298,8 +310,13 @@ class DistributedSurfaceNetwork:
             fields = provider.read_nodal_fields()
             exchange = self.step(
                 fields["h"], fields["air_temperature"],
+                radiative_temperature=fields.get("radiative_temperature"),
                 dtime=dtime, hr=hr,
             )
-            provider.write_nodal_flux(exchange.environment_power.copy())
+            # externalCoupled attend un flux surfacique [W/m²], alors que
+            # environment_power est une puissance nodale [W].
+            provider.write_nodal_flux(
+                (exchange.environment_power / self.mapping.areas).copy()
+            )
             exchanges.append(exchange)
         return exchanges
