@@ -1,0 +1,65 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+
+ dimensions      [0 2 -2 0 0 0 0];
+ internalField   uniform 0;
+ boundaryField
+ {
+     outer
+     {
+         type            zeroGradient;
+     }
+     aorta_surface_inlet
+     {
+         type            zeroGradient;
+     }
+     aorta_surface_outlet_0
+     {
+         type            fixedValue;
+         value           uniform 0;
+     }
+     aorta_surface_outlet_1
+     {
+         type            fixedValue;
+         value           uniform 0;
+     }
+     aorta_surface_outlet_2
+     {
+         type            fixedValue;
+         value           uniform 0;
+     }
+     aorta_surface_outlet_3
+     {
+         type            fixedValue;
+         value           uniform 0;
+     }
+     aorta_surface_outlet_5
+     {
+         type            fixedValue;
+         value           uniform 0;
+     }
+     aorta_surface_outlet_6
+     {
+         type            fixedValue;
+         value           uniform 0;
+     }
+     aorta_surface_outlet_7
+     {
+         type            fixedValue;
+         value           uniform 0;
+     }
+     aorta_surface_outlet_8
+     {
+         type            fixedValue;
+         value           uniform 0;
+     }
+     aorta_surface_wall
+     {
+         type            zeroGradient;
+     }
+ }

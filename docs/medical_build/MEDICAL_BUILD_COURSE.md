@@ -78,6 +78,18 @@ La présence d’un fichier STL ne prouve pas son absence de trous. Les surfaces
 
 Le cas complexe contient les centerlines, les diagnostics, les rapports Build123d et Classy Blocks, les STL et les dictionnaires OpenFOAM. Les benchmarks mesurent le temps, la validité OCC, le volume signé, le nombre de faces et la connectivité. Toute modification future doit comparer ces métriques à une baseline.
 
+## 10. Déformation paramétrique et anévrisme asymétrique
+
+Une déformation locale peut être définie sur une branche par un facteur radial gaussien :
+
+`q(s) = 1 + A exp(-(s-s0)^2/(2σ^2))`.
+
+Pour chaque point de contour `p(s,θ)`, le déplacement radial est `p' = x(s) + q(s)(p-x(s))`. Le facteur est borné par `q_max` et peut être protégé près des jonctions par une fenêtre de raccordement. Cette protection est essentielle : une dilatation brutale au carrefour modifie les intersections et peut réintroduire les défauts de surface éliminés par le filtrage des sections.
+
+L’asymétrie est obtenue en ajoutant une modulation angulaire, par exemple `q(s,θ) = q(s)[1 + a g(s) max(0, cos(θ-θ0))]`. Le paramètre `a` contrôle la lobe et `θ0` son orientation. Dans le second exemple, la déformation reste limitée à la branche 2 et la référence est sérialisée avant toute modification.
+
+Les contrôles de non-régression sont : la référence doit rester bit-à-bit équivalente au niveau des coordonnées, les branches non ciblées doivent conserver leurs sections, le facteur radial doit rester dans `[1,q_max]`, et l’export final doit repasser par les audits de fermeture, de faces non-manifold, de doublons et de volume. Le STL diagnostique de sections n’est pas automatiquement un STL CFD : la jonction et les patches doivent être reconstruits et validés par `surfaceCheck`, `snappyHexMesh` et `checkMesh`.
+
 ## Références
 
 [1]: https://vtk.org/ "VTK documentation"
@@ -85,3 +97,5 @@ Le cas complexe contient les centerlines, les diagnostics, les rapports Build123
 [3]: https://doc.cgal.org/latest/Triangulation_3/index.html "CGAL 3D triangulations"
 [4]: https://github.com/damogranlabs/classy_blocks "Classy Blocks"
 [5]: https://www.openfoam.com/documentation/guides/latest/doc/guide-meshing-snappyhexmesh.html "OpenFOAM snappyHexMesh"
+[6]: https://arxiv.org/html/2504.15285v1 "Parametric aneurysm modelling reference"
+[7]: https://github.com/jacobo-diaz/aneupy "AneuPy reference implementation"

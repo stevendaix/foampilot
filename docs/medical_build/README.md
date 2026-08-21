@@ -48,7 +48,7 @@ deformed_data = apply_local_deformation(analysis_data, spec)
 
 Par défaut, aucune déformation n’est appliquée. `apply_local_deformation(analysis_data, None)` retourne une copie équivalente et ne modifie jamais la référence. Le modèle radial utilise une gaussienne le long de l’abscisse de branche et réduit progressivement l’amplitude près des jonctions. Les données déformées peuvent ensuite être transmises aux backends STL, Build123d et `snappyHexMesh`.
 
-La documentation détaillée et les limites actuelles sont décrites dans [`LOCAL_DEFORMATION.md`](LOCAL_DEFORMATION.md). La validation sur le contrat aortique complexe est reproductible avec `examples/medical_build/validate_local_deformation_real.py`.
+La documentation détaillée et les limites actuelles sont décrites dans [`LOCAL_DEFORMATION.md`](LOCAL_DEFORMATION.md). La validation sur le contrat aortique complexe est reproductible avec `examples/medical_build/validate_local_deformation_real.py`. Le second scénario d’anévrisme asymétrique est décrit dans [`ASYMMETRIC_ANEURYSM_EXAMPLE.md`](ASYMMETRIC_ANEURYSM_EXAMPLE.md) et s’exécute avec `examples/medical_build/example_asymmetric_aneurysm.py`.
 
 ## Limites connues
 
