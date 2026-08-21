@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import importlib.util
 import sys
 import types
@@ -55,7 +56,9 @@ provider = provider_module.OpenFOAM13TemperatureProvider(
 
 # externalCoupledTemperature attend une valeur initiale avant de produire data.out.
 COMMS.mkdir(parents=True, exist_ok=True)
-initial_rows = np.column_stack((np.full(4500, 307.15), np.zeros(4500), np.ones(4500)))
+patch_faces = COMMS / "patchFaces"
+n_initial = int(patch_faces.read_text().splitlines()[1]) if patch_faces.exists() else 4500
+initial_rows = np.column_stack((np.full(n_initial, 307.15), np.zeros(n_initial), np.ones(n_initial)))
 (COMMS / "data.in").write_text(
     "\n".join(" ".join(f"{value:.16g}" for value in row) for row in initial_rows) + "\n",
     encoding="utf-8",
@@ -70,7 +73,15 @@ while True:
 
     n = fields["areas"].size
     if network is None:
-        zone_ids = np.arange(n, dtype=int) % 17
+        mapping_file = CASE / "zone_mapping_openfoam.csv"
+        if mapping_file.exists():
+            with mapping_file.open(newline="", encoding="utf-8") as stream:
+                mapping_rows = sorted(csv.DictReader(stream), key=lambda row: int(row["face_id"]))
+            if len(mapping_rows) != n:
+                raise ValueError(f"Mapping {len(mapping_rows)} faces, OpenFOAM en a fourni {n}")
+            zone_ids = np.asarray([int(row["zone_id"]) for row in mapping_rows], dtype=int)
+        else:
+            zone_ids = np.arange(n, dtype=int) % 17
         mapping = coupling.SurfaceMapping(zone_ids=zone_ids, areas=fields["areas"])
         network = coupling.DistributedSurfaceNetwork(
             model,

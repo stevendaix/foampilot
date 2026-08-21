@@ -1,0 +1,16 @@
+FoamFile
+{
+    format ascii;
+    class dictionary;
+    object controlDict;
+}
+application     foamRun;
+solver          fluid;
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         2;
+deltaT          1;
+writeControl    timeStep;
+writeInterval   5;
+purgeWrite      0;

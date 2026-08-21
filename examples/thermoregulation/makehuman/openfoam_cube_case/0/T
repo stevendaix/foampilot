@@ -1,0 +1,28 @@
+FoamFile
+{
+    format ascii;
+    class volScalarField;
+    location "0";
+    object T;
+}
+
+dimensions [0 0 0 1 0 0 0];
+
+internalField uniform 293.15;
+
+boundaryField
+{
+    inlet { type zeroGradient; }
+    outlet { type zeroGradient; }
+    floor { type zeroGradient; }
+    ceiling { type zeroGradient; }
+    sideA { type zeroGradient; }
+    sideB { type zeroGradient; }
+    human {
+        type externalCoupledTemperature;
+        commsDir "${FOAM_CASE}/comms";
+        file "data";
+        initByExternal yes;
+        value uniform 307.15;
+    }
+}
