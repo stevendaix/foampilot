@@ -1,0 +1,84 @@
+{
+  "branches": [
+    {
+      "branch_id": 0,
+      "reference_volume": 46328.74065534576,
+      "deformed_volume": 46328.74065534576,
+      "relative_change_percent": 0.0,
+      "reference_area": 14214.013149767501,
+      "deformed_area": 14214.013149767501,
+      "reference_watertight": true,
+      "deformed_watertight": true
+    },
+    {
+      "branch_id": 1,
+      "reference_volume": 34755.64431788859,
+      "deformed_volume": 34755.64431788859,
+      "relative_change_percent": 0.0,
+      "reference_area": 35782.374911055114,
+      "deformed_area": 35782.374911055114,
+      "reference_watertight": true,
+      "deformed_watertight": true
+    },
+    {
+      "branch_id": 2,
+      "reference_volume": 49908.481583147855,
+      "deformed_volume": 50588.51399473628,
+      "relative_change_percent": 1.3625588076757713,
+      "reference_area": 23713.49195934175,
+      "deformed_area": 23813.538189724073,
+      "reference_watertight": true,
+      "deformed_watertight": true
+    },
+    {
+      "branch_id": 3,
+      "reference_volume": 18808.6939156353,
+      "deformed_volume": 18808.6939156353,
+      "relative_change_percent": 0.0,
+      "reference_area": 8397.817792207261,
+      "deformed_area": 8397.817792207261,
+      "reference_watertight": true,
+      "deformed_watertight": true
+    },
+    {
+      "branch_id": 4,
+      "reference_volume": 27637.217807133362,
+      "deformed_volume": 27637.217807133362,
+      "relative_change_percent": 0.0,
+      "reference_area": 16703.910547902604,
+      "deformed_area": 16703.910547902604,
+      "reference_watertight": true,
+      "deformed_watertight": true
+    },
+    {
+      "branch_id": 5,
+      "reference_volume": 33148.155242173096,
+      "deformed_volume": 33148.155242173096,
+      "relative_change_percent": 0.0,
+      "reference_area": 16977.66510290823,
+      "deformed_area": 16977.66510290823,
+      "reference_watertight": true,
+      "deformed_watertight": true
+    },
+    {
+      "branch_id": 6,
+      "reference_volume": 11088.327012724534,
+      "deformed_volume": 11088.327012724534,
+      "relative_change_percent": 0.0,
+      "reference_area": 5464.244434928264,
+      "deformed_area": 5464.244434928264,
+      "reference_watertight": true,
+      "deformed_watertight": true
+    },
+    {
+      "branch_id": 7,
+      "reference_volume": 29160.285921212344,
+      "deformed_volume": 29160.285921212344,
+      "relative_change_percent": 0.0,
+      "reference_area": 12589.627683327684,
+      "deformed_area": 12589.627683327684,
+      "reference_watertight": true,
+      "deformed_watertight": true
+    }
+  ]
+}

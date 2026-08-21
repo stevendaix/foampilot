@@ -1,0 +1,242 @@
+{
+  "contract": "/tmp/medical_build_complex_prebuild/analysis_contract.json",
+  "reference_branch_count": 8,
+  "deformation": {
+    "enabled": true,
+    "parameters": {
+      "branch_ids": [
+        2
+      ],
+      "center_abscissa": 139.9140941891556,
+      "sigma": 3.0,
+      "amplitude": 0.2,
+      "profile": "gaussian",
+      "junction_protection": 2.0,
+      "max_scale": 3.0
+    },
+    "sections": 800,
+    "min_scale": 1.0,
+    "max_scale": 1.1789942880210051,
+    "mean_scale": 1.0006651122261412
+  },
+  "reference": {
+    "branches": [
+      {
+        "branch_id": 0,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_00.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 1,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_01.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 2,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_02.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 3,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_03.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 4,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_04.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 5,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_05.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 6,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_06.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 7,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_07.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      }
+    ],
+    "combined": {
+      "path": "examples/medical_build/outputs/reconstructed_local_deformation/reference/aorta_sections_combined.stl",
+      "vertices": 25616,
+      "triangles": 51200,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "edge_histogram": {
+        "2": 76800
+      }
+    }
+  },
+  "deformed": {
+    "branches": [
+      {
+        "branch_id": 0,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/branch_00.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 1,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/branch_01.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 2,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/branch_02.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 3,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/branch_03.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 4,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/branch_04.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 5,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/branch_05.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 6,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/branch_06.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      },
+      {
+        "branch_id": 7,
+        "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/branch_07.stl",
+        "vertices": 3202,
+        "triangles": 6400,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "edge_histogram": {
+          "2": 9600
+        },
+        "section_count": 100
+      }
+    ],
+    "combined": {
+      "path": "examples/medical_build/outputs/reconstructed_local_deformation/deformed/aorta_sections_combined.stl",
+      "vertices": 25616,
+      "triangles": 51200,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "edge_histogram": {
+        "2": 76800
+      }
+    }
+  }
+}
