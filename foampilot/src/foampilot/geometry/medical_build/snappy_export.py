@@ -5,6 +5,8 @@ from pathlib import Path
 import shutil
 
 from foampilot.mesh.snappymesh import SnappyMesher
+from foampilot.solver.solver import Solver
+from foampilot.utilities.manageunits import ValueWithUnit
 
 
 @dataclass
@@ -16,6 +18,10 @@ class SnappyExportConfig:
     n_surface_layers: int = 5
     first_layer_thickness: float = 0.12
     expansion_ratio: float = 1.2
+    viscosity: float = 3.77e-6
+    inlet_velocity: tuple[float, float, float] = (0.4, 0.0, 0.0)
+    end_time: int = 100
+    write_interval: int = 50
 
 
 class MedicalSnappyExporter:
@@ -64,21 +70,59 @@ class MedicalSnappyExporter:
             + f"dimensions [0 2 -2 0 0 0 0];\ninternalField uniform 0;\nboundaryField\n{{\n    inlet {{ type zeroGradient; }}\n{outlet_p}\n    wall {{ type zeroGradient; }}\n}}\n"
         )
 
+    def _configure_solver_case(self, case: Path, outlets: list[str]) -> None:
+        solver = Solver(case)
+        solver.compressible = False
+        solver.with_gravity = False
+        solver.transient = False
+        solver.turbulence_model = "laminar"
+
+        solver.constant.transportProperties.nu = ValueWithUnit(self.config.viscosity, "m^2/s")
+        solver.system.controlDict.application = "foamRun"
+        solver.system.controlDict.startTime = 0
+        solver.system.controlDict.endTime = self.config.end_time
+        solver.system.controlDict.deltaT = 1
+        solver.system.controlDict.writeInterval = self.config.write_interval
+        solver.system.fvSchemes.divSchemes.update({
+            "div(phi,U)": "Gauss linearUpwind grad(U)",
+            "div(phi,nuEff)": "Gauss linear",
+        })
+        solver.system.fvSolution.solvers = {
+            "p": {"solver": "GAMG", "tolerance": 1e-6, "relTol": 0.1},
+            "pFinal": {"solver": "GAMG", "tolerance": 1e-6, "relTol": 0},
+            "U": {"solver": "smoothSolver", "smoother": "GaussSeidel", "tolerance": 1e-6, "relTol": 0.1},
+            "UFinal": {"solver": "smoothSolver", "smoother": "GaussSeidel", "tolerance": 1e-6, "relTol": 0},
+        }
+        solver.system.fvSolution.PIMPLE = {
+            "momentumPredictor": True,
+            "nOuterCorrectors": 1,
+            "nCorrectors": 0,
+            "nNonOrthogonalCorrectors": 0,
+        }
+        solver.system.fvSolution.relaxationFactors = {"p": 0.3, "U": 0.7}
+        solver.system.write()
+        solver.constant.write()
+
+        # The volume mesh does not exist yet. Declare the patches from the
+        # Python-generated STL set directly, then use foampilot Boundary to
+        # write the initial fields. blockMesh/snappyHexMesh will consume the
+        # same names later.
+        solver.boundary.fields = {"U": {}, "p": {}}
+        velocity = "uniform ({:.9g} {:.9g} {:.9g})".format(*self.config.inlet_velocity)
+        solver.boundary.fields["U"]["inlet"] = {"type": "fixedValue", "value": velocity}
+        solver.boundary.fields["p"]["inlet"] = {"type": "zeroGradient"}
+        for outlet in outlets:
+            solver.boundary.fields["U"][outlet] = {"type": "zeroGradient"}
+            solver.boundary.fields["p"][outlet] = {"type": "fixedValue", "value": "uniform 0"}
+        solver.boundary.fields["U"]["wall"] = {"type": "noSlip"}
+        solver.boundary.fields["p"]["wall"] = {"type": "zeroGradient"}
+        solver.boundary.write_boundary_conditions()
+
     def export(self, patch_dir: str | Path, case_dir: str | Path, template_case: str | Path | None = None) -> Path:
         patch_dir = Path(patch_dir)
         case = Path(case_dir)
-        template = Path(template_case) if template_case is not None else None
-        if template is not None:
-            for relative in (
-                Path("constant/transportProperties"),
-                Path("system/controlDict"),
-                Path("system/fvSchemes"),
-                Path("system/fvSolution"),
-            ):
-                source = template / relative
-                if source.exists():
-                    (case / relative).parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(source, case / relative)
+        if template_case is not None and not Path(template_case).is_dir():
+            raise FileNotFoundError(f"template_case does not exist: {template_case}")
         tri = case / "constant" / "triSurface"
         tri.mkdir(parents=True, exist_ok=True)
         (case / "system").mkdir(parents=True, exist_ok=True)
@@ -113,6 +157,5 @@ class MedicalSnappyExporter:
         mesher.write_block_mesh_dict(padding=self.config.padding, base_cell_size=self.config.base_cell_size)
         mesher.write_surface_features_dict(patch_names, included_angle=30)
         mesher.write()
-        if template is None:
-            self._write_fields(case, [path.stem for path in outlet_files])
+        self._configure_solver_case(case, [path.stem for path in outlet_files])
         return case

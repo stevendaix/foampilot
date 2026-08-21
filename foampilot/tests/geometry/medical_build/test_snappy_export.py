@@ -27,4 +27,4 @@ def test_snappy_export_writes_case_and_wall_layers(tmp_path):
     assert "nSurfaceLayers 4;" in snappy
     assert (case_dir / "constant" / "triSurface" / "inlet.stl").exists()
     assert (case_dir / "constant" / "triSurface" / "outlet_1.stl").exists()
-    assert "nu [0 2 -1 0 0 0 0]" in (case_dir / "constant" / "transportProperties").read_text()
+    assert "nu 3.77e-06;" in (case_dir / "constant" / "transportProperties").read_text()
