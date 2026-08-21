@@ -27,6 +27,27 @@ Les profils doivent être nettoyés, fermés et projetés sur leur plan local av
 
 La surface finale destinée à OpenFOAM doit être contrôlée avec au moins un lecteur STL indépendant et, dans une installation OpenFOAM, avec `surfaceCheck`, `snappyHexMesh` et `checkMesh`. Il faut vérifier l’absence d’arêtes frontières non désirées, les faces non-manifold, les normales, la fermeture du volume et la présence des patches `inlet`, `outlet_*` et `wall`.
 
+## Déformation locale optionnelle
+
+Une déformation géométrique locale peut être appliquée entre l’analyse et la reconstruction à l’aide de `LocalDeformationSpec` et `apply_local_deformation`. Cette fonctionnalité s’inspire du paramétrage par sections d’AneuPy, mais conserve les contours réels extraits par notre pipeline au lieu de les remplacer par des cercles.
+
+```python
+from foampilot.geometry.medical_build import LocalDeformationSpec, apply_local_deformation
+
+spec = LocalDeformationSpec(
+    branch_ids=(2,),
+    center_abscissa=12.0,
+    sigma=3.0,
+    amplitude=0.20,
+    junction_protection=2.0,
+)
+deformed_data = apply_local_deformation(analysis_data, spec)
+```
+
+Par défaut, aucune déformation n’est appliquée. `apply_local_deformation(analysis_data, None)` retourne une copie équivalente et ne modifie jamais la référence. Le modèle radial utilise une gaussienne le long de l’abscisse de branche et réduit progressivement l’amplitude près des jonctions. Les données déformées peuvent ensuite être transmises aux backends STL, Build123d et `snappyHexMesh`.
+
+La documentation détaillée et les limites actuelles sont décrites dans [`LOCAL_DEFORMATION.md`](LOCAL_DEFORMATION.md). La validation sur le contrat aortique complexe est reproductible avec `examples/medical_build/validate_local_deformation_real.py`.
+
 ## Limites connues
 
 Le noyau multi-branches direct `blockMesh` est un contrat et un validateur de topologie ; il ne prétend pas encore résoudre automatiquement un carrefour anatomique à huit ports. La génération de ce carrefour doit être ajoutée avec des interfaces conformes aux tangentes et aux contours réels. Les benchmarks lourds sont reproduits par scripts externes et leurs rapports sont attachés aux campagnes de validation.
