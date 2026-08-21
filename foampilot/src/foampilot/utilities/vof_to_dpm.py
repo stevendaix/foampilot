@@ -16,6 +16,7 @@ from dataclasses import dataclass
 import json
 from math import pi
 from pathlib import Path
+import re
 from typing import Iterable, Sequence
 
 import numpy as np
@@ -35,6 +36,173 @@ class VofFragment:
         """Return the diameter of a sphere with the fragment volume."""
 
         return float((6.0 * self.volume / pi) ** (1.0 / 3.0))
+
+
+class OpenFoamFormatError(ValueError):
+    """Raised when an OpenFOAM ASCII file cannot be interpreted safely."""
+
+
+class OpenFoamAsciiReader:
+    """Read the ASCII finite-volume files needed by VOF-to-DPM extraction.
+
+    The reader supports the standard OpenFOAM `uniform` and `nonuniform List`
+    internal-field encodings and the ASCII `C`, `V`, `owner` and `neighbour`
+    mesh files. Binary files are rejected explicitly instead of being guessed.
+    """
+
+    _comment_re = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
+
+    @classmethod
+    def _tokens(cls, path: str | Path) -> list[str]:
+        file_path = Path(path)
+        text = file_path.read_text(encoding="utf-8")
+        if re.search(r"\bformat\s+binary\s*;", text):
+            raise OpenFoamFormatError(f"Binary OpenFOAM file is not supported: {file_path}")
+        text = cls._comment_re.sub(" ", text)
+        return re.findall(r"\(|\)|\{|\}|;|[^\s(){};]+", text)
+
+    @staticmethod
+    def _vector(tokens: list[str], index: int) -> tuple[tuple[float, float, float], int]:
+        if tokens[index] != "(":
+            raise OpenFoamFormatError("Expected a vector opening parenthesis")
+        try:
+            vector = tuple(float(tokens[index + offset]) for offset in (1, 2, 3))
+        except (IndexError, ValueError) as error:
+            raise OpenFoamFormatError("Invalid vector value") from error
+        if tokens[index + 4] != ")":
+            raise OpenFoamFormatError("Invalid vector closing parenthesis")
+        return vector, index + 5
+
+    @classmethod
+    def field(cls, path: str | Path) -> np.ndarray:
+        """Read a scalar or vector internalField as a NumPy array."""
+
+        tokens = cls._tokens(path)
+        try:
+            field_index = tokens.index("internalField")
+        except ValueError as error:
+            raise OpenFoamFormatError(f"No internalField in {path}") from error
+        index = field_index + 1
+        if tokens[index] == "uniform":
+            index += 1
+            if tokens[index] == "(":
+                value, _ = cls._vector(tokens, index)
+                return np.asarray([value], dtype=float)
+            try:
+                return np.asarray([float(tokens[index])], dtype=float)
+            except (IndexError, ValueError) as error:
+                raise OpenFoamFormatError(f"Invalid uniform field in {path}") from error
+        if tokens[index] != "nonuniform":
+            raise OpenFoamFormatError(f"Unsupported internalField encoding in {path}")
+        index += 1
+        if index < len(tokens) and tokens[index].startswith("List<"):
+            index += 1
+        try:
+            count = int(tokens[index])
+        except (IndexError, ValueError) as error:
+            raise OpenFoamFormatError(f"Invalid nonuniform count in {path}") from error
+        index += 1
+        if tokens[index] != "(":
+            raise OpenFoamFormatError(f"Missing nonuniform list in {path}")
+        index += 1
+        values: list[object] = []
+        for _ in range(count):
+            if index < len(tokens) and tokens[index] == "(":
+                value, index = cls._vector(tokens, index)
+            else:
+                try:
+                    value = float(tokens[index])
+                except (IndexError, ValueError) as error:
+                    raise OpenFoamFormatError(f"Invalid nonuniform value in {path}") from error
+                index += 1
+            values.append(value)
+        if index >= len(tokens) or tokens[index] != ")":
+            raise OpenFoamFormatError(f"Unclosed nonuniform list in {path}")
+        array = np.asarray(values, dtype=float)
+        return array
+
+    @classmethod
+    def integer_list(cls, path: str | Path) -> np.ndarray:
+        """Read an OpenFOAM ASCII label list such as owner or neighbour."""
+
+        tokens = cls._tokens(path)
+        candidates = [
+            (index, ")") for index, token in enumerate(tokens) if token == "("
+        ] + [
+            (index, "}") for index, token in enumerate(tokens) if token == "{"
+        ]
+        if not candidates:
+            raise OpenFoamFormatError(f"No label list in {path}")
+        start, closing = max(candidates, key=lambda item: item[0])
+        start += 1
+        end = start
+        while end < len(tokens) and tokens[end] != closing:
+            end += 1
+        if end == len(tokens):
+            raise OpenFoamFormatError(f"Unclosed label list in {path}")
+        try:
+            return np.asarray([int(token) for token in tokens[start:end]], dtype=int)
+        except ValueError as error:
+            raise OpenFoamFormatError(f"Invalid label list in {path}") from error
+
+
+class OpenFoamCaseReader:
+    """Load the VOF fields and cell connectivity needed by the converter.
+
+    OpenFOAM 13 writes cell volumes as ``Vc`` in the selected time directory
+    when using the standard ``writeCellVolumes`` function object; a precomputed
+    ``constant/polyMesh/V`` is also accepted for externally prepared cases.
+    """
+
+    def __init__(self, case_directory: str | Path, time_directory: str = "0") -> None:
+        self.case_directory = Path(case_directory)
+        self.time_directory = self.case_directory / time_directory
+        self.mesh_directory = self.case_directory / "constant" / "polyMesh"
+
+    def read(
+        self,
+        alpha_name: str = "alpha.liquid",
+        velocity_name: str | None = "U",
+    ) -> dict[str, object]:
+        """Read alpha, optional U, C, V and internal-cell connectivity."""
+
+        alpha = OpenFoamAsciiReader.field(self.time_directory / alpha_name)
+        centre_path = self.time_directory / "C"
+        if not centre_path.exists():
+            centre_path = self.mesh_directory / "C"
+        centres = OpenFoamAsciiReader.field(centre_path)
+        volume_path = self.mesh_directory / "V"
+        if not volume_path.exists():
+            volume_path = self.time_directory / "Vc"
+        volumes = OpenFoamAsciiReader.field(volume_path)
+        owner = OpenFoamAsciiReader.integer_list(self.mesh_directory / "owner")
+        neighbour = OpenFoamAsciiReader.integer_list(self.mesh_directory / "neighbour")
+        # owner contains boundary faces too; neighbour contains internal faces only.
+        if owner.size < neighbour.size:
+            raise OpenFoamFormatError("owner has fewer faces than neighbour")
+        owner = owner[: neighbour.size]
+        if alpha.ndim != 1 or centres.ndim != 2 or centres.shape[1] != 3 or volumes.ndim != 1:
+            raise OpenFoamFormatError("Unexpected field dimensions in OpenFOAM case")
+        if alpha.size != centres.shape[0] or alpha.size != volumes.size:
+            raise OpenFoamFormatError("alpha, C and V do not have the same cell count")
+        neighbours = [[] for _ in range(alpha.size)]
+        for owner_cell, neighbour_cell in zip(owner, neighbour):
+            if not 0 <= owner_cell < alpha.size or not 0 <= neighbour_cell < alpha.size:
+                raise OpenFoamFormatError("owner/neighbour references an invalid cell")
+            neighbours[int(owner_cell)].append(int(neighbour_cell))
+            neighbours[int(neighbour_cell)].append(int(owner_cell))
+        velocity = None
+        if velocity_name is not None:
+            velocity = OpenFoamAsciiReader.field(self.time_directory / velocity_name)
+            if velocity.shape != centres.shape:
+                raise OpenFoamFormatError("U and C do not have the same shape")
+        return {
+            "alpha": alpha,
+            "cell_centres": centres,
+            "cell_volumes": volumes,
+            "neighbours": neighbours,
+            "velocity": velocity,
+        }
 
 
 class VofToDpmConverter:
@@ -168,6 +336,27 @@ class VofToDpmConverter:
 
         fragments.sort(key=lambda fragment: fragment.cell_indices[0])
         return fragments
+
+    def extract_case(
+        self,
+        case_directory: str | Path,
+        time_directory: str = "0",
+        alpha_name: str = "alpha.liquid",
+        velocity_name: str | None = "U",
+    ) -> list[VofFragment]:
+        """Read an ASCII OpenFOAM case and extract its VOF fragments."""
+
+        fields = OpenFoamCaseReader(case_directory, time_directory).read(
+            alpha_name=alpha_name,
+            velocity_name=velocity_name,
+        )
+        return self.extract(
+            alpha=fields["alpha"],
+            cell_centres=fields["cell_centres"],
+            cell_volumes=fields["cell_volumes"],
+            neighbours=fields["neighbours"],
+            velocity=fields["velocity"],
+        )
 
     @staticmethod
     def total_volume(fragments: Sequence[VofFragment]) -> float:

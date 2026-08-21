@@ -32,6 +32,22 @@ fragments = converter.extract(
 outputs = converter.write_openfoam_outputs(fragments, "constant")
 ```
 
+For an ASCII OpenFOAM 13 case, the complete workflow can be run without manually assembling NumPy arrays:
+
+```python
+converter = VofToDpmConverter(alpha_threshold=0.5)
+fragments = converter.extract_case(
+    case_directory="case",
+    time_directory="0",
+    alpha_name="alpha.liquid",
+    velocity_name="U",
+)
+outputs = converter.write_openfoam_outputs(fragments, "case/constant")
+```
+
+`OpenFoamCaseReader` reads `C` from the selected time directory (or from `constant/polyMesh`), `Vc` from the selected time directory (or `V` from `constant/polyMesh`), and the internal connectivity from the first `nInternalFaces` entries of `owner` paired with `neighbour`. Binary fields are rejected explicitly.
+
+
 The converter writes three artifacts. The `vofToDpmCloudPositions` file is an OpenFOAM `vectorField` containing fragment centroids. The `vofToDpmCloudFragments` dictionary records volume, equivalent diameter and velocity for every fragment. The JSON report contains thresholds, counts, cell IDs and all fragment properties for automated auditing.
 
 ## Important limitations
@@ -45,3 +61,12 @@ The test suite covers separated cells, connected fragments, liquid-volume weight
 ```sh
 PYTHONPATH=src/foampilot/utilities python -m pytest -q test/test_vof_to_dpm.py
 ```
+
+With OpenFOAM 13 installed, the end-to-end case is:
+
+```sh
+cd test/openfoam13/vof_to_dpm_single_cell
+./Allrun
+```
+
+It builds a real OpenFOAM mesh, writes `C` and `Vc` with `foamPostProcess`, reads the generated files, and checks the final DPM outputs.

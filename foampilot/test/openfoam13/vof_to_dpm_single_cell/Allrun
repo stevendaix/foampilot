@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+caseDir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ -n "${WM_PROJECT_DIR:-}" ]; then
+    . "$WM_PROJECT_DIR/etc/bashrc" || true
+elif [ -f /opt/openfoam13/etc/bashrc ]; then
+    . /opt/openfoam13/etc/bashrc || true
+else
+    echo "OpenFOAM 13 environment not found" >&2
+    exit 1
+fi
+set -u
+cd "$caseDir"
+rm -rf constant/polyMesh 0/C 0/Vc constant/vofToDpmCloudPositions constant/vofToDpmCloudFragments constant/vofToDpmCloudReport.json
+blockMesh > log.blockMesh
+foamPostProcess -func writeCellCentres > log.writeCellCentres
+foamPostProcess -func writeCellVolumes > log.writeCellVolumes
+PYTHONPATH="$caseDir/../../../src/foampilot/utilities" python3 validate_case.py | tee log.validate
