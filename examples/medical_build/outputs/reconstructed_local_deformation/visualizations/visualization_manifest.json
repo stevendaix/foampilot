@@ -1,0 +1,8 @@
+{
+  "images": [
+    "01_aorta_reference_vs_deformed_3d.png",
+    "02_section_maximum_branch_02.png",
+    "03_networkx_vascular_graph.png"
+  ],
+  "source": "/tmp/medical_build_complex_prebuild/analysis_contract.json"
+}

@@ -1,0 +1,102 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      snappyHexMeshDict;
+}
+
+castellatedMesh true;
+snap true;
+addLayers false;
+
+geometry
+{
+    "aorta_wall.stl"
+    {
+        type triSurfaceMesh;
+        file "aorta_wall.stl";
+        name aorta_wall;
+    }
+};
+
+castellatedMeshControls
+{
+    maxLocalCells 100000;
+    maxGlobalCells 2000000;
+    minRefinementCells 10;
+    nCellsBetweenLevels 3;
+    locationInMesh (223.0 139.0 24.0);
+    features
+    (
+    );
+    refinementSurfaces
+    {
+        aorta_wall { level (2 3); }
+    }
+    refinementRegions
+    {
+    }
+    allowFreeStandingZoneFaces true;
+    resolveFeatureAngle 30;
+};
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 2.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+    nFeatureSnapIter 10;
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap false;
+};
+
+addLayersControls
+{
+    relativeSizes true;
+    nGrow 0;
+    expansionRatio 1.2;
+    finalLayerThickness 0.3;
+    minThickness 0.1;
+    featureAngle 60;
+    slipFeatureAngle 30;
+    nRelaxIter 5;
+    nSmoothNormals 1;
+    nSmoothSurfaceNormals 1;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedianAxisAngle 90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 50;
+    layers
+    {
+    }
+};
+
+meshQualityControls
+{
+    maxNonOrtho 75;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    minVol 1e-13;
+    minTetQuality 1e-15;
+    minArea -1;
+    minTwist 0.02;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist -1;
+    minFlatness 0.5;
+    nSmoothScale 4;
+    errorReduction 0.75;
+};
+
+debug 0;
+
+writeFlags (scalarLevels layerSets layerFields);
+mergeTolerance 1e-06;

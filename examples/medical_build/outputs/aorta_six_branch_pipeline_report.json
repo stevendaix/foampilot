@@ -1,0 +1,191 @@
+{
+  "branches": [
+    {
+      "branch_id": 0,
+      "source_cap_id": null,
+      "target_cap_id": null,
+      "sections": 78,
+      "length": 35.691091333525506,
+      "radius_min": 0.0,
+      "radius_max": 0.0,
+      "area_min": 0.0,
+      "area_max": 0.0
+    },
+    {
+      "branch_id": 1,
+      "source_cap_id": null,
+      "target_cap_id": null,
+      "sections": 21,
+      "length": 6.516147637285038,
+      "radius_min": 0.0,
+      "radius_max": 0.0,
+      "area_min": 0.0,
+      "area_max": 0.0
+    },
+    {
+      "branch_id": 2,
+      "source_cap_id": null,
+      "target_cap_id": null,
+      "sections": 115,
+      "length": 35.60478745892013,
+      "radius_min": 0.0,
+      "radius_max": 0.0,
+      "area_min": 0.0,
+      "area_max": 0.0
+    },
+    {
+      "branch_id": 3,
+      "source_cap_id": null,
+      "target_cap_id": null,
+      "sections": 73,
+      "length": 35.35881374306324,
+      "radius_min": 0.0,
+      "radius_max": 0.0,
+      "area_min": 0.0,
+      "area_max": 0.0
+    },
+    {
+      "branch_id": 4,
+      "source_cap_id": null,
+      "target_cap_id": null,
+      "sections": 26,
+      "length": 6.68399753744361,
+      "radius_min": 0.0,
+      "radius_max": 0.0,
+      "area_min": 0.0,
+      "area_max": 0.0
+    },
+    {
+      "branch_id": 5,
+      "source_cap_id": null,
+      "target_cap_id": null,
+      "sections": 103,
+      "length": 34.11297691679529,
+      "radius_min": 0.0,
+      "radius_max": 0.0,
+      "area_min": 0.0,
+      "area_max": 0.0
+    }
+  ],
+  "topology": {
+    "nodes": 7,
+    "edges": [
+      {
+        "source": "0",
+        "target": "1",
+        "branch_id": 0,
+        "length": 35.691091333525506,
+        "sections": 78
+      },
+      {
+        "source": "0",
+        "target": "4",
+        "branch_id": 3,
+        "length": 35.35881374306324,
+        "sections": 73
+      },
+      {
+        "source": "1",
+        "target": "2",
+        "branch_id": 1,
+        "length": 6.516147637285038,
+        "sections": 21
+      },
+      {
+        "source": "2",
+        "target": "3",
+        "branch_id": 2,
+        "length": 35.60478745892013,
+        "sections": 115
+      },
+      {
+        "source": "4",
+        "target": "5",
+        "branch_id": 4,
+        "length": 6.68399753744361,
+        "sections": 26
+      },
+      {
+        "source": "5",
+        "target": "6",
+        "branch_id": 5,
+        "length": 34.11297691679529,
+        "sections": 103
+      }
+    ],
+    "connected_components": 1,
+    "connected": true,
+    "components": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    ],
+    "terminal_nodes": [
+      0,
+      3,
+      6
+    ],
+    "junction_nodes": [
+      1,
+      2,
+      4,
+      5
+    ],
+    "node_degrees": {
+      "0": 2,
+      "1": 2,
+      "2": 2,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 1
+    }
+  },
+  "patches": [
+    {
+      "name": "inlet",
+      "branch": 2,
+      "side": "last",
+      "center": [
+        234.35397338867188,
+        101.31446838378906,
+        28.98675537109375
+      ],
+      "radius": 28.761444203196476,
+      "removed_wall_faces": 573,
+      "cap_faces": 84
+    },
+    {
+      "name": "outlet_0",
+      "branch": 0,
+      "side": "first",
+      "center": [
+        222.09629821777344,
+        175.86996459960938,
+        21.673107147216797
+      ],
+      "radius": 9.660312703698144,
+      "removed_wall_faces": 860,
+      "cap_faces": 129
+    },
+    {
+      "name": "outlet_1",
+      "branch": 5,
+      "side": "last",
+      "center": [
+        210.20037841796875,
+        103.04645538330078,
+        31.687685012817383
+      ],
+      "radius": 5.259547640409924,
+      "removed_wall_faces": 247,
+      "cap_faces": 73
+    }
+  ]
+}

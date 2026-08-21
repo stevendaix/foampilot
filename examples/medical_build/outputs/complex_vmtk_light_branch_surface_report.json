@@ -1,0 +1,23 @@
+{
+  "method": "ring-to-ring surface stitching",
+  "stride": 4,
+  "rings": 24,
+  "branches": {
+    "2": {
+      "input_sections": 281,
+      "used_sections": 71,
+      "rings": 24
+    },
+    "6": {
+      "input_sections": 130,
+      "used_sections": 33,
+      "rings": 24
+    },
+    "7": {
+      "input_sections": 149,
+      "used_sections": 38,
+      "rings": 24
+    }
+  },
+  "note": "diagnostic surface; central bifurcation not reconstructed"
+}

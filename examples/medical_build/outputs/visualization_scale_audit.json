@@ -1,0 +1,84 @@
+{
+  "surfaces": [
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/foampilot/test/vmtk_test_data/aorta-surface.vtp",
+      "points": 6468,
+      "cells": 12932,
+      "bounds": [
+        205.61859130859375,
+        239.92254638671875,
+        97.6685791015625,
+        181.62542724609375,
+        12.454675674438477,
+        35.359859466552734
+      ],
+      "dimensions": [
+        34.303955078125,
+        83.95684814453125,
+        22.905183792114258
+      ],
+      "area": 4517.763081539069,
+      "volume": 13184.266682666812
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/outputs/vmtk_like_polyball_aorta.vtp",
+      "points": 51673,
+      "cells": 101620,
+      "bounds": [
+        201.1223602294922,
+        243.8723602294922,
+        104.94342041015625,
+        173.24520874023438,
+        14.762653350830078,
+        34.833709716796875
+      ],
+      "dimensions": [
+        42.75,
+        68.30178833007812,
+        20.071056365966797
+      ],
+      "area": 25593.820531786758,
+      "volume": 7671.311277966579
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/outputs/vmtk_like_aorta_sections_filtered.vtp",
+      "points": 45005,
+      "cells": 416,
+      "bounds": [
+        205.72352600097656,
+        239.9097442626953,
+        99.29782104492188,
+        178.2330322265625,
+        12.485647201538086,
+        35.179019927978516
+      ],
+      "dimensions": [
+        34.18621826171875,
+        78.93521118164062,
+        22.69337272644043
+      ],
+      "area": 56343.31371886099,
+      "volume": 7531124.680643059
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/outputs/reconstructed_local_deformation/reference/aorta_sections_combined.stl",
+      "points": 25609,
+      "cells": 51200,
+      "bounds": [
+        -134.6223602294922,
+        -36.40407943725586,
+        -24.599205017089844,
+        269.91156005859375,
+        0.0,
+        49.49645233154297
+      ],
+      "dimensions": [
+        98.21828079223633,
+        294.5107650756836,
+        49.49645233154297
+      ],
+      "area": 133843.14558143803,
+      "volume": 250835.54645526304
+    }
+  ]
+}

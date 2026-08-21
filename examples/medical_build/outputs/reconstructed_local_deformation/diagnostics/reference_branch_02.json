@@ -1,0 +1,28 @@
+{
+  "file": "examples/medical_build/outputs/reconstructed_local_deformation/reference/branch_02.stl",
+  "vertices": 3202,
+  "faces": 6400,
+  "components": 1,
+  "component_faces": [
+    6400
+  ],
+  "boundary_edges": 0,
+  "nonmanifold_edges": 0,
+  "watertight": true,
+  "winding_consistent": true,
+  "finite": true,
+  "volume": 49908.481583147855,
+  "area": 23713.49195934175,
+  "bounds": [
+    [
+      -127.50164031982422,
+      -24.598758697509766,
+      0.0
+    ],
+    [
+      -70.53380584716797,
+      267.810546875,
+      48.781333923339844
+    ]
+  ]
+}

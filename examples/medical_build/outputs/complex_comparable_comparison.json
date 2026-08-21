@@ -1,0 +1,251 @@
+{
+  "reference": {
+    "file": "/home/ubuntu/vmtk_audit_extract/complex_analysis_raw_package/openfoam_surface_patches/aorta_surface_patches.vtp",
+    "points": 12201,
+    "cells": 24442,
+    "bounds": [
+      -135.52017211914062,
+      -36.01639938354492,
+      -24.609399795532227,
+      273.6473388671875,
+      0.0,
+      49.50297164916992
+    ],
+    "dimensions": [
+      99.5037727355957,
+      298.2567386627197,
+      49.50297164916992
+    ],
+    "area": 21452.166434314808,
+    "volume": 61304.783155783705,
+    "boundary_or_nonmanifold_edges": 3,
+    "components": 1
+  },
+  "candidate_append": {
+    "files": [
+      "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_00.stl",
+      "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_01.stl",
+      "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_02.stl",
+      "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_03.stl",
+      "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_04.stl",
+      "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_05.stl",
+      "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_06.stl",
+      "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_07.stl"
+    ],
+    "points": 25609,
+    "cells": 51200,
+    "bounds": [
+      -134.6223602294922,
+      -36.40407943725586,
+      -24.599205017089844,
+      269.91156005859375,
+      0.0,
+      49.49645233154297
+    ],
+    "dimensions": [
+      98.21828079223633,
+      294.5107650756836,
+      49.49645233154297
+    ],
+    "area": 133843.14558143803,
+    "volume": 250835.54645526304,
+    "boundary_or_nonmanifold_edges": 0,
+    "components": 1
+  },
+  "branches": [
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_00.stl",
+      "stats": {
+        "points": 3202,
+        "cells": 6400,
+        "bounds": [
+          -127.44391632080078,
+          -70.83930969238281,
+          -24.598621368408203,
+          254.60983276367188,
+          0.0,
+          48.78302764892578
+        ],
+        "dimensions": [
+          56.60460662841797,
+          279.2084541320801,
+          48.78302764892578
+        ],
+        "area": 14214.013149767528,
+        "volume": 46328.740655345755,
+        "boundary_or_nonmanifold_edges": 0,
+        "components": 1
+      }
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_01.stl",
+      "stats": {
+        "points": 3202,
+        "cells": 6400,
+        "bounds": [
+          -134.6223602294922,
+          -57.260528564453125,
+          -24.598730087280273,
+          265.8200378417969,
+          0.8791613578796387,
+          48.78162384033203
+        ],
+        "dimensions": [
+          77.36183166503906,
+          290.41876792907715,
+          47.90246248245239
+        ],
+        "area": 35782.374911055136,
+        "volume": 34755.64431788907,
+        "boundary_or_nonmanifold_edges": 0,
+        "components": 1
+      }
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_02.stl",
+      "stats": {
+        "points": 3202,
+        "cells": 6400,
+        "bounds": [
+          -127.50164031982422,
+          -70.53380584716797,
+          -24.598758697509766,
+          267.810546875,
+          0.0,
+          48.781333923339844
+        ],
+        "dimensions": [
+          56.96783447265625,
+          292.40930557250977,
+          48.781333923339844
+        ],
+        "area": 23713.49195934169,
+        "volume": 49908.481583148096,
+        "boundary_or_nonmanifold_edges": 0,
+        "components": 1
+      }
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_03.stl",
+      "stats": {
+        "points": 3202,
+        "cells": 6400,
+        "bounds": [
+          -127.48994445800781,
+          -36.40407943725586,
+          -24.598583221435547,
+          139.0404815673828,
+          13.932568550109863,
+          48.783504486083984
+        ],
+        "dimensions": [
+          91.08586502075195,
+          163.63906478881836,
+          34.85093593597412
+        ],
+        "area": 8397.8177922073,
+        "volume": 18808.6939156354,
+        "boundary_or_nonmanifold_edges": 0,
+        "components": 1
+      }
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_04.stl",
+      "stats": {
+        "points": 3202,
+        "cells": 6400,
+        "bounds": [
+          -127.53689575195312,
+          -83.0960693359375,
+          -24.598827362060547,
+          268.35662841796875,
+          13.813146591186523,
+          49.49645233154297
+        ],
+        "dimensions": [
+          44.440826416015625,
+          292.9554557800293,
+          35.683305740356445
+        ],
+        "area": 16703.910547902633,
+        "volume": 27637.21780713059,
+        "boundary_or_nonmanifold_edges": 0,
+        "components": 1
+      }
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_05.stl",
+      "stats": {
+        "points": 3202,
+        "cells": 6400,
+        "bounds": [
+          -127.52226257324219,
+          -65.0088119506836,
+          -24.598745346069336,
+          269.91156005859375,
+          7.158300876617432,
+          49.492767333984375
+        ],
+        "dimensions": [
+          62.513450622558594,
+          294.5103054046631,
+          42.33446645736694
+        ],
+        "area": 16977.665102908406,
+        "volume": 33148.15524217667,
+        "boundary_or_nonmanifold_edges": 0,
+        "components": 1
+      }
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_06.stl",
+      "stats": {
+        "points": 3202,
+        "cells": 6400,
+        "bounds": [
+          -127.48035430908203,
+          -82.29113006591797,
+          -24.598440170288086,
+          132.981689453125,
+          13.620049476623535,
+          49.16473388671875
+        ],
+        "dimensions": [
+          45.18922424316406,
+          157.5801296234131,
+          35.544684410095215
+        ],
+        "area": 5464.244434928267,
+        "volume": 11088.327012724556,
+        "boundary_or_nonmanifold_edges": 0,
+        "components": 1
+      }
+    },
+    {
+      "file": "/home/ubuntu/foampilot_pr_repo/examples/medical_build/case_complex/exports_complex/manual_stl/branch_07.stl",
+      "stats": {
+        "points": 3202,
+        "cells": 6400,
+        "bounds": [
+          -127.50296020507812,
+          -68.11601257324219,
+          -24.599205017089844,
+          255.74966430664062,
+          13.891907691955566,
+          49.01338195800781
+        ],
+        "dimensions": [
+          59.38694763183594,
+          280.34886932373047,
+          35.121474266052246
+        ],
+        "area": 12589.627683327675,
+        "volume": 29160.285921213028,
+        "boundary_or_nonmanifold_edges": 0,
+        "components": 1
+      }
+    }
+  ],
+  "relative_volume_error": 3.0916146105248616,
+  "relative_area_error": 5.239143537845345
+}
