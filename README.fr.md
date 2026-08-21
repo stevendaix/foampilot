@@ -90,10 +90,14 @@ L’installation d’OpenFOAM et la configuration du système sont documentées 
 **https://stevendaix.github.io/foampilot/fr/**
 
 La documentation inclut :
-- Guides d’installation OpenFOAM & WSL
-- Structure et concepts du projet
-- Maillage, contrôle des solveurs et post-traitement
-- Génération de rapports et visualisation
+- Guides d’installation OpenFOAM et WSL
+- Structure, architecture et validation des cas générés
+- Catalogue complet des exemples et tutoriels
+- Stratégies de maillage, qualité, `y+` et études de convergence
+- Contrôle des solveurs, conditions aux limites et données CSV
+- Lecture native OpenFOAM, PyVista/Plotly, résidus et rapports
+- Mise en données, exécution et validation des cas CHT
+- Théorie appliquée à l’écoulement biomédical, au vent extérieur, aux couches limites atmosphériques et à la thermorégulation
 
 ---
 
