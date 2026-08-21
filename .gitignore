@@ -48,3 +48,7 @@ __pycache__/
 # === Embedded git repositories ===
 /test/vmtk-test-data/
 
+
+# Local CFD runs and Python caches
+/openfoam_runs/
+**/__pycache__/

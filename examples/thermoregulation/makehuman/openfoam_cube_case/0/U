@@ -12,10 +12,10 @@ internalField uniform (0 0 0);
 
 boundaryField
 {
-    inlet { type fixedValue; value uniform (0 0 0); }
-    outlet { type zeroGradient; }
+    inlet { type noSlip; }
+    outlet { type noSlip; }
     floor { type noSlip; }
-    ceiling { type noSlip; }
+    ceiling { type pressureInletOutletVelocity; value uniform (0 0 0); }
     sideA { type noSlip; }
     sideB { type noSlip; }
     human { type noSlip; }

@@ -1,0 +1,13 @@
+{
+  "source": "/usr/share/makehuman-community/data/3dobjs/base.npz",
+  "raw_faces": 13378,
+  "raw_faces_all_groups": 18486,
+  "selected_group_id": 0,
+  "exported_triangles": 26756,
+  "vertices": 13380,
+  "area_m2": 1.6137875425039536,
+  "volume_m3": 0.054895338137786964,
+  "watertight": true,
+  "winding_consistent": true,
+  "components": 1
+}\n

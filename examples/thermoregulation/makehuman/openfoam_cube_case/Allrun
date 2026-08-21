@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 cd "${0%/*}" || exit 1
-. /opt/openfoam13/etc/bashrc
+if [ -z "${WM_PROJECT_DIR:-}" ]; then . /opt/openfoam13/etc/bashrc; fi
 python3 prepare_fields.py
 blockMesh
 snappyHexMesh -overwrite

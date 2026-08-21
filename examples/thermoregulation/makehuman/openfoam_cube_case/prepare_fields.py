@@ -21,19 +21,22 @@ boundaryField
 '''
 
 def scalar(name, dims, internal, human='zeroGradient', cls='volScalarField'):
+    wall_type = 'fixedFluxPressure' if name == 'p_rgh' else 'zeroGradient'
+    human_type = wall_type if name == 'p_rgh' else human
     human_entry = f'''    human {{
         type {human};
         commsDir "${{FOAM_CASE}}/comms";
         file "data";
         initByExternal yes;
         value uniform 307.15;
-    }}''' if human == 'externalCoupledTemperature' else f'''    human {{ type {human}; }}'''
-    body = f'''    inlet {{ type zeroGradient; }}
-    outlet {{ type zeroGradient; }}
-    floor {{ type zeroGradient; }}
-    ceiling {{ type zeroGradient; }}
-    sideA {{ type zeroGradient; }}
-    sideB {{ type zeroGradient; }}
+    }}''' if human == 'externalCoupledTemperature' else f'''    human {{ type {human_type}; value uniform 0; }}'''
+    ceiling_type = 'fixedValue' if name == 'p_rgh' else 'zeroGradient'
+    body = f'''    inlet {{ type {wall_type}; value uniform 0; }}
+    outlet {{ type {wall_type}; value uniform 0; }}
+    floor {{ type {wall_type}; value uniform 0; }}
+    ceiling {{ type {ceiling_type}; value uniform 0; }}
+    sideA {{ type {wall_type}; value uniform 0; }}
+    sideB {{ type {wall_type}; value uniform 0; }}
 {human_entry}'''
     (ZERO / name).write_text(HEADER.format(cls=cls, name=name, dims=dims, internal=internal, body=body))
 
@@ -44,10 +47,10 @@ scalar('omega', '[0 0 -1 0 0 0 0]', '1')
 scalar('nut', '[0 2 -1 0 0 0 0]', '0')
 scalar('alphat', '[1 -1 -1 0 0 0 0]', '0')
 
-u_body = '''    inlet { type fixedValue; value uniform (0 0 0); }
-    outlet { type zeroGradient; }
+u_body = '''    inlet { type noSlip; }
+    outlet { type noSlip; }
     floor { type noSlip; }
-    ceiling { type noSlip; }
+    ceiling { type pressureInletOutletVelocity; value uniform (0 0 0); }
     sideA { type noSlip; }
     sideB { type noSlip; }
     human { type noSlip; }'''

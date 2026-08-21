@@ -9,19 +9,12 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      RASProperties;
-}
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-simulationType RAS;
-
-RAS
-{
-    model               kOmegaSST;
-
-    turbulence          on;
-
+    object      momentumTransport;
 }
 
+// The first human coupling case is deliberately laminar.  A k-omega SST
+// closure is not justified by the low-Reynolds-number natural-convection
+// regime and was numerically unstable with a closed cube and a moving wall.
+simulationType  laminar;
 
 // ************************************************************************* //

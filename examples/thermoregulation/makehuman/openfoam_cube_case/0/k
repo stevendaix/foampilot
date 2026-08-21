@@ -12,11 +12,11 @@ internalField uniform 1e-6;
 
 boundaryField
 {
-    inlet { type zeroGradient; }
-    outlet { type zeroGradient; }
-    floor { type zeroGradient; }
-    ceiling { type zeroGradient; }
-    sideA { type zeroGradient; }
-    sideB { type zeroGradient; }
-    human { type zeroGradient; }
+    inlet { type zeroGradient; value uniform 0; }
+    outlet { type zeroGradient; value uniform 0; }
+    floor { type zeroGradient; value uniform 0; }
+    ceiling { type zeroGradient; value uniform 0; }
+    sideA { type zeroGradient; value uniform 0; }
+    sideB { type zeroGradient; value uniform 0; }
+    human { type zeroGradient; value uniform 0; }
 }

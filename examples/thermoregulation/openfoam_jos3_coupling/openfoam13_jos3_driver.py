@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import re
 import sys
 import types
 from pathlib import Path
@@ -46,6 +47,14 @@ provider_module = load("foampilot.postprocess.openfoam_external_coupled", SRC / 
 
 model = jos3_embedded.JOS3(ex_output="all")
 network = None
+surface_relaxation = 0.1
+control_dict = (CASE / "system" / "controlDict").read_text(encoding="utf-8")
+dtime_match = re.search(r"\bdeltaT\s+([0-9.eE+-]+)\s*;", control_dict)
+if dtime_match is None:
+    raise ValueError(f"deltaT absent de {CASE / 'system' / 'controlDict'}")
+cfd_dtime = float(dtime_match.group(1))
+if not np.isfinite(cfd_dtime) or cfd_dtime <= 0:
+    raise ValueError(f"deltaT invalide: {cfd_dtime}")
 provider = provider_module.OpenFOAM13TemperatureProvider(
     COMMS,
     file="data",
@@ -93,13 +102,22 @@ while True:
         fields["h"],
         fields["air_temperature"],
         radiative_temperature=fields["radiative_temperature"],
-        dtime=1.0,
+        dtime=cfd_dtime,
         hr=4.5,
     )
-    provider.write_surface_temperature(exchange.surface_temperature)
+    # Sous-relaxation du couplage CFD-physiologie : elle amortit la condition
+    # mixte externalCoupledTemperature sans modifier les unités (K en retour).
+    target_temperature = exchange.surface_temperature.copy()
+    relaxed_temperature = (
+        (1.0 - surface_relaxation) * fields["surface_temperature"]
+        + surface_relaxation * target_temperature
+    )
+    network.surface_temperature = relaxed_temperature.copy()
+    provider.write_surface_temperature(relaxed_temperature)
     print(
-        f"step: faces={n} h=[{fields['h'].min():.4g},{fields['h'].max():.4g}] "
-        f"Tsurface=[{exchange.surface_temperature.min():.4g},{exchange.surface_temperature.max():.4g}]",
+        f"step: faces={n} dt={cfd_dtime:.6g} alpha={surface_relaxation:.3g} h=[{fields['h'].min():.4g},{fields['h'].max():.4g}] "
+        f"Ttarget=[{target_temperature.min():.4g},{target_temperature.max():.4g}] "
+        f"Treturn=[{relaxed_temperature.min():.4g},{relaxed_temperature.max():.4g}]",
         flush=True,
     )
 
