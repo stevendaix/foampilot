@@ -253,7 +253,7 @@ Un couplage externe conserve le solveur CFD et le solveur DEM dans des processus
 | Sockets TCP | processus séparés, machines différentes possibles | latence et protocole applicatif à gérer | non retenue |
 | MPI direct | débit élevé, adapté au HPC et à OpenFOAM | communicateurs, rangs et fermeture sensibles | **retenue** |
 | preCICE | bibliothèque générique, mapping et convergence multi-physique [6] | adaptateur DEM YADE à fournir | alternative future |
-| MUI | interface multi-physique asynchrone possible | dépendance et mapping supplémentaires | non retenue |
+| MUI | interface multi-physique asynchrone possible [8] | dépendance et mapping supplémentaires | non retenue |
 | CFDEM | interface OpenFOAM–LIGGGHTS documentée [7] | dépendance à LIGGGHTS et versions associées | abandonnée au profit de YADE |
 
 Le projet utilise MPI direct via `FoamCoupling`, qui existe déjà dans YADE et diffuse les données particulaires aux processus OpenFOAM [1]. Un adaptateur preCICE OpenFOAM est une autre architecture possible, mais il faudrait définir un participant YADE, les champs d’interface et la projection des forces [6]. Le choix MPI évite ici une couche supplémentaire et conserve la logique de couplage fournie par YADE.
@@ -267,3 +267,4 @@ Le projet utilise MPI direct via `FoamCoupling`, qui existe déjà dans YADE et 
 [5]: https://doc.cfd.direct/openfoam/user-guide-v13/ "OpenFOAM Foundation — OpenFOAM v13 User Guide"
 [6]: https://precice.org/adapter-openfoam-overview "preCICE — OpenFOAM adapter"
 [7]: https://www.cfdem.com/media/CFDEM/docu/CFDEMcoupling_Manual.html "CFDEM coupling manual"
+[8]: https://mxui.github.io/ "MUI — Multiscale Universal Interface"
