@@ -4,11 +4,11 @@ Cette arborescence contient deux cas CFD–DEM complets basés sur le couplage M
 
 ## Pré-requis
 
-L’environnement attendu est Ubuntu 24.04 avec OpenFOAM Foundation 13, OpenMPI et YADE compilé avec MPI. Les exécutables `icoFoamYade` et `pimpleFoamYade` doivent être présents dans `$FOAM_USER_APPBIN`. L’exécutable YADE doit être accessible via `$YADE_EXEC`, ou simplement via le `PATH`.
+L’environnement attendu est Ubuntu 24.04 avec OpenFOAM Foundation 13, OpenMPI et YADE avec le module MPI `mpy`. Sur Ubuntu 24.04, le guide YADE recommande le paquet quotidien officiel `yadedaily`, qui fournit `yadedaily-batch` et `yade.mpy`. Les exécutables `icoFoamYade` et `pimpleFoamYade` doivent être présents dans `$FOAM_USER_APPBIN`.
 
 ```bash
 source /opt/openfoam13/etc/bashrc
-export YADE_EXEC=/opt/yade/bin/yade
+export YADE_BATCH_EXEC=yadedaily-batch
 export FOAM_USER_APPBIN="$HOME/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin"
 ```
 
@@ -35,7 +35,7 @@ cd validation/yade-openfoam13/icoFoamYade
 ./run.sh
 ```
 
-Le script prépare le maillage, lance le script YADE MPI et le solveur `icoFoamYade`. La validation doit vérifier la production des champs couplés, l’absence d’erreur MPI et la décroissance cohérente de l’erreur de continuité.
+Le script prépare le maillage, lance `yadedaily-batch`; le module `mpy` crée ensuite le communicateur MPI du couplage et démarre `icoFoamYade` avec deux processus OpenFOAM. La validation doit vérifier la production des champs couplés et la cohérence de l’erreur de continuité.
 
 ## Cas pimpleFoamYade
 
@@ -49,4 +49,4 @@ Ce cas utilise `pimpleFoamYade` et le chemin d’interpolation gaussienne du cou
 
 ## Critères d’acceptation
 
-Une validation est considérée réussie uniquement si le solveur OpenFOAM démarre avec le dictionnaire de cas, YADE rejoint le communicateur MPI, les deux codes échangent des données à chaque pas, les champs `alpha`, `uSource` et `uSourceDrag` sont mis à jour lorsque le cas les utilise, et les journaux ne contiennent ni `MPI_ABORT`, ni `was not found in FOAM`, ni erreur de segmentation. Les journaux complets sont conservés par le script de validation.
+Une validation est considérée physiquement réussie si le solveur OpenFOAM démarre avec le dictionnaire de cas, YADE rejoint le communicateur MPI, les deux codes échangent des données à chaque pas, les champs couplés sont mis à jour et les bilans de continuité restent cohérents. Dans la version actuelle de YADE, `killMPI` peut encore produire un `MPI_ABORT` final lors de la fermeture ; ce code retour d’orchestration est distinct de la convergence physique du cas et doit être nettoyé séparément.

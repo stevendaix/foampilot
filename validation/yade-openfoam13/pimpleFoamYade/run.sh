@@ -9,5 +9,5 @@ mkdir spheres
 #In yade serial:
 #python3 scriptMPI.py
 
-#In yade parallel
-mpirun --allow-run-as-root -n 4 ${YADE_EXEC:-yade} scriptMPI.py
+# YADE mpy crée le communicateur MPI du couplage ; ne pas l’imbriquer dans mpirun.
+${YADE_BATCH_EXEC:-yadedaily-batch} scriptMPI.py
