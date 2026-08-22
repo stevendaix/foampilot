@@ -110,6 +110,64 @@ def write_overset_dynamic_mesh(
     return path
 
 
+def write_openfoam13_rigid_body_mover(
+    case_path: str | Path,
+    *,
+    body_name: str = "hull",
+    patch_name: str = "hull",
+    mass: float = 412.73,
+    centre_of_mass: tuple[float, float, float] = (0.0, 0.0, 0.0),
+    inertia: tuple[float, float, float, float, float, float] = (40.0, 0.0, 0.0, 921.0, 0.0, 921.0),
+    transform_origin: tuple[float, float, float] = (2.929541, 0.0, 0.2),
+    joints: tuple[str, ...] = ("Pz", "Ry"),
+    inner_distance: float = 0.3,
+    outer_distance: float = 1.0,
+) -> Path:
+    """Write the OpenFOAM Foundation 13 rigid-body mesh mover dictionary.
+
+    OpenFOAM 13 replaced the legacy ``dynamicFvMesh`` overset arrangement
+    used by ``overInterDyMFoam`` with a top-level ``mover`` configuration.
+    This format is used by the bundled ``DTCHullMoving`` tutorial together
+    with the ``incompressibleVoF`` solver module.
+    """
+    case_path = Path(case_path)
+    constant_path = case_path / "constant"
+    constant_path.mkdir(parents=True, exist_ok=True)
+    joint_blocks = "\n".join(f"    {{ type {joint}; }}" for joint in joints)
+    dictionary = OpenFOAMFile(
+        object_name="dynamicMeshDict",
+        mover={
+            "type": "motionSolver",
+            "libs": '("librigidBodyMeshMotion.so")',
+            "motionSolver": "rigidBodyMotion",
+            "report": "on",
+            "solver": {"type": "Newmark"},
+            "accelerationRelaxation": 0.4,
+            "bodies": {
+                body_name: {
+                    "type": "rigidBody",
+                    "parent": "root",
+                    "centreOfMass": "(" + " ".join(str(value) for value in centre_of_mass) + ")",
+                    "mass": mass,
+                    "inertia": "(" + " ".join(str(value) for value in inertia) + ")",
+                    "transform": "(1 0 0 0 1 0 0 0 1) (" + " ".join(str(value) for value in transform_origin) + ")",
+                    "joint": {"type": "composite", "joints": "(\n" + joint_blocks + "\n);"},
+                    "patches": "(" + patch_name + ")",
+                    "innerDistance": inner_distance,
+                    "outerDistance": outer_distance,
+                }
+            },
+            "restraints": {
+                "translationDamper": {"type": "linearDamper", "body": body_name, "coeff": 8596},
+                "rotationDamper": {"type": "sphericalAngularDamper", "body": body_name, "coeff": 11586},
+            },
+        },
+    )
+    path = constant_path / "dynamicMeshDict"
+    dictionary.write_file(path)
+    return path
+
+
 def maneuvering_turning_workflow(root: str | Path, processors: int = 8) -> OpenFOAMWorkflow:
     """Build the two-stage free-running turning workflow.
 
@@ -204,4 +262,35 @@ def dtc_overset_workflow(root: str | Path, processors: int = 4) -> OpenFOAMWorkf
     workflow.add_command("decompose", "decomposePar", "-force", cwd="background")
     workflow.add_command("solve", "mpirun", "--oversubscribe", "-np", str(processors), "overInterDyMFoam", "-parallel", cwd="background")
     workflow.add_command("reconstruct", "reconstructPar", cwd="background")
+    return workflow
+
+
+def dtc_openfoam13_workflow(
+    root: str | Path,
+    *,
+    mesh_source: str | Path = "../DTCHull",
+    processors: int = 1,
+) -> OpenFOAMWorkflow:
+    """Build the native OpenFOAM 13 DTC moving-hull workflow.
+
+    ``root`` contains an OpenFOAM 13-style moving case, modelled on the
+    packaged ``incompressibleVoF/DTCHullMoving`` tutorial. ``mesh_source`` is
+    a relative path to a compatible pre-meshed hull case. The workflow copies
+    its ``constant/polyMesh`` directory, restores fields, applies the water
+    initialisation, then runs the Foundation 13 ``incompressibleVoF`` module
+    through ``foamRun``.
+    """
+    if processors < 1:
+        raise ValueError("processors must be at least one")
+    mesh_source = Path(mesh_source)
+    workflow = OpenFOAMWorkflow(root, "dtc-moving-openfoam13")
+    workflow.add_copy("copy-compatible-mesh", mesh_source / "constant/polyMesh", "constant/polyMesh")
+    workflow.add_restore_initial_fields("restore-initial-fields")
+    workflow.add_command("set-fields", "setFields")
+    if processors == 1:
+        workflow.add_command("solve", "foamRun")
+    else:
+        workflow.add_command("decompose", "decomposePar", "-force")
+        workflow.add_command("solve", "mpirun", "--oversubscribe", "-np", str(processors), "foamRun", "-parallel")
+        workflow.add_command("reconstruct", "reconstructPar")
     return workflow

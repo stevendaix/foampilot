@@ -84,7 +84,27 @@ class RemoveStep:
         object.__setattr__(self, "cwd", Path(self.cwd))
 
 
-WorkflowStep = CommandStep | CopyStep | RemoveStep
+@dataclass(frozen=True)
+class RestoreInitialFieldsStep:
+    """Restore OpenFOAM initial fields from ``0.orig`` or ``*.orig`` files.
+
+    Official OpenFOAM tutorials commonly preserve initial fields either in a
+    sibling ``0.orig`` directory or as ``.orig`` files inside ``0``. This step
+    reproduces ``restore0Dir`` without sourcing the shell-only RunFunctions.
+    """
+
+    name: str
+    source_directory: Path | str = Path("0.orig")
+    destination_directory: Path | str = Path("0")
+
+    def __post_init__(self) -> None:
+        if not self.name.strip():
+            raise ValueError("A workflow step requires a non-empty name.")
+        object.__setattr__(self, "source_directory", Path(self.source_directory))
+        object.__setattr__(self, "destination_directory", Path(self.destination_directory))
+
+
+WorkflowStep = CommandStep | CopyStep | RemoveStep | RestoreInitialFieldsStep
 
 
 @dataclass(frozen=True)
@@ -157,6 +177,23 @@ class OpenFOAMWorkflow:
         self._steps.append(RemoveStep(name=name, paths=tuple(paths), cwd=Path(cwd)))
         return self
 
+    def add_restore_initial_fields(
+        self,
+        name: str = "restore-initial-fields",
+        *,
+        source_directory: str | Path = "0.orig",
+        destination_directory: str | Path = "0",
+    ) -> "OpenFOAMWorkflow":
+        """Append restoration of OpenFOAM initial fields from ``.orig`` data."""
+        self._steps.append(
+            RestoreInitialFieldsStep(
+                name=name,
+                source_directory=Path(source_directory),
+                destination_directory=Path(destination_directory),
+            )
+        )
+        return self
+
     def validate(self) -> None:
         """Check the internal workflow declaration before any execution."""
         if not self.name.strip():
@@ -172,6 +209,10 @@ class OpenFOAMWorkflow:
                 raise ValueError(f"Step '{step.name}' must use a relative working directory.")
             if isinstance(step, CopyStep) and (step.source.is_absolute() or step.destination.is_absolute()):
                 raise ValueError(f"Copy step '{step.name}' must use paths relative to the workflow root.")
+            if isinstance(step, RestoreInitialFieldsStep) and (
+                step.source_directory.is_absolute() or step.destination_directory.is_absolute()
+            ):
+                raise ValueError(f"Restore step '{step.name}' must use paths relative to the workflow root.")
 
     def preview(self) -> str:
         """Render a shell-independent textual representation of the workflow."""
@@ -185,6 +226,10 @@ class OpenFOAMWorkflow:
             elif isinstance(step, CopyStep):
                 lines.append(
                     f"{index:02d}. [{step.name}] copy {step.source} -> {step.destination}"
+                )
+            elif isinstance(step, RestoreInitialFieldsStep):
+                lines.append(
+                    f"{index:02d}. [{step.name}] restore {step.source_directory} -> {step.destination_directory}"
                 )
             else:
                 lines.append(
@@ -235,6 +280,10 @@ class OpenFOAMWorkflow:
                 self._remove(step)
                 results.append(StepResult(step.name, "completed", self._describe(step)))
                 continue
+            if isinstance(step, RestoreInitialFieldsStep):
+                self._restore_initial_fields(step)
+                results.append(StepResult(step.name, "completed", self._describe(step)))
+                continue
 
             step_environment = base_environment.copy()
             step_environment.update({key: str(value) for key, value in step.environment.items()})
@@ -283,6 +332,24 @@ class OpenFOAMWorkflow:
             destination = destination / source.name
         shutil.copy2(source, destination)
 
+    def _restore_initial_fields(self, step: RestoreInitialFieldsStep) -> None:
+        source_directory = self.root / step.source_directory
+        destination_directory = self.root / step.destination_directory
+        if source_directory.is_dir():
+            shutil.copytree(source_directory, destination_directory, dirs_exist_ok=True)
+            return
+
+        destination_directory.mkdir(parents=True, exist_ok=True)
+        original_fields = sorted(destination_directory.glob("*.orig"))
+        if not original_fields:
+            raise FileNotFoundError(
+                f"Initial field source for step '{step.name}' is missing: "
+                f"expected {source_directory} or .orig files in {destination_directory}"
+            )
+        for original_field in original_fields:
+            field_name = original_field.name.removesuffix(".orig")
+            shutil.copy2(original_field, destination_directory / field_name)
+
     def _remove(self, step: RemoveStep) -> None:
         base_path = self.root / step.cwd
         if not base_path.is_dir():
@@ -300,4 +367,6 @@ class OpenFOAMWorkflow:
             return f"cd {step.cwd} && {' '.join(step.command)}"
         if isinstance(step, CopyStep):
             return f"copy {step.source} -> {step.destination}"
+        if isinstance(step, RestoreInitialFieldsStep):
+            return f"restore {step.source_directory} -> {step.destination_directory}"
         return "remove " + ", ".join(str(path) for path in step.paths)

@@ -20,8 +20,10 @@ Les nouveaux composants se trouvent dans `foampilot.workflows`.
 | `ConstantDirectory.add_dict_file()` | Génère des dictionnaires supplémentaires dans `constant`, par exemple `dynamicMeshDict` et `MRFProperties`. |
 | `SystemDirectory.add_dict_file()` | Génère les dictionnaires supplémentaires de `system`, par exemple `fvOptions` ou `topoSetDict`. |
 | `write_mrf_properties()` | Écrit une définition de zone de référence tournante pour le propulseur. |
-| `write_overset_dynamic_mesh()` | Écrit un `dynamicMeshDict` overset avec corps rigide et degrés de liberté paramétrables. |
-| `maneuvering_turning_workflow()`, `propeller_mrf_workflow()`, `dtc_overset_workflow()` | Construisent les séquences complètes correspondant aux trois cas. |
+| `write_overset_dynamic_mesh()` | Écrit le `dynamicMeshDict` overset de compatibilité pour les distributions OpenCFD historiques. |
+| `write_openfoam13_rigid_body_mover()` | Écrit le bloc `mover` de corps rigide attendu par OpenFOAM Foundation 13. |
+| `maneuvering_turning_workflow()`, `propeller_mrf_workflow()`, `dtc_overset_workflow()` | Conservent les séquences des trois références historiques. |
+| `dtc_openfoam13_workflow()` | Exécute la voie Foundation 13 de coque DTC mobile, fondée sur `incompressibleVoF` et `foamRun`. |
 
 ## Installation de l’environnement
 
@@ -45,6 +47,8 @@ cd examples/marine
 python reproduce_reference_cases.py maneuvering /chemin/vers/maneuveringLib/tutorial/Turning35 --processors 8
 python reproduce_reference_cases.py propeller /chemin/vers/propeller-OpenFOAM/simulationTemplate --processors 4
 python reproduce_reference_cases.py dtc /chemin/vers/DTCMoving_Overset --processors 4
+. /opt/openfoam13/etc/bashrc
+python reproduce_reference_cases.py dtc13 "$FOAM_TUTORIALS/incompressibleVoF/DTCHullMoving" --mesh-source ../DTCHull --processors 1
 ```
 
 ## Exécuter un cas
@@ -53,6 +57,9 @@ Ajoutez `--execute` uniquement après avoir vérifié la prévisualisation et ch
 
 ```bash
 python reproduce_reference_cases.py dtc /chemin/vers/DTCMoving_Overset --processors 4 --execute
+
+# Voie native OpenFOAM Foundation 13, après préparation du maillage DTCHull
+python reproduce_reference_cases.py dtc13 "$FOAM_TUTORIALS/incompressibleVoF/DTCHullMoving" --mesh-source ../DTCHull --processors 1 --execute
 ```
 
 Le workflow de manœuvre traite d’abord les sous-cas `hull` et `rudder`, prépare le maillage de fond, puis enchaîne une phase d’auto-propulsion et une phase de virage. La transition est explicite : les dictionnaires de contrôle et de mouvement sont remplacés entre les deux phases, et l’état `maneuvers` est transféré dans le répertoire du processeur.
@@ -74,10 +81,11 @@ La validation confirme la génération, la copie, le nettoyage, les journaux par
 | Workflow | État sous OpenFOAM 13 | Interprétation |
 | --- | --- | --- |
 | Propulseur MRF | Dictionnaire et orchestration validés ; `rhoSimpleFoam` est disponible | Le maillage cfMesh/AMI et les données v2012 restent à fournir pour le calcul de référence complet. |
-| DTC overset | `dynamicMeshDict` analysé par `foamDictionary` | `overInterDyMFoam` n’est pas fourni par OpenFOAM Foundation 13 ; le cas historique ne peut pas être exécuté sans migration de solveur. |
+| DTC historique overset | `dynamicMeshDict` legacy analysé par `foamDictionary` | `overInterDyMFoam` n’est pas fourni par OpenFOAM Foundation 13 ; cette variante historique reste liée à OpenCFD. |
+| DTC native v13 | Maillage DTC officiel, restauration de `0/*.orig`, `setFields` et `foamRun` exécutés avec succès | Cette voie est une migration vers le tutoriel Foundation `DTCHullMoving`, sans maillage overset. |
 | Manœuvre libre | Séquence déclarative et bascule de dictionnaires validées | La bibliothèque de manœuvre et `overInterDyMFoam` ciblent des distributions OpenCFD historiques ; une migration spécifique est nécessaire. |
 
-> **Résultat important.** La correction de la liste `joints` dans `dynamicMeshDict` a été déclenchée par ce test : OpenFOAM 13 rejetait la forme initiale, et le dictionnaire généré passe désormais son propre parseur.
+> **Résultat important.** La correction de la liste `joints` dans `dynamicMeshDict` a été déclenchée par ce test : OpenFOAM 13 rejetait la forme initiale, et le dictionnaire généré passe désormais son propre parseur. La migration DTC Foundation 13 utilise désormais un bloc `mover` et a réalisé un calcul mobile réel via `foamRun`.
 
 ## Paramétrer de nouveaux cas
 

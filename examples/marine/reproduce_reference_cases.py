@@ -18,6 +18,7 @@ import argparse
 from pathlib import Path
 
 from foampilot.workflows.marine import (
+    dtc_openfoam13_workflow,
     dtc_overset_workflow,
     maneuvering_turning_workflow,
     propeller_mrf_workflow,
@@ -28,7 +29,7 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "case",
-        choices=("maneuvering", "propeller", "dtc"),
+        choices=("maneuvering", "propeller", "dtc", "dtc13"),
         help="Reference-case family to prepare.",
     )
     parser.add_argument("root", type=Path, help="Path to the reference case root.")
@@ -37,6 +38,12 @@ def parse_arguments() -> argparse.Namespace:
         type=int,
         default=4,
         help="MPI ranks used by meshing and solver stages (default: 4).",
+    )
+    parser.add_argument(
+        "--mesh-source",
+        type=Path,
+        default=Path("../DTCHull"),
+        help="Chemin relatif au maillage DTC compatible OpenFOAM 13 (défaut : ../DTCHull).",
     )
     parser.add_argument(
         "--execute",
@@ -53,7 +60,14 @@ def main() -> None:
         "propeller": propeller_mrf_workflow,
         "dtc": dtc_overset_workflow,
     }
-    workflow = builders[arguments.case](arguments.root, processors=arguments.processors)
+    if arguments.case == "dtc13":
+        workflow = dtc_openfoam13_workflow(
+            arguments.root,
+            mesh_source=arguments.mesh_source,
+            processors=arguments.processors,
+        )
+    else:
+        workflow = builders[arguments.case](arguments.root, processors=arguments.processors)
 
     if not arguments.execute:
         print(workflow.preview())
