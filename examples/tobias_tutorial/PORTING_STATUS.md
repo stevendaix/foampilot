@@ -4,9 +4,9 @@ This register is intentionally conservative: **validated** means that the case-s
 
 | Status | Cases |
 | --- | --- |
-| Validated | `2d_rotational_axis_symmetric`, `pitot_tube`, `fluidic_oscillator`, `falling_droplets`, `magnus_effect`, `cell_zone_generation`, `meshing_pipe_45deg`, `meshing_pipe_90deg`, `2d_ami_ncc`, `adaptive_mesh_refinement`, `snappy_feature_edge_refinement`, `snappy_sphere_and_layer` |
+| Validated | `2d_rotational_axis_symmetric`, `pitot_tube`, `fluidic_oscillator`, `falling_droplets`, `magnus_effect`, `cell_zone_generation`, `meshing_pipe_45deg`, `meshing_pipe_90deg`, `2d_ami_ncc`, `adaptive_mesh_refinement`, `snappy_feature_edge_refinement`, `snappy_sphere_and_layer`, `thin_gap_meshing` |
 | Pending | All other Tobias training cases in the source catalog |
 
 The pending cases require the same sequence: obtain the complete archive where the GitHub repository omits geometry, create a dedicated directory, generate dictionaries and fields through FoamPilot, execute every documented mesh and solver stage with OpenFOAM 13, inspect the rendered files and logs, and write a case report. Cases that require Salome, DAKOTA, ParaView-only operations, unavailable OpenFOAM.com functionality, or multi-day production runs must record those constraints explicitly and must not be marked validated without a successful executable workflow.
 
-The current PR is intentionally incremental. It contains the shared exact-dictionary writer and twelve validated case ports, including the 2D arbitrary mesh interface/non-conformal coupling and adaptive mesh refinement tutorials. The AMI/NCC runner includes case-local OpenFOAM 13 syntax adaptations and validates conversion, snappy meshing, baffle creation, non-conformal coupling, and a short incompressible calculation.
+The current PR is intentionally incremental. It contains the shared exact-dictionary writer and thirteen validated case ports, including the 2D arbitrary mesh interface/non-conformal coupling and adaptive mesh refinement tutorials. The AMI/NCC runner includes case-local OpenFOAM 13 syntax adaptations and validates conversion, snappy meshing, baffle creation, non-conformal coupling, and a short incompressible calculation.
