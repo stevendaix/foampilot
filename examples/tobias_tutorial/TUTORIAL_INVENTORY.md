@@ -39,7 +39,7 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | cellZoneGeneration | `cell_zone_generation` | Validated equivalent |
 | openfoam.org | combustionChamber | `combustion_chamber` | Validated short calculation |
 | openfoam.org | dakotaGeometricVariation | — | Pending; external Dakota dependency |
-| openfoam.org | dakotaTeslaOneWayValve2D | — | Pending; external Dakota dependency |
+| openfoam.org | dakotaTeslaOneWayValve2D | `dakotaTeslaOneWayValve2D` | Validated optimization workflow |
 | openfoam.org | fallingDroplets | `falling_droplets` | Validated equivalent |
 | openfoam.org | fanRotationAndNCC | — | Pending |
 | openfoam.org | fluentMeshForCHTSolver | — | Pending |
