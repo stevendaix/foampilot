@@ -290,9 +290,10 @@ class LatexDocument:
         """
         self.doc.preamble.append(NoEscape(command))
 
-    def generate_tex(self):
-        """Generates the .tex source file in the report directory."""
+    def generate_tex(self) -> Path:
+        """Generates the .tex source file and returns its path."""
         self.doc.generate_tex(str(self.filepath))
+        return self.filepath.with_suffix(".tex")
 
     def generate_pdf(self):
         """Compiles the .tex file into a PDF using pdflatex.

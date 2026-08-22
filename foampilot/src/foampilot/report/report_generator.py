@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from foampilot.report.latex_pdf import LatexDocument
-from foampilot.report.typst_pdf import ScientificDocument
+from foampilot.report.typst_pdf import ScientificDocument, TypstRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -505,11 +505,14 @@ class CFDReportGenerator:
         Path
             Path to the generated ``.tex`` file (and PDF if ``compile_pdf=True``).
         """
+        output_name = Path(filename)
+        if output_name.suffix == ".tex":
+            output_name = output_name.with_suffix("")
         doc = LatexDocument(
             title=self.title,
             author=self.author,
-            filename=str(self.output_dir / filename).replace(".tex", ""),
-            output_dir=str(self.output_dir),
+            filename=str(output_name),
+            output_dir=str(self.output_dir.parent),
         )
         doc.add_abstract(
             f"CFD post-processing report for case: {self.case_path}"
@@ -582,9 +585,21 @@ class CFDReportGenerator:
                 ])
             doc.add_table(table_data, caption="Summary statistics", label="tab:statistics")
 
-        tex_content = doc.render(doc)
+        for index, tbl in enumerate(self._tables, start=1):
+            doc.add_table(
+                tbl["data"],
+                headers=tbl["headers"],
+                caption=tbl["caption"],
+                label=f"tab_{index}",
+            )
+
+        for fig in self._figures:
+            doc.add_figure(fig["path"], fig["caption"], label=fig["label"])
+
+        renderer = TypstRenderer()
+        typst_content = renderer.render(doc)
         out_path = self.output_dir / filename
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(tex_content)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(typst_content, encoding="utf-8")
 
         return out_path

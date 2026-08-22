@@ -576,8 +576,8 @@ class SimulationReport:
         self._extract_warnings_errors()
         self._extract_mesh_stats_from_log()
         self._extract_mesh_stats_from_polyMesh()
-        self._extract_solver_settings()
-        self._extract_bc_summary()
+        self.solver_settings = self._extract_solver_settings()
+        self.bc_summary = self._extract_bc_summary()
 
         final_residuals = self._extract_final_residuals()
         convergence = self._compute_convergence_metrics()
