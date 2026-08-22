@@ -1,7 +1,10 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
-import typst
+try:
+    import typst  # Optional Python bindings; the CLI fallback is supported.
+except ImportError:
+    typst = None
 import shutil
 import subprocess
 
