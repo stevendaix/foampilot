@@ -29,3 +29,11 @@ Pour la transformation VOF vers DPM, l’article utilise le Connected Component 
 Le cours devra distinguer : (i) la représentation VOF d’une interface résolue, (ii) le DPM/LPT comme représentation de gouttes ponctuelles, (iii) le critère de transition basé sur taille, résolution et morphologie, (iv) le calcul des propriétés intégrales d’un fragment par pondération `alpha*V`, (v) la suppression de la masse liquide VOF lors de la conversion, et (vi) le retour de la réaction de quantité de mouvement vers l’équation eulérienne.
 
 La conservation de masse n’est pas obtenue par la seule création d’un parcel : il faut retirer exactement le volume converti du champ VOF. De même, la conservation de quantité de mouvement exige d’initialiser `U_p` par la moyenne volumique du fragment et d’éviter de réinjecter deux fois la même force ou la même masse.
+
+## [4] Éléments complémentaires sur le critère de transition
+
+Les travaux associés à Heinrich & Schwarze indiquent que la transition VOF vers LPT est pilotée par des critères de diamètre et de sphéricité, avec une stratégie de Connected Component Labelling en trois dimensions et une connectivité spatiale de type face-à-face. Les résultats de recherche bibliographique récents confirment que le critère de transition est un point sensible : des études 2024–2025 proposent des variantes fondées sur CCL, watershed, segmentation par segments ou résolution multi-maillage.
+
+Pour l’audit, cela signifie que `alpha >= threshold` ne peut pas être considéré comme un critère physique complet. Il s’agit seulement d’un masque de sélection. Il faut distinguer le seuil de détection des cellules, le seuil de taille du fragment, la résolution locale `d/Delta`, la sphéricité, la distance à l’interface principale et la stabilité temporelle du fragment.
+
+Une difficulté importante relevée dans la littérature est la séparation de gouttes proches ou reliées artificiellement par des cellules d’interface. Une CCL sur un masque binaire peut fusionner des objets qui devraient être distincts. Une méthode de watershed ou une segmentation géométrique peut alors être nécessaire, mais elle introduit ses propres paramètres et doit être testée sur des cas de gouttes en contact, de ligaments et de nappes.

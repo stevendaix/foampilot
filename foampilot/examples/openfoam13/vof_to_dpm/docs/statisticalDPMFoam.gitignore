@@ -1,0 +1,9 @@
+# OpenFOAM build outputs
+**/Make/linux*
+**/lnInclude/
+
+# Generated test outputs
+test/**/log.*
+test/**/constant/polyMesh/
+test/**/constant/cloudPositions
+test/**/constant/vofToDpmReport

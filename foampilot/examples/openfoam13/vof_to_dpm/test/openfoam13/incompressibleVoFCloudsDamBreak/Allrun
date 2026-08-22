@@ -1,0 +1,62 @@
+#!/bin/sh
+
+caseDir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+workDir=${TMPDIR:-/tmp}/statisticalDPMFoam-incompressibleVoFClouds-$$
+trap 'status=$?; if [ "$status" -eq 0 ] && [ "${KEEP_CASE:-0}" -ne 1 ]; then rm -rf "$workDir"; else echo "CASE_DIR=$workDir" >&2; fi; exit "$status"' EXIT
+
+# Source OpenFOAM before strict mode: the bashrc may return a legacy status.
+. /opt/openfoam13/etc/bashrc || true
+set -e
+
+mkdir -p "$workDir"
+cd "$workDir"
+foamMergeCase "$FOAM_TUTORIALS/incompressibleVoF/damBreakLaminar"
+cp "$FOAM_TUTORIALS/incompressibleVoF/damBreak/constant/fvModels" "$workDir/constant/fvModels"
+
+sed -i \
+    's/solver          incompressibleVoF;/solver          incompressibleVoF;\nlibs            ("libincompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
+    system/controlDict
+sed -i 's/endTime         1;/endTime         0.02;/' system/controlDict
+sed -i 's/momentumPredictor no;/momentumPredictor yes;\n    models          yes;/' system/fvSolution
+
+cat > constant/fvModels <<'EOF'
+/* OpenFOAM dictionary */
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+incompressibleVoFClouds
+{
+    type            incompressibleVoFClouds;
+    clouds          (cloud);
+}
+EOF
+
+cp "$FOAM_TUTORIALS/incompressibleFluid/mixerVesselHorizontal2DParticles/constant/cloudProperties" constant/cloudProperties
+cat > constant/cloudPositions <<'EOF'
+/* OpenFOAM vector field */
+FoamFile
+{
+    format      ascii;
+    class       vectorField;
+    location    "constant";
+    object      cloudPositions;
+}
+(
+(0.05 0.05 0.005)
+)
+EOF
+
+blockMesh > log.blockMesh 2>&1
+setFields > log.setFields 2>&1
+foamRun -solver incompressibleVoF > log.foamRun 2>&1
+
+grep -q "Selecting solver incompressibleVoF" log.foamRun
+grep -q "Selecting finite volume model type incompressibleVoFClouds" log.foamRun
+grep -q "Selecting parcelCloud collidingCloud" log.foamRun
+grep -q "Current number of parcels" log.foamRun
+
+echo "PASS: incompressibleVoF + incompressibleVoFClouds + collidingCloud"

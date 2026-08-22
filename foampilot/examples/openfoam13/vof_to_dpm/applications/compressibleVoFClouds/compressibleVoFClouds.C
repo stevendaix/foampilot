@@ -1,0 +1,144 @@
+/* OpenFOAM 13 compressible VoF / parcel-cloud coupling model */
+#include "compressibleVoFClouds.H"
+#include "addToRunTimeSelectionTable.H"
+
+namespace Foam
+{
+namespace fv
+{
+namespace compressible
+{
+    defineTypeNameAndDebug(compressibleVoFClouds, 0);
+    addToRunTimeSelectionTable(fvModel, compressibleVoFClouds, dictionary);
+}
+}
+}
+
+Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
+(
+    const word& sourceName,
+    const word& modelType,
+    const fvMesh& mesh,
+    const dictionary& dict
+)
+:
+    fvModel(sourceName, modelType, mesh, dict),
+    mixture_
+    (
+        mesh.lookupObject<compressibleTwoPhaseVoFMixture>
+        (
+            "phaseProperties"
+        )
+    ),
+    g_
+    (
+        IOobject
+        (
+            "g",
+            mesh.time().constant(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    ),
+    cloudNames_
+    (
+        dict.lookupOrDefault<wordList>
+        (
+            "clouds",
+            parcelCloudList::defaultCloudNames
+        )
+    ),
+    mu_
+    (
+        IOobject
+        (
+            "mu",
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mixture_.rho()*mixture_.nu()
+    ),
+    clouds_
+    (
+        cloudNames_,
+        mixture_.rho(),
+        mesh.lookupObject<volVectorField>("U"),
+        mu_,
+        g_
+    ),
+    curTimeIndex_(-1)
+{}
+
+Foam::wordList
+Foam::fv::compressible::compressibleVoFClouds::addSupFields() const
+{
+    return wordList(1, "U");
+}
+
+void Foam::fv::compressible::compressibleVoFClouds::correct()
+{
+    if (curTimeIndex_ == mesh().time().timeIndex())
+    {
+        return;
+    }
+
+    mu_ = mixture_.rho()*mixture_.nu();
+    clouds_.evolve();
+    curTimeIndex_ = mesh().time().timeIndex();
+}
+
+void Foam::fv::compressible::compressibleVoFClouds::addSup
+(
+    const volScalarField& rho,
+    const volVectorField& U,
+    fvMatrix<vector>& eqn
+) const
+{
+    if (U.name() != "U" || &rho != &mixture_.rho())
+    {
+        FatalErrorInFunction
+            << "compressibleVoFClouds supports only the mixture rho and U fields"
+            << exit(FatalError);
+    }
+
+    eqn += clouds_.SU(eqn.psi());
+}
+
+void Foam::fv::compressible::compressibleVoFClouds::preUpdateMesh()
+{
+    clouds_.storeGlobalPositions();
+}
+
+void Foam::fv::compressible::compressibleVoFClouds::topoChange
+(
+    const polyTopoChangeMap& map
+)
+{
+    clouds_.topoChange(map);
+}
+
+void Foam::fv::compressible::compressibleVoFClouds::mapMesh
+(
+    const polyMeshMap& map
+)
+{
+    clouds_.mapMesh(map);
+}
+
+void Foam::fv::compressible::compressibleVoFClouds::distribute
+(
+    const polyDistributionMap& map
+)
+{
+    clouds_.distribute(map);
+}
+
+bool Foam::fv::compressible::compressibleVoFClouds::movePoints()
+{
+    return true;
+}
+
+// ************************************************************************* //

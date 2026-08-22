@@ -1,0 +1,32 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      alpha.liquid;
+}
+dimensions      [0 0 0 0 0 0 0];
+internalField   uniform 1;
+boundaryField
+{
+    back
+    {
+        type symmetryPlane;
+    }
+    front
+    {
+        type symmetryPlane;
+    }
+    walls
+    {
+        type zeroGradient;
+    }
+    outlet
+    {
+        type zeroGradient;
+    }
+    inlet
+    {
+        type zeroGradient;
+    }
+}

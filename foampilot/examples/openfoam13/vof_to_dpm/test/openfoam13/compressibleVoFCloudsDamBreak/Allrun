@@ -1,0 +1,58 @@
+#!/bin/sh
+
+workDir=${TMPDIR:-/tmp}/statisticalDPMFoam-compressibleVoFClouds-$$
+trap 'status=$?; if [ "$status" -eq 0 ] && [ "${KEEP_CASE:-0}" -ne 1 ]; then rm -rf "$workDir"; else echo "CASE_DIR=$workDir" >&2; fi; exit "$status"' EXIT
+
+. /opt/openfoam13/etc/bashrc || true
+set -e
+
+mkdir -p "$workDir"
+cd "$workDir"
+foamMergeCase "$FOAM_TUTORIALS/compressibleVoF/damBreak"
+
+sed -i \
+    's/solver          compressibleVoF;/solver          compressibleVoF;\nlibs            ("libcompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
+    system/controlDict
+sed -i 's/endTime         1;/endTime         0.01;/' system/controlDict
+sed -i 's/momentumPredictor[[:space:]]*no;/momentumPredictor   yes;\n    models              yes;/' system/fvSolution
+
+cat > constant/fvModels <<'EOF'
+/* OpenFOAM dictionary */
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+compressibleVoFClouds
+{
+    type            compressibleVoFClouds;
+    clouds          (cloud);
+}
+EOF
+
+cp "$FOAM_TUTORIALS/incompressibleFluid/mixerVesselHorizontal2DParticles/constant/cloudProperties" constant/cloudProperties
+cat > constant/cloudPositions <<'EOF'
+/* OpenFOAM vector field */
+FoamFile
+{
+    format      ascii;
+    class       vectorField;
+    location    "constant";
+    object      cloudPositions;
+}
+(
+(0.05 0.05 0.005)
+)
+EOF
+
+blockMesh > log.blockMesh 2>&1
+foamRun -solver compressibleVoF > log.foamRun 2>&1
+
+grep -q "Selecting solver compressibleVoF" log.foamRun
+grep -q "Selecting finite volume model type compressibleVoFClouds" log.foamRun
+grep -q "Selecting parcelCloud collidingCloud" log.foamRun
+grep -q "Current number of parcels" log.foamRun
+
+echo "PASS: compressibleVoF + compressibleVoFClouds + collidingCloud"

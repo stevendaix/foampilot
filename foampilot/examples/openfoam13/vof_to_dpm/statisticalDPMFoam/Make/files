@@ -1,0 +1,3 @@
+statisticalDPMFoam.C
+
+EXE = $(FOAM_APPBIN)/statisticalDPMFoam
