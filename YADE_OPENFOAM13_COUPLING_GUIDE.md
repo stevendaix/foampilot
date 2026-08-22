@@ -243,10 +243,27 @@ La validation actuelle démontre l’initialisation, l’échange, l’avancemen
 
 Il faut également s’assurer que les frontières YADE et OpenFOAM sont compatibles et qu’aucune particule ne sort du domaine fluide. La documentation YADE indique qu’une particule hors du domaine local peut interrompre le couplage [1]. Le mode gaussien doit être utilisé avec prudence dans les régimes fortement denses ou lorsque la largeur du filtre est mal résolue.
 
-## 12. Références
+## 12. Couplages externes CFD–DEM
+
+Un couplage externe conserve le solveur CFD et le solveur DEM dans des processus séparés. Les données peuvent circuler par fichiers, sockets, MPI direct ou bibliothèque intermédiaire. Le choix doit préciser les variables transférées, les unités, le rythme de synchronisation, le propriétaire MPI de chaque particule et le protocole d’arrêt.
+
+| Méthode | Points forts | Risques ou limites | Choix dans ce projet |
+|---|---|---|---|
+| Fichiers | inspection facile, mise au point simple | très lent, fichiers partiels, désynchronisation | non retenue |
+| Sockets TCP | processus séparés, machines différentes possibles | latence et protocole applicatif à gérer | non retenue |
+| MPI direct | débit élevé, adapté au HPC et à OpenFOAM | communicateurs, rangs et fermeture sensibles | **retenue** |
+| preCICE | bibliothèque générique, mapping et convergence multi-physique [6] | adaptateur DEM YADE à fournir | alternative future |
+| MUI | interface multi-physique asynchrone possible | dépendance et mapping supplémentaires | non retenue |
+| CFDEM | interface OpenFOAM–LIGGGHTS documentée [7] | dépendance à LIGGGHTS et versions associées | abandonnée au profit de YADE |
+
+Le projet utilise MPI direct via `FoamCoupling`, qui existe déjà dans YADE et diffuse les données particulaires aux processus OpenFOAM [1]. Un adaptateur preCICE OpenFOAM est une autre architecture possible, mais il faudrait définir un participant YADE, les champs d’interface et la projection des forces [6]. Le choix MPI évite ici une couche supplémentaire et conserve la logique de couplage fournie par YADE.
+
+## 13. Références
 
 [1]: https://yade-dem.org/doc/FoamCoupling.html "YADE — CFD-DEM coupled simulations with Yade and OpenFOAM"
 [2]: https://yade-dem.org/doc/yade.wrapper.html "YADE — wrapper class reference"
 [3]: https://gitlab.com/yade-dev/Yade-OpenFOAM-coupling "YADE — Yade OpenFOAM Coupling source repository"
 [4]: https://openfoam.org/version/13/ "OpenFOAM Foundation — OpenFOAM 13"
 [5]: https://doc.cfd.direct/openfoam/user-guide-v13/ "OpenFOAM Foundation — OpenFOAM v13 User Guide"
+[6]: https://precice.org/adapter-openfoam-overview "preCICE — OpenFOAM adapter"
+[7]: https://www.cfdem.com/media/CFDEM/docu/CFDEMcoupling_Manual.html "CFDEM coupling manual"
