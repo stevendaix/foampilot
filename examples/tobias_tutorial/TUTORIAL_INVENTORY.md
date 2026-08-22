@@ -52,7 +52,7 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | rotatingRotorNCC | — | Pending |
 | openfoam.org | snappyFeatureEdgeRefinement | `snappy_feature_edge_refinement` | Validated meshing workflow |
 | openfoam.org | snappyHexMeshCellZoneMeshing | — | Pending |
-| openfoam.org | snappySphereAndLayer | — | Pending |
+| openfoam.org | snappySphereAndLayer | `snappy_sphere_and_layer` | Validated meshing workflow |
 | openfoam.org | sneezingSimulation | — | Pending |
 | openfoam.org | solarChimney | — | Pending |
 | openfoam.org | suzannesHead | — | Pending |
