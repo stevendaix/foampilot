@@ -85,6 +85,17 @@ class SimulationReport:
             logger.warning("No log file found for case: %s", self.case_dir)
             return
 
+        self.residual_data = defaultdict(
+            lambda: {"time": [], "initial": [], "final": [], "iterations": []}
+        )
+        self.warnings.clear()
+        self.errors.clear()
+        self.execution_time = 0.0
+        self.clock_time = 0
+        self.iteration_count = 0
+        self.courant_mean = 0.0
+        self.courant_max = 0.0
+
         time_pattern = re.compile(r"Time = (\d+\.?\d*)s?")
         solver_pattern = re.compile(
             r"(smoothSolver|GAMG|PCG|PBiCGStab|geometricOneWire):\s+"

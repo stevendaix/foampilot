@@ -1,4 +1,5 @@
 import json
+import html
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -435,10 +436,13 @@ class CFDReportGenerator:
         html_parts: List[str] = []
 
         html_parts.append("<!DOCTYPE html>")
-        html_parts.append('<html lang="en">')
+        html_parts.append('<html lang="fr">')
         html_parts.append("<head>")
         html_parts.append("<meta charset='utf-8'>")
-        html_parts.append(f"<title>{self.title}</title>")
+        escaped_title = html.escape(str(self.title), quote=True)
+        escaped_author = html.escape(str(self.author), quote=True)
+        escaped_case = html.escape(str(self.case_path), quote=True)
+        html_parts.append(f"<title>{escaped_title}</title>")
         html_parts.append(
             "<script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>"
         )
@@ -455,9 +459,9 @@ class CFDReportGenerator:
         )
         html_parts.append("</head>")
         html_parts.append("<body>")
-        html_parts.append(f"<h1>{self.title}</h1>")
-        html_parts.append(f"<p><strong>Author:</strong> {self.author}</p>")
-        html_parts.append(f"<p><strong>Case:</strong> {self.case_path}</p>")
+        html_parts.append(f"<h1>{escaped_title}</h1>")
+        html_parts.append(f"<p><strong>Author:</strong> {escaped_author}</p>")
+        html_parts.append(f"<p><strong>Case:</strong> {escaped_case}</p>")
 
         # Statistics summary
         if self._statistics:
@@ -465,8 +469,10 @@ class CFDReportGenerator:
             html_parts.append("<table><tr><th>Parameter</th><th>Value</th><th>Unit</th><th>Description</th></tr>")
             for name, stat in self._statistics.items():
                 html_parts.append(
-                    f"<tr><td>{name}</td><td>{stat['value']}</td>"
-                    f"<td>{stat['unit']}</td><td>{stat['description']}</td></tr>"
+                    f"<tr><td>{html.escape(str(name))}</td>"
+                    f"<td>{html.escape(str(stat['value']))}</td>"
+                    f"<td>{html.escape(str(stat['unit']))}</td>"
+                    f"<td>{html.escape(str(stat['description']))}</td></tr>"
                 )
             html_parts.append("</table>")
 
@@ -475,25 +481,39 @@ class CFDReportGenerator:
             html_parts.append("<h2>Figures</h2>")
             for fig in self._figures:
                 html_parts.append(f'<div class="figure-container">')
-                html_parts.append(f'<h3>{fig["caption"]}</h3>')
-                html_parts.append(f'<img src="{fig["path"]}" alt="{fig["caption"]}" style="max-width:100%;">')
+                caption = html.escape(str(fig["caption"]), quote=True)
+                path = html.escape(str(fig["path"]), quote=True)
+                html_parts.append(f"<h3>{caption}</h3>")
+                html_parts.append(f'<img src="{path}" alt="{caption}" style="max-width:100%;">')
                 html_parts.append(f'</div>')
 
         # Tables
         if self._tables:
             html_parts.append("<h2>Tables</h2>")
             for tbl in self._tables:
-                html_parts.append(f'<h3>{tbl["caption"]}</h3>')
+                html_parts.append(f"<h3>{html.escape(str(tbl['caption']))}</h3>")
                 html_parts.append("<table>")
-                html_parts.append("<tr>" + "".join(f"<th>{h}</th>" for h in tbl["headers"]) + "</tr>")
+                html_parts.append(
+                    "<tr>"
+                    + "".join(
+                        f"<th>{html.escape(str(header))}</th>"
+                        for header in tbl["headers"]
+                    )
+                    + "</tr>"
+                )
                 for row in tbl["data"]:
-                    html_parts.append("<tr>" + "".join(f"<td>{c}</td>" for c in row) + "</tr>")
+                    html_parts.append(
+                        "<tr>"
+                        + "".join(f"<td>{html.escape(str(cell))}</td>" for cell in row)
+                        + "</tr>"
+                    )
                 html_parts.append("</table>")
 
         html_parts.append("</body>")
         html_parts.append("</html>")
 
         out_path = self.output_dir / filename
+        out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
             f.write("\n".join(html_parts))
 

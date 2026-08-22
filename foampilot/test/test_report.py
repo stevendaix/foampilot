@@ -81,3 +81,33 @@ def test_vector_plot_rejects_invalid_subsample(tmp_path):
         assert "positive integer" in str(exc)
     else:
         raise AssertionError("Expected ValueError for a non-positive subsample")
+
+
+def test_html_report_escapes_user_content(tmp_path):
+    generator = CFDReportGenerator(tmp_path, title="<unsafe>", author='A & B')
+    generator.add_statistic("<Re>", "<1>", "&", "quoted <value>")
+
+    output = generator.save_html_report()
+    content = output.read_text(encoding="utf-8")
+
+    assert "&lt;unsafe&gt;" in content
+    assert "&lt;Re&gt;" in content
+    assert "&lt;1&gt;" in content
+    assert "<unsafe>" not in content
+
+
+def test_simulation_report_generation_is_idempotent(tmp_path):
+    log_path = tmp_path / "log.simpleFoam"
+    log_path.write_text(
+        "Time = 1\n"
+        "smoothSolver: Solving for U, Initial residual = 1, Final residual = 1e-5, No Iterations 2\n",
+        encoding="utf-8",
+    )
+    report = SimulationReport(tmp_path)
+
+    report.generate_report()
+    first_count = len(report.residual_data["U"]["final"])
+    report.generate_report()
+    second_count = len(report.residual_data["U"]["final"])
+
+    assert first_count == second_count == 1

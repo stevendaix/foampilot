@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
 import typst
+import shutil
 import subprocess
 
 # ============================================================
@@ -173,31 +174,32 @@ class TypstRenderer:
         return f'#figure({block}, caption: [{typst_escape(c.caption)}])' if c.caption else block
 
 
-    def compile_pdf(self, doc: ScientificDocument, output_pdf: str = "report/rapport_complet.pdf"):
-        """
-        Génère un fichier .typ et compile le PDF via le binaire Typst (subprocess).
-        Compatible Ubuntu + Snap.
-        """
-        Path("report").mkdir(exist_ok=True)
-        typ_file = Path("report/rapport_complet.typ")
-        # Rendu Typst
-        source = self.render(doc)
-        typ_file.write_text(source, encoding="utf-8")
+    def compile_pdf(
+        self,
+        doc: ScientificDocument,
+        output_pdf: str = "report/rapport_complet.pdf",
+    ) -> Path:
+        """Render ``doc`` and compile it with the first available Typst binary."""
+        output_path = Path(output_pdf)
+        if not output_path.is_absolute():
+            output_path = Path.cwd() / output_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        typ_file = output_path.with_suffix(".typ")
+        typ_file.write_text(self.render(doc), encoding="utf-8")
 
-        # Chemin vers le binaire Typst
-        typst_bin = "/snap/bin/typst"  # Modifie si nécessaire
-
-        # Compilation via subprocess
-        try:
-            subprocess.run(
-                [typst_bin, "compile", str(typ_file), output_pdf],  # <-- sortie en second argument
-                check=True
+        typst_bin = shutil.which("typst") or (
+            "/snap/bin/typst" if Path("/snap/bin/typst").exists() else None
+        )
+        if typst_bin is None:
+            raise FileNotFoundError(
+                "Typst executable not found; install Typst or add it to PATH."
             )
-            print(f"PDF généré avec succès : {output_pdf}")
-        except subprocess.CalledProcessError as e:
-            print("Erreur lors de la compilation Typst :", e)
-        except FileNotFoundError:
-            print(f"Binaire Typst introuvable. Vérifie le chemin : {typst_bin}")
+
+        subprocess.run(
+            [typst_bin, "compile", str(typ_file), str(output_path)],
+            check=True,
+        )
+        return output_path
 
 
 
