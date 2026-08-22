@@ -186,29 +186,5 @@ def validate_generated_case(
     return CaseValidation(root, required, missing, tuple(warnings))
 
 
-def run_foampilot_case(
-    solver,
-    *,
-    environment: OpenFOAM13Environment | None = None,
-    processors: int = 1,
-    log_filename: str | None = None,
-) -> None:
-    """Write and run a configured FoamPilot solver using OpenFOAM 13."""
-
-    solver.setup_case()
-    solver.write_case()
-    validation = validate_generated_case(
-        solver.case_path,
-        compressible=getattr(solver, "compressible", False),
-        is_vof=getattr(solver, "is_vof", False),
-    )
-    if not validation.valid:
-        raise ValueError(
-            "Generated case failed validation: "
-            + "; ".join((*validation.missing_files, *validation.warnings))
-        )
-    (environment or OpenFOAM13Environment()).run(
-        ["foamRun", "-solver", solver.foamrun_module],
-        cwd=solver.case_path,
-        log_path=Path(solver.case_path) / (log_filename or "log.foamRun"),
-    )
+# run_foampilot_case has been removed.
+# FoamPilot tutorial adapters now inherit from BaseSolver and use run_simulation().
