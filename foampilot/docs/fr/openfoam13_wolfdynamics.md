@@ -31,16 +31,16 @@ Le statut **existe** signifie que le module ou l’utilitaire est documenté dan
 
 La liste officielle des modules OpenFOAM 13 confirme notamment `incompressibleFluid`, `incompressibleVoF`, `incompressibleMultiphaseVoF`, `compressibleVoF`, `multiphaseEuler`, `fluid`, `XiFluid`, `solid` et `movingMesh` [2]. La disponibilité d’un module ne garantit pas que les dictionnaires d’un tutoriel ancien soient compatibles.
 
-## Stratégie d’intégration : l’adaptateur FoamPilot
+## Stratégie d’intégration : l’API FoamPilot
 
-L’intégration des tutoriels Wolf Dynamics dans FoamPilot utilise une approche par adaptateur (voir `foampilot.tutorials.wolfdynamics_base`). Cette classe de base garantit que :
+L’intégration des tutoriels Wolf Dynamics dans FoamPilot n'utilise aucune classe d'adaptation spécifique ou wrapper externe. Chaque tutoriel est un simple script Python (`run_tutorial.py`) qui utilise l'API publique `BaseSolver` de FoamPilot. Cette approche garantit que :
 
-1. **Aucun script externe n'est exécuté** : Les scripts `Allrun` fournis dans les archives ne sont jamais appelés. L'exécution passe exclusivement par le validateur FoamPilot et le lanceur `foamRun`.
+1. **Aucun script externe n'est exécuté** : Les scripts `Allrun` fournis dans les archives ne sont jamais appelés. L'exécution passe exclusivement par l'API `BaseSolver.run_simulation()`.
 2. **Le cas est copié et isolé** : L'archive source reste intacte. Le cas est copié dans un répertoire jetable `.runs/`.
-3. **Les paramètres de test sont maîtrisés** : L'adaptateur force des valeurs de `endTime` et `writeInterval` réduites pour valider numériquement le démarrage (smoke test) sans consommer les ressources d'une simulation complète.
-4. **Le contrat de complétude est respecté** : La méthode `validate_generated_case` vérifie la présence des dictionnaires fondamentaux et la déclaration de la viscosité cinématique (`nu`) pour les cas incompressibles.
+3. **Les paramètres de test sont maîtrisés** : Le script injecte des valeurs de `endTime` et `writeInterval` réduites pour valider numériquement le démarrage (smoke test) sans consommer les ressources d'une simulation complète.
+4. **Le contrat de complétude est respecté** : La méthode `validate_generated_case` vérifie la présence des dictionnaires fondamentaux et la déclaration de la viscosité cinématique (`nu`) pour les cas incompressibles avant tout lancement.
 5. **La mise en données finale est écrite par FoamPilot** : Les champs initiaux et conditions aux limites (`0/`), propriétés physiques et chimiques (`constant/`, hors maillage), ainsi que les dictionnaires numériques (`system/`) sont relus depuis la source puis réécrits par `OpenFOAMDictAddFile`. Chaque exécution crée `foampilot-input-manifest.json`, qui contient les chemins, rôles et empreintes SHA-256 des entrées générées.
-6. **Le maillage est explicite** : Si le tutoriel fournit `constant/polyMesh`, cet actif topologique est importé comme géométrie de référence et déclaré dans le manifeste. Si le tutoriel fournit un `blockMeshDict`, FoamPilot réécrit le dictionnaire puis lance `blockMesh` ; le DamBreak VOF suit cette seconde voie.
+6. **Le maillage est explicite** : Si le tutoriel fournit `constant/polyMesh`, cet actif topologique est importé comme géométrie de référence et déclaré dans le manifeste. Si le tutoriel nécessite une génération, FoamPilot lance `blockMesh` via l'API `BaseSolver.run_command()` ; le DamBreak VOF suit cette seconde voie.
 
 ## Plan d’intégration proposé
 
@@ -60,8 +60,8 @@ Ajouter ensuite un sous-ensemble représentatif : un cas VOF 3D, un cas aérodyn
 
 L’édition Figshare d’octobre 2025 annonce explicitement OpenFOAM 13 et fournit des exemples ainsi qu’un support consacré aux processus chimiques, aux écoulements compressibles, à la FVM et à la turbulence [1].
 
-**Cas intégrés et validés avec l'adaptateur FoamPilot :**
-- **CounterFlow Flame (LTS)** : Flamme à contre-courant utilisant le module `multicomponentFluid`. Le cas valide le couplage thermodynamique et la chimie. L'adaptateur `CounterFlowFlameTutorial` a permis de lancer le maillage (`checkMesh`) et les 20 premières itérations de résolution des espèces (O2, H2O, CH4, CO2) et de l'enthalpie.
+**Cas intégrés et validés via l'API FoamPilot :**
+- **CounterFlow Flame (LTS)** : Flamme à contre-courant utilisant le module `multicomponentFluid`. Le cas valide le couplage thermodynamique et la chimie. Le script a permis de lancer le contrôle du maillage (`checkMesh`) et les 20 premières itérations de résolution des espèces (O2, H2O, CH4, CO2) et de l'enthalpie.
 - **SandiaD Flame (EDC)** : Modélisation turbulente de la flamme Sandia D avec le modèle EDC (Eddy Dissipation Concept) et `multicomponentFluid`. Le cas valide l'intégration des propriétés chimiques complexes (mécanisme GRI30 réduit) et la résolution de l'énergie cinétique turbulente ($k$) et de son taux de dissipation ($\omega$).
 
 ## Bonnes pratiques OpenFOAM 13 à appliquer dans FoamPilot
