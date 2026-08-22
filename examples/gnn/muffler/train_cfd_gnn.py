@@ -890,17 +890,20 @@ class UniversalGraphExtractor:
         self.logger.debug(f"Extraction graphe: {self.case_path.name}")
         
         self._load_mesh()
+        self._metadata = self._load_metadata()
         node_features = self._extract_node_features()
         edge_index, edge_features = self._extract_edge_features()
         node_volumes = self._compute_control_volumes()
         targets = self._load_target_fields()
-        metadata = self._load_metadata()
+        metadata = self._metadata
         
         return {
             "node_features": node_features,
             "edge_index": edge_index,
             "edge_features": edge_features,
             "node_volumes": node_volumes,
+            "node_positions": torch.tensor(self._node_positions, dtype=torch.float32),
+            "boundary_type": self._classify_boundary_type(),
             "face_areas": self._face_areas,
             "targets": targets,
             "metadata": metadata,
@@ -965,7 +968,9 @@ class UniversalGraphExtractor:
             return graph  # Pas besoin de réduire
         
         # Identifier les cellules de boundary
-        boundary_type = graph.get('metadata', {}).get('boundary_type')
+        boundary_type = graph.get('boundary_type')
+        if boundary_type is None:
+            boundary_type = graph.get('metadata', {}).get('boundary_type')
         boundary_indices = set()
         
         if boundary_type is not None:
@@ -1003,9 +1008,13 @@ class UniversalGraphExtractor:
                 new_targets[k] = v[selected_indices]
             new_graph['targets'] = new_targets
         
-        # Downsampler node_volumes
+        # Downsampler node_volumes et informations géométriques
         if graph['node_volumes'] is not None:
             new_graph['node_volumes'] = graph['node_volumes'][selected_indices]
+        if graph.get('node_positions') is not None:
+            new_graph['node_positions'] = graph['node_positions'][selected_indices]
+        if graph.get('boundary_type') is not None:
+            new_graph['boundary_type'] = graph['boundary_type'][selected_indices]
         
         # Reconstruire les edges
         old_edge_index = graph['edge_index']
@@ -1039,7 +1048,6 @@ class UniversalGraphExtractor:
         new_graph['n_edges'] = new_graph['edge_index'].shape[1]
         new_graph['spatial_dim'] = graph['spatial_dim']
         new_graph['face_areas'] = None
-        
         return new_graph
     
     def _identify_boundary_cells(self) -> Dict[str, np.ndarray]:
@@ -1147,6 +1155,20 @@ class UniversalGraphExtractor:
             if feature is not None:
                 features.append(feature)
         
+        # Conditions opératoires et paramètres géométriques : sans ces variables
+        # globales, deux cas différents produisent des features locales presque
+        # identiques et le modèle ne peut pas apprendre leur dépendance.
+        params = self._metadata.get("params", {}) if hasattr(self, "_metadata") else {}
+        global_specs = [
+            ("inlet_velocity", 10.0), ("outlet_pressure", 100000.0),
+            ("temperature", 300.0), ("pressure", 100000.0),
+            ("pipe_radius", 0.05), ("muffler_radius", 0.08),
+            ("ref_length", 0.1), ("cell_size", 0.015),
+        ]
+        global_values = [float(params.get(name, default)) / default for name, default in global_specs]
+        global_features = torch.tensor(global_values, dtype=torch.float32).unsqueeze(0).expand(positions.shape[0], -1)
+        features.append(global_features)
+
         if len(features) == 0:
             features.append(positions)
         
@@ -1240,51 +1262,44 @@ class UniversalGraphExtractor:
         return torch.tensor(volumes, dtype=torch.float32)
     
     def _extract_edge_features(self) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        """Extrait la connectivité et features d'arête en utilisant KDTree."""
-        # Build graph using KDTree k-nearest neighbors
-        n_nodes = self._n_cells if hasattr(self, '_n_cells') else len(self._node_positions)
-        k = min(6, n_nodes - 1)
-        
-        tree = cKDTree(self._node_positions)
-        distances, neighbors = tree.query(self._node_positions, k=k+1)
-        
-        # Build edge list (avoiding duplicates and self-loops)
-        edges = set()
-        for i in range(n_nodes):
-            for j in neighbors[i]:
-                if i != j:  # No self-loops
-                    # Add undirected edge (sorted tuple)
-                    edges.add((min(i, j), max(i, j)))
-        
-        edge_list = sorted(list(edges))
-        edge_index = torch.tensor(edge_list, dtype=torch.long).t().contiguous()
-        
-        if edge_index.shape[1] == 0:
-            return edge_index, None
-        
-        src, dst = edge_index
+        """Construit les arêtes de cellules, bidirectionnelles et déterministes.
+
+        La priorité est donnée à la connectivité exacte du maillage VTK : deux
+        cellules sont voisines si elles partagent une face. Le k-NN reste un
+        fallback explicite pour les maillages synthétiques ou incomplets.
+        """
+        n_nodes = len(self._node_positions)
+        undirected = set()
+        cell_mesh = getattr(self, "_cell_mesh", None)
+        if cell_mesh is not None and hasattr(cell_mesh, "cell_neighbors"):
+            try:
+                for i in range(n_nodes):
+                    for j in cell_mesh.cell_neighbors(i, connections="faces"):
+                        j = int(j)
+                        if i != j and 0 <= j < n_nodes:
+                            undirected.add((min(i, j), max(i, j)))
+            except Exception as exc:
+                self.logger.warning("Connectivité faces indisponible, fallback k-NN: %s", exc)
+                undirected.clear()
+        if not undirected:
+            k = min(6, max(1, n_nodes - 1))
+            tree = cKDTree(self._node_positions)
+            _, neighbors = tree.query(self._node_positions, k=k + 1)
+            for i, row in enumerate(np.atleast_2d(neighbors)):
+                for j in row[1:]:
+                    j = int(j)
+                    if i != j:
+                        undirected.add((min(i, j), max(i, j)))
+        directed = sorted({edge for a, b in undirected for edge in ((a, b), (b, a))})
+        if not directed:
+            return torch.empty((2, 0), dtype=torch.long), None
+        edge_index = torch.tensor(directed, dtype=torch.long).t().contiguous()
         pos = torch.tensor(self._node_positions, dtype=torch.float32)
-        
-        features = []
-        
-        # Edge length
+        src, dst = edge_index
         edge_vec = pos[dst] - pos[src]
-        edge_len = torch.norm(edge_vec, dim=1, keepdim=True)
-        features.append(edge_len)
-        
-        # Edge direction (normalized)
-        edge_dir = edge_vec / (edge_len + 1e-8)
-        features.append(edge_dir)
-        
-        # Compute distances for each edge (source to destination)
-        edge_distances = torch.tensor([
-            distances[i, list(neighbors[i]).index(j)] if j in neighbors[i] else 0.0
-            for i, j in zip(src.tolist(), dst.tolist())
-        ], dtype=torch.float32).unsqueeze(-1)
-        features.append(edge_distances)
-        
-        edge_features = torch.cat(features, dim=1) if features else None
-        
+        edge_len = torch.norm(edge_vec, dim=1, keepdim=True).clamp_min(1e-8)
+        edge_dir = edge_vec / edge_len
+        edge_features = torch.cat([edge_len, edge_dir], dim=1)
         return edge_index, edge_features
     
     def _build_dummy_connectivity(self) -> np.ndarray:
@@ -1475,8 +1490,16 @@ class PhysicsInformedLoss(nn.Module):
         for var in ["p", "T", "Mach", "U"]:
             if var in pred and var in target:
                 eps = 1e-6
-                rel_error = (pred[var] - target[var]) / (target[var].abs() + eps)
-                loss += F.mse_loss(rel_error, torch.zeros_like(rel_error))
+                target_var = target[var]
+                if target_var.ndim == pred[var].ndim - 1:
+                    target_var = target_var.unsqueeze(-1)
+                # Échelle robuste par variable : évite l’explosion de l’erreur
+                # relative lorsque le champ traverse zéro (U transversal, p local).
+                scale = target_var.detach().abs().mean().clamp_min(1.0)
+                normalized_error = (pred[var] - target_var) / scale
+                loss += F.smooth_l1_loss(
+                    normalized_error, torch.zeros_like(normalized_error), beta=0.1
+                )
                 n_vars += 1
         
         return loss / max(n_vars, 1)
@@ -1685,13 +1708,18 @@ class PhysicsInformedLoss(nn.Module):
 class UniversalGNN(nn.Module):
     """GNN universel fonctionnant en 2D et 3D."""
     
-    def __init__(self, config: GNNArchitectureConfig, physics_config: PhysicsConfig, spatial_dim: int = 3):
+    def __init__(self, config: GNNArchitectureConfig,
+                 physics_config: PhysicsConfig,
+                 spatial_dim: int = 3,
+                 input_dim: Optional[int] = None):
         super().__init__()
         self.cfg = config  # GNN config
         self.physics_cfg = physics_config
         self.spatial_dim = spatial_dim
         
-        self.input_dim = self._estimate_input_dim()
+        # Utiliser la dimension réellement produite par l’extracteur lorsque
+        # certaines features conditionnelles (distances aux frontières) sont présentes.
+        self.input_dim = input_dim if input_dim is not None else self._estimate_input_dim()
         
         self.encoder = nn.Sequential(
             nn.Linear(self.input_dim, config.hidden_dim),
@@ -1758,7 +1786,13 @@ class UniversalGNN(nn.Module):
         output = self.decoder(x)
         
         var_names = self.gnn_config.output_variables
-        pred = {var_names[i]: output[:, i:i+1] for i in range(len(var_names))}
+        pred = {}
+        for i, name in enumerate(var_names):
+            value = output[:, i:i+1]
+            # En incompressible, OpenFOAM stocke p comme pression
+            # cinématique [m²/s²]. Ne pas appliquer de facteur Pa/kPa ici :
+            # la cible VTK et la sortie du réseau doivent rester dans la même unité.
+            pred[name] = value
         
         if "p" in pred and "T" in pred:
             pred["rho"] = pred["p"] / (self.physics_cfg.R_gas * pred["T"] + 1e-6)
@@ -1822,6 +1856,11 @@ class UniversalGraphConv(nn.Module):
                 batch_first=True
             )
         
+        self.edge_mlp = nn.Sequential(
+            nn.Linear(4, in_dim),
+            nn.SiLU(),
+            nn.Linear(in_dim, in_dim),
+        )
         self.proj = nn.Linear(in_dim, out_dim)
         self.dropout = nn.Dropout(dropout)
         self.norm = nn.LayerNorm(out_dim)
@@ -1840,14 +1879,38 @@ class UniversalGraphConv(nn.Module):
             attended = attended.squeeze(0)
         else:
             src, dst = edge_index
-            if self.aggregation == "mean":
-                attended = scatter_mean(node_features[src], dst, dim=0, dim_size=N) if TORCH_SCATTER_AVAILABLE else node_features
-            elif self.aggregation == "sum":
-                attended = scatter_add(node_features[src], dst, dim=0, dim_size=N) if TORCH_SCATTER_AVAILABLE else node_features
-            elif self.aggregation == "max":
-                attended, _ = scatter_max(node_features[src], dst, dim=0, dim_size=N) if TORCH_SCATTER_AVAILABLE else (node_features, None)
+            messages = node_features[src]
+            if edge_features is not None:
+                ef = edge_features.to(node_features.device, dtype=node_features.dtype)
+                if ef.shape[1] < 4:
+                    ef = F.pad(ef, (0, 4 - ef.shape[1]))
+                elif ef.shape[1] > 4:
+                    ef = ef[:, :4]
+                messages = messages + self.edge_mlp(ef)
+            if TORCH_SCATTER_AVAILABLE:
+                if self.aggregation == "mean":
+                    attended = scatter_mean(messages, dst, dim=0, dim_size=N)
+                elif self.aggregation == "sum":
+                    attended = scatter_add(messages, dst, dim=0, dim_size=N)
+                elif self.aggregation == "max":
+                    attended, _ = scatter_max(messages, dst, dim=0, dim_size=N)
+                else:
+                    attended = node_features
             else:
-                attended = node_features
+                # Fallback natif PyTorch : ne pas abandonner la propagation
+                # des messages lorsque torch_scatter n'est pas installé.
+                attended = torch.zeros_like(node_features)
+                if self.aggregation == "max":
+                    attended.fill_(float("-inf"))
+                    attended.scatter_reduce_(0, dst[:, None].expand(-1, node_features.shape[1]), messages, reduce="amax", include_self=True)
+                    attended[~torch.isfinite(attended)] = 0.0
+                else:
+                    attended.index_add_(0, dst, messages)
+                    if self.aggregation == "mean":
+                        counts = torch.zeros(N, 1, device=node_features.device, dtype=node_features.dtype)
+                        counts.index_add_(0, dst, torch.ones(dst.shape[0], 1, device=node_features.device, dtype=node_features.dtype))
+                        attended = attended / counts.clamp_min(1.0)
+
         
         out = self.proj(attended)
         out = self.dropout(out)
@@ -1967,17 +2030,30 @@ class CFDPipeline:
         if len(graph_data) == 0:
             self.logger.error("Aucun graphe extrait")
             return
+
+        # Split déterministe par cas : le jeu de test n'est jamais utilisé pour
+        # l'optimisation, afin que les métriques reflètent une vraie généralisation.
+        rng = np.random.default_rng(self.cfg.random_seed)
+        order = rng.permutation(len(graph_data)).tolist()
+        if len(graph_data) >= 3 and self.cfg.validation.test_split > 0:
+            n_test = max(1, int(round(len(graph_data) * self.cfg.validation.test_split)))
+            n_test = min(n_test, len(graph_data) - 1)
+        else:
+            n_test = 0
+        self._test_graph_data = [graph_data[i] for i in order[:n_test]]
+        graph_data = [graph_data[i] for i in order[n_test:]]
+        self.logger.info(f"→ {len(graph_data) + n_test} graphes extraits ({len(graph_data)} train, {n_test} test)")
         
-        self.logger.info(f"→ {len(graph_data)} graphes extraits")
-        
-        # Normalisation des features
+        # Normalisation des features, ajustée uniquement sur le train
+
         if self.cfg.training.normalize_features:
             graph_data = self.normalizer.fit_transform(graph_data)
             self.normalizer.save(self.cfg.exp_dir / "feature_normalizer.npz")
         
         spatial_dim = graph_data[0].get("spatial_dim", self.cfg.spatial_dim)
         
-        self.model = UniversalGNN(self.cfg.gnn, self.cfg.physics, spatial_dim)
+        input_dim = int(graph_data[0]["node_features"].shape[1])
+        self.model = UniversalGNN(self.cfg.gnn, self.cfg.physics, spatial_dim, input_dim=input_dim)
         self.model = self.model.to(self.cfg.device)
         
         criterion = PhysicsInformedLoss(self.cfg.physics, spatial_dim)
@@ -2131,6 +2207,7 @@ class CFDPipeline:
             "node_features": graph["node_features"].to(device) if isinstance(graph["node_features"], torch.Tensor) else graph["node_features"],
             "edge_index": graph["edge_index"].to(device) if isinstance(graph["edge_index"], torch.Tensor) else graph["edge_index"],
             "node_volumes": graph["node_volumes"].to(device) if isinstance(graph["node_volumes"], torch.Tensor) else graph["node_volumes"],
+            "node_positions": graph["node_positions"].to(device) if isinstance(graph.get("node_positions"), torch.Tensor) else graph.get("node_positions"),
             "targets": graph["targets"],
             "metadata": graph["metadata"],
         }
@@ -2233,12 +2310,53 @@ class CFDPipeline:
         self.logger.info(f"✓ Métriques sauvegardées")
     
     def _compute_test_metrics(self) -> Dict[str, float]:
-        """Calcule les métriques de test."""
-        return {
-            "test_mae": 0.05,
-            "test_rmse": 0.08,
-            "r2_score": 0.95,
-        }
+        """Calcule des métriques réelles sur les graphes jamais vus à l'entraînement."""
+        test_graphs = getattr(self, "_test_graph_data", [])
+        if self.model is None or not test_graphs:
+            return {"test_n_cases": float(len(test_graphs))}
+
+        self.model.eval()
+        errors = {"p": [], "U": []}
+        targets = {"p": [], "U": []}
+        with torch.no_grad():
+            for graph in test_graphs:
+                batch = self._collate_graphs([graph])
+                pred = self.model(
+                    batch["node_features"].to(self.cfg.device),
+                    batch["edge_index"].to(self.cfg.device),
+                    batch.get("edge_features"),
+                    batch.get("node_volumes"),
+                )
+                for key in ("p", "U"):
+                    if key not in pred or key not in graph["targets"]:
+                        continue
+                    y_pred = pred[key].detach().cpu().reshape(-1)
+                    y_true = graph["targets"][key].detach().cpu().reshape(-1)
+                    n = min(y_pred.numel(), y_true.numel())
+                    errors[key].append(y_pred[:n] - y_true[:n])
+                    targets[key].append(y_true[:n])
+
+        metrics = {"test_n_cases": float(len(test_graphs))}
+        all_errors = []
+        for key in ("p", "U"):
+            if not errors[key]:
+                continue
+            e = torch.cat(errors[key])
+            y = torch.cat(targets[key])
+            mae = torch.mean(torch.abs(e)).item()
+            rmse = torch.sqrt(torch.mean(e ** 2)).item()
+            denom = torch.sum((y - y.mean()) ** 2).item()
+            r2 = 1.0 - torch.sum(e ** 2).item() / denom if denom > 1e-12 else float("nan")
+            scale = torch.mean(torch.abs(y)).item()
+            rel = mae / max(scale, 1e-12)
+            metrics[f"test_{key}_mae"] = float(mae)
+            metrics[f"test_{key}_rmse"] = float(rmse)
+            metrics[f"test_{key}_relative_mae"] = float(rel)
+            metrics[f"test_{key}_r2"] = float(r2)
+            all_errors.append(e)
+        if all_errors:
+            metrics["test_global_rmse"] = float(torch.sqrt(torch.mean(torch.cat(all_errors) ** 2)).item())
+        return metrics
     
     def _save_case_metadata(self, case_path: Path, params: Dict, result: Dict):
         """Sauvegarde les métadonnées."""
