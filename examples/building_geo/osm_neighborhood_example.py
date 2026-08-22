@@ -6,7 +6,7 @@ Downloads building footprints from OSM for a given place name,
 builds an UrbanModel, and generates a CFD case with foampilot.urban.
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 osm_neighborhood_example.py \
+    PYTHONPATH=../../src python3 osm_neighborhood_example.py \
         --place "Paris, France" \
         --distance 500 \
         --direction 270 \

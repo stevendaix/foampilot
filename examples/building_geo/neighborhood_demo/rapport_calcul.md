@@ -225,20 +225,20 @@ neighborhood_demo/
 cd /home/steven/foampilot/examples/building_geo/neighborhood_demo
 
 # Pipeline complet (avec simulation, défaut mesh_size=6.0, marges auto)
-PYTHONPATH=../../foampilot/src:../voxcity_export_work/src:.. python3 run_full_voxcity_pipeline.py \
+PYTHONPATH=../../../foampilot/src:../voxcity_export_work/src:.. python3 run_full_voxcity_pipeline.py \
     --hdf5 output/voxcity.h5 \
     --output-dir test_full_pipeline \
     --fill-gaps
 
 # Pipeline complet (sans simulation)
-PYTHONPATH=../../foampilot/src:../voxcity_export_work/src:.. python3 run_full_voxcity_pipeline.py \
+PYTHONPATH=../../../foampilot/src:../voxcity_export_work/src:.. python3 run_full_voxcity_pipeline.py \
     --hdf5 output/voxcity.h5 \
     --output-dir test_full_pipeline \
     --fill-gaps \
     --skip-run
 
 # Post-traitement seul
-PYTHONPATH=../../foampilot/src python3 voxcity_dedicated_postprocess.py \
+PYTHONPATH=../../../foampilot/src python3 voxcity_dedicated_postprocess.py \
     --case test_full_pipeline \
     --hdf5 output/voxcity.h5 \
     --pedestrian-height 1.75

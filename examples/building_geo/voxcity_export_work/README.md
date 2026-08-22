@@ -40,5 +40,5 @@ voxcity_export_work/
 ## Lancer les tests
 
 ```bash
-PYTHONPATH=../../foampilot/src python3 -m pytest tests/ -v
+PYTHONPATH=../../../foampilot/src python3 -m pytest tests/ -v
 ```

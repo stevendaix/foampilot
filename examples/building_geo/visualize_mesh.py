@@ -3,7 +3,7 @@
 Visualize OpenFOAM mesh and save images.
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 visualize_mesh.py \
+    PYTHONPATH=../../src python3 visualize_mesh.py \
         --case /tmp/voxcity_cached_demo \
         --output /tmp/mesh_vis.png
 """

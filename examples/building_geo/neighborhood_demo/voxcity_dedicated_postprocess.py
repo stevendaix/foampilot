@@ -11,7 +11,7 @@ VoxCity-specific analysis:
     - VoxCity metadata integration
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 voxcity_dedicated_postprocess.py \
+    PYTHONPATH=../../../foampilot/src python3 voxcity_dedicated_postprocess.py \
         --case neighborhood_case \
         --hdf5 output/voxcity.h5 \
         --pedestrian-height 1.75
@@ -27,7 +27,7 @@ import numpy as np
 import pyvista as pv
 from shapely.geometry import Point
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "foampilot" / "src"))
 
 from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
 

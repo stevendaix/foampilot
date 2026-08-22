@@ -11,10 +11,10 @@ Complete pipeline for a realistic urban neighborhood:
   6. Post-process: slices, Cp on buildings, mesh quality, statistics.
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 generate.py
-    PYTHONPATH=../../foampilot/src python3 generate.py --skip-run
-    PYTHONPATH=../../foampilot/src python3 generate.py --post-only
-    PYTHONPATH=../../foampilot/src python3 generate.py --use-cache
+    PYTHONPATH=../../../foampilot/src python3 generate.py
+    PYTHONPATH=../../../foampilot/src python3 generate.py --skip-run
+    PYTHONPATH=../../../foampilot/src python3 generate.py --post-only
+    PYTHONPATH=../../../foampilot/src python3 generate.py --use-cache
 """
 
 import argparse
@@ -27,7 +27,7 @@ import gmsh
 import numpy as np
 import shapely.ops
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "foampilot" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "voxcity_export_work" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -81,11 +81,21 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
         if gdf is not None and len(gdf) > 0:
             try:
                 import pyproj
-                project = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:32631", always_xy=True).transform
+                source_crs = getattr(gdf, "crs", None)
+                if source_crs is not None:
+                    source_crs = pyproj.CRS.from_user_input(source_crs)
+                else:
+                    minx, miny, maxx, maxy = gdf.total_bounds
+                    looks_like_lonlat = max(abs(minx), abs(maxx)) <= 180 and max(abs(miny), abs(maxy)) <= 90
+                    source_crs = pyproj.CRS.from_epsg(4326) if looks_like_lonlat else None
                 gdf_proj = gdf.copy()
-                gdf_proj.geometry = gdf_proj.geometry.apply(lambda geom: shapely.ops.transform(project, geom) if geom is not None else None)
-            except Exception:
-                gdf_proj = gdf
+                if source_crs is not None and source_crs != pyproj.CRS.from_epsg(32631):
+                    gdf_proj = gdf_proj.to_crs("EPSG:32631")
+                elif source_crs is None:
+                    print("  WARNING: VoxCity building CRS is unknown; preserving native coordinates")
+            except Exception as exc:
+                print(f"  WARNING: could not normalize VoxCity CRS: {exc}")
+                gdf_proj = gdf.copy()
 
             def clean_footprint(geom, min_area_m2=1.0, simplify_tol=0.5, rounding_precision=1):
                 if geom is None or geom.is_empty:
@@ -125,40 +135,52 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
                     return None
 
             def merge_nearby_buildings(polys_heights, distance=1.0, height_tol=1.0):
+                """Merge nearby footprints while preserving a representative height.
+
+                Buildings are grouped by similar height, then footprints whose buffered
+                envelopes touch are fused. The returned height is the area-weighted
+                average of the source buildings in each resulting component.
+                """
                 if not polys_heights:
                     return []
                 from shapely.validation import make_valid
-                # Group by height similarity first
+
                 height_groups = []
-                for fp, h in polys_heights:
-                    found = False
+                for fp, height in polys_heights:
                     for group in height_groups:
-                        if abs(h - group[0][1]) <= height_tol:
-                            group.append((fp, h))
-                            found = True
+                        if abs(height - group[0][1]) <= height_tol:
+                            group.append((fp, height))
                             break
-                    if not found:
-                        height_groups.append([(fp, h)])
-                
-                merged_footprints = []
+                    else:
+                        height_groups.append([(fp, height)])
+
+                merged_buildings = []
                 for group in height_groups:
-                    group_fps = [fp for fp, h in group]
-                    merged = shapely.ops.unary_union(group_fps)
-                    merged = make_valid(merged)
-                    merged = merged.buffer(0.0)
-                    if merged.is_empty:
+                    expanded = [fp.buffer(distance / 2.0) for fp, _ in group]
+                    components = shapely.ops.unary_union(expanded)
+                    components = make_valid(components).buffer(0.0)
+                    if components.is_empty:
                         continue
-                    if merged.geom_type == "MultiPolygon":
-                        parts = [p for p in merged.geoms if not p.is_empty and p.area >= 2.0]
-                        if not parts:
+                    if components.geom_type == "Polygon":
+                        components = [components]
+                    else:
+                        components = list(components.geoms)
+
+                    for component in components:
+                        source = [(fp, h) for fp, h in group if fp.intersects(component)]
+                        if not source:
                             continue
-                        if len(parts) == 1:
-                            merged_footprints.append(parts[0])
-                        else:
-                            merged_footprints.extend(parts)
-                    elif merged.area >= 2.0:
-                        merged_footprints.append(merged)
-                return merged_footprints
+                        merged = component.buffer(-distance / 2.0)
+                        merged = make_valid(merged).buffer(0.0)
+                        if merged.is_empty:
+                            continue
+                        parts = [merged] if merged.geom_type == "Polygon" else list(merged.geoms)
+                        total_area = sum(fp.area for fp, _ in source) or 1.0
+                        representative_height = sum(fp.area * h for fp, h in source) / total_area
+                        for part in parts:
+                            if not part.is_empty and part.area >= 2.0:
+                                merged_buildings.append((part, representative_height))
+                return merged_buildings
 
             cleaned_footprints = []
             cleaned_heights = []
@@ -197,51 +219,46 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
                     if cleaned is None:
                         continue
                     cleaned_footprints.append(cleaned)
-                    height = float(getattr(row, "height", 9.0) or 9.0)
+                    raw_height = getattr(row, "height", None)
+                    try:
+                        height = float(raw_height) if raw_height is not None and float(raw_height) > 0 else 9.0
+                    except (TypeError, ValueError):
+                        height = 9.0
                     cleaned_heights.append(height)
 
             polys_heights = list(zip(cleaned_footprints, cleaned_heights))
-            merged_footprints = merge_nearby_buildings(polys_heights, distance=1.0)
-            print(f"  Cleaned: {len(cleaned_footprints)} footprints -> Merged: {len(merged_footprints)} buildings")
+            merged_buildings = merge_nearby_buildings(polys_heights, distance=1.0)
+            print(f"  Cleaned: {len(cleaned_footprints)} footprints -> Merged: {len(merged_buildings)} buildings")
 
             # Close small gaps between merged buildings: buffer(+gap) then buffer(-gap)
             # This fuses buildings separated by less than `gap` meters without changing outer shape.
             gap = 0.5
-            merged_footprints = [fp.buffer(gap / 2.0) for fp in merged_footprints]
-            merged_footprints = [make_valid(fp) for fp in merged_footprints]
-            merged_footprints = [fp.buffer(-gap / 2.0) for fp in merged_footprints]
-            merged_footprints = [make_valid(fp) for fp in merged_footprints]
-            merged_footprints = [fp.buffer(0.0) for fp in merged_footprints if not fp.is_empty]
+            merged_buildings = [(fp.buffer(gap / 2.0), height) for fp, height in merged_buildings]
+            merged_buildings = [(make_valid(fp), height) for fp, height in merged_buildings]
+            merged_buildings = [(fp.buffer(-gap / 2.0), height) for fp, height in merged_buildings]
+            merged_buildings = [(make_valid(fp), height) for fp, height in merged_buildings]
+            merged_buildings = [(fp.buffer(0.0), height) for fp, height in merged_buildings if not fp.is_empty]
 
             # Post-merge cleanup: remove tiny fragments created by boolean/buffer ops
-            def post_merge_cleanup(fps, min_area=2.0):
+            def post_merge_cleanup(buildings, min_area=2.0):
                 cleaned = []
-                for fp in fps:
+                for fp, height in buildings:
                     if fp is None or fp.is_empty:
                         continue
-                    fp = make_valid(fp)
-                    fp = fp.buffer(0.0)
+                    fp = make_valid(fp).buffer(0.0)
                     if fp.is_empty:
                         continue
-                    if fp.geom_type == "MultiPolygon":
-                        parts = [p for p in fp.geoms if not p.is_empty and p.area >= min_area]
-                        if not parts:
-                            continue
-                        if len(parts) == 1:
-                            cleaned.append(parts[0])
-                        else:
-                            cleaned.extend(parts)
-                    elif fp.area >= min_area:
-                        cleaned.append(fp)
+                    parts = [fp] if fp.geom_type == "Polygon" else list(fp.geoms)
+                    cleaned.extend((part, height) for part in parts if not part.is_empty and part.area >= min_area)
                 return cleaned
 
-            merged_footprints = post_merge_cleanup(merged_footprints, min_area=2.0)
-            print(f"  After post-merge cleanup: {len(merged_footprints)} buildings")
+            merged_buildings = post_merge_cleanup(merged_buildings, min_area=2.0)
+            print(f"  After post-merge cleanup: {len(merged_buildings)} buildings")
 
             try:
                 import matplotlib.pyplot as plt
                 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-                fig.suptitle(f"Footprint Processing — {len(gdf)} raw → {len(cleaned_footprints)} cleaned → {len(merged_footprints)} merged", fontsize=14)
+                fig.suptitle(f"Footprint Processing — {len(gdf)} raw → {len(cleaned_footprints)} cleaned → {len(merged_buildings)} merged", fontsize=14)
                 ax1 = axes[0]
                 ax1.set_title("Raw Footprints")
                 for idx, row in gdf.iterrows():
@@ -272,7 +289,7 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
                 ax2.grid(True, alpha=0.3)
                 ax3 = axes[2]
                 ax3.set_title("Merged Buildings")
-                for fp in merged_footprints:
+                for fp, _ in merged_buildings:
                     x, y = fp.exterior.xy
                     ax3.fill(x, y, alpha=0.5, edgecolor="black", linewidth=0.5)
                 ax3.set_aspect("equal")
@@ -287,13 +304,7 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
             except Exception as exc:
                 print(f"  WARNING: Could not generate footprint image: {exc}")
 
-            for i, footprint in enumerate(merged_footprints):
-                height = 27.0
-                try:
-                    heights = [float(getattr(row, "height", 9.0) or 9.0) for _, row in gdf.iterrows()]
-                    height = max(heights) if heights else 27.0
-                except Exception:
-                    pass
+            for i, (footprint, height) in enumerate(merged_buildings):
                 urban.add_building(Building(
                     id=f"merged_{i}",
                     footprint=footprint,
@@ -319,7 +330,7 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
     return reader.read(aoi)
 
 
-def build_mesh(urban: UrbanModel, terrain: CFDTerrain, config: dict, mesh_constraint: str = "none", fill_gaps: bool = False):
+def build_mesh(urban: UrbanModel, terrain: CFDTerrain, config: dict, mesh_constraint: str = "proximity", fill_gaps: bool = False):
     """Build Gmsh geometry and export to OpenFOAM."""
     mesh_cfg = config["mesh"]
     domain_cfg = config["domain"]
@@ -543,7 +554,7 @@ def main():
     parser.add_argument("--post-only", action="store_true", help="Only run post-processing")
     parser.add_argument("--use-cache", action="store_true", help="Use cached VoxCity HDF5 if available")
     parser.add_argument("--voxcity-h5", default=None, help="Path to VoxCity HDF5 file to load directly (skips download)")
-    parser.add_argument("--mesh-constraint", default="none", choices=["none", "proximity"], help="Mesh sizing constraint")
+    parser.add_argument("--mesh-constraint", default="proximity", choices=["none", "proximity"], help="Mesh sizing constraint")
     parser.add_argument("--fill-gaps", action="store_true", help="Fill small gaps between nearby buildings")
     args = parser.parse_args()
 
@@ -593,9 +604,9 @@ def main():
     print(f"Case directory: {case_dir}")
     print(f"Buildings: {urban.building_count()}")
     print("\nTo run post-processing:")
-    print(f"  PYTHONPATH=../../foampilot/src python3 postprocess.py --case {case_dir}")
+    print(f"  PYTHONPATH=../../../foampilot/src python3 postprocess.py --case {case_dir}")
     print("\nOr rerun simulation:")
-    print(f"  PYTHONPATH=../../foampilot/src python3 generate.py --output-dir {case_dir}")
+    print(f"  PYTHONPATH=../../../foampilot/src python3 generate.py --output-dir {case_dir}")
 
     # Auto-run post-processing if simulation completed
     if not args.skip_run:

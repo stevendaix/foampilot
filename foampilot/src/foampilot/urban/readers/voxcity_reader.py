@@ -1,7 +1,10 @@
-from typing import Optional, Tuple, List
+from __future__ import annotations
+
 from pathlib import Path
 import logging
+from typing import Optional, Tuple
 import numpy as np
+import shapely.ops
 
 from foampilot.urban.model.urban_model import UrbanModel, Building
 from foampilot.urban.model.terrain import CFDTerrain
@@ -107,16 +110,28 @@ class VoxCityReader(BaseReader):
         logger.info("Extracting %d buildings from VoxCity", len(gdf))
 
         try:
-            from pyproj import Transformer
-            transformer = Transformer.from_crs("EPSG:4326", "EPSG:32631", always_xy=True)
-            def project_geom(geom):
-                if geom is None or geom.is_empty:
-                    return geom
-                return shapely.ops.transform(
-                    lambda x, y: transformer.transform(x, y), geom
-                )
-        except Exception:
-            project_geom = None
+            from pyproj import CRS, Transformer
+            source_crs = getattr(gdf, "crs", None)
+            if source_crs is not None:
+                source_crs = CRS.from_user_input(source_crs)
+            else:
+                minx, miny, maxx, maxy = gdf.total_bounds
+                looks_like_lonlat = max(abs(minx), abs(maxx)) <= 180 and max(abs(miny), abs(maxy)) <= 90
+                source_crs = CRS.from_epsg(4326) if looks_like_lonlat else None
+            target_crs = CRS.from_epsg(32631)
+            if source_crs is not None and source_crs != target_crs:
+                transformer = Transformer.from_crs(source_crs, target_crs, always_xy=True)
+                def project_geom(geom):
+                    if geom is None or geom.is_empty:
+                        return geom
+                    return shapely.ops.transform(lambda x, y: transformer.transform(x, y), geom)
+            else:
+                project_geom = lambda geom: geom
+            if source_crs is None:
+                logger.warning("VoxCity building CRS is unknown; preserving native coordinates")
+        except Exception as exc:
+            logger.warning("Could not normalize VoxCity CRS: %s", exc)
+            project_geom = lambda geom: geom
 
         for idx, row in gdf.iterrows():
             geom = row.geometry
@@ -131,14 +146,13 @@ class VoxCityReader(BaseReader):
                 continue
 
             for footprint in footprints:
-                area_m2 = footprint.area
-                if project_geom is not None:
-                    projected = project_geom(footprint)
-                    if projected is not None and not projected.is_empty:
-                        area_m2 = projected.area
-
+                projected = project_geom(footprint)
+                if projected is None or projected.is_empty:
+                    continue
+                area_m2 = projected.area
                 if area_m2 < 1.0:
                     continue
+                footprint = projected
 
                 height = self._extract_height(row)
                 ground_z = float(getattr(row, "ground_z", 0.0) or 0.0)

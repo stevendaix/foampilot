@@ -10,7 +10,7 @@ Generates a detailed LaTeX/PDF report including:
 - Results presentation with tables and figures
 
 Usage:
-    PYTHONPATH=../../foampilot/src:../voxcity_export_work/src:.. python3 generate_report.py \
+    PYTHONPATH=../../../foampilot/src:../voxcity_export_work/src:.. python3 generate_report.py \
         --case test_full_pipeline \
         --hdf5 output/voxcity.h5
 """
@@ -45,7 +45,7 @@ def _latex_safe(text: str) -> str:
     text = text.replace("≤", r"$\leq$")
     return text
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "foampilot" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "voxcity_export_work" / "src"))
 
 from foampilot.report.latex_pdf import LatexDocument

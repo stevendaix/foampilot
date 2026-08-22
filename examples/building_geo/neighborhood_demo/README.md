@@ -23,39 +23,39 @@ Exemple complet d'un quartier réaliste avec VoxCity, Gmsh, OpenFOAM et foampilo
 ### Full pipeline
 ```bash
 cd /home/steven/foampilot/examples/building_geo/neighborhood_demo
-PYTHONPATH=../../foampilot/src python3 generate.py
+PYTHONPATH=../../../foampilot/src python3 generate.py
 ```
 
 ### Use cached VoxCity data (skip download)
 ```bash
-PYTHONPATH=../../foampilot/src python3 generate.py --use-cache
+PYTHONPATH=../../../foampilot/src python3 generate.py --use-cache
 ```
 
 ### Use a local VoxCity HDF5 file (no download at all)
 ```bash
-PYTHONPATH=../../foampilot/src python3 generate.py --voxcity-h5 output/voxcity.h5
+PYTHONPATH=../../../foampilot/src python3 generate.py --voxcity-h5 output/voxcity.h5
 ```
 
 ### Skip simulation
 ```bash
-PYTHONPATH=../../foampilot/src python3 generate.py --skip-run
+PYTHONPATH=../../../foampilot/src python3 generate.py --skip-run
 ```
 
 ### Post-process only
 ```bash
-PYTHONPATH=../../foampilot/src python3 postprocess.py --case neighborhood_case
+PYTHONPATH=../../../foampilot/src python3 postprocess.py --case neighborhood_case
 ```
 
 ### Verify geometry (raw vs processed footprints)
 ```bash
-PYTHONPATH=../../foampilot/src:. python3 verify_geometry.py \
+PYTHONPATH=../../../foampilot/src:. python3 verify_geometry.py \
     --hdf5 output/voxcity.h5 \
     --output geometry_verification.png
 ```
 
 ### Fallback synthétique
 ```bash
-PYTHONPATH=../../foampilot/src python3 generate.py --fallback-synthetic
+PYTHONPATH=../../../foampilot/src python3 generate.py --fallback-synthetic
 ```
 
 ## Prérequis

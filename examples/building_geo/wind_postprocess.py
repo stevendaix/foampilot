@@ -3,7 +3,7 @@
 Post-process a single wind CFD case.
 
 Usage:
-    PYTHONPATH=../../foampilot/src python3 wind_postprocess.py \
+    PYTHONPATH=../../src python3 wind_postprocess.py \
         --case cases/wind_270deg \
         --pedestrian-height 1.75
 """
