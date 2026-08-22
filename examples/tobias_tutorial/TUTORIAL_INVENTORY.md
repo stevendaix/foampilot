@@ -49,7 +49,7 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | magnusEffect | `magnus_effect` | Validated equivalent |
 | openfoam.org | meshingAHelix | — | Pending |
 | openfoam.org | pitotTube variants | `pitot_tube` | Validated short calculation representative |
-| openfoam.org | rotatingRotorNCC | — | Pending |
+| openfoam.org | rotatingRotorNCC | `rotatingRotorNCC` | Validated short dynamic mesh calculation |
 | openfoam.org | snappyFeatureEdgeRefinement | `snappy_feature_edge_refinement` | Validated meshing workflow |
 | openfoam.org | snappyHexMeshCellZoneMeshing | — | Pending |
 | openfoam.org | snappySphereAndLayer | `snappy_sphere_and_layer` | Validated meshing workflow |

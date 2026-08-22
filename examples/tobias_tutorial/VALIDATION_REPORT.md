@@ -27,6 +27,7 @@ Short calculations are accepted as execution validation only when the report sta
 | Battery Cooling | `ideasUnvToFoam` → layered `snappyHexMesh` → thermo-fluid `foamRun` | 261,800 points and 248,193 background cells; 681,111-cell layered mesh after local smoke-run reduction; `fluid` solver and `limitTemperature` loaded; `End` | Validated short thermo-fluid calculation |
 | Dakota Tesla Valve | `ideasUnvToFoam` → `snappyHexMesh` → `extrudeMesh` → `dakota` | Successful coupling of DAKOTA with FoamPilot (`solve.py`); completed 10 optimization loops (mesh generation, forward/reverse flow, objective function evaluation) | Validated optimization workflow |
 | NCC Heat Transfer | `ideasUnvToFoam` → `snappyHexMesh` → `extrudeMesh` → `createNonConformalCouples` → `foamRun` | Background mesh converted; dynamic mesh and NCC couples successfully generated; short dynamic mesh simulation reached `End` | Validated short dynamic mesh calculation |
+| Rotating Rotor NCC | `ideasUnvToFoam` → `snappyHexMesh` → `createNonConformalCouples` → `foamRun` | Dynamic mesh generated; NCC couplings successfully established; solidBody motion simulation completed smoke run; `End` | Validated short dynamic mesh calculation |
 
 ## FoamPilot changes justified by execution
 
@@ -36,7 +37,7 @@ No new FoamPilot method was added for OpenFOAM-specific compatibility changes. T
 
 ## Pending scope
 
-The remaining Tobias catalog contains additional cases covering dynamic meshes, AMI/ACMI, heat transfer, multi-region CHT, turbines, rotating machinery, optimization and other external dependencies. The 2D AMI/NCC, adaptive mesh refinement, sphere meshing, thin gap meshing, combustion chamber, battery cooling, Dakota Tesla valve and NCC Heat Transfer cases are no longer pending because their complete FoamPilot runners and OpenFOAM 13 smoke validations are now recorded above. They remain pending until each case has a dedicated runner, complete assets, an OpenFOAM 13-compatible input set, a successful execution, and a report. The register deliberately does not classify source-only templates or unexecuted folders as validated.
+The remaining Tobias catalog contains additional cases covering dynamic meshes, AMI/ACMI, heat transfer, multi-region CHT, turbines, rotating machinery, optimization and other external dependencies. The 2D AMI/NCC, adaptive mesh refinement, sphere meshing, thin gap meshing, combustion chamber, battery cooling, Dakota Tesla valve, NCC Heat Transfer and rotating rotor NCC cases are no longer pending because their complete FoamPilot runners and OpenFOAM 13 smoke validations are now recorded above. They remain pending until each case has a dedicated runner, complete assets, an OpenFOAM 13-compatible input set, a successful execution, and a report. The register deliberately does not classify source-only templates or unexecuted folders as validated.
 
 ## References
 
