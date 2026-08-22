@@ -2,15 +2,15 @@ import os
 # from yadeimport import *
 from yade import mpy as mp
 
-parallelYade = True  #mpirun --allow-run-as-root -n 2 python3 scriptMPI.py , if False  python3 scriptMPI.py
-numProcOF = 2
+parallelYade = os.environ.get('YADE_PARALLEL', 'true').lower() in ('1', 'true', 'yes')
+numProcOF = int(os.environ.get('OPENFOAM_PROCS', '2'))
 
 O.periodic = True
 O.cell.setBox(0.1000005, 0.100005, 0.100005)
 numspheres = 1000
 young = 5e6
 density = 1000
-NSTEPS = 5000
+NSTEPS = int(os.environ.get('CFDEM_NSTEPS', '5000'))
 
 O.materials.append(FrictMat(young=young, poisson=0.5, frictionAngle=radians(15), density=density, label='spheremat'))
 O.materials.append(FrictMat(young=young * 100, poisson=0.5, frictionAngle=0, density=0, label='wallmat'))
@@ -78,7 +78,7 @@ O.engines = [
                 [Ig2_Sphere_Sphere_ScGeom(), Ig2_Box_Sphere_ScGeom()], [Ip2_FrictMat_FrictMat_FrictPhys()], [Law2_ScGeom_FrictPhys_CundallStrack()],
                 label='InteractionLoop'
         ),
-        GlobalStiffnessTimeStepper(timestepSafetyCoefficient=0.7, timeStepUpdateInterval=200, parallelMode=True, label="ts"),
+        GlobalStiffnessTimeStepper(timestepSafetyCoefficient=0.7, timeStepUpdateInterval=200, parallelMode=parallelYade, label="ts"),
         fluidCoupling,  #to be called after timestepper
         NewtonIntegrator(damping=0.0, label='newton', gravity=(0, 0.0, 0)),
         # VTKRecorder(fileName='spheres/3d-vtk-', recorders=['all'], parallelMode=True, iterPeriod=1000)
@@ -91,9 +91,12 @@ mp.USE_CPP_INTERS = False
 mp.ERASE_REMOTE_MASTER = True
 mp.REALLOC_FREQUENCY = 12
 mp.fluidBodies = sphereIDs
-mp.DOMAIN_DECOMPOSITION = True
+mp.DOMAIN_DECOMPOSITION = parallelYade
 mp.mpirun(NSTEPS)
 mp.mprint("RUN FINISH")
-fluidCoupling.killMPI()
+# killMPI() appelle MPI_Abort(-100) dans yadedaily ; la sortie du processus
+# libère le communicateur après RUN FINISH. L’ancien comportement reste opt-in.
+if os.environ.get('CFDEM_KILL_MPI', 'false').lower() in ('1', 'true', 'yes'):
+    fluidCoupling.killMPI()
 
 exit()
