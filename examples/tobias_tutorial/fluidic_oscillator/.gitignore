@@ -1,0 +1,7 @@
+cad/
+triSurface/
+*.tar.gz
+case/
+log.*
+__pycache__/
+*.py[cod]
