@@ -21,10 +21,12 @@ class DamBreakVOFTutorial(WolfDynamicsTutorialBase):
             target_case_path=target_case_path,
             foamrun_module="incompressibleVoF",
             compressible=False,
+            is_vof=True,
             end_time=end_time,
             write_interval=write_interval,
+            mesh_commands=(("blockMesh",),),
         )
 
     def write_case(self) -> None:
-        """Apply specific modifications for this tutorial."""
+        """Generate and record all DamBreak VOF input data via FoamPilot."""
         super().write_case()

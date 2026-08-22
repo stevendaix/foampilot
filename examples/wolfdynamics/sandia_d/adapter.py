@@ -26,5 +26,5 @@ class SandiaDFlameTutorial(WolfDynamicsTutorialBase):
         )
 
     def write_case(self) -> None:
-        """Apply specific modifications for this tutorial."""
+        """Generate and record all Sandia D input data via FoamPilot."""
         super().write_case()

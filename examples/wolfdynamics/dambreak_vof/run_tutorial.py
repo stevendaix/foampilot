@@ -43,6 +43,8 @@ def main() -> None:
             + "; ".join((*validation.missing_files, *validation.warnings))
         )
         
+    print("Generating mesh with FoamPilot...")
+    tutorial.build_mesh(environment)
     print("Checking mesh...")
     tutorial.check_mesh(environment)
     

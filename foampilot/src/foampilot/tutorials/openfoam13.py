@@ -148,6 +148,7 @@ def validate_generated_case(
     case_path: str | Path,
     *,
     compressible: bool = False,
+    is_vof: bool = False,
     required_files: Iterable[str] | None = None,
 ) -> CaseValidation:
     """Validate the minimum generated-case contract used by FoamPilot.
@@ -164,7 +165,16 @@ def validate_generated_case(
     ))
     missing = tuple(item for item in required if not (root / item).exists())
     warnings: list[str] = []
-    if not compressible:
+    if is_vof:
+        phase_properties = root / "constant" / "phaseProperties"
+        phase_physical = tuple(root.glob("constant/physicalProperties.*"))
+        if not phase_properties.exists():
+            warnings.append("constant/phaseProperties is missing for a VOF case")
+        if not phase_physical:
+            warnings.append("constant/physicalProperties.<phase> is missing for a VOF case")
+        elif any("nu" not in path.read_text(errors="ignore") for path in phase_physical):
+            warnings.append("one or more constant/physicalProperties.<phase> files do not declare nu")
+    elif not compressible:
         transport = root / "constant" / "transportProperties"
         if not transport.exists():
             warnings.append("constant/transportProperties is missing for an incompressible case")
@@ -190,6 +200,7 @@ def run_foampilot_case(
     validation = validate_generated_case(
         solver.case_path,
         compressible=getattr(solver, "compressible", False),
+        is_vof=getattr(solver, "is_vof", False),
     )
     if not validation.valid:
         raise ValueError(

@@ -39,6 +39,8 @@ The integration of Wolf Dynamics tutorials into FoamPilot uses an adapter approa
 2. **The case is copied and isolated**: The source archive remains untouched. The case is copied into a disposable `.runs/` directory.
 3. **Test parameters are controlled**: The adapter forces reduced `endTime` and `writeInterval` values to numerically validate the startup (smoke test) without consuming the resources of a full simulation.
 4. **The completeness contract is respected**: The `validate_generated_case` method checks for the presence of fundamental dictionaries and the declaration of kinematic viscosity (`nu`) for incompressible cases.
+5. **Final case data is written by FoamPilot**: Initial and boundary fields (`0/`), physical and chemistry properties (`constant/`, excluding mesh), and numerical dictionaries (`system/`) are read from the source then rewritten through `OpenFOAMDictAddFile`. Each execution creates `foampilot-input-manifest.json`, recording generated input paths, roles and SHA-256 hashes.
+6. **Mesh handling is explicit**: When a tutorial supplies `constant/polyMesh`, that topology asset is imported as reference geometry and declared in the manifest. When it supplies `blockMeshDict`, FoamPilot rewrites the dictionary then launches `blockMesh`; the DamBreak VOF tutorial follows this second path.
 
 ## Integration roadmap
 

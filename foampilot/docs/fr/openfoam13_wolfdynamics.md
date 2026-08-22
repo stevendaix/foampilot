@@ -39,6 +39,8 @@ L’intégration des tutoriels Wolf Dynamics dans FoamPilot utilise une approche
 2. **Le cas est copié et isolé** : L'archive source reste intacte. Le cas est copié dans un répertoire jetable `.runs/`.
 3. **Les paramètres de test sont maîtrisés** : L'adaptateur force des valeurs de `endTime` et `writeInterval` réduites pour valider numériquement le démarrage (smoke test) sans consommer les ressources d'une simulation complète.
 4. **Le contrat de complétude est respecté** : La méthode `validate_generated_case` vérifie la présence des dictionnaires fondamentaux et la déclaration de la viscosité cinématique (`nu`) pour les cas incompressibles.
+5. **La mise en données finale est écrite par FoamPilot** : Les champs initiaux et conditions aux limites (`0/`), propriétés physiques et chimiques (`constant/`, hors maillage), ainsi que les dictionnaires numériques (`system/`) sont relus depuis la source puis réécrits par `OpenFOAMDictAddFile`. Chaque exécution crée `foampilot-input-manifest.json`, qui contient les chemins, rôles et empreintes SHA-256 des entrées générées.
+6. **Le maillage est explicite** : Si le tutoriel fournit `constant/polyMesh`, cet actif topologique est importé comme géométrie de référence et déclaré dans le manifeste. Si le tutoriel fournit un `blockMeshDict`, FoamPilot réécrit le dictionnaire puis lance `blockMesh` ; le DamBreak VOF suit cette seconde voie.
 
 ## Plan d’intégration proposé
 

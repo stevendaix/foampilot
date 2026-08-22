@@ -26,10 +26,7 @@ class CounterFlowFlameTutorial(WolfDynamicsTutorialBase):
         )
 
     def write_case(self) -> None:
-        """Apply specific modifications for this tutorial."""
-        # Execute base smoke-test controls
+        """Generate and record all CounterFlow Flame input data via FoamPilot."""
+        # `WolfDynamicsTutorialBase` rewrites every text input through
+        # OpenFOAMDictAddFile and updates controlDict from these attributes.
         super().write_case()
-        
-        # Here we could inject specific boundary conditions or 
-        # missing properties if the source case was incomplete.
-        # For this specific OF13 clean case, the dictionaries are complete.
