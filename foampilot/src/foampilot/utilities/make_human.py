@@ -1,6 +1,9 @@
 from build123d import *
 from typing import Optional, Tuple, List
-from jupyter_cadquery import show
+try:
+    from jupyter_cadquery import show
+except ImportError:  # Optional visualization dependency
+    show = None
 from build123d import exporters3d
 
 class HumanGeometry:
