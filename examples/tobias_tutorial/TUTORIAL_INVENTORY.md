@@ -30,7 +30,7 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | 2dAxisSymmetricMeshing | `2d_rotational_axis_symmetric` | Validated equivalent |
 | openfoam.org | 45DegreePipeWithLayers | `meshing_pipe_45deg` | Validated |
 | openfoam.org | 90DegreePipeWithLayers | `meshing_pipe_90deg` | Validated |
-| openfoam.org | NCCHeatTransfer | — | Pending |
+| openfoam.org | NCCHeatTransfer | `NCCHeatTransfer` | Validated short dynamic mesh calculation |
 | openfoam.org | adaptiveMeshRefinement | `adaptive_mesh_refinement` | Validated |
 | openfoam.org | arbitraryRotatingInletNCC | — | Pending |
 | openfoam.org | arbitraryWaterPump | — | Pending |
