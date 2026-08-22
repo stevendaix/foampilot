@@ -50,7 +50,7 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | meshingAHelix | — | Pending |
 | openfoam.org | pitotTube variants | `pitot_tube` | Validated short calculation representative |
 | openfoam.org | rotatingRotorNCC | — | Pending |
-| openfoam.org | snappyFeatureEdgeRefinement | — | Pending |
+| openfoam.org | snappyFeatureEdgeRefinement | `snappy_feature_edge_refinement` | Validated meshing workflow |
 | openfoam.org | snappyHexMeshCellZoneMeshing | — | Pending |
 | openfoam.org | snappySphereAndLayer | — | Pending |
 | openfoam.org | sneezingSimulation | — | Pending |

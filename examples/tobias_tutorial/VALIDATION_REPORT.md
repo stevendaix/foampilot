@@ -20,6 +20,7 @@ Short calculations are accepted as execution validation only when the report sta
 | Meshing a Pipe 90° | `surfaceFeatures` → UNV conversion → layered `snappyHexMesh` | 173,056 UNV cells; 446,251-cell layered mesh; `End` | Validated meshing workflow |
 | 2D AMI / Non-Conformal Coupling | `ideasUnvToFoam` → `snappyHexMesh` → `changeDictionary` → `flattenMesh` → `extrudeMesh` → `topoSet` → `createBaffles` → `splitBaffles` → `createNonConformalCouples` → `foamRun` | 23,104 points and 16,875 background cells; 140,321-cell snappy mesh; AMI1/AMI2 with 704 faces each, 1/1/1 coverage and 1,408 couplings; `foamRun` ended normally | Validated short calculation |
 | Pseudo-2D Adaptive Mesh Refinement | `ideasUnvToFoam` → `surfaceFeatures` → `snappyHexMesh` → adaptive `foamRun` | Complete FoamPilot runner executed with the recovered UNV/STL assets; snappy mesh checks passed; AMR/scalar-transport solver reached the configured bounded smoke-run end time and exited normally | Validated short calculation |
+| Feature Edge Refinement | Three repetitions of `surfaceFeatureConvert` → `ideasUnvToFoam` → `snappyHexMesh` using standard, optimized and `levels ((distance level))` feature-edge configurations | All three variants ended normally; representative variant read 169,781 points and 160,000 cells, detected 640 feature edges and wrote an 85,067-cell mesh | Validated meshing workflow |
 
 ## FoamPilot changes justified by execution
 
