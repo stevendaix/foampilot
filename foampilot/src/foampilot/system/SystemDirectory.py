@@ -78,7 +78,7 @@ class SystemDirectory:
 
         # Write any additional files that were added
         for file_name, file in self.additional_files.items():
-            file.write(system_path / file_name)
+            file.write_file(system_path / file_name)
         
         return system_path
 
@@ -144,15 +144,20 @@ class SystemDirectory:
         functions_path.write_text(content)
         logger.info("Wrote functions file: %s", functions_path)
 
-    def add_dict_file(self, file_name, file_content):
-        """
-        Add an additional file to the system directory.
+    def add_dict_file(self, file_name: str, file_content: dict) -> OpenFOAMFile:
+        """Register an additional generated dictionary in ``system``.
 
-        Args:
-            file_name (str): The name of the file to add (e.g., 'transportProperties').
-            file_content (dict): The content of the file as a dictionary.
+        The explicit registry is suitable for case-specific dictionaries such
+        as ``fvOptions``, ``topoSetDict`` and ``createPatchDict``.  It avoids
+        hand-maintained OpenFOAM files while leaving their content inspectable.
         """
-        self.additional_files[file_name] = OpenFOAMFile(object_name=file_name, **file_content)
+        if not file_name or Path(file_name).name != file_name:
+            raise ValueError("file_name must be a simple dictionary filename")
+        if not isinstance(file_content, dict):
+            raise TypeError("file_content must be a dictionary")
+        dictionary = OpenFOAMFile(object_name=file_name, **file_content)
+        self.additional_files[file_name] = dictionary
+        return dictionary
 
     def to_dict(self):
         """
