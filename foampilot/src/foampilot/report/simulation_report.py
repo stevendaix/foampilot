@@ -85,6 +85,17 @@ class SimulationReport:
             logger.warning("No log file found for case: %s", self.case_dir)
             return
 
+        self.residual_data = defaultdict(
+            lambda: {"time": [], "initial": [], "final": [], "iterations": []}
+        )
+        self.warnings.clear()
+        self.errors.clear()
+        self.execution_time = 0.0
+        self.clock_time = 0
+        self.iteration_count = 0
+        self.courant_mean = 0.0
+        self.courant_max = 0.0
+
         time_pattern = re.compile(r"Time = (\d+\.?\d*)s?")
         solver_pattern = re.compile(
             r"(smoothSolver|GAMG|PCG|PBiCGStab|geometricOneWire):\s+"
@@ -576,8 +587,8 @@ class SimulationReport:
         self._extract_warnings_errors()
         self._extract_mesh_stats_from_log()
         self._extract_mesh_stats_from_polyMesh()
-        self._extract_solver_settings()
-        self._extract_bc_summary()
+        self.solver_settings = self._extract_solver_settings()
+        self.bc_summary = self._extract_bc_summary()
 
         final_residuals = self._extract_final_residuals()
         convergence = self._compute_convergence_metrics()

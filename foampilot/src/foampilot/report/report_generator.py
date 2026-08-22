@@ -1,4 +1,5 @@
 import json
+import html
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -8,9 +9,10 @@ import pandas as pd
 import pyvista as pv
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from plotly.offline import get_plotlyjs
 
 from foampilot.report.latex_pdf import LatexDocument
-from foampilot.report.typst_pdf import ScientificDocument
+from foampilot.report.typst_pdf import ScientificDocument, TypstRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,7 @@ class CFDReportGenerator:
         self._statistics: Dict[str, Any] = {}
         self._figures: List[Dict[str, str]] = []
         self._tables: List[Dict[str, Any]] = []
+        self._plotly_figures: List[Dict[str, Any]] = []
 
     def add_statistic(
         self, name: str, value: Any, unit: str = "", description: str = ""
@@ -103,6 +106,35 @@ class CFDReportGenerator:
         self._tables.append(
             {"data": data, "headers": headers, "caption": caption}
         )
+
+    def add_plotly_figure(
+        self, figure: go.Figure, caption: str = "", kind: str = "figure"
+    ) -> None:
+        """Register an interactive Plotly figure for HTML output.
+
+        Parameters
+        ----------
+        figure : plotly.graph_objects.Figure
+            Figure to embed in the generated HTML.
+        caption : str, optional
+            Human-readable figure caption.
+        kind : str, optional
+            Figure category. Use ``"time_series"`` for figures controlled by
+            :paramref:`save_html_report.include_time_series`.
+        """
+        if not isinstance(figure, go.Figure):
+            raise TypeError("figure must be a plotly.graph_objects.Figure")
+        self._plotly_figures.append(
+            {"figure": figure, "caption": caption, "kind": kind}
+        )
+
+    def add_time_series(
+        self, df: pd.DataFrame, scalar_field: str, title: str = ""
+    ) -> go.Figure:
+        """Create and register a scalar time-series figure for HTML output."""
+        figure = self.generate_plotly_time_series(df, scalar_field, title)
+        self.add_plotly_figure(figure, title or scalar_field, kind="time_series")
+        return figure
 
     def collect_time_series(
         self, postprocessor: "FoamPostProcessing", scalar_field: str
@@ -364,11 +396,26 @@ class CFDReportGenerator:
         """
         if vectors not in mesh.point_data:
             raise ValueError(f"Vector field '{vectors}' not found in mesh point data.")
+        if not isinstance(subsample, int) or subsample < 1:
+            raise ValueError("subsample must be a positive integer.")
 
-        vecs = mesh.point_data[vectors]
-        points = mesh.points
+        vecs = np.asarray(mesh.point_data[vectors])
+        points = np.asarray(mesh.points)
         if vecs.ndim == 1:
+            if vecs.size % 3 != 0:
+                raise ValueError(
+                    f"Vector field '{vectors}' must contain 3 components per point."
+                )
             vecs = vecs.reshape(-1, 3)
+        if vecs.ndim != 2 or vecs.shape[1] != 3:
+            raise ValueError(
+                f"Vector field '{vectors}' must have shape (n_points, 3)."
+            )
+        if len(points) != len(vecs):
+            raise ValueError(
+                f"Vector field '{vectors}' has {len(vecs)} values for "
+                f"{len(points)} mesh points."
+            )
 
         xs, ys, zs = points[::subsample].T
         u, v, w = vecs[::subsample].T
@@ -405,6 +452,9 @@ class CFDReportGenerator:
     ) -> Path:
         """Generate a self-contained interactive HTML report.
 
+        Plotly JavaScript is embedded inline when interactive figures are present;
+        the resulting file does not require network access to render those figures.
+
         Parameters
         ----------
         filename : str or Path, optional
@@ -420,13 +470,20 @@ class CFDReportGenerator:
         html_parts: List[str] = []
 
         html_parts.append("<!DOCTYPE html>")
-        html_parts.append('<html lang="en">')
+        html_parts.append('<html lang="fr">')
         html_parts.append("<head>")
         html_parts.append("<meta charset='utf-8'>")
-        html_parts.append(f"<title>{self.title}</title>")
-        html_parts.append(
-            "<script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>"
-        )
+        escaped_title = html.escape(str(self.title), quote=True)
+        escaped_author = html.escape(str(self.author), quote=True)
+        escaped_case = html.escape(str(self.case_path), quote=True)
+        html_parts.append(f"<title>{escaped_title}</title>")
+        visible_plotly_figures = [
+            item
+            for item in self._plotly_figures
+            if include_time_series or item["kind"] != "time_series"
+        ]
+        if visible_plotly_figures:
+            html_parts.append(f"<script>{get_plotlyjs()}</script>")
         html_parts.append(
             "<style>"
             "body { font-family: sans-serif; margin: 2em; max-width: 1200px; }"
@@ -440,9 +497,9 @@ class CFDReportGenerator:
         )
         html_parts.append("</head>")
         html_parts.append("<body>")
-        html_parts.append(f"<h1>{self.title}</h1>")
-        html_parts.append(f"<p><strong>Author:</strong> {self.author}</p>")
-        html_parts.append(f"<p><strong>Case:</strong> {self.case_path}</p>")
+        html_parts.append(f"<h1>{escaped_title}</h1>")
+        html_parts.append(f"<p><strong>Author:</strong> {escaped_author}</p>")
+        html_parts.append(f"<p><strong>Case:</strong> {escaped_case}</p>")
 
         # Statistics summary
         if self._statistics:
@@ -450,8 +507,10 @@ class CFDReportGenerator:
             html_parts.append("<table><tr><th>Parameter</th><th>Value</th><th>Unit</th><th>Description</th></tr>")
             for name, stat in self._statistics.items():
                 html_parts.append(
-                    f"<tr><td>{name}</td><td>{stat['value']}</td>"
-                    f"<td>{stat['unit']}</td><td>{stat['description']}</td></tr>"
+                    f"<tr><td>{html.escape(str(name))}</td>"
+                    f"<td>{html.escape(str(stat['value']))}</td>"
+                    f"<td>{html.escape(str(stat['unit']))}</td>"
+                    f"<td>{html.escape(str(stat['description']))}</td></tr>"
                 )
             html_parts.append("</table>")
 
@@ -460,25 +519,56 @@ class CFDReportGenerator:
             html_parts.append("<h2>Figures</h2>")
             for fig in self._figures:
                 html_parts.append(f'<div class="figure-container">')
-                html_parts.append(f'<h3>{fig["caption"]}</h3>')
-                html_parts.append(f'<img src="{fig["path"]}" alt="{fig["caption"]}" style="max-width:100%;">')
+                caption = html.escape(str(fig["caption"]), quote=True)
+                path = html.escape(str(fig["path"]), quote=True)
+                html_parts.append(f"<h3>{caption}</h3>")
+                html_parts.append(f'<img src="{path}" alt="{caption}" style="max-width:100%;">')
                 html_parts.append(f'</div>')
+
+        # Interactive Plotly figures
+        if visible_plotly_figures:
+            html_parts.append("<h2>Interactive Figures</h2>")
+            for index, item in enumerate(visible_plotly_figures, start=1):
+                caption = html.escape(str(item["caption"]))
+                html_parts.append(f'<div class="figure-container" id="plotly-{index}">')
+                if caption:
+                    html_parts.append(f"<h3>{caption}</h3>")
+                html_parts.append(
+                    item["figure"].to_html(
+                        full_html=False,
+                        include_plotlyjs=False,
+                        config={"responsive": True},
+                    )
+                )
+                html_parts.append("</div>")
 
         # Tables
         if self._tables:
             html_parts.append("<h2>Tables</h2>")
             for tbl in self._tables:
-                html_parts.append(f'<h3>{tbl["caption"]}</h3>')
+                html_parts.append(f"<h3>{html.escape(str(tbl['caption']))}</h3>")
                 html_parts.append("<table>")
-                html_parts.append("<tr>" + "".join(f"<th>{h}</th>" for h in tbl["headers"]) + "</tr>")
+                html_parts.append(
+                    "<tr>"
+                    + "".join(
+                        f"<th>{html.escape(str(header))}</th>"
+                        for header in tbl["headers"]
+                    )
+                    + "</tr>"
+                )
                 for row in tbl["data"]:
-                    html_parts.append("<tr>" + "".join(f"<td>{c}</td>" for c in row) + "</tr>")
+                    html_parts.append(
+                        "<tr>"
+                        + "".join(f"<td>{html.escape(str(cell))}</td>" for cell in row)
+                        + "</tr>"
+                    )
                 html_parts.append("</table>")
 
         html_parts.append("</body>")
         html_parts.append("</html>")
 
         out_path = self.output_dir / filename
+        out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
             f.write("\n".join(html_parts))
 
@@ -505,11 +595,14 @@ class CFDReportGenerator:
         Path
             Path to the generated ``.tex`` file (and PDF if ``compile_pdf=True``).
         """
+        output_name = Path(filename)
+        if output_name.suffix == ".tex":
+            output_name = output_name.with_suffix("")
         doc = LatexDocument(
             title=self.title,
             author=self.author,
-            filename=str(self.output_dir / filename).replace(".tex", ""),
-            output_dir=str(self.output_dir),
+            filename=str(output_name),
+            output_dir=str(self.output_dir.parent),
         )
         doc.add_abstract(
             f"CFD post-processing report for case: {self.case_path}"
@@ -582,9 +675,21 @@ class CFDReportGenerator:
                 ])
             doc.add_table(table_data, caption="Summary statistics", label="tab:statistics")
 
-        tex_content = doc.render(doc)
+        for index, tbl in enumerate(self._tables, start=1):
+            doc.add_table(
+                tbl["data"],
+                headers=tbl["headers"],
+                caption=tbl["caption"],
+                label=f"tab_{index}",
+            )
+
+        for fig in self._figures:
+            doc.add_figure(fig["path"], fig["caption"], label=fig["label"])
+
+        renderer = TypstRenderer()
+        typst_content = renderer.render(doc)
         out_path = self.output_dir / filename
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(tex_content)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(typst_content, encoding="utf-8")
 
         return out_path

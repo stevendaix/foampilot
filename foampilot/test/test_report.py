@@ -1,0 +1,150 @@
+from pathlib import Path
+
+import pandas as pd
+
+from foampilot.report import CFDReportGenerator, SimulationReport
+
+
+def test_simulation_report_keeps_extracted_settings(tmp_path, monkeypatch):
+    log_path = tmp_path / "log.simpleFoam"
+    log_path.write_text(
+        "Time = 1\n"
+        "smoothSolver:  Solving for U, Initial residual = 1, Final residual = 1e-5, No Iterations 2\n"
+        "ExecutionTime = 0.5 s  ClockTime = 1 s\n"
+        "End\n",
+        encoding="utf-8",
+    )
+
+    report = SimulationReport(tmp_path)
+    monkeypatch.setattr(
+        report, "_extract_solver_settings", lambda: {"application": "simpleFoam"}
+    )
+    monkeypatch.setattr(
+        report, "_extract_bc_summary", lambda: {"inlet": {"type": "fixedValue"}}
+    )
+
+    content = report.generate_report()
+
+    assert report.solver_settings == {"application": "simpleFoam"}
+    assert report.bc_summary == {"inlet": {"type": "fixedValue"}}
+    assert "simpleFoam" in content
+    assert "fixedValue" in content
+
+
+def test_typst_report_renders_registered_content(tmp_path):
+    generator = CFDReportGenerator(tmp_path)
+    generator.add_statistic("Re", 1000, "-", "Reynolds number")
+    generator.add_table([[1, 2]], ["A", "B"], "Results")
+    generator.add_figure("mesh.png", "Mesh", label="fig_mesh")
+
+    output = generator.save_typst_report()
+    content = output.read_text(encoding="utf-8")
+
+    assert output == tmp_path / "report" / "cfd_report.typ"
+    assert "Reynolds number" in content
+    assert "Results" in content
+    assert "mesh.png" in content
+
+
+def test_latex_report_returns_generated_path(tmp_path):
+    generator = CFDReportGenerator(tmp_path)
+    output = generator.save_latex_report()
+
+    assert isinstance(output, Path)
+    assert output == tmp_path / "report" / "cfd_report.tex"
+    assert output.exists()
+
+
+def test_mesh_quality_report_handles_log_without_re_or_patches(tmp_path):
+    from foampilot.report.mesh_report import MeshQualityReport
+
+    (tmp_path / "log.blockMesh").write_text(
+        "Number of boundary faces: 4\n", encoding="utf-8"
+    )
+    report = MeshQualityReport(tmp_path)
+
+    content = report.generate_report()
+
+    assert "Mesh Quality Report" in content
+    assert "boundary_faces_per_patch" not in content
+
+
+def test_vector_plot_rejects_invalid_subsample(tmp_path):
+    import numpy as np
+    import pyvista as pv
+
+    generator = CFDReportGenerator(tmp_path)
+    mesh = pv.PolyData(np.zeros((2, 3)))
+    mesh.point_data["U"] = np.zeros((2, 3))
+
+    try:
+        generator.generate_plotly_vector_plot(mesh, "U", subsample=0)
+    except ValueError as exc:
+        assert "positive integer" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError for a non-positive subsample")
+
+
+def test_html_report_escapes_user_content(tmp_path):
+    generator = CFDReportGenerator(tmp_path, title="<unsafe>", author='A & B')
+    generator.add_statistic("<Re>", "<1>", "&", "quoted <value>")
+
+    output = generator.save_html_report()
+    content = output.read_text(encoding="utf-8")
+
+    assert "&lt;unsafe&gt;" in content
+    assert "&lt;Re&gt;" in content
+    assert "&lt;1&gt;" in content
+    assert "<unsafe>" not in content
+
+
+def test_simulation_report_generation_is_idempotent(tmp_path):
+    log_path = tmp_path / "log.simpleFoam"
+    log_path.write_text(
+        "Time = 1\n"
+        "smoothSolver: Solving for U, Initial residual = 1, Final residual = 1e-5, No Iterations 2\n",
+        encoding="utf-8",
+    )
+    report = SimulationReport(tmp_path)
+
+    report.generate_report()
+    first_count = len(report.residual_data["U"]["final"])
+    report.generate_report()
+    second_count = len(report.residual_data["U"]["final"])
+
+    assert first_count == second_count == 1
+
+
+def test_html_report_embeds_plotly_and_filters_time_series(tmp_path):
+    import plotly.graph_objects as go
+
+    generator = CFDReportGenerator(tmp_path)
+    generator.add_plotly_figure(
+        go.Figure(data=go.Scatter(x=[0, 1], y=[1, 2])),
+        caption="General figure",
+    )
+    generator.add_time_series(
+        pd.DataFrame(
+            {
+                "time": [0, 1],
+                "p_mean": [1.0, 2.0],
+                "p_max": [1.5, 2.5],
+                "p_min": [0.5, 1.5],
+            }
+        ),
+        "p",
+        title="Pressure history",
+    )
+
+    without_series = generator.save_html_report(
+        filename="without-series.html", include_time_series=False
+    ).read_text(encoding="utf-8")
+    with_series = generator.save_html_report(
+        filename="with-series.html", include_time_series=True
+    ).read_text(encoding="utf-8")
+
+    assert "https://cdn.plot.ly" not in with_series
+    assert without_series.count("Plotly.newPlot") == 1
+    assert "Pressure history" not in without_series
+    assert "Pressure history" in with_series
+    assert with_series.count("Plotly.newPlot") == 2
