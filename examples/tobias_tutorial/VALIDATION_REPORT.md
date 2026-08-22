@@ -19,6 +19,7 @@ Short calculations are accepted as execution validation only when the report sta
 | Meshing a Pipe 45° | `surfaceFeatures` → UNV conversion → scale transform → layered `snappyHexMesh` | 42,700 UNV cells; 245,587-cell layered mesh; 11 layer iterations; `End` | Validated meshing workflow |
 | Meshing a Pipe 90° | `surfaceFeatures` → UNV conversion → layered `snappyHexMesh` | 173,056 UNV cells; 446,251-cell layered mesh; `End` | Validated meshing workflow |
 | 2D AMI / Non-Conformal Coupling | `ideasUnvToFoam` → `snappyHexMesh` → `changeDictionary` → `flattenMesh` → `extrudeMesh` → `topoSet` → `createBaffles` → `splitBaffles` → `createNonConformalCouples` → `foamRun` | 23,104 points and 16,875 background cells; 140,321-cell snappy mesh; AMI1/AMI2 with 704 faces each, 1/1/1 coverage and 1,408 couplings; `foamRun` ended normally | Validated short calculation |
+| Pseudo-2D Adaptive Mesh Refinement | `ideasUnvToFoam` → `surfaceFeatures` → `snappyHexMesh` → adaptive `foamRun` | Complete FoamPilot runner executed with the recovered UNV/STL assets; snappy mesh checks passed; AMR/scalar-transport solver reached the configured bounded smoke-run end time and exited normally | Validated short calculation |
 
 ## FoamPilot changes justified by execution
 
@@ -28,7 +29,7 @@ No new FoamPilot method was added for OpenFOAM-specific compatibility changes. T
 
 ## Pending scope
 
-The remaining Tobias catalog contains additional cases covering dynamic meshes, AMI/ACMI, heat transfer, multi-region CHT, turbines, rotating machinery, optimization and other external dependencies. The 2D AMI/NCC case is no longer pending because its complete FoamPilot runner and OpenFOAM 13 smoke validation are now recorded above. They remain pending until each case has a dedicated runner, complete assets, an OpenFOAM 13-compatible input set, a successful execution, and a report. The register deliberately does not classify source-only templates or unexecuted folders as validated.
+The remaining Tobias catalog contains additional cases covering dynamic meshes, AMI/ACMI, heat transfer, multi-region CHT, turbines, rotating machinery, optimization and other external dependencies. The 2D AMI/NCC and adaptive mesh refinement cases are no longer pending because their complete FoamPilot runners and OpenFOAM 13 smoke validations are now recorded above. They remain pending until each case has a dedicated runner, complete assets, an OpenFOAM 13-compatible input set, a successful execution, and a report. The register deliberately does not classify source-only templates or unexecuted folders as validated.
 
 ## References
 

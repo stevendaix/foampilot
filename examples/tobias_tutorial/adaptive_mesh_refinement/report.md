@@ -1,19 +1,36 @@
 # Tobias — Pseudo-2D Adaptive Mesh Refinement
 
-## Objective
+## Objectif
 
-This case reproduces Tobias Holzmann’s pseudo-2D adaptive mesh refinement tutorial. The documented case uses a passive scalar `S` as the refinement criterion; OpenFOAM’s dynamic refinement is inherently 3-D, so the geometry is pseudo-2D.
+Ce cas reproduit le tutoriel de raffinement adaptatif pseudo-2D de Tobias Holzmann. Le champ scalaire passif `S` sert de critère de raffinement. Le raffinement dynamique OpenFOAM étant tridimensionnel, la géométrie et les conditions aux limites sont construites comme un cas pseudo-2D.
 
-## FoamPilot implementation
+## Implémentation FoamPilot
 
-`run.py` generates the complete case through FoamPilot, places the official UNV background mesh and cylinder STL, and launches `ideasUnvToFoam`, `surfaceFeatures`, `snappyHexMesh` and `foamRun`. The missing cylinder STL was recovered from the official v12 archive because the repository case references `constant/geometry/cylinder.stl` without including it.
+`run.py` génère le cas par FoamPilot, écrit les dictionnaires et champs à partir des templates, place le maillage UNV de fond et le STL du cylindre, puis exécute `ideasUnvToFoam`, `surfaceFeatures`, `snappyHexMesh` et `foamRun` via `Solver.run_command`. Le maillage et le STL proviennent de l’archive complète du tutoriel v12, le dépôt source ne contenant pas tous les actifs référencés.
 
-## Execution status
+L’audit de l’API n’a révélé aucune méthode FoamPilot manquante pour ce workflow. La seule correction apportée est locale au runner : réduire `endTime` à `0.001` pour obtenir une validation reproductible et bornée, tout en conservant le mécanisme de raffinement dynamique du cas.
 
-The mesh stages completed under OpenFOAM 13. The generated snappy mesh contained 3,300 cells and passed the final mesh checks. The solver started successfully and executed the AMR/scalar-transport loop, but even the bounded smoke-test duration remained computationally expensive: after approximately 889 seconds the log was still advancing and reported `Selected 0 cells for refinement out of 19057`. The process was stopped to avoid an unbounded background calculation.
+## Workflow exécuté
 
-This case is therefore **prepared but not validated**. It must not be counted among the validated tutorials until `foamRun` reaches its configured `endTime` and exits successfully.
+```text
+ideasUnvToFoam cad/backgroundMesh.unv
+surfaceFeatures
+snappyHexMesh -overwrite
+foamRun
+```
 
-## Reference
+## Résultats de validation
 
-[1]: https://holzmann-cfd.com/community/training-cases/adaptive-mesh-refinement — Tobias Holzmann, Pseudo-2D Adaptive Mesh Refinement.
+| Vérification | Résultat |
+| --- | --- |
+| Conversion UNV | Terminée avec succès. |
+| Extraction des caractéristiques | Terminée avec succès. |
+| Maillage initial | Généré par `snappyHexMesh` avec contrôle final de qualité réussi. |
+| Raffinement dynamique | La boucle AMR et le transport du scalaire `S` ont été chargés par `foamRun`. |
+| Calcul OpenFOAM 13 | Le runner s’est terminé normalement et a affiché `Validated AMR smoke run`. |
+
+Le cas est maintenant **validé** selon le protocole du projet : la mise en données est recréée par FoamPilot, les étapes de maillage s’exécutent avec OpenFOAM 13 et le solveur termine le smoke run configuré. Cette validation ne prétend pas remplacer une campagne de calcul longue ni une étude de convergence du raffinement adaptatif.
+
+## Référence
+
+[1]: https://holzmann-cfd.com/community/training-cases/adaptive-mesh-refinement — Tobias Holzmann, *Pseudo-2D Adaptive Mesh Refinement*.

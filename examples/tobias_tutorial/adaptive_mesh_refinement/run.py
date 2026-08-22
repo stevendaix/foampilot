@@ -14,7 +14,7 @@ def write_case():
         if relative in ("system/snappyHexMeshDict", "system/surfaceFeaturesDict"):
             content = content.replace('file "cylinder.stl"', 'file "cylinder.stl"').replace('"../triSurface/cylinder.stl"', '"cylinder.stl"')
         if relative == "system/controlDict":
-            content = content.replace("endTime         0.5;", "endTime         0.001;").replace("endTime         1;", "endTime         0.001;").replace("endTime         40;", "endTime         0.001;").replace("endTime         0.12;", "endTime         0.001;")
+            content = content.replace("endTime         0.5;", "endTime         0.001;").replace("endTime         1;", "endTime         0.001;").replace("endTime         40;", "endTime         0.001;").replace("endTime         0.12;", "endTime         0.001;").replace("endTime         5;", "endTime         0.001;")
         if relative == "constant/dynamicMeshDict":
             content = content.replace("maxCells        400000;", "maxCells        120000;")
         writer.write_raw(path.name, CASE, content, folder=str(Path(*path.parts[:-1])))
