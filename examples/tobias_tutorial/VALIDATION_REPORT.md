@@ -15,6 +15,7 @@ Short calculations are accepted as execution validation only when the report sta
 | Fluidic Oscillator | UNV conversion → transforms → feature extraction → layered snappy mesh → flatten/extrude → `topoSet` → `setFields` → VoF `foamRun` | 435,120 UNV cells read; 1,621,498-cell layered mesh; scalar transport executed; `End` | Validated short calculation |
 | Falling Droplets | UNV conversion → `changeDictionary` → `setFields` → VoF `foamRun` | All stages completed with alpha/MULES and pressure iterations | Validated short calculation |
 | Magnus Effect | UNV conversion → `snappyHexMesh` → `extrudeMesh` → `changeDictionary` → `transformPoints` → incompressible `foamRun` | 3,000 UNV cells read; 3,239-cell mesh; reached `Time = 0.2s`; `End` | Validated short calculation |
+| Cell Zone Generation | UNV conversion → `surfaceFeatures` → `snappyHexMesh` | 30,000 UNV cells read; 140,327-cell mesh; cell zones of 4,096, 2,789 and 44,937 cells; `End` | Validated meshing workflow |
 
 ## FoamPilot changes justified by execution
 
@@ -24,7 +25,7 @@ No new FoamPilot method was added for OpenFOAM-specific compatibility changes. T
 
 ## Pending scope
 
-The Tobias catalog contains additional cases covering dynamic meshes, AMI/ACMI, heat transfer, multi-region CHT, turbines, rotating machinery, optimization and other external dependencies. They remain pending until each case has a dedicated runner, complete assets, an OpenFOAM 13-compatible input set, a successful execution, and a report. The register deliberately does not classify source-only templates or unexecuted folders as validated.
+The remaining Tobias catalog contains additional cases covering dynamic meshes, AMI/ACMI, heat transfer, multi-region CHT, turbines, rotating machinery, optimization and other external dependencies. They remain pending until each case has a dedicated runner, complete assets, an OpenFOAM 13-compatible input set, a successful execution, and a report. The register deliberately does not classify source-only templates or unexecuted folders as validated.
 
 ## References
 
