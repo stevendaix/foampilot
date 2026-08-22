@@ -1,0 +1,37 @@
+=== FoamPilot Execution of Wolf Dynamics CounterFlow Flame (OpenFOAM 13) ===
+
+FoamPilot successfully wrapped, validated and executed the case.
+
+--- checkMesh Summary ---
+Mesh stats
+    points:           8282
+    internal points:  0
+    faces:            16140
+    internal faces:   7860
+    cells:            4000
+    faces per cell:   6
+    boundary patches: 4
+    point zones:      0
+    face zones:       0
+    cell zones:       0
+Overall number of cells of each type:
+    hexahedra:     4000
+Mesh OK.
+
+--- foamRun Summary (Smoke Test, endTime=20) ---
+Time scales min/max:
+Flow time scale min/max = 0.00106799, 0.01
+    Temperature = 0.000301037, 4.38372e+12
+    Overall     = 0.000301037, 0.01
+Time = 20s
+diagonal:  Solving for rho, Initial residual = 0, Final residual = 0, No Iterations 0
+DILUPBiCGStab:  Solving for O2, Initial residual = 0.00655639, Final residual = 0.000654666, No Iterations 1
+DILUPBiCGStab:  Solving for H2O, Initial residual = 0.0197588, Final residual = 0.00149412, No Iterations 3
+DILUPBiCGStab:  Solving for CH4, Initial residual = 0.00695242, Final residual = 0.000485808, No Iterations 2
+DILUPBiCGStab:  Solving for CO2, Initial residual = 0.0197588, Final residual = 0.00149412, No Iterations 3
+DILUPBiCGStab:  Solving for h, Initial residual = 0.0114185, Final residual = 0.00068094, No Iterations 2
+DICPCG:  Solving for p, Initial residual = 0.0503148, Final residual = 9.42546e-07, No Iterations 62
+diagonal:  Solving for rho, Initial residual = 0, Final residual = 0, No Iterations 0
+time step continuity errors : sum local = 1.185e-08, global = 1.3743e-10, cumulative = -7.94549e-07
+ExecutionTime = 1.6371 s  ClockTime = 2 s
+End
