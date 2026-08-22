@@ -7,6 +7,7 @@ from foampilot.tutorials import (
     OpenFOAMTutorialManifest,
     validate_generated_case,
 )
+from foampilot.utilities import OpenFOAMDictAddFile
 
 
 def _write_minimal_case(root: Path, *, include_nu: bool = True) -> None:
@@ -57,3 +58,13 @@ def test_manifest_discovers_families_and_external_geometry(tmp_path):
 def test_environment_fails_with_actionable_error(tmp_path):
     with pytest.raises(FileNotFoundError, match="bashrc"):
         OpenFOAM13Environment(tmp_path / "missing-bashrc").environment()
+
+
+def test_write_raw_preserves_existing_foamfile_header(tmp_path):
+    content = "// source comment\\nFoamFile\\n{\\n    object controlDict;\\n}\\n\napplication foamRun;"
+    path = OpenFOAMDictAddFile("generated").write_raw(
+        "controlDict", tmp_path, content
+    )
+    rendered = path.read_text(encoding="utf-8")
+    assert rendered.count("FoamFile") == 1
+    assert "application foamRun;" in rendered
