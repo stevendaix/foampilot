@@ -16,6 +16,10 @@ def typst_escape(text: str) -> str:
             .replace("{", "\\{")
             .replace("}", "\\}")
             .replace("$", "\\$")
+            .replace("(", "⁽")
+            .replace(")", "⁾")
+            .replace("[", "［")
+            .replace("]", "］")
     )
 
 # ============================================================
@@ -132,7 +136,7 @@ class TypstRenderer:
     def _render_section(self, s: Section) -> str:
         prefix = "=" * s.level
         lbl = f" <{s.label}>" if s.label else ""
-        return f"{prefix} {typst_escape(s.title)}{lbl}\n{s.content}"
+        return f"{prefix} {typst_escape(s.title)}{lbl}\n{typst_escape(s.content)}"
 
     def _render_equation(self, e: Equation) -> str:
         content = f"$ {e.formula} $"
@@ -179,7 +183,7 @@ class TypstRenderer:
         doc: ScientificDocument,
         output_pdf: str = "report/rapport_complet.pdf",
     ) -> Path:
-        """Render ``doc`` and compile it with the first available Typst binary."""
+        """Render a document and compile it with the first available Typst binary."""
         output_path = Path(output_pdf)
         if not output_path.is_absolute():
             output_path = Path.cwd() / output_path
@@ -198,6 +202,7 @@ class TypstRenderer:
         subprocess.run(
             [typst_bin, "compile", str(typ_file), str(output_path)],
             check=True,
+            cwd=str(output_path.parent),
         )
         return output_path
 
