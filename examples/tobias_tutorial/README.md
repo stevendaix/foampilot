@@ -16,5 +16,6 @@ For long production cases, a short smoke run may be recorded separately from the
 | --- | --- | --- | --- |
 | `2d_rotational_axis_symmetric` | 2D Rotational Axis-Symmetric Meshing | `blockMesh` → `surfaceFeatures` → `snappyHexMesh` → `extrudeMesh` → `createPatch` | Validated on OpenFOAM 13 |
 | `pitot_tube` | Pitot Tube | UNV conversion → `snappyHexMesh` → `changeDictionary` → `extrudeMesh` → `foamRun` | Validated with a documented short calculation |
+| `fluidic_oscillator` | Fluidic Oscillator | UNV conversion → transforms → feature extraction → snappy meshing → flatten/extrude → `topoSet` → `setFields` → `foamRun` | Validated with a documented short calculation; run `fetch_assets.py` first |
 
 The remaining Tobias training cases are being ported incrementally in the same format. They are not marked validated until their individual Python runner has completed successfully.
