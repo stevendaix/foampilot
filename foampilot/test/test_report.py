@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pandas as pd
+
 from foampilot.report import CFDReportGenerator, SimulationReport
 
 
@@ -111,3 +113,38 @@ def test_simulation_report_generation_is_idempotent(tmp_path):
     second_count = len(report.residual_data["U"]["final"])
 
     assert first_count == second_count == 1
+
+
+def test_html_report_embeds_plotly_and_filters_time_series(tmp_path):
+    import plotly.graph_objects as go
+
+    generator = CFDReportGenerator(tmp_path)
+    generator.add_plotly_figure(
+        go.Figure(data=go.Scatter(x=[0, 1], y=[1, 2])),
+        caption="General figure",
+    )
+    generator.add_time_series(
+        pd.DataFrame(
+            {
+                "time": [0, 1],
+                "p_mean": [1.0, 2.0],
+                "p_max": [1.5, 2.5],
+                "p_min": [0.5, 1.5],
+            }
+        ),
+        "p",
+        title="Pressure history",
+    )
+
+    without_series = generator.save_html_report(
+        filename="without-series.html", include_time_series=False
+    ).read_text(encoding="utf-8")
+    with_series = generator.save_html_report(
+        filename="with-series.html", include_time_series=True
+    ).read_text(encoding="utf-8")
+
+    assert "https://cdn.plot.ly" not in with_series
+    assert without_series.count("Plotly.newPlot") == 1
+    assert "Pressure history" not in without_series
+    assert "Pressure history" in with_series
+    assert with_series.count("Plotly.newPlot") == 2

@@ -9,6 +9,7 @@ import pandas as pd
 import pyvista as pv
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from plotly.offline import get_plotlyjs
 
 from foampilot.report.latex_pdf import LatexDocument
 from foampilot.report.typst_pdf import ScientificDocument, TypstRenderer
@@ -50,6 +51,7 @@ class CFDReportGenerator:
         self._statistics: Dict[str, Any] = {}
         self._figures: List[Dict[str, str]] = []
         self._tables: List[Dict[str, Any]] = []
+        self._plotly_figures: List[Dict[str, Any]] = []
 
     def add_statistic(
         self, name: str, value: Any, unit: str = "", description: str = ""
@@ -104,6 +106,35 @@ class CFDReportGenerator:
         self._tables.append(
             {"data": data, "headers": headers, "caption": caption}
         )
+
+    def add_plotly_figure(
+        self, figure: go.Figure, caption: str = "", kind: str = "figure"
+    ) -> None:
+        """Register an interactive Plotly figure for HTML output.
+
+        Parameters
+        ----------
+        figure : plotly.graph_objects.Figure
+            Figure to embed in the generated HTML.
+        caption : str, optional
+            Human-readable figure caption.
+        kind : str, optional
+            Figure category. Use ``"time_series"`` for figures controlled by
+            :paramref:`save_html_report.include_time_series`.
+        """
+        if not isinstance(figure, go.Figure):
+            raise TypeError("figure must be a plotly.graph_objects.Figure")
+        self._plotly_figures.append(
+            {"figure": figure, "caption": caption, "kind": kind}
+        )
+
+    def add_time_series(
+        self, df: pd.DataFrame, scalar_field: str, title: str = ""
+    ) -> go.Figure:
+        """Create and register a scalar time-series figure for HTML output."""
+        figure = self.generate_plotly_time_series(df, scalar_field, title)
+        self.add_plotly_figure(figure, title or scalar_field, kind="time_series")
+        return figure
 
     def collect_time_series(
         self, postprocessor: "FoamPostProcessing", scalar_field: str
@@ -421,6 +452,9 @@ class CFDReportGenerator:
     ) -> Path:
         """Generate a self-contained interactive HTML report.
 
+        Plotly JavaScript is embedded inline when interactive figures are present;
+        the resulting file does not require network access to render those figures.
+
         Parameters
         ----------
         filename : str or Path, optional
@@ -443,9 +477,13 @@ class CFDReportGenerator:
         escaped_author = html.escape(str(self.author), quote=True)
         escaped_case = html.escape(str(self.case_path), quote=True)
         html_parts.append(f"<title>{escaped_title}</title>")
-        html_parts.append(
-            "<script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>"
-        )
+        visible_plotly_figures = [
+            item
+            for item in self._plotly_figures
+            if include_time_series or item["kind"] != "time_series"
+        ]
+        if visible_plotly_figures:
+            html_parts.append(f"<script>{get_plotlyjs()}</script>")
         html_parts.append(
             "<style>"
             "body { font-family: sans-serif; margin: 2em; max-width: 1200px; }"
@@ -486,6 +524,23 @@ class CFDReportGenerator:
                 html_parts.append(f"<h3>{caption}</h3>")
                 html_parts.append(f'<img src="{path}" alt="{caption}" style="max-width:100%;">')
                 html_parts.append(f'</div>')
+
+        # Interactive Plotly figures
+        if visible_plotly_figures:
+            html_parts.append("<h2>Interactive Figures</h2>")
+            for index, item in enumerate(visible_plotly_figures, start=1):
+                caption = html.escape(str(item["caption"]))
+                html_parts.append(f'<div class="figure-container" id="plotly-{index}">')
+                if caption:
+                    html_parts.append(f"<h3>{caption}</h3>")
+                html_parts.append(
+                    item["figure"].to_html(
+                        full_html=False,
+                        include_plotlyjs=False,
+                        config={"responsive": True},
+                    )
+                )
+                html_parts.append("</div>")
 
         # Tables
         if self._tables:
