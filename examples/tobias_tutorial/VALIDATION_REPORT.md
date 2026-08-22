@@ -16,6 +16,8 @@ Short calculations are accepted as execution validation only when the report sta
 | Falling Droplets | UNV conversion → `changeDictionary` → `setFields` → VoF `foamRun` | All stages completed with alpha/MULES and pressure iterations | Validated short calculation |
 | Magnus Effect | UNV conversion → `snappyHexMesh` → `extrudeMesh` → `changeDictionary` → `transformPoints` → incompressible `foamRun` | 3,000 UNV cells read; 3,239-cell mesh; reached `Time = 0.2s`; `End` | Validated short calculation |
 | Cell Zone Generation | UNV conversion → `surfaceFeatures` → `snappyHexMesh` | 30,000 UNV cells read; 140,327-cell mesh; cell zones of 4,096, 2,789 and 44,937 cells; `End` | Validated meshing workflow |
+| Meshing a Pipe 45° | `surfaceFeatures` → UNV conversion → scale transform → layered `snappyHexMesh` | 42,700 UNV cells; 245,587-cell layered mesh; 11 layer iterations; `End` | Validated meshing workflow |
+| Meshing a Pipe 90° | `surfaceFeatures` → UNV conversion → layered `snappyHexMesh` | 173,056 UNV cells; 446,251-cell layered mesh; `End` | Validated meshing workflow |
 
 ## FoamPilot changes justified by execution
 
