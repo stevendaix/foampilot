@@ -56,7 +56,7 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | sneezingSimulation | — | Pending |
 | openfoam.org | solarChimney | — | Pending |
 | openfoam.org | suzannesHead | — | Pending |
-| openfoam.org | thinGapMeshing | — | Pending |
+| openfoam.org | thinGapMeshing | `thin_gap_meshing` | Validated short calculation |
 | openfoam.org | verticalAxialWindTurbineNCC | — | Pending |
 
 The inventory contains **53 source case directories**. Several entries are corresponding `.org` and `.com` versions of the same tutorial; they remain listed separately because their dictionaries, solvers, boundary conditions or utilities may differ and must be checked before consolidating a port.
