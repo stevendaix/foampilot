@@ -140,15 +140,11 @@ class TypstRenderer:
 
     def _render_equation(self, e: Equation) -> str:
         content = f"$ {e.formula} $"
-        # Figure avec caption
+        lbl = f" <{e.label}>" if e.label else ""
+        rendered = f"#align(center)[{content}]{lbl}"
         if e.caption:
-            # ajouter le label après la figure avec <>
-            lbl = f" <{e.label}>" if e.label else ""
-            return f'#figure({content}, caption: [{typst_escape(e.caption)}]){lbl}'
-        else:
-            # align sans figure
-            lbl = f" <{e.label}>" if e.label else ""
-            return f"#align(center)[{content}]{lbl}"
+            rendered += f'\n#align(center)[#text(size: 9pt)[{typst_escape(e.caption)}]]'
+        return rendered
         
     def _render_figure(self, f: Figure) -> str:
         return f'#figure(image("{f.path}", width: {f.width}), caption: [{typst_escape(f.caption)}]) <{f.label}>'
