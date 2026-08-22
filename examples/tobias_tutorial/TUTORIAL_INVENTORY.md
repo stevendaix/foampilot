@@ -34,7 +34,7 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | adaptiveMeshRefinement | `adaptive_mesh_refinement` | Validated |
 | openfoam.org | arbitraryRotatingInletNCC | — | Pending |
 | openfoam.org | arbitraryWaterPump | — | Pending |
-| openfoam.org | batteryCooling | — | Pending |
+| openfoam.org | batteryCooling | `battery_cooling` | Validated short thermo-fluid calculation |
 | openfoam.org | catalystHeatUp | — | Pending |
 | openfoam.org | cellZoneGeneration | `cell_zone_generation` | Validated equivalent |
 | openfoam.org | combustionChamber | `combustion_chamber` | Validated short calculation |

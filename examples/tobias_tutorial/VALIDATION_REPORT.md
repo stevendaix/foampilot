@@ -24,6 +24,7 @@ Short calculations are accepted as execution validation only when the report sta
 | Sphere Meshing with Layers | `ideasUnvToFoam` → `snappyHexMesh` using supplied `channel.eMesh` | 44,541 points and 40,000 background cells; 48,940 snappy cells before layers; 3,720 layer faces; final 53,404-cell mesh; `End` | Validated meshing workflow |
 | Thin Gap Meshing | `ideasUnvToFoam` → scale transformations → `snappyHexMesh` → inverse scale → `foamRun` | 9,212 points and 7,774 background cells; 437,872-cell snappy mesh; inverse scale completed; `foamRun` ended normally | Validated short calculation |
 | Combustion Chamber cold-flow | `ideasUnvToFoam` → layered `snappyHexMesh` → incompressible `foamRun` | 190,281 points and 180,000 background cells; 501,867-cell layered mesh; `Finished meshing without any errors`; short run reached `End` | Validated short calculation |
+| Battery Cooling | `ideasUnvToFoam` → layered `snappyHexMesh` → thermo-fluid `foamRun` | 261,800 points and 248,193 background cells; 681,111-cell layered mesh after local smoke-run reduction; `fluid` solver and `limitTemperature` loaded; `End` | Validated short thermo-fluid calculation |
 
 ## FoamPilot changes justified by execution
 
@@ -33,7 +34,7 @@ No new FoamPilot method was added for OpenFOAM-specific compatibility changes. T
 
 ## Pending scope
 
-The remaining Tobias catalog contains additional cases covering dynamic meshes, AMI/ACMI, heat transfer, multi-region CHT, turbines, rotating machinery, optimization and other external dependencies. The 2D AMI/NCC, adaptive mesh refinement, sphere meshing, thin gap meshing and combustion chamber cases are no longer pending because their complete FoamPilot runners and OpenFOAM 13 smoke validations are now recorded above. They remain pending until each case has a dedicated runner, complete assets, an OpenFOAM 13-compatible input set, a successful execution, and a report. The register deliberately does not classify source-only templates or unexecuted folders as validated.
+The remaining Tobias catalog contains additional cases covering dynamic meshes, AMI/ACMI, heat transfer, multi-region CHT, turbines, rotating machinery, optimization and other external dependencies. The 2D AMI/NCC, adaptive mesh refinement, sphere meshing, thin gap meshing, combustion chamber and battery cooling cases are no longer pending because their complete FoamPilot runners and OpenFOAM 13 smoke validations are now recorded above. They remain pending until each case has a dedicated runner, complete assets, an OpenFOAM 13-compatible input set, a successful execution, and a report. The register deliberately does not classify source-only templates or unexecuted folders as validated.
 
 ## References
 
