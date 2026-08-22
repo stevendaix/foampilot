@@ -37,6 +37,13 @@ def write_case() -> None:
     shutil.copytree(ROOT / "cad", CASE / "cad", dirs_exist_ok=True)
     shutil.copytree(ROOT / "triSurface", CASE / "constant" / "triSurface", dirs_exist_ok=True)
     
+    # Unzip background mesh if it's zipped
+    zip_path = CASE / "cad" / "backgroundMesh.unv.zip"
+    if zip_path.exists() and not (CASE / "cad" / "backgroundMesh.unv").exists():
+        import zipfile
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(CASE / "cad")
+    
     # Make dakota.sh executable
     dakota_sh = CASE / "dakota.sh"
     if dakota_sh.exists():
