@@ -51,3 +51,33 @@ def test_latex_report_returns_generated_path(tmp_path):
     assert isinstance(output, Path)
     assert output == tmp_path / "report" / "cfd_report.tex"
     assert output.exists()
+
+
+def test_mesh_quality_report_handles_log_without_re_or_patches(tmp_path):
+    from foampilot.report.mesh_report import MeshQualityReport
+
+    (tmp_path / "log.blockMesh").write_text(
+        "Number of boundary faces: 4\n", encoding="utf-8"
+    )
+    report = MeshQualityReport(tmp_path)
+
+    content = report.generate_report()
+
+    assert "Mesh Quality Report" in content
+    assert "boundary_faces_per_patch" not in content
+
+
+def test_vector_plot_rejects_invalid_subsample(tmp_path):
+    import numpy as np
+    import pyvista as pv
+
+    generator = CFDReportGenerator(tmp_path)
+    mesh = pv.PolyData(np.zeros((2, 3)))
+    mesh.point_data["U"] = np.zeros((2, 3))
+
+    try:
+        generator.generate_plotly_vector_plot(mesh, "U", subsample=0)
+    except ValueError as exc:
+        assert "positive integer" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError for a non-positive subsample")

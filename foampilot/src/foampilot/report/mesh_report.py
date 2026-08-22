@@ -1,5 +1,5 @@
-import re
 import logging
+import re
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -159,7 +159,10 @@ class MeshQualityReport:
                     self.mesh_stats["internal_faces"] / cc, 2
                 )
 
-        if "boundary_faces" in self.mesh_stats and "num_patches" in self.mesh_stats:
+        if (
+            "boundary_faces" in self.mesh_stats
+            and self.mesh_stats.get("num_patches", 0) > 0
+        ):
             self.quality_metrics["boundary_faces_per_patch"] = round(
                 self.mesh_stats["boundary_faces"] / self.mesh_stats["num_patches"], 2
             )

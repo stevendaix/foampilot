@@ -364,11 +364,26 @@ class CFDReportGenerator:
         """
         if vectors not in mesh.point_data:
             raise ValueError(f"Vector field '{vectors}' not found in mesh point data.")
+        if not isinstance(subsample, int) or subsample < 1:
+            raise ValueError("subsample must be a positive integer.")
 
-        vecs = mesh.point_data[vectors]
-        points = mesh.points
+        vecs = np.asarray(mesh.point_data[vectors])
+        points = np.asarray(mesh.points)
         if vecs.ndim == 1:
+            if vecs.size % 3 != 0:
+                raise ValueError(
+                    f"Vector field '{vectors}' must contain 3 components per point."
+                )
             vecs = vecs.reshape(-1, 3)
+        if vecs.ndim != 2 or vecs.shape[1] != 3:
+            raise ValueError(
+                f"Vector field '{vectors}' must have shape (n_points, 3)."
+            )
+        if len(points) != len(vecs):
+            raise ValueError(
+                f"Vector field '{vectors}' has {len(vecs)} values for "
+                f"{len(points)} mesh points."
+            )
 
         xs, ys, zs = points[::subsample].T
         u, v, w = vecs[::subsample].T
