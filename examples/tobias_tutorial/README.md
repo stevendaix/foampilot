@@ -20,5 +20,7 @@ For long production cases, a short smoke run may be recorded separately from the
 | `falling_droplets` | Falling Droplets | UNV conversion → `changeDictionary` → `setFields` → `foamRun` | Validated with a documented short calculation; run `fetch_assets.py` first |
 | `magnus_effect` | Magnus Effect | UNV conversion → `snappyHexMesh` → `extrudeMesh` → `changeDictionary` → `transformPoints` → `foamRun` | Validated with a documented short calculation |
 | `cell_zone_generation` | Cell Zone Generation | UNV conversion → `surfaceFeatures` → `snappyHexMesh` with three cell zones | Validated meshing workflow |
+| `meshing_pipe_45deg` | Meshing a Pipe 45° | `surfaceFeatures` → UNV conversion → scale transform → `snappyHexMesh` with layers | Validated meshing workflow |
+| `meshing_pipe_90deg` | Meshing a Pipe 90° | `surfaceFeatures` → UNV conversion → `snappyHexMesh` with layers | Validated meshing workflow |
 
 The remaining Tobias training cases are being ported incrementally in the same format. They are not marked validated until their individual Python runner has completed successfully.
