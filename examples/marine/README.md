@@ -57,6 +57,28 @@ python reproduce_reference_cases.py dtc /chemin/vers/DTCMoving_Overset --process
 
 Le workflow de manœuvre traite d’abord les sous-cas `hull` et `rudder`, prépare le maillage de fond, puis enchaîne une phase d’auto-propulsion et une phase de virage. La transition est explicite : les dictionnaires de contrôle et de mouvement sont remplacés entre les deux phases, et l’état `maneuvers` est transféré dans le répertoire du processeur.
 
+## Validation avec OpenFOAM 13
+
+La validation a été exécutée sous **OpenFOAM 13** installé depuis le paquet officiel `openfoam13`. Le test d’intégration `test_openfoam13_integration.py` utilise le tutoriel natif `pitzDailySteady` pour exécuter réellement `blockMesh` puis `foamRun` via `OpenFOAMWorkflow`. Il fait ensuite analyser par `foamDictionary` les fichiers `MRFProperties` et `dynamicMeshDict` produits par les générateurs marins.
+
+```bash
+. /opt/openfoam13/etc/bashrc
+cd foampilot
+PYTHONPATH=src pytest -q test/test_openfoam_workflows.py
+cd ..
+PYTHONPATH=foampilot/src python examples/marine/test_openfoam13_integration.py
+```
+
+La validation confirme la génération, la copie, le nettoyage, les journaux par étape et l’exécution d’un calcul OpenFOAM 13 réel. La version 13 fournit `foamRun`, `rhoSimpleFoam`, `blockMesh`, `mergeMeshes`, `snappyHexMesh`, `topoSet`, `refineMesh`, `setFields`, `decomposePar` et `reconstructPar`.[4]
+
+| Workflow | État sous OpenFOAM 13 | Interprétation |
+| --- | --- | --- |
+| Propulseur MRF | Dictionnaire et orchestration validés ; `rhoSimpleFoam` est disponible | Le maillage cfMesh/AMI et les données v2012 restent à fournir pour le calcul de référence complet. |
+| DTC overset | `dynamicMeshDict` analysé par `foamDictionary` | `overInterDyMFoam` n’est pas fourni par OpenFOAM Foundation 13 ; le cas historique ne peut pas être exécuté sans migration de solveur. |
+| Manœuvre libre | Séquence déclarative et bascule de dictionnaires validées | La bibliothèque de manœuvre et `overInterDyMFoam` ciblent des distributions OpenCFD historiques ; une migration spécifique est nécessaire. |
+
+> **Résultat important.** La correction de la liste `joints` dans `dynamicMeshDict` a été déclenchée par ce test : OpenFOAM 13 rejetait la forme initiale, et le dictionnaire généré passe désormais son propre parseur.
+
 ## Paramétrer de nouveaux cas
 
 L’exemple suivant génère les deux dictionnaires déterminants sans éditer manuellement les entrées OpenFOAM :
@@ -87,3 +109,4 @@ write_overset_dynamic_mesh(
 [1]: https://github.com/balabibo/maneuveringLib "maneuveringLib — GitHub"
 [2]: https://github.com/skfelix/propeller-OpenFOAM "propeller-OpenFOAM — GitHub"
 [3]: https://github.com/myozinaung/DTCMoving_Overset "DTCMoving_Overset — GitHub"
+[4]: https://openfoam.org/version/13/ "OpenFOAM 13 — Foundation"

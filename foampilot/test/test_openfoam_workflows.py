@@ -1,5 +1,4 @@
 from pathlib import Path
-from types import SimpleNamespace
 
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.system.SystemDirectory import SystemDirectory
@@ -13,6 +12,14 @@ from foampilot.workflows.marine import (
 from foampilot.workflows.openfoam import OpenFOAMWorkflow
 
 
+class _FieldsStub:
+    def __init__(self):
+        self.fields = {}
+
+    def get_field_names(self):
+        return list(self.fields)
+
+
 class _CaseStub:
     def __init__(self, case_path: Path):
         self.case_path = case_path
@@ -21,7 +28,7 @@ class _CaseStub:
         self.is_vof = False
         self.compressible = False
         self.with_gravity = False
-        self.fields_manager = SimpleNamespace(fields={})
+        self.fields_manager = _FieldsStub()
 
     def get_turbulence_configuration(self):
         return "laminar", None
@@ -68,6 +75,8 @@ def test_marine_writers_and_workflows(tmp_path):
     overset_text = overset_path.read_text(encoding="utf-8")
     assert "dynamicOversetFvMesh" in overset_text
     assert "rigidBodyMotion" in overset_text
+    assert "joints (" in overset_text
+    assert ");" in overset_text
 
     assert "rhoSimpleFoam -parallel" in propeller_mrf_workflow(tmp_path).preview()
     assert "overInterDyMFoam -parallel" in dtc_overset_workflow(tmp_path).preview()
