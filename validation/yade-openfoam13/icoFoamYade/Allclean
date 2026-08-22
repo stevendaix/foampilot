@@ -1,0 +1,5 @@
+#! /bin/bash
+
+foamCleanPolyMesh
+foamListTimes -rm -time 0: -withZero
+rm -r proc* spheres

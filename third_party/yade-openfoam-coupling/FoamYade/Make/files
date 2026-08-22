@@ -1,0 +1,2 @@
+SOURCE = FoamYade.C
+LIB = $(FOAM_USER_LIBBIN)/libYadeFoam
