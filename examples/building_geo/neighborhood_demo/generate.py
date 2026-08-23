@@ -18,6 +18,7 @@ Usage:
 """
 
 import argparse
+import os
 import json
 import sys
 from pathlib import Path
@@ -56,11 +57,12 @@ def build_voxcity_urban(config: dict, use_cache: bool = False, voxcity_h5: str |
     from voxcity.io import load_voxcity
     import ee
 
+    gee_project = os.getenv("VOXCITY_GEE_PROJECT", "")
     try:
-        ee.Initialize(project="openfoam-project")
+        ee.Initialize(project=gee_project or None)
     except Exception:
         ee.Authenticate()
-        ee.Initialize(project="openfoam-project")
+        ee.Initialize(project=gee_project or None)
 
     aoi = config["aoi"]["rectangle_vertices"]
     vox_cfg = config["voxcity"]

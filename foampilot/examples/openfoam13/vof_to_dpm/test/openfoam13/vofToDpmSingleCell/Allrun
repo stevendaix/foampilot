@@ -1,0 +1,28 @@
+#!/bin/sh
+set -e
+
+caseDir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ -n "${WM_PROJECT_DIR:-}" ]; then
+    . "$WM_PROJECT_DIR/etc/bashrc" || true
+elif [ -f /opt/openfoam13/etc/bashrc ]; then
+    . /opt/openfoam13/etc/bashrc || true
+else
+    echo "OpenFOAM 13 environment not found" >&2
+    exit 1
+fi
+
+set -u
+cd "$caseDir"
+rm -rf constant/polyMesh constant/cloudPositions constant/vofToDpmFragments constant/vofToDpmReport log.*
+blockMesh > log.blockMesh
+vofToDpm -alpha alpha.liquid -U U -threshold 0.5 -rhoLiquid 1000 > log.vofToDpm
+
+grep -q 'Fragments: 1' log.vofToDpm
+grep -q 'Selected volume: 1' log.vofToDpm
+grep -q 'Converted volume: 1' log.vofToDpm
+grep -q 'discardedVolume 0;' constant/vofToDpmReport
+grep -q '(0.5 0.5 0.5)' constant/cloudPositions
+grep -q 'mass 1000' constant/vofToDpmFragments
+grep -q 'velocity (2 0 0)' constant/vofToDpmFragments
+
+echo 'PASS: native C++ OpenFOAM 13 VOF fragments, volume, centroid, mass and velocity'

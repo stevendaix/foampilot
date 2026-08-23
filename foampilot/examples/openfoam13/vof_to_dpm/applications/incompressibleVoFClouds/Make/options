@@ -1,0 +1,26 @@
+EXE_INC = \
+    -I$(FOAM_MODULES)/incompressibleVoF/lnInclude \
+    -I$(FOAM_MODULES)/twoPhaseSolver/lnInclude \
+    -I$(FOAM_MODULES)/VoFSolver/lnInclude \
+    -I$(LIB_SRC)/physicalProperties/lnInclude \
+    -I$(LIB_SRC)/twoPhaseModels/twoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/twoPhaseModels/incompressibleTwoPhases/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
+    -I$(LIB_SRC)/lagrangian/basic/lnInclude \
+    -I$(LIB_SRC)/lagrangian/parcel/lnInclude
+
+LIB_LIBS = \
+    -lincompressibleVoF \
+    -ltwoPhaseVoFSolver \
+    -lVoFSolver \
+    -ltwoPhaseSolver \
+    -lphysicalProperties \
+    -lfiniteVolume \
+    -lmeshTools \
+    -lfvModels \
+    -lfvConstraints \
+    -lsampling \
+    -llagrangian \
+    -llagrangianParcel

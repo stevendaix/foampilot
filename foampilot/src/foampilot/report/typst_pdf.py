@@ -1,7 +1,10 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
-import typst
+try:
+    import typst  # Optional Python bindings; the CLI fallback is supported.
+except ImportError:
+    typst = None
 import shutil
 import subprocess
 
@@ -16,6 +19,10 @@ def typst_escape(text: str) -> str:
             .replace("{", "\\{")
             .replace("}", "\\}")
             .replace("$", "\\$")
+            .replace("(", "⁽")
+            .replace(")", "⁾")
+            .replace("[", "［")
+            .replace("]", "］")
     )
 
 # ============================================================
@@ -132,19 +139,15 @@ class TypstRenderer:
     def _render_section(self, s: Section) -> str:
         prefix = "=" * s.level
         lbl = f" <{s.label}>" if s.label else ""
-        return f"{prefix} {typst_escape(s.title)}{lbl}\n{s.content}"
+        return f"{prefix} {typst_escape(s.title)}{lbl}\n{typst_escape(s.content)}"
 
     def _render_equation(self, e: Equation) -> str:
         content = f"$ {e.formula} $"
-        # Figure avec caption
+        lbl = f" <{e.label}>" if e.label else ""
+        rendered = f"#align(center)[{content}]{lbl}"
         if e.caption:
-            # ajouter le label après la figure avec <>
-            lbl = f" <{e.label}>" if e.label else ""
-            return f'#figure({content}, caption: [{typst_escape(e.caption)}]){lbl}'
-        else:
-            # align sans figure
-            lbl = f" <{e.label}>" if e.label else ""
-            return f"#align(center)[{content}]{lbl}"
+            rendered += f'\n#align(center)[#text(size: 9pt)[{typst_escape(e.caption)}]]'
+        return rendered
         
     def _render_figure(self, f: Figure) -> str:
         return f'#figure(image("{f.path}", width: {f.width}), caption: [{typst_escape(f.caption)}]) <{f.label}>'
@@ -179,7 +182,7 @@ class TypstRenderer:
         doc: ScientificDocument,
         output_pdf: str = "report/rapport_complet.pdf",
     ) -> Path:
-        """Render ``doc`` and compile it with the first available Typst binary."""
+        """Render a document and compile it with the first available Typst binary."""
         output_path = Path(output_pdf)
         if not output_path.is_absolute():
             output_path = Path.cwd() / output_path
@@ -198,6 +201,7 @@ class TypstRenderer:
         subprocess.run(
             [typst_bin, "compile", str(typ_file), str(output_path)],
             check=True,
+            cwd=str(output_path.parent),
         )
         return output_path
 
