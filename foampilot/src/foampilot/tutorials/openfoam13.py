@@ -9,10 +9,9 @@ safe execution boundary that can be used by declarative FoamPilot tutorials.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import os
 from pathlib import Path
 import subprocess
-from typing import Iterable, Mapping, Sequence
+from typing import Iterable, Sequence
 
 
 _LARGE_GEOMETRY_SUFFIXES = {".stl", ".step", ".stp", ".iges", ".igs", ".unv"}
@@ -53,8 +52,9 @@ class OpenFOAM13Environment:
     reproducible.
     """
 
-    def __init__(self, bashrc: str | Path = "/opt/openfoam13/etc/bashrc"):
-        self.bashrc = Path(bashrc)
+    def __init__(self, bashrc: str | Path | None = None):
+        default = "/opt/openfoam13/etc/bashrc"
+        self.bashrc = Path(bashrc or default)
 
     def environment(self) -> dict[str, str]:
         if not self.bashrc.exists():
