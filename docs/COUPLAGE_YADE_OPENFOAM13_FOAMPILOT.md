@@ -174,7 +174,7 @@ yadedaily -x -c 'from yade import mpy as mp; print(mp)'
 Compiler le couplage porté :
 
 ```bash
-cd /home/ubuntu/work/foampilot/third_party/yade-openfoam-coupling
+cd ../../third_party/yade-openfoam-coupling
 source /opt/openfoam13/etc/bashrc
 ./Allwmake
 ```
@@ -182,7 +182,7 @@ source /opt/openfoam13/etc/bashrc
 Puis vérifier les exécutables :
 
 ```bash
-export FOAM_USER_APPBIN=/home/ubuntu/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin
+export FOAM_USER_APPBIN=$HOME/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin
 ls -l "$FOAM_USER_APPBIN"/icoFoamYade "$FOAM_USER_APPBIN"/pimpleFoamYade
 ```
 
@@ -194,8 +194,8 @@ OpenFOAM 13 doit être utilisé avec ses propres chemins et bibliothèques. Il n
 
 ```bash
 source /opt/openfoam13/etc/bashrc
-export FOAM_USER_APPBIN=/home/ubuntu/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin
-cd /home/ubuntu/work/foampilot/validation/yade-openfoam13/icoFoamYade
+export FOAM_USER_APPBIN=$HOME/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin
+cd validation/yade-openfoam13/icoFoamYade
 CFDEM_NSTEPS=20 OPENFOAM_PROCS=2 YADE_PARALLEL=false ./run.sh
 ```
 
@@ -205,8 +205,8 @@ Le cas contient 1000 sphères, une scène périodique, des murs `Box`, un coupla
 
 ```bash
 source /opt/openfoam13/etc/bashrc
-export FOAM_USER_APPBIN=/home/ubuntu/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin
-cd /home/ubuntu/work/foampilot/validation/yade-openfoam13/pimpleFoamYade
+export FOAM_USER_APPBIN=$HOME/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin
+cd validation/yade-openfoam13/pimpleFoamYade
 CFDEM_NSTEPS=20 OPENFOAM_PROCS=2 YADE_PARALLEL=false ./run.sh
 ```
 

@@ -172,7 +172,7 @@ yadedaily -x -c 'from yade import mpy as mp; print(mp)'
 Dans le dépôt FoamPilot, compiler les bibliothèques et les solveurs portés vers OpenFOAM 13 :
 
 ```bash
-cd /home/ubuntu/work/foampilot/third_party/yade-openfoam-coupling
+cd ../../third_party/yade-openfoam-coupling
 source /opt/openfoam13/etc/bashrc
 ./Allwmake
 ```
@@ -187,8 +187,8 @@ Les cas sont situés dans `validation/yade-openfoam13/icoFoamYade` et `validatio
 
 ```bash
 source /opt/openfoam13/etc/bashrc
-export FOAM_USER_APPBIN=/home/ubuntu/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin
-cd /home/ubuntu/work/foampilot/validation/yade-openfoam13/icoFoamYade
+export FOAM_USER_APPBIN=$HOME/OpenFOAM/root-13/platforms/$WM_OPTIONS/bin
+cd validation/yade-openfoam13/icoFoamYade
 CFDEM_NSTEPS=20 OPENFOAM_PROCS=2 YADE_PARALLEL=false ./run.sh
 ```
 

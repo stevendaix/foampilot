@@ -63,3 +63,8 @@ third_party/yade-openfoam-coupling/**/lnInclude/
 third_party/yade-openfoam-coupling/**/*.o
 third_party/yade-openfoam-coupling/**/*.dep
 third_party/yade-openfoam-coupling/ccpl*.png
+
+# === Fichiers générés par YADE/OpenFOAM dans les validations ===
+validation/yade-openfoam13/**/*.gz
+validation/yade-openfoam13/**/*.log
+validation/yade-openfoam13/processor*/
