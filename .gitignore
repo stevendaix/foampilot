@@ -49,6 +49,26 @@ __pycache__/
 /test/vmtk-test-data/
 
 
-# Local CFD runs and Python caches
+# === Couplage YADE/OpenFOAM 13 ===
+!third_party/
+!third_party/yade-openfoam-coupling/
+!third_party/yade-openfoam-coupling/**
+!validation/
+!validation/yade-openfoam13/
+!validation/yade-openfoam13/**
+
+# Artefacts de compilation du couplage YADE/OpenFOAM
+third_party/yade-openfoam-coupling/**/Make/linux*/
+third_party/yade-openfoam-coupling/**/lnInclude/
+third_party/yade-openfoam-coupling/**/*.o
+third_party/yade-openfoam-coupling/**/*.dep
+third_party/yade-openfoam-coupling/ccpl*.png
+
+# === Fichiers générés par YADE/OpenFOAM dans les validations ===
+validation/yade-openfoam13/**/*.gz
+validation/yade-openfoam13/**/*.log
+validation/yade-openfoam13/processor*/
+
+# === Local CFD runs and Python caches ===
 /openfoam_runs/
 **/__pycache__/
