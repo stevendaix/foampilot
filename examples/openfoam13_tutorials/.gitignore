@@ -1,0 +1,6 @@
+# Generated OpenFOAM cases and audit outputs
+*/case/
+openfoam_tutorial_manifest.csv
+*.log
+__pycache__/
+*.py[cod]

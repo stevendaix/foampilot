@@ -1,0 +1,5 @@
+# Generated case directories and OpenFOAM logs
+*/case/
+*/log.*
+*/__pycache__/
+*.py[cod]

@@ -1,0 +1,6 @@
+cad/
+triSurface/
+case/
+log.*
+__pycache__/
+*.py[cod]

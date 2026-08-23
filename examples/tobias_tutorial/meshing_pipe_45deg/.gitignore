@@ -1,0 +1,7 @@
+cad/
+triSurface/
+case/
+log.*
+paraview.foam
+__pycache__/
+*.py[cod]
