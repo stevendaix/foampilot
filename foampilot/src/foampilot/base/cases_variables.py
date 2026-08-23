@@ -44,6 +44,7 @@ class CaseFieldsManager:
         with_radiation: bool = False,
         turbulence_model: Optional[str] = None,
         regions: Optional[List[Any]] = None,
+        with_moving_mesh: bool = False,
     ):
         """Initializes the CaseFieldsManager and triggers initial field generation.
 
@@ -59,6 +60,7 @@ class CaseFieldsManager:
             regions: Optional list of ``FluidRegion`` or ``SolidRegion`` objects for
                 CHT multi-region field generation.  When provided, ``region_fields``
                 is populated with per-region field dicts.
+            with_moving_mesh: If True, adds ``pointDisplacement`` field for moving mesh.
         """
         self.compressible = compressible
         self.with_gravity = with_gravity
@@ -68,6 +70,7 @@ class CaseFieldsManager:
         self.with_radiation = with_radiation
         self.turbulence_model = turbulence_model or "kEpsilon"
         self.regions = regions
+        self.with_moving_mesh = with_moving_mesh
         self.region_fields: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
         # Storage
@@ -115,9 +118,13 @@ class CaseFieldsManager:
         if self.turbulence_model:
             self._generate_turbulence_fields()
 
-        # --- Solid-specific field
         if self.is_solid:
-            self.fields = {"T": {"value": ValueWithUnit(300, "K")}}  # Only temperature in solids
+            self.fields = {"T": {"value": ValueWithUnit(300, "K")}}
+            if self.with_moving_mesh:
+                self.fields["pointDisplacement"] = {"value": ValueWithUnit(0, "m")}
+        else:
+            if self.with_moving_mesh:
+                self.fields["pointDisplacement"] = {"value": ValueWithUnit(0, "m")}
 
     def _generate_turbulence_fields(self) -> None:
         """Internal logic to add scalars and vectors required by turbulence models.
@@ -195,8 +202,13 @@ class CaseFieldsManager:
             if region_turbulence and not is_solid:
                 self._generate_turbulence_fields_for(region_fields, region_turbulence)
 
+            if not is_solid and self.with_moving_mesh:
+                region_fields["pointDisplacement"] = {"value": ValueWithUnit(0, "m")}
+
             if is_solid:
                 region_fields = {"T": {"value": ValueWithUnit(region.temperature, "K")}}
+                if self.with_moving_mesh:
+                    region_fields["pointDisplacement"] = {"value": ValueWithUnit(0, "m")}
 
             self.region_fields[region_name] = region_fields
 

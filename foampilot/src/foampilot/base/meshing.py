@@ -3,10 +3,37 @@ from pathlib import Path
 from foampilot.mesh.BlockMeshFile import BlockMesher
 from foampilot.mesh.gmsh_mesher import GmshMesher
 from foampilot.mesh.snappymesh import SnappyMesher
+from foampilot.mesh.ops import create_case_structure
 
 import json
 import subprocess
 from typing import Union, Dict, Any
+
+
+class CaseBuilder:
+    """Fluent API for assembling an OpenFOAM case directory tree.
+
+    Usage::
+
+        builder = CaseBuilder("myCase")
+        builder.ensure_dirs().write_mesh("snappy").write_boundaries().run(nb_proc=4)
+    """
+
+    def __init__(self, case_path: Union[str, Path]) -> None:
+        self.case_path = Path(case_path).expanduser().resolve()
+
+    def ensure_dirs(self, extra_dirs=()) -> "CaseBuilder":
+        create_case_structure(self.case_path, extra_dirs=extra_dirs)
+        return self
+
+    def write_mesh(self, mesher: str = "blockMesh", **kwargs) -> "CaseBuilder":
+        self.meshing = Meshing(self.case_path, mesher=mesher, **kwargs)
+        return self
+
+    def run(self, nb_proc: int = 1, solver_name: str = "foamRun") -> None:
+        from foampilot.solver import Solver
+        solver = Solver(self.case_path, solver_name=solver_name)
+        solver.run_simulation(nb_proc=nb_proc)
 
 
 class Meshing:

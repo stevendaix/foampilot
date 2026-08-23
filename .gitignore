@@ -72,3 +72,5 @@ validation/yade-openfoam13/processor*/
 # === Local CFD runs and Python caches ===
 /openfoam_runs/
 **/__pycache__/
+__pycache__/
+*.pyc

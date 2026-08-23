@@ -98,25 +98,27 @@ class SnappyMesher:
         }
 
         self.meshQualityControls = {
-            "maxNonOrtho": 75,
+            "maxNonOrtho": 70,
             "maxBoundarySkewness": 20,
             "maxInternalSkewness": 4,
             "maxConcave": 80,
-            "minVol": 1.0e-13,
-            "minTetQuality": 1e-15,
+            "minVol": -1e30,
+            "minTetQuality": 1e-30,
             "minArea": -1,
-            "minTwist": 0.02,
+            "minTwist": 0.05,
             "minDeterminant": 0.001,
             "minFaceWeight": 0.05,
             "minVolRatio": 0.01,
             "minTriangleTwist": -1,
             "minFlatness": 0.5,
             "nSmoothScale": 4,
-            "errorReduction": 0.75
+            "errorReduction": 0.75,
         }
 
         self.debugFlags = []
         self.writeFlags = []
+        self.insidePoint = (-0.7, 0.0, 0.0)
+        self.resolveFeatureAngle = 45
 
     def add_feature(self, feature_file, level):
         """
@@ -435,7 +437,7 @@ class SnappyMesher:
         lines.append("    }")
         # Extra parameters
         lines.append("    allowFreeStandingZoneFaces true;")
-        lines.append("    resolveFeatureAngle 30;")
+        lines.append(f"    resolveFeatureAngle {self.resolveFeatureAngle};")
         lines.append("};\n")
 
         # SnapControls
@@ -474,13 +476,93 @@ class SnappyMesher:
             lines.append(f"    {k} {v};")
         lines.append("};\n")
 
-        # debug / writeFlags / mergeTolerance
-        lines.append("debug 0;\n")
-        lines.append("writeFlags (scalarLevels layerSets layerFields);")
-        lines.append("mergeTolerance 1e-06;")
-
         dict_path.write_text("\n".join(lines))
         print(f"snappyHexMeshDict written to {dict_path}")
+
+        # Write separate meshQualityDict for cases that include it explicitly
+        self.write_mesh_quality_dict()
+
+    def write_mesh_quality_dict(self):
+        """Write system/meshQualityDict using the current meshQualityControls."""
+        system_path = self.case_path / "system"
+        system_path.mkdir(parents=True, exist_ok=True)
+        dict_path = system_path / "meshQualityDict"
+        lines = [
+            "/*--------------------------------*- C++ -*----------------------------------*\\",
+            "  =========                 |",
+            "  \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox",
+            "   \\\\    /   O peration     | Website:  https://openfoam.org",
+            "    \\\\  /    A nd           | Version:  13",
+            "     \\\\/     M anipulation  |",
+            "\\*---------------------------------------------------------------------------*/",
+            "FoamFile",
+            "{",
+            "    format      ascii;",
+            "    class       dictionary;",
+            '    location    "system";',
+            "    object      meshQualityDict;",
+            "}",
+            "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //",
+            "",
+            "//- Maximum non-orthogonality allowed. Set to 180 to disable.",
+            f"maxNonOrtho {self.meshQualityControls.get('maxNonOrtho', 70)};",
+            "",
+            "//- Max skewness allowed. Set to <0 to disable.",
+            f"maxBoundarySkewness {self.meshQualityControls.get('maxBoundarySkewness', 20)};",
+            f"maxInternalSkewness {self.meshQualityControls.get('maxInternalSkewness', 4)};",
+            "",
+            "//- Max concaveness allowed. Is angle (in degrees) below which concavity",
+            "//  is allowed. 0 is straight face, <0 would be convex face.",
+            "//  Set to 180 to disable.",
+            f"maxConcave {self.meshQualityControls.get('maxConcave', 80)};",
+            "",
+            "//- Minimum cell pyramid volume relative to min bounding box length^3",
+            "//  Set to a fraction of the smallest cell volume expected.",
+            "//  Set to very negative number (e.g. -1e30) to disable.",
+            f"minVol {self.meshQualityControls.get('minVol', 1e-13)};",
+            "",
+            "//- Minimum quality of the tet formed by the face-centre",
+            "//  and variable base point minimum decomposition triangles and",
+            "//  the cell centre.  Set to very negative number (e.g. -1e30) to",
+            "//  disable.",
+            "//     <0 = inside out tet,",
+            "//      0 = flat tet",
+            "//      1 = regular tet",
+            f"minTetQuality {self.meshQualityControls.get('minTetQuality', 1e-15)};",
+            "",
+            "//- Minimum face twist. Set to <-1 to disable. dot product of face normal",
+            "//  and face centre triangles normal",
+            f"minTwist {self.meshQualityControls.get('minTwist', 0.02)};",
+            "",
+            "//- Minimum normalised cell determinant",
+            "//  1 = hex, <= 0 = folded or flattened illegal cell",
+            f"minDeterminant {self.meshQualityControls.get('minDeterminant', 0.001)};",
+            "",
+            "//- minFaceWeight (0 -> 0.5)",
+            f"minFaceWeight {self.meshQualityControls.get('minFaceWeight', 0.05)};",
+            "",
+            "//- minVolRatio (0 -> 1)",
+            f"minVolRatio {self.meshQualityControls.get('minVolRatio', 0.01)};",
+            "",
+            "// Advanced",
+            "",
+            "//- Number of error distribution iterations",
+            f"nSmoothScale {self.meshQualityControls.get('nSmoothScale', 4)};",
+            "//- Amount to scale back displacement at error points",
+            f"errorReduction {self.meshQualityControls.get('errorReduction', 0.75)};",
+            "",
+            "// Optional : some meshing phases allow usage of relaxed rules.",
+            "// See e.g. addLayersControls::nRelaxedIter.",
+            "relaxed",
+            "{",
+            "    //- Maximum non-orthogonality allowed. Set to 180 to disable.",
+            f"    maxNonOrtho {self.meshQualityControls.get('maxNonOrtho', 75)};",
+            "}",
+            "",
+            "// ************************************************************************* //",
+        ]
+        dict_path.write_text("\n".join(lines))
+        print(f"meshQualityDict written to {dict_path}")
 
 
     def write(self):

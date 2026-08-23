@@ -194,6 +194,228 @@ class SystemDirectory:
         else:
             self.decomposeParDict.set_nb_proc(nb_proc)
 
+    def write_functions_file(self, system_path: Path, *, rigid_body: bool = False) -> None:
+        """Write the ``system/functions`` file.
+
+        Parameters
+        ----------
+        system_path:
+            Target directory for the ``functions`` file.
+        rigid_body:
+            If ``True``, append a ``rigidBodyForces`` functionObject
+            using ``librigidBodyForces.so`` for the ``hull`` body.
+        """
+        base_content = ""
+        energy_var = getattr(self.parent, "energy_variable", "T")
+        field_names = getattr(self.parent, "fields_manager", None)
+        field_list = field_names.get_field_names() if field_names else []
+
+        if energy_var in field_list:
+            constant_dir = getattr(self.parent, "constant", None)
+            transport_props = getattr(constant_dir, "_transportProperties", None) if constant_dir else None
+            if transport_props is not None:
+                transport_props._configure_attributes()
+            pr = 0.85
+            nu_val = 1e-5
+            if transport_props is not None:
+                try:
+                    pr_raw = transport_props.attributes.get("Pr", None)
+                    if pr_raw is not None:
+                        pr = float(pr_raw)
+                except (TypeError, ValueError):
+                    pass
+                try:
+                    nu_raw = transport_props.attributes.get("nu", None)
+                    if nu_raw is not None:
+                        nu_val = float(nu_raw)
+                except (TypeError, ValueError):
+                    pass
+            D = nu_val / pr
+            base_content += f'#includeFunc scalarTransport({energy_var}, diffusivity=constant, D = {D:g})\n'
+
+        if rigid_body:
+            base_content += (
+                "rigidBodyForces\n"
+                "{\n"
+                "    type            rigidBodyForces;\n"
+                "    libs            (\"librigidBodyForces.so\");\n"
+                "    body            hull;\n"
+                "    patches         (hull);\n"
+                "    log             on;\n"
+                "    writeControl    timeStep;\n"
+                "    writeInterval   1;\n"
+                "}\n"
+            )
+
+        if not base_content:
+            return
+
+        content = (
+            "FoamFile\n"
+            "{\n"
+            "    format      ascii;\n"
+            "    class       dictionary;\n"
+            "    location    \"system\";\n"
+            "    object      functions;\n"
+            "}\n"
+            "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+            "\n"
+        )
+        content += base_content
+        content += "\n// ************************************************************************* //\n"
+        functions_path = system_path / "functions"
+        functions_path.write_text(content)
+        logger.info("Wrote functions file: %s", functions_path)
+
+    def write_set_fields_dict(self, system_path: Path, *, zones: list | None = None) -> None:
+        """Write a minimal ``system/setFieldsDict``.
+
+        Parameters
+        ----------
+        system_path:
+            Target directory.
+        zones:
+            Optional list of box zones. Each item is a dict with:
+            ``name``, ``min``, ``max``, ``field``, ``value``.
+        """
+        content = (
+            "FoamFile\n"
+            "{\n"
+            "    format      ascii;\n"
+            "    class       dictionary;\n"
+            "    location    \"system\";\n"
+            "    object      setFieldsDict;\n"
+            "}\n"
+            "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+            "\n"
+            "defaultFieldValues\n"
+            "(\n"
+            ");\n"
+            "\n"
+        )
+
+        if zones:
+            content += "regions\n"
+            content += "(\n"
+            for zone in zones:
+                content += (
+                    f"    {zone['name']}\n"
+                    "    {\n"
+                    f"        box ({zone['min'][0]} {zone['min'][1]} {zone['min'][2]}) ({zone['max'][0]} {zone['max'][1]} {zone['max'][2]});\n"
+                    f"        field {zone['field']};\n"
+                    f"        value {zone['value']};\n"
+                    "    }\n"
+                )
+            content += ");\n"
+
+        content += "\n// ************************************************************************* //\n"
+        set_fields_path = system_path / "setFieldsDict"
+        set_fields_path.write_text(content)
+        logger.info("Wrote setFieldsDict: %s", set_fields_path)
+
+    def write_refine_mesh_dict(self, system_path: Path, *, zones: list | None = None) -> None:
+        """Write a minimal ``system/refineMeshDict``.
+
+        Parameters
+        ----------
+        system_path:
+            Target directory.
+        zones:
+            Optional list of box refinement zones. Each item is a dict
+            with ``name``, ``min``, ``max``, and ``level``.
+        """
+        content = (
+            "FoamFile\n"
+            "{\n"
+            "    format      ascii;\n"
+            "    class       dictionary;\n"
+            "    location    \"system\";\n"
+            "    object      refineMeshDict;\n"
+            "}\n"
+            "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+            "\n"
+            "refineMesh  true;\n"
+            "\n"
+        )
+
+        if zones:
+            content += "locations\n"
+            content += "(\n"
+            for zone in zones:
+                content += (
+                    f"    {zone['name']}\n"
+                    "    {\n"
+                    f"        box ({zone['min'][0]} {zone['min'][1]} {zone['min'][2]}) ({zone['max'][0]} {zone['max'][1]} {zone['max'][2]});\n"
+                    f"        level {zone['level']};\n"
+                    "    }\n"
+                )
+            content += ");\n"
+
+        content += "\n// ************************************************************************* //\n"
+        refine_path = system_path / "refineMeshDict"
+        refine_path.write_text(content)
+        logger.info("Wrote refineMeshDict: %s", refine_path)
+
+    def write_mesh_quality_dict(self, system_path: Path, *, quality: dict | None = None) -> None:
+        """Write ``system/meshQualityDict``.
+
+        Parameters
+        ----------
+        system_path:
+            Target directory.
+        quality:
+            Optional dict overriding quality controls.
+        """
+        default_quality = {
+            "maxNonOrtho": 75,
+            "maxBoundarySkewness": 20,
+            "maxInternalSkewness": 4,
+            "maxConcave": 80,
+            "minVol": 1e-13,
+            "minTetQuality": 1e-15,
+            "minArea": -1,
+            "minTwist": 0.02,
+            "minDeterminant": 0.001,
+            "minFaceWeight": 0.05,
+            "minVolRatio": 0.01,
+            "minTriangleTwist": -1,
+            "minFlatness": 0.5,
+            "nSmoothScale": 4,
+            "errorReduction": 0.75,
+            "debug": 0,
+            "writeFlags": "()",
+            "mergeTolerance": 1e-6,
+        }
+        if quality:
+            default_quality.update(quality)
+
+        content = (
+            "FoamFile\n"
+            "{\n"
+            "    format      ascii;\n"
+            "    class       dictionary;\n"
+            "    location    \"system\";\n"
+            "    object      meshQualityDict;\n"
+            "}\n"
+            "// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //\n"
+            "\n"
+            "meshQualityControls\n"
+            "{\n"
+        )
+        for key, value in default_quality.items():
+            if isinstance(value, str):
+                content += f"    {key:<20} {value};\n"
+            elif isinstance(value, bool):
+                content += f"    {key:<20} {str(value).lower()};\n"
+            else:
+                content += f"    {key:<20} {value};\n"
+        content += "}\n"
+        content += "\n// ************************************************************************* //\n"
+
+        quality_path = system_path / "meshQualityDict"
+        quality_path.write_text(content)
+        logger.info("Wrote meshQualityDict: %s", quality_path)
+
 
 
     def run_topoSet(self):

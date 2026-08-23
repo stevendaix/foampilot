@@ -40,6 +40,9 @@ class BaseSolver:
         "chtMultiRegionSimpleFoam": "chtMultiRegionSimpleFoam",
         "compressibleSinglePhasePorosityFoam": "compressibleSinglePhasePorosityFoam",
         "porousSimpleFoam": "porousSimpleFoam",
+        # Legacy OpenCFD solvers used in marine/overset studies
+        "overInterDyMFoam": "overInterDyMFoam",
+        "rhoSimpleFoam": "rhoSimpleFoam",
     }
 
     def __init__(
@@ -53,7 +56,7 @@ class BaseSolver:
         energy_activated: bool = False,
         transient: bool = False,
         turbulence_model: Optional[str] = None,
-        with_radiation: bool = False,
+        with_moving_mesh: bool = False,
     ):
         self.case_path = Path(case_path)
         self.solver_name = solver_name
@@ -67,7 +70,7 @@ class BaseSolver:
         self.energy_activated = energy_activated
         self.transient = transient
         self.turbulence_model = turbulence_model
-        self.with_radiation = with_radiation
+        self.with_moving_mesh = with_moving_mesh
         self._sub_solver = None
 
         # --- Field manager ---
@@ -77,7 +80,7 @@ class BaseSolver:
             is_vof=is_vof,
             energy_activated=energy_activated,
             turbulence_model=turbulence_model,
-            with_radiation=with_radiation,
+            with_moving_mesh=with_moving_mesh,
         )
 
         # --- Subcomponents ---
@@ -98,10 +101,7 @@ class BaseSolver:
 
     @property
     def energy_variable(self) -> str:
-        """Return the primary energy/temperature variable name.
-
-        ``T`` for incompressible and Boussinesq flows; ``h`` for compressible.
-        """
+        """Return the primary energy/temperature variable name."""
         if self.compressible and not self.is_vof:
             return "h"
         return "T"
@@ -195,8 +195,12 @@ class BaseSolver:
 
         raise ValueError(f"Invalid turbulence_model: {self.turbulence_model}")
 
-
     def run_simulation(self, nb_proc: int = 1, log_filename: str | None = None):
+        # --- Legacy OpenCFD solvers run directly without foamRun ---
+        legacy_solvers = {"overInterDyMFoam", "rhoSimpleFoam", "simpleFoam", "pimpleFoam"}
+        if self.solver_name in legacy_solvers:
+            self._run_legacy_solver(nb_proc, log_filename)
+            return
 
         # --- parallel execution ---
         if nb_proc >= 2:
@@ -214,6 +218,39 @@ class BaseSolver:
         logger.info("Running simulation in serial mode (1 proc)")
 
         self.run_command(["foamRun", "-solver", self.foamrun_module], log_filename)
+
+    def _run_legacy_solver(self, nb_proc: int, log_filename: str | None = None) -> None:
+        if log_filename is None:
+            log_filename = f"log.{self.solver_name}"
+
+        if nb_proc >= 2:
+            logger.info("Parallel legacy solver run with %d processors", nb_proc)
+            with open(self.case_path / log_filename, "w", encoding="utf-8") as log_file:
+                log_file.write("=== decomposePar ===\n")
+                subprocess.run(
+                    ["decomposePar", "-case", str(self.case_path)],
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                )
+                log_file.write(f"\n=== mpirun {self.solver_name} ===\n")
+                subprocess.run(
+                    ["mpirun", "--oversubscribe", "-np", str(nb_proc), self.solver_name, "-parallel"],
+                    cwd=self.case_path,
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                )
+                log_file.write("\n=== reconstructPar ===\n")
+                subprocess.run(
+                    ["reconstructPar", "-case", str(self.case_path)],
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                )
+        else:
+            logger.info("Serial legacy solver run")
+            self.run_command([self.solver_name], log_filename)
 
     def run_parallel(self, nb_proc: int, log_filename: str | None = None):
 
