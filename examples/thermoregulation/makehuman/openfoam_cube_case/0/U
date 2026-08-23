@@ -1,0 +1,22 @@
+FoamFile
+{
+    format ascii;
+    class volVectorField;
+    location "0";
+    object U;
+}
+
+dimensions [0 1 -1 0 0 0 0];
+
+internalField uniform (0 0 0);
+
+boundaryField
+{
+    inlet { type noSlip; }
+    outlet { type noSlip; }
+    floor { type noSlip; }
+    ceiling { type pressureInletOutletVelocity; value uniform (0 0 0); }
+    sideA { type noSlip; }
+    sideB { type noSlip; }
+    human { type noSlip; }
+}

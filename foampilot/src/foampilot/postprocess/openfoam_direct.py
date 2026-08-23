@@ -420,14 +420,14 @@ def _get_time_dirs(case_path: Path) -> List[str]:
     for entry in sorted(case_path.iterdir()):
         if entry.is_dir() and entry.name.replace(".", "", 1).replace("-", "", 1).isdigit():
             time_dirs.append(entry.name)
-    return time_dirs
+    return sorted(time_dirs, key=lambda value: float(value))
 
 
 def _get_latest_time(case_path: Path) -> str:
     time_dirs = _get_time_dirs(case_path)
     if not time_dirs:
         return "0"
-    return time_dirs[-1]
+    return max(time_dirs, key=lambda value: float(value))
 
 
 class OpenFOAMDirectReader:

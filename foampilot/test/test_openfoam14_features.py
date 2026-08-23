@@ -154,10 +154,9 @@ def test_openfoam_file_functions_field():
 
 def test_syntax_all_new_files():
     """Syntax-check all newly created files."""
-    source_root = Path(__file__).resolve().parents[1] / "src" / "foampilot" / "system"
     new_files = [
-        source_root / "fvConstraintsFile.py",
-        source_root / "fvModelsFile.py",
+        "/home/steven/foampilot/foampilot/src/foampilot/system/fvConstraintsFile.py",
+        "/home/steven/foampilot/foampilot/src/foampilot/system/fvModelsFile.py",
     ]
     for f in new_files:
         with open(f) as fh:

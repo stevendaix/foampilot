@@ -1,0 +1,20 @@
+FoamFile
+{
+    format ascii;
+    class volScalarField;
+    location "0";
+    object p;
+}
+
+dimensions [1 -1 -2 0 0 0 0];
+internalField uniform 100000;
+boundaryField
+{
+    inlet { type fixedValue; value uniform 100000; }
+    outlet { type zeroGradient; }
+    floor { type zeroGradient; }
+    ceiling { type zeroGradient; }
+    sideA { type zeroGradient; }
+    sideB { type zeroGradient; }
+    human { type zeroGradient; }
+}

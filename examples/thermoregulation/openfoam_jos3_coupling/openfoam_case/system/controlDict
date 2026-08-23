@@ -1,0 +1,52 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+
+application     scalarTransportFoam;
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         0.10;
+deltaT          0.01;
+writeControl    timeStep;
+writeInterval   1;
+purgeWrite      0;
+writeFormat     ascii;
+writePrecision  8;
+writeCompression off;
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable true;
+
+functions
+{
+    jos3Coupling
+    {
+        type            externalCoupled;
+        libs            (fieldFunctionObjects);
+        commsDir        "${FOAM_CASE}/comms";
+
+        regions
+        {
+            region0
+            {
+                humanPatch
+                {
+                    writeFields (h air_temperature);
+                    readFields  (qJOS3);
+                }
+            }
+        }
+
+        initByExternal  true;
+        waitInterval    1;
+        timeOut         300;
+        calcFrequency   1;
+        executeControl  timeStep;
+        executeInterval 1;
+    }
+}
