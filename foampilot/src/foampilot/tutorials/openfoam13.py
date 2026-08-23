@@ -9,10 +9,9 @@ safe execution boundary that can be used by declarative FoamPilot tutorials.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import os
 from pathlib import Path
 import subprocess
-from typing import Iterable, Mapping, Sequence
+from typing import Iterable, Sequence
 
 
 _LARGE_GEOMETRY_SUFFIXES = {".stl", ".step", ".stp", ".iges", ".igs", ".unv"}
@@ -149,6 +148,7 @@ def validate_generated_case(
     case_path: str | Path,
     *,
     compressible: bool = False,
+    is_vof: bool = False,
     required_files: Iterable[str] | None = None,
 ) -> CaseValidation:
     """Validate the minimum generated-case contract used by FoamPilot.
@@ -165,7 +165,16 @@ def validate_generated_case(
     ))
     missing = tuple(item for item in required if not (root / item).exists())
     warnings: list[str] = []
-    if not compressible:
+    if is_vof:
+        phase_properties = root / "constant" / "phaseProperties"
+        phase_physical = tuple(root.glob("constant/physicalProperties.*"))
+        if not phase_properties.exists():
+            warnings.append("constant/phaseProperties is missing for a VOF case")
+        if not phase_physical:
+            warnings.append("constant/physicalProperties.<phase> is missing for a VOF case")
+        elif any("nu" not in path.read_text(errors="ignore") for path in phase_physical):
+            warnings.append("one or more constant/physicalProperties.<phase> files do not declare nu")
+    elif not compressible:
         transport = root / "constant" / "transportProperties"
         if not transport.exists():
             warnings.append("constant/transportProperties is missing for an incompressible case")
@@ -177,28 +186,5 @@ def validate_generated_case(
     return CaseValidation(root, required, missing, tuple(warnings))
 
 
-def run_foampilot_case(
-    solver,
-    *,
-    environment: OpenFOAM13Environment | None = None,
-    processors: int = 1,
-    log_filename: str | None = None,
-) -> None:
-    """Write and run a configured FoamPilot solver using OpenFOAM 13."""
-
-    solver.setup_case()
-    solver.write_case()
-    validation = validate_generated_case(
-        solver.case_path,
-        compressible=getattr(solver, "compressible", False),
-    )
-    if not validation.valid:
-        raise ValueError(
-            "Generated case failed validation: "
-            + "; ".join((*validation.missing_files, *validation.warnings))
-        )
-    (environment or OpenFOAM13Environment()).run(
-        ["foamRun", "-solver", solver.foamrun_module],
-        cwd=solver.case_path,
-        log_path=Path(solver.case_path) / (log_filename or "log.foamRun"),
-    )
+# run_foampilot_case has been removed.
+# FoamPilot tutorial adapters now inherit from BaseSolver and use run_simulation().

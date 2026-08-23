@@ -52,21 +52,32 @@ class Meshing:
 
         self.additional_files = {}
 
-    def add_file(self, file_name: str, file_content: Dict[str, Any]):
-        """Adds a supplementary OpenFOAM configuration file to the system directory.
+    def add_file(self, file_name: str, file_content: dict) -> OpenFOAMFile:
+        """Register an additional OpenFOAM dictionary in the meshing system.
 
-        This is useful for adding files like `surfaceFeatureExtractDict` or 
+        This is useful for adding files like `surfaceFeatureExtractDict` or
         `meshQualityDict` that are required by specific meshing workflows.
 
-        Args:
-            file_name: The name of the file (e.g., 'surfaceFeatureExtractDict').
-            file_content: A dictionary containing the parameters and settings 
-                for the OpenFOAM file.
+        Parameters
+        ----------
+        file_name : str
+            The name of the file (e.g., ``"surfaceFeatureExtractDict"``).
+        file_content : dict
+            A dictionary containing the parameters and settings for the
+            OpenFOAM file.
+
+        Returns
+        -------
+        OpenFOAMFile
+            The created dictionary object.
         """
-        self.additional_files[file_name] = OpenFOAMFile(
-            object_name=file_name,
-            **file_content
-        )
+        if not file_name or Path(file_name).name != file_name:
+            raise ValueError("file_name must be a simple dictionary filename")
+        if not isinstance(file_content, dict):
+            raise TypeError("file_content must be a dictionary")
+        dictionary = OpenFOAMFile(object_name=file_name, **file_content)
+        self.additional_files[file_name] = dictionary
+        return dictionary
 
     def write(self):
         """Writes all meshing-related configuration files to the disk.

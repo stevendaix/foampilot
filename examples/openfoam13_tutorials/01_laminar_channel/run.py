@@ -12,7 +12,6 @@ from pathlib import Path
 
 from foampilot import Meshing, ValueWithUnit
 from foampilot.solver import Solver
-from foampilot.tutorials import run_foampilot_case
 
 
 CASE_PATH = Path(__file__).resolve().parent / "case"
@@ -73,7 +72,7 @@ def main() -> None:
         solver.boundary.set_raw_condition(patch, "p", {"type": "zeroGradient"})
     solver.boundary.write_boundary_conditions()
 
-    run_foampilot_case(solver)
+    solver.run_simulation()
     print(f"Completed FoamPilot case: {CASE_PATH}")
 
 

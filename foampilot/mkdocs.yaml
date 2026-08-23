@@ -51,6 +51,7 @@ nav:
   - Advanced workflows:
       - Overview: en/advanced_workflows.md
       - CHT workflow and data setup: en/cht_workflow.md
+      - "OpenFOAM 13: Wolf Dynamics and Figshare integration": en/openfoam13_wolfdynamics.md
   - Theory:
       - Fundamentals: en/fluids_theory.md
       - Applied theory: en/theory_applied.md

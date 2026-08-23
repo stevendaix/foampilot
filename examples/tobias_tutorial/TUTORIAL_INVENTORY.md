@@ -30,16 +30,16 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | 2dAxisSymmetricMeshing | `2d_rotational_axis_symmetric` | Validated equivalent |
 | openfoam.org | 45DegreePipeWithLayers | `meshing_pipe_45deg` | Validated |
 | openfoam.org | 90DegreePipeWithLayers | `meshing_pipe_90deg` | Validated |
-| openfoam.org | NCCHeatTransfer | `NCCHeatTransfer` | Validated short dynamic mesh calculation |
+| openfoam.org | NCCHeatTransfer | — | Pending |
 | openfoam.org | adaptiveMeshRefinement | `adaptive_mesh_refinement` | Validated |
 | openfoam.org | arbitraryRotatingInletNCC | — | Pending |
 | openfoam.org | arbitraryWaterPump | — | Pending |
-| openfoam.org | batteryCooling | `battery_cooling` | Validated short thermo-fluid calculation |
-| openfoam.org | catalystHeatUp | `catalystHeatUp` | Validated short multi-region CHT calculation |
+| openfoam.org | batteryCooling | — | Pending |
+| openfoam.org | catalystHeatUp | — | Pending |
 | openfoam.org | cellZoneGeneration | `cell_zone_generation` | Validated equivalent |
 | openfoam.org | combustionChamber | `combustion_chamber` | Validated short calculation |
 | openfoam.org | dakotaGeometricVariation | — | Pending; external Dakota dependency |
-| openfoam.org | dakotaTeslaOneWayValve2D | `dakotaTeslaOneWayValve2D` | Validated optimization workflow |
+| openfoam.org | dakotaTeslaOneWayValve2D | — | Pending; external Dakota dependency |
 | openfoam.org | fallingDroplets | `falling_droplets` | Validated equivalent |
 | openfoam.org | fanRotationAndNCC | — | Pending |
 | openfoam.org | fluentMeshForCHTSolver | — | Pending |
@@ -49,7 +49,7 @@ This inventory tracks every case directory currently present in `shor-ty/OpenFOA
 | openfoam.org | magnusEffect | `magnus_effect` | Validated equivalent |
 | openfoam.org | meshingAHelix | — | Pending |
 | openfoam.org | pitotTube variants | `pitot_tube` | Validated short calculation representative |
-| openfoam.org | rotatingRotorNCC | `rotatingRotorNCC` | Validated short dynamic mesh calculation |
+| openfoam.org | rotatingRotorNCC | — | Pending |
 | openfoam.org | snappyFeatureEdgeRefinement | `snappy_feature_edge_refinement` | Validated meshing workflow |
 | openfoam.org | snappyHexMeshCellZoneMeshing | — | Pending |
 | openfoam.org | snappySphereAndLayer | `snappy_sphere_and_layer` | Validated meshing workflow |
