@@ -27,7 +27,7 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
     (
         mesh.lookupObject<compressibleTwoPhaseVoFMixture>
         (
-            "phaseProperties"
+            dict.lookupOrDefault<word>("mixture", "phaseProperties")
         )
     ),
     g_
