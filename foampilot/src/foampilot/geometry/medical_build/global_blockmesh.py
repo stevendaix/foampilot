@@ -99,7 +99,7 @@ class GlobalBlockMesh:
     def write(self, path: str | Path) -> Path:
         path=Path(path); path.parent.mkdir(parents=True,exist_ok=True)
         with path.open('w') as f:
-            f.write('FoamFile\n{ version 2.0; format ascii; class dictionary; object blockMeshDict; }\n\n')
+            f.write('FoamFile\n{\n    version     2.0;\n    format      ascii;\n    class       dictionary;\n    location    "system";\n    object      blockMeshDict;\n}\n\n')
             f.write(f'scale {self.scale};\n\nvertices\n(\n')
             for p in self.vertices: f.write('    (% .12g % .12g % .12g)\n'%tuple(p))
             f.write(');\n\nblocks\n(\n')

@@ -48,3 +48,8 @@ __pycache__/
 # === Embedded git repositories ===
 /test/vmtk-test-data/
 
+
+# === Fichiers générés par le pipeline medical_build ===
+examples/medical_build/outputs/**
+examples/medical_build/case_*/**/constant/triSurface/**
+!examples/medical_build/case_*/**/system/**
