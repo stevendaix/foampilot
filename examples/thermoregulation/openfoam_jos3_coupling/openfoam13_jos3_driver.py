@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import os
 import re
 import sys
 import types
@@ -12,9 +13,8 @@ import numpy as np
 CASE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent / "openfoam_case"
 COMMS = CASE / "comms"
 ROOT = Path(__file__).resolve().parents[3]
-SRC_CANDIDATES = [ROOT / "foampilot" / "src", Path("/home/ubuntu/foampilot/foampilot/src")]
-SRC = next(path for path in SRC_CANDIDATES if (path / "foampilot").exists())
-JOS_SRC = Path("/home/ubuntu/JOS-3/src")
+SRC = ROOT / "foampilot" / "src"
+JOS_SRC = Path(os.getenv("JOS3_SRC", SRC / "foampilot" / "physiology" / "jos3"))
 sys.path.insert(0, str(JOS_SRC))
 
 import jos3
@@ -57,7 +57,7 @@ if not np.isfinite(cfd_dtime) or cfd_dtime <= 0:
     raise ValueError(f"deltaT invalide: {cfd_dtime}")
 provider = provider_module.OpenFOAM13TemperatureProvider(
     COMMS,
-    file="data",
+    file="qJOS3",
     timeout=10.0,
     air_temperature=20.0,
     radiative_temperature=20.0,

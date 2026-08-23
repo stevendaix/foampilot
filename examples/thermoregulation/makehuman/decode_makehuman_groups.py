@@ -1,6 +1,7 @@
+import os
 from pathlib import Path
 import numpy as np
-p=Path('/usr/share/makehuman-community/data/3dobjs/base.npz')
+p=Path(os.getenv('MAKEHUMAN_BASE_NPZ', '/usr/share/makehuman-community/data/3dobjs/base.npz'))
 d=np.load(p,allow_pickle=True)
 for k in ['fgstr','fgidx','group']:
     print(k, d[k].shape, d[k].dtype, repr(d[k][:30]))

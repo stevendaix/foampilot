@@ -11,6 +11,12 @@ python3 "$DRIVER" "$CASE" > coupled_jos3.log 2>&1 &
 DRIVER_PID=$!
 cleanup() { kill "$DRIVER_PID" 2>/dev/null || true; }
 trap cleanup EXIT
+for i in $(seq 1 60); do
+    if [ -d "comms" ]; then
+        break
+    fi
+    sleep 0.5
+done
 foamRun > coupled_openfoam.log 2>&1
 wait "$DRIVER_PID" || true
 printf '%s\n' 'Couplage terminé.'

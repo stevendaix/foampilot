@@ -1,10 +1,12 @@
+import os
 from __future__ import annotations
 from pathlib import Path
 import json
 import numpy as np
 
-source = Path('/usr/share/makehuman-community/data/3dobjs/base.npz')
-out = Path('/home/ubuntu/foampilot/examples/thermoregulation/validation/makehuman_topology_audit.json')
+ROOT = Path(__file__).resolve().parent
+source = Path(os.getenv('MAKEHUMAN_BASE_NPZ', '/usr/share/makehuman-community/data/3dobjs/base.npz'))
+out = ROOT / 'validation' / 'makehuman_topology_audit.json'
 d = np.load(source, allow_pickle=True)
 V = np.asarray(d['coord'], dtype=float) * 0.1
 Q = np.asarray(d['fvert'], dtype=np.int64)

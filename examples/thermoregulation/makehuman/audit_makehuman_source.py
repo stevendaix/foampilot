@@ -1,10 +1,12 @@
+import os
 from __future__ import annotations
 from pathlib import Path
 import json
 import numpy as np
 
-source = Path('/usr/share/makehuman-community/data/3dobjs/base.npz')
-out = Path('/home/ubuntu/foampilot/examples/thermoregulation/validation/makehuman_source_audit.json')
+ROOT = Path(__file__).resolve().parent
+source = Path(os.getenv('MAKEHUMAN_BASE_NPZ', '/usr/share/makehuman-community/data/3dobjs/base.npz'))
+out = ROOT / 'validation' / 'makehuman_source_audit.json'
 data = np.load(source, allow_pickle=True)
 result = {'source': str(source), 'keys': list(data.files)}
 for key in data.files:

@@ -1,7 +1,8 @@
+import os
 from pathlib import Path
 import numpy as np
 
-path = Path('/usr/share/makehuman-community/data/3dobjs/base.npz')
+path = Path(os.getenv('MAKEHUMAN_BASE_NPZ', '/usr/share/makehuman-community/data/3dobjs/base.npz'))
 data = np.load(path, allow_pickle=True)
 print(data.files)
 for name in data.files:

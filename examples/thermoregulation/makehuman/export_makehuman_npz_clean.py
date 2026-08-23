@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import argparse
 import json
@@ -5,7 +6,7 @@ import numpy as np
 import trimesh
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', type=Path, default=Path('/usr/share/makehuman-community/data/3dobjs/base.npz'))
+parser.add_argument('--input', type=Path, default=Path(os.getenv('MAKEHUMAN_BASE_NPZ', '/usr/share/makehuman-community/data/3dobjs/base.npz')))
 parser.add_argument('--output', type=Path, required=True)
 parser.add_argument('--scale', type=float, default=0.1)
 parser.add_argument('--fill-holes', action='store_true')

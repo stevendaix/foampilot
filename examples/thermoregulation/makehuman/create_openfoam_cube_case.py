@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import json
 import numpy as np
@@ -9,9 +10,7 @@ TRI = CASE / "constant" / "triSurface"
 for directory in (CASE / "0", CASE / "constant", CASE / "system", CASE / "comms", TRI):
     directory.mkdir(parents=True, exist_ok=True)
 
-# MakeHuman exports are expressed in a model unit whose body height is about
-# 17 units. The human model is scaled by 0.1 so that its height is about 1.7 m.
-source_npz = Path("/usr/share/makehuman-community/data/3dobjs/base.npz")
+source_npz = Path(os.getenv("MAKEHUMAN_BASE_NPZ", "/usr/share/makehuman-community/data/3dobjs/base.npz"))
 data = np.load(source_npz, allow_pickle=True)
 vertices = 0.1 * np.asarray(data["coord"], dtype=float)
 all_raw_faces = np.asarray(data["fvert"], dtype=np.int64)

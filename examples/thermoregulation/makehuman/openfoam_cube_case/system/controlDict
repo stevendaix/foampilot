@@ -4,7 +4,7 @@ FoamFile
     class dictionary;
     object controlDict;
 }
-solver          fluid;
+application      fluid;
 startFrom       startTime;
 startTime       0;
 stopAt          endTime;
