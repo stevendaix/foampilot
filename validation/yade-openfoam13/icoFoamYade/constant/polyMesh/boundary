@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       polyBoundaryMesh;
+    location    "constant/polyMesh";
+    object      boundary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+6
+(
+    y1
+    {
+        type            wall;
+        inGroups        List<word> 1(wall);
+        nFaces          400;
+        startFace       22800;
+    }
+    y0
+    {
+        type            wall;
+        inGroups        List<word> 1(wall);
+        nFaces          400;
+        startFace       23200;
+    }
+    x0
+    {
+        type            cyclic;
+        inGroups        List<word> 1(cyclic);
+        nFaces          400;
+        startFace       23600;
+        matchTolerance  0.0001;
+        neighbourPatch  x1;
+        transformType   translational;
+        separation      (-0.1 -1.387778780781446e-17 1.387778780781446e-17);
+    }
+    x1
+    {
+        type            cyclic;
+        inGroups        List<word> 1(cyclic);
+        nFaces          400;
+        startFace       24000;
+        matchTolerance  0.0001;
+        neighbourPatch  x0;
+        transformType   translational;
+        separation      (0.1 1.387778780781446e-17 -1.387778780781446e-17);
+    }
+    z0
+    {
+        type            cyclic;
+        inGroups        List<word> 1(cyclic);
+        nFaces          400;
+        startFace       24400;
+        matchTolerance  0.0001;
+        neighbourPatch  z1;
+        transformType   translational;
+        separation      (-1.387778780781446e-17 1.387778780781446e-17 -0.1);
+    }
+    z1
+    {
+        type            cyclic;
+        inGroups        List<word> 1(cyclic);
+        nFaces          400;
+        startFace       24800;
+        matchTolerance  0.0001;
+        neighbourPatch  z0;
+        transformType   translational;
+        separation      (1.387778780781446e-17 -1.387778780781446e-17 0.1);
+    }
+)
+
+// ************************************************************************* //

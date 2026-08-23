@@ -1,0 +1,14 @@
+cd FoamYade/commYade/
+wmake
+cd ../
+cd meshtree/
+wmake
+cd ../
+wmake
+cd ../
+cd icoFoamYade/
+wmake
+cd ../
+cd pimpleFoamYade/
+wmake
+cd ../

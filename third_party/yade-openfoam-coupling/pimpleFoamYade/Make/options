@@ -1,0 +1,27 @@
+sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
+sinclude $(RULES)/mplib$(WM_MPLIB)
+EXE_INC = \
+    -I$(LIB_SRC)/physicalProperties/lnInclude \
+    -I./DPMTurbulenceModels/lnInclude \
+    -I$(LIB_SRC)/MomentumTransportModels/compressible/lnInclude \
+    -I$(LIB_SRC)/MomentumTransportModels/momentumTransportModels/lnInclude \
+    -I$(LIB_SRC)/MomentumTransportModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/MomentumTransportModels/phaseIncompressible/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I../FoamYade/lnInclude \
+    -I../FoamYade/meshtree \
+    -I$(LIB_SRC)/Pstream/mpi/lnInclude \
+    $(PFLAGS) $(PINC)
+
+EXE_LIBS = \
+    -lincompressibleMomentumTransportModels \
+    -lmomentumTransportModels \
+    -lphaseIncompressibleMomentumTransportModels \
+    -lfiniteVolume \
+    -lmeshTools \
+    -L$(FOAM_USER_LIBBIN) \
+    -lMeshTree \
+    -lYadeFoam \
+    -L$(FOAM_LIBBIN)/$(FOAM_MPI)/lPstream \
+    $(PLIBS)

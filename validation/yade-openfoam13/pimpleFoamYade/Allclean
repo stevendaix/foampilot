@@ -1,0 +1,4 @@
+#! /bin/bash
+
+rm -rf constant/polyMesh proc* spheres
+foamListTimes -rm -time 0: -withZero 2>/dev/null || true
