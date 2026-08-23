@@ -48,3 +48,15 @@ __pycache__/
 # === Embedded git repositories ===
 /test/vmtk-test-data/
 
+
+# === Grands fichiers binaires dans les exemples (à déplacer vers Git LFS) ===
+examples/tobias_tutorial/**/*.stl
+examples/tobias_tutorial/**/*.unv
+examples/tobias_tutorial/**/*.hdf
+examples/tobias_tutorial/**/*.step
+examples/tobias_tutorial/**/*.stp
+examples/tobias_tutorial/**/*.iges
+examples/tobias_tutorial/**/*.igs
+examples/tobias_tutorial/**/*.eMesh
+examples/tobias_tutorial/**/*.obj
+examples/tobias_tutorial/**/*.zip

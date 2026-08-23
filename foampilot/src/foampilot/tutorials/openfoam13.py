@@ -53,8 +53,9 @@ class OpenFOAM13Environment:
     reproducible.
     """
 
-    def __init__(self, bashrc: str | Path = "/opt/openfoam13/etc/bashrc"):
-        self.bashrc = Path(bashrc)
+    def __init__(self, bashrc: str | Path | None = None):
+        default = "/opt/openfoam13/etc/bashrc"
+        self.bashrc = Path(bashrc or default)
 
     def environment(self) -> dict[str, str]:
         if not self.bashrc.exists():
