@@ -1,0 +1,10 @@
+#!/bin/sh
+cd "${0%/*}" || exit 1
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+./Allmesh
+python3 external_participant.py &
+participant_pid=$!
+runApplication foamRun
+status=$?
+wait "$participant_pid" || true
+exit "$status"
