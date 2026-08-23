@@ -20,6 +20,7 @@ from foampilot.constant.radiationProperties import RadiationPropertiesFile, FvMo
 from foampilot.constant.phasePropertiesFile import PhasePropertiesFile
 from foampilot.constant.momentumTransportFile import MomentumTransportFile
 from foampilot.constant.phasePhysicalPropertiesFile import PhasePhysicalPropertiesFile
+from foampilot.base.openFOAMFile import OpenFOAMFile
 
 class ConstantDirectory:
     def __init__(self, solver: Solver, *, with_radiation: bool = False):
@@ -48,6 +49,11 @@ class ConstantDirectory:
         self._radiation: Optional[RadiationPropertiesFile] = None
         self._fvmodels: Optional[FvModelsFile] = None
         self._turbulenceProperties: Optional[TurbulencePropertiesFile] = None
+
+        # Generic constant dictionaries (e.g. dynamicMeshDict, MRFProperties).
+        # Keeping them in the directory manager makes case generation fully
+        # declarative instead of requiring post-generation manual edits.
+        self.additional_files: dict[str, OpenFOAMFile] = {}
 
         if with_radiation:
             self.enable_radiation()
@@ -147,6 +153,23 @@ class ConstantDirectory:
         self._fvmodels = None
         logger.info("Radiation disabled")
 
+    def add_dict_file(self, file_name: str, file_content: dict[str, Any]) -> OpenFOAMFile:
+        """Register an additional dictionary in ``constant``.
+
+        This is intended for solver- and study-specific files such as
+        ``dynamicMeshDict`` for overset motion or ``MRFProperties`` for a
+        rotating reference frame.  The generic serializer preserves nested
+        OpenFOAM dictionaries while retaining FoamPilot's ownership of the
+        generated case.
+        """
+        if not file_name or Path(file_name).name != file_name:
+            raise ValueError("file_name must be a simple dictionary filename")
+        if not isinstance(file_content, dict):
+            raise TypeError("file_content must be a dictionary")
+        dictionary = OpenFOAMFile(object_name=file_name, **file_content)
+        self.additional_files[file_name] = dictionary
+        return dictionary
+
     # Write files
     def write(self):
         constant_path = Path(self.solver.case_path) / "constant"
@@ -200,6 +223,11 @@ class ConstantDirectory:
 
         # VoF-specific constant files (overwrites single-phase files + cleanup)
         self._write_vof_constants(constant_path)
+
+        # Study-specific constant dictionaries are written last, after the
+        # standard model files, so they remain explicit and inspectable.
+        for file_name, dictionary in self.additional_files.items():
+            dictionary.write_file(constant_path / file_name)
 
         logger.info(f"Constant directory written to {constant_path}")
         return self
