@@ -70,7 +70,7 @@ def write_overset_dynamic_mesh(
     case_path = Path(case_path)
     constant_path = case_path / "constant"
     constant_path.mkdir(parents=True, exist_ok=True)
-    joint_blocks = "\n".join(f"    {{ type {joint}; }}" for joint in joints)
+    joint_blocks = "\n".join(f"        {{ type {joint}; }}" for joint in joints)
     dictionary = OpenFOAMFile(
         object_name="dynamicMeshDict",
         dynamicFvMesh="dynamicOversetFvMesh",
@@ -92,7 +92,7 @@ def write_overset_dynamic_mesh(
                         "centreOfMass": "(" + " ".join(str(value) for value in centre_of_mass) + ")",
                         "inertia": "(" + " ".join(str(value) for value in inertia) + ")",
                         "transform": "(1 0 0 0 1 0 0 0 1) (" + " ".join(str(value) for value in transform_origin) + ")",
-                        "joint": {"type": "composite", "joints": "(\n" + joint_blocks + "\n);"},
+                        "joint": {"type": "composite", "joints": "\n        (\n" + joint_blocks + "\n        );"},
                         "patches": "(" + patch_name + ")",
                         "innerDistance": 100,
                         "outerDistance": 200,
@@ -133,7 +133,7 @@ def write_openfoam13_rigid_body_mover(
     case_path = Path(case_path)
     constant_path = case_path / "constant"
     constant_path.mkdir(parents=True, exist_ok=True)
-    joint_blocks = "\n".join(f"    {{ type {joint}; }}" for joint in joints)
+    joint_blocks = "\n".join(f"        {{ type {joint}; }}" for joint in joints)
     dictionary = OpenFOAMFile(
         object_name="dynamicMeshDict",
         mover={
