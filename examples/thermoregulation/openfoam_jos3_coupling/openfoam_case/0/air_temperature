@@ -1,0 +1,21 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      air_temperature;
+}
+dimensions      [0 0 0 1 0 0 0];
+internalField   uniform 293.15;
+boundaryField
+{
+    humanPatch
+    {
+        type            fixedValue;
+        value           uniform 293.15;
+    }
+    walls
+    {
+        type            zeroGradient;
+    }
+}

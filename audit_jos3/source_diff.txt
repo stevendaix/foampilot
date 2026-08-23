@@ -1,0 +1,93 @@
+diff -ru '--exclude=__pycache__' '--exclude=*.pyc' JOS-3/src/jos3/__init__.py foampilot/foampilot/src/foampilot/physiology/jos3/__init__.py
+--- JOS-3/src/jos3/__init__.py	2026-08-20 21:55:42.726338822 +0000
++++ foampilot/foampilot/src/foampilot/physiology/jos3/__init__.py	2026-08-21 04:24:22.844187012 +0000
+@@ -1,3 +1,3 @@
+ # -*- coding: utf-8 -*-
+-from jos3.jos3 import *
+-__version__ = '0.5.0'
+\ No newline at end of file
++from .jos3 import *
++__version__ = '0.5.0-foampilot'
+diff -ru '--exclude=__pycache__' '--exclude=*.pyc' JOS-3/src/jos3/jos3.py foampilot/foampilot/src/foampilot/physiology/jos3/jos3.py
+--- JOS-3/src/jos3/jos3.py	2026-08-20 21:55:42.726338822 +0000
++++ foampilot/foampilot/src/foampilot/physiology/jos3/jos3.py	2026-08-21 05:11:12.526612939 +0000
+@@ -223,7 +223,10 @@
+         self._hc = None
+         self._hr = None
+         self.ex_q = np.zeros(NUM_NODES)
+-        self._t = dt.timedelta(0) # Elapsed time
++        # In external_surface mode, the distributed surface network handles
++        # the dry exchange with the CFD environment.
++        self.environment_mode = "native"
++        self._t = dt.timedelta(0) # Elapsed time [sec]
+         self._cycle = 0 # Cycle time
+         self.model_name = "JOS3"
+         self.options = {
+@@ -305,6 +308,12 @@
+                 self._history.append(dictdata)
+ 
+ 
++    def set_environment_mode(self, mode):
++        """Choisit ``native`` ou ``external_surface`` pour l’échange sec."""
++        if mode not in ("native", "external_surface"):
++            raise ValueError("mode doit être 'native' ou 'external_surface'")
++        self.environment_mode = mode
++
+     def _run(self, dtime=60, passive=False, output=True):
+         """
+         Run a model for a once and get model parameters.
+@@ -416,6 +425,8 @@
+ 
+         # Sensible heat loss [W]
+         shlsk = (tsk - to) / r_t * self._bsa
++        if self.environment_mode == "external_surface":
++            shlsk = np.zeros(17)
+ 
+         # Cardiac output [L/h]
+         co = threg.sum_bf(
+@@ -451,7 +462,8 @@
+         arr_cdt *= dtime # Change unit [/sec] to [-]
+ 
+         arrB = np.zeros(NUM_NODES)
+-        arrB[INDEX["skin"]] += 1/r_t*self._bsa
++        if self.environment_mode == "native":
++            arrB[INDEX["skin"]] += 1/r_t*self._bsa
+         arrB /= self._cap # Change unit [W/K] to [/sec]
+         arrB *= dtime # Change unit [/sec] to [-]
+ 
+@@ -713,6 +725,35 @@
+     #--------------------------------------------------------------------------
+     # Setter
+     #--------------------------------------------------------------------------
++    @property
++    def skin_node_indices(self):
++        """Indices des 17 nœuds cutanés dans le vecteur physiologique."""
++        return np.asarray(INDEX["skin"], dtype=int)
++
++    @property
++    def external_heat_flux(self):
++        """Puissance externe appliquée aux 85 nœuds physiologiques [W]."""
++        return self.ex_q.copy()
++
++    def set_external_heat_flux(self, value, tissue="skin"):
++        """Définit une puissance externe sur les nœuds physiologiques.
++
++        Pour ``tissue='skin'``, ``value`` contient 17 valeurs, une par zone
++        locale JOS-3. Un vecteur de longueur 85 peut aussi être fourni pour
++        piloter directement tous les nœuds du réseau thermique.
++        """
++        arr = np.asarray(value, dtype=float)
++        if arr.size == NUM_NODES:
++            self.ex_q = arr.reshape(NUM_NODES).copy()
++        else:
++            self.ex_q = np.zeros(NUM_NODES, dtype=float)
++            self._set_ex_q(tissue, arr)
++        return self.ex_q.copy()
++
++    def clear_external_heat_flux(self):
++        """Supprime toute puissance thermique externe."""
++        self.ex_q.fill(0.0)
++
+     def _set_ex_q(self, tissue, value):
+         """
+         Set extra heat gain by tissue name.

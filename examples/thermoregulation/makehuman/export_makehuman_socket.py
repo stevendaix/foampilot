@@ -53,23 +53,37 @@ def main() -> None:
     full.export(args.out / "makehuman_base.stl")
     full.export(args.out / "makehuman_base.obj")
 
-    body_stop = None
+    body_ranges = None
     for group in metadata.get("faceGroups", []):
         if group.get("name") == "body" and group.get("fgStartStops"):
-            body_stop = max(stop for _, stop in group["fgStartStops"])
+            body_ranges = group["fgStartStops"]
             break
-    if body_stop is None:
+    if body_ranges is None:
         raise RuntimeError("Le groupe de faces MakeHuman 'body' est absent")
 
-    body = trimesh.Trimesh(vertices=vertices, faces=faces[:body_stop], process=True)
+    # MakeHuman stores inclusive [start, stop] ranges. Do not assume that
+    # the body group is one contiguous prefix of the face array.
+    body_face_ids = sorted({
+        face_id
+        for start, stop in body_ranges
+        for face_id in range(int(start), int(stop) + 1)
+        if 0 <= int(face_id) < len(faces)
+    })
+    body_faces = faces[np.asarray(body_face_ids, dtype=np.int64)]
+    body = trimesh.Trimesh(vertices=vertices, faces=body_faces, process=False)
+    body.merge_vertices(digits_vertex=8)
+    if hasattr(body, "nondegenerate_faces"):
+        body.update_faces(body.nondegenerate_faces())
     body.remove_unreferenced_vertices()
+    trimesh.repair.fix_winding(body)
     body.export(args.out / "makehuman_body_only.stl")
     body.export(args.out / "makehuman_body_only.obj")
 
     report = {
         "vertices": int(len(body.vertices)),
         "triangles": int(len(body.faces)),
-        "body_face_stop": int(body_stop),
+        "body_face_ranges": body_ranges,
+        "body_face_count_selected": int(len(body_face_ids)),
         "watertight": bool(body.is_watertight),
         "winding_consistent": bool(body.is_winding_consistent),
         "bounds_min": body.bounds[0].tolist(),

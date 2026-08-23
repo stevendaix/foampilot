@@ -54,7 +54,7 @@ dependencies = [
   "kagglehub",
   "vmtk",
   "geomdl",
-  # OpenCascade is supplied by build123d; no standalone PyPI package is required.
+  "opencascade"
 ]
 
 [project.optional-dependencies]

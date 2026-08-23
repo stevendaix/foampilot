@@ -1,0 +1,21 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      h;
+}
+dimensions      [1 0 -3 -1 0 0 0];
+internalField   uniform 5;
+boundaryField
+{
+    humanPatch
+    {
+        type            fixedValue;
+        value           uniform 5;
+    }
+    walls
+    {
+        type            zeroGradient;
+    }
+}

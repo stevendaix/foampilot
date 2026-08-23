@@ -1,0 +1,22 @@
+FoamFile
+{
+    format ascii;
+    class volScalarField;
+    location "0";
+    object nut;
+}
+
+dimensions [0 2 -1 0 0 0 0];
+
+internalField uniform 0;
+
+boundaryField
+{
+    inlet { type zeroGradient; value uniform 0; }
+    outlet { type zeroGradient; value uniform 0; }
+    floor { type zeroGradient; value uniform 0; }
+    ceiling { type zeroGradient; value uniform 0; }
+    sideA { type zeroGradient; value uniform 0; }
+    sideB { type zeroGradient; value uniform 0; }
+    human { type zeroGradient; value uniform 0; }
+}

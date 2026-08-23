@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+cd "${0%/*}" || exit 1
+if [ -z "${WM_PROJECT_DIR:-}" ]; then . /opt/openfoam13/etc/bashrc; fi
+python3 prepare_fields.py
+blockMesh
+snappyHexMesh -overwrite
+createExternalCoupledPatchGeometry T
+python3 map_openfoam_human_faces.py
+checkMesh
+printf '%s\n' 'Maillage cube–humain prêt. Lancer ensuite openfoam13_jos3_driver.py.'

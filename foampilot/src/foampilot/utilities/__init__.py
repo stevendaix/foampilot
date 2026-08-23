@@ -11,12 +11,5 @@ from foampilot.utilities.make_human import HumanGeometry
 from foampilot.utilities.coupling_foam_csv import CSVFoamIntegrator
 from foampilot.utilities.stl_cleanup import AortaSurfaceCleaner,AortaCapMethod, create_closed_aorta_mesh
 from foampilot.utilities.nifti_to_stl import nifti_to_stl, nifti_to_stl_multisurface
-from foampilot.utilities.vof_to_dpm import (
-    OpenFoamAsciiReader,
-    OpenFoamCaseReader,
-    OpenFoamFormatError,
-    VofFragment,
-    VofToDpmConverter,
-)
 # from foampilot.utilities.import_tbad import prepare_tbad_mesh, save_nifti_to_obj
 # from .read_mesh import ValueWithUnit

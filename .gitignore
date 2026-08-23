@@ -68,3 +68,7 @@ third_party/yade-openfoam-coupling/ccpl*.png
 validation/yade-openfoam13/**/*.gz
 validation/yade-openfoam13/**/*.log
 validation/yade-openfoam13/processor*/
+
+# === Local CFD runs and Python caches ===
+/openfoam_runs/
+**/__pycache__/
