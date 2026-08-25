@@ -403,7 +403,7 @@ class CourtyardContext:
                 breaks = max(1, breaks + Random(self.config.seed * 131 + index * 17 + 6001).randint(-2, 2))
             segments = _courtyard_ring_segments(zone, self.config.min_width, breaks, self.config.courtyard_break_width, coverage, self.config.courtyard_break_shift, self.config.seed + index)
             for segment in segments:
-                if segment.area >= self.config.min_footprint_per_tower:
+                if segment.area >= max(1.0, self.config.min_footprint_per_tower * 0.15):
                     footprints.append(segment)
                     centers.append(segment.centroid)
         return footprints, centers, sum(p.area for p in footprints)
@@ -707,7 +707,10 @@ def _converge_bcr(towers, angles, codes, lengths, buildable: Polygon, site: Poly
                 continue
             new_length = max(width, lengths[i] * factor)
             candidate = translate(rotate(_grammar(width, new_length, codes[i], max(0.3, config.arm_length_ratio)), angles[i], origin=(0, 0)), xoff=old.centroid.x, yoff=old.centroid.y)
-            if candidate.is_valid and buildable.covers(candidate) and candidate.area <= config.max_footprint_per_tower * 1.05:
+            others = [p for j, p in enumerate(current) if j != i]
+            if (candidate.is_valid and buildable.covers(candidate)
+                    and candidate.area <= config.max_footprint_per_tower * 1.05
+                    and all(candidate.buffer(config.min_tower_distance).disjoint(p) for p in others)):
                 result.append(candidate)
                 new_lengths.append(new_length)
             else:
@@ -789,40 +792,55 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
         typology = 7
     target_tower_area = site.area * config.bcr * config.tower_bcr_priority
     width = max(2.0, config.min_width)
-    mode_factor = {0: 0.75, 1: 1.0, 2: 1.25, 3: rng.uniform(0.75, 1.25)}.get(config.tower_size_mode, 1.0)
-    length = width * min(config.max_length_width_ratio, 2.0 * mode_factor)
     spacing = max(width + config.min_tower_distance, width * 1.5)
     seeds = list(centroids) if centroids is not None else (seeds if courtyard_mode else list(_lattice(buildable, spacing)))
-    rng.shuffle(seeds)
+    if not courtyard_mode:
+        rng.shuffle(seeds)
     towers: list[Polygon] = []
     angles: list[float] = []
     codes: list[int] = []
     lengths: list[float] = []
     covered = 0.0
-    for seed in seeds:
-        if covered >= target_tower_area or len(towers) >= config.tower_grow_iterations:
+    for index, seed in enumerate(seeds):
+        if courtyard_mode and len(towers) >= len(courtyard_towers):
             break
         code = rng.randrange(6) if config.tower_typology_mode == 6 else typology
-        angle = _angle(config, rng)
         if courtyard_mode:
             shape = courtyard_towers[len(towers)]
             angle = 0.0
+            local_length = 0.0
         else:
-            shape = rotate(_grammar(width, length, code, max(0.3, config.arm_length_ratio)), angle, origin=(0, 0))
-            shape = translate(shape, xoff=seed.x, yoff=seed.y)
-        for _ in range(max(1, config.tower_grow_iterations)):
-            if shape.area >= config.min_footprint_per_tower and shape.area <= config.max_footprint_per_tower and buildable.covers(shape) and all(shape.buffer(config.min_tower_distance).disjoint(other) for other in towers):
-                break
-            if courtyard_mode:
-                break
-            if shape.area > config.max_footprint_per_tower or not buildable.covers(shape):
-                shape = rotate(_grammar(width, max(width, length - config.tower_grow_step), code, config.arm_length_ratio), angle, origin=(0, 0))
-                shape = translate(shape, xoff=seed.x, yoff=seed.y)
-                break
-            length += config.tower_grow_step
-            shape = rotate(_grammar(width, length, code, config.arm_length_ratio), angle, origin=(0, 0))
-            shape = translate(shape, xoff=seed.x, yoff=seed.y)
-        if shape.area < config.min_footprint_per_tower or not buildable.covers(shape) or any(not shape.buffer(config.min_tower_distance).disjoint(other) for other in towers):
+            mode_rng = Random(config.seed + 5500 + index)
+            min_area = config.min_footprint_per_tower
+            max_area = config.max_footprint_per_tower
+            span = max_area - min_area
+            if config.tower_size_mode == 0:
+                target_area = min_area + (mode_rng.random() ** 1.6) * span / 3.0
+            elif config.tower_size_mode == 1:
+                target_area = min_area + span / 3.0 + mode_rng.random() * span / 3.0
+            elif config.tower_size_mode == 2:
+                target_area = min_area + 2.0 * span / 3.0 + (mode_rng.random() ** 0.6) * span / 3.0
+            else:
+                target_area = min_area + mode_rng.random() * span
+            arm_length = max(width * 0.5, config.arm_length_ratio * width)
+            spine_target = max(min_area * 0.4, target_area - estimate_extra_area(code, width, arm_length))
+            max_length = max_length_for_typology(code, width, arm_length, max_area, config.max_length_width_ratio * width)
+            local_length = max(2.0 * width, min(max_length, spine_target / width))
+            candidate_angles = angle_candidates(config.global_rotation_mode, config.uniform_rotation_deg)
+            if config.global_rotation_mode == 0:
+                candidate_angles = [(_angle(config, Random(config.seed * 37 + index * 19 + j + 73))) % 180.0 for j in range(12)]
+            shape = None
+            angle = 0.0
+            for candidate_angle in candidate_angles:
+                trial = translate(rotate(_grammar(width, local_length, code, config.arm_length_ratio), candidate_angle, origin=(0, 0)), xoff=seed.x, yoff=seed.y)
+                if trial.area <= max_area * 1.05 and buildable.covers(trial) and not any(not trial.buffer(config.min_tower_distance).disjoint(other) for other in towers):
+                    shape, angle = trial, candidate_angle
+                    break
+            if shape is None:
+                continue
+        if (shape.area < (max(1.0, config.min_footprint_per_tower * 0.15) if courtyard_mode else config.min_footprint_per_tower)
+                or (not courtyard_mode and shape.area > config.max_footprint_per_tower * 1.05)
+                or not buildable.covers(shape)):
             continue
         if not courtyard_mode and config.move_to_boundary:
             shape = _move_to_boundary(shape, buildable, radial=True)
@@ -830,18 +848,45 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
             shape = _move_to_boundary(shape, buildable, radial=False)
         if not courtyard_mode and config.align_towers_to_edge:
             shape = _align_to_edge(shape, buildable, angle)
-        if not buildable.covers(shape):
+        if not buildable.covers(shape) or any(not shape.buffer(config.min_tower_distance).disjoint(other) for other in towers):
             continue
         towers.append(shape)
         angles.append(angle)
         codes.append(code)
-        lengths.append(length)
+        lengths.append(local_length)
         covered += shape.area
+    if not towers and not courtyard_mode:
+        # Fallback identique à l’intention du GHA, mais conservant la typologie demandée.
+        fallback_code = rng.randrange(6) if config.tower_typology_mode == 6 else typology
+        for seed in (list(_lattice(buildable, max(width, config.min_tower_distance))) or [buildable.centroid]):
+            for candidate_angle in angle_candidates(config.global_rotation_mode, config.uniform_rotation_deg) + [0.0]:
+                for factor in (1.0, 0.85, 0.70, 0.55):
+                    fallback_length = max(width, 2.0 * width * factor)
+                    trial = translate(rotate(_grammar(width, fallback_length, fallback_code, config.arm_length_ratio), candidate_angle, origin=(0, 0)), xoff=seed.x, yoff=seed.y)
+                    if trial.area >= config.min_footprint_per_tower * 0.95 and buildable.covers(trial):
+                        towers = [trial]
+                        angles = [candidate_angle]
+                        codes = [fallback_code]
+                        lengths = [fallback_length]
+                        break
+                if towers:
+                    break
+            if towers:
+                break
     if not towers:
         raise ValueError("no UrbGEN tower fits the buildable site")
 
     towers, lengths = _grow_towers_to_bcr(towers, angles, codes, lengths, width, buildable, config, target_tower_area)
     towers, lengths, actual_offset, podium, convergence = _converge_bcr(towers, angles, codes, lengths, buildable, site, width, config)
+    # Le contrat foampilot expose la BCR cible, tandis que le GHA conserve une limite haute.
+    # Retirer les candidats les plus éloignés si l’union finale dépasse la cible stricte.
+    strict_union_area = unary_union([*towers, *podium]).area if towers or podium else 0.0
+    if strict_union_area > site.area * config.bcr * 1.000001 and len(towers) > 1:
+        towers, angles, codes, lengths = _trim_towers_to_bcr(towers, angles, codes, lengths, site, replace(config, upper_bcr=config.bcr))
+        actual_offset, podium = _find_podium_offset(towers, buildable, config, site.area * config.bcr) if config.podium_floors > 0 else (0.0, [])
+        convergence["strict_trimmed"] = True
+    else:
+        convergence["strict_trimmed"] = False
     if config.move_tower_to_podium_edge and podium:
         podium_union = unary_union(podium)
         towers = [_move_tower_to_podium_edge(t, podium_union, buildable) for t in towers]

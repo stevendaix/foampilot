@@ -20,6 +20,13 @@ def test_multi_site_api_returns_deterministic_keyed_results():
     assert first["east"].diagnostics["seed"] == 31
 
 
+def test_population_consumes_admissible_centroids_without_bcr_early_stop():
+    points = [Point(25, 25), Point(75, 25), Point(125, 25), Point(25, 85), Point(75, 85), Point(125, 85)]
+    result = generate_urbgen(SITE, UrbGENConfig(bcr=0.03, far=1.0, min_width=8.0, min_tower_distance=8.0, podium_floors=0, seed=11), centroids=points)
+    assert result.diagnostics["tower_count"] >= 3
+    assert result.diagnostics["tower_count"] <= len(points)
+
+
 def test_max_feasible_boundary_move_preserves_containment():
     from foampilot.urban.generation.urbgen import _move_to_boundary
     region = SITE.buffer(-8)

@@ -46,3 +46,18 @@ L’API `generate_urbgen_multi_site` accepte une liste ou un dictionnaire de sit
 Validation courante : **18 tests UrbGEN ciblés réussis**. Les validations visuelles comprennent cinq scénarios et les métriques JSON associées.
 
 Les éléments restant à comparer numériquement au GHA sont les tolérances Rhino/Shapely, les fixtures Grasshopper de référence, les détails exacts de la grammaire des typologies, les statistiques de hauteur et la chaîne de maillage CFD complète.
+
+## Contrôle de cardinalité
+
+La population initiale ne s’arrête plus lorsque la surface BCR intermédiaire est atteinte. Chaque centroïde admissible est essayé avec un dimensionnement indépendant par tour et plusieurs angles candidats, puis la convergence BCR intervient séparément.
+
+Pour le site de référence `(10,10)-(190,140)`, avec `BCR=0.08`, `FAR=1.5`, `setback=5`, `seed=42` et sans podium, les cardinalités mesurées sont :
+
+| `tower_size_mode` | Nombre de tours | BCR observé | FAR observé |
+|---:|---:|---:|---:|
+| 0 | 7 | 0.07754 | 1.52862 |
+| 1 | 7 | 0.07754 | 1.52862 |
+| 2 | 6 | 0.07268 | 1.52622 |
+| 3 | 7 | 0.07928 | 1.50627 |
+
+Le contrôle de non-régression sur centroïdes explicites confirme que la population ne s’arrête plus prématurément sur la cible BCR intermédiaire.
