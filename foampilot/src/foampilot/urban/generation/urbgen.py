@@ -21,39 +21,39 @@ from foampilot.urban.model.urban_model import Building, CFDLOD, RoofType, UrbanM
 
 @dataclass(frozen=True)
 class UrbGENConfig:
-    bcr: float = 0.35
+    bcr: float = 0.50
     upper_bcr: Optional[float] = None
-    far: float = 2.0
+    far: float = 3.0
     setback: float = 5.0
-    min_width: float = 8.0
+    min_width: float = 12.0
     tower_size_mode: int = 1
-    min_footprint_per_tower: float = 20.0
-    max_footprint_per_tower: float = 500.0
-    max_length_width_ratio: float = 6.0
-    min_tower_distance: float = 8.0
-    tower_bcr_priority: float = 0.70
+    min_footprint_per_tower: float = 80.0
+    max_footprint_per_tower: float = 350.0
+    max_length_width_ratio: float = 4.0
+    min_tower_distance: float = 12.0
+    tower_bcr_priority: float = 0.65
     tower_grow_step: float = 1.0
-    tower_grow_iterations: int = 100
+    tower_grow_iterations: int = 80
     seed: int = 0
-    tower_typology_mode: int = 6
-    arm_length_ratio: float = 1.0
+    tower_typology_mode: int = 0
+    arm_length_ratio: float = 1.3
     podium_floors: int = 2
     podium_min_offset: float = 2.0
-    podium_max_offset: float = 12.0
-    floor_height: float = 3.0
+    podium_max_offset: float = 15.0
+    floor_height: float = 3.5
     global_rotation_mode: int = 0
     uniform_rotation_deg: float = 0.0
     courtyard_count: int = 1
     courtyard_break_count: int = 4
-    courtyard_break_width: float = 8.0
-    courtyard_zone_gap: float = 6.0
+    courtyard_break_width: float = 18.0
+    courtyard_zone_gap: float = 12.0
     courtyard_split_angle: float = 0.0
     courtyard_break_shift: float = 0.0
     courtyard_layout_mode: int = 0
-    height_variation: float = 0.20
+    height_variation: float = 0.0
     enforce_height_regulation: bool = False
     height_regulation_mode: int = 0
-    max_building_height: float = 1000.0
+    max_building_height: float = 100.0
     min_building_height: float = 3.0
     move_to_boundary: bool = False
     move_all_to_setback: bool = False
@@ -63,6 +63,12 @@ class UrbGENConfig:
     floor_height_override: Optional[float] = None
 
     def __post_init__(self) -> None:
+        if self.upper_bcr is None:
+            object.__setattr__(self, "upper_bcr", max(self.bcr * 1.05, self.bcr * 1.10))
+        if self.courtyard_break_width < 1.0:
+            object.__setattr__(self, "courtyard_break_width", max(self.min_width * 1.5, 4.0))
+        if self.courtyard_zone_gap < 0.0:
+            object.__setattr__(self, "courtyard_zone_gap", max(self.min_tower_distance, self.min_width))
         if not 0.0 < self.bcr <= 1.0 or (self.upper_bcr is not None and self.upper_bcr < self.bcr):
             raise ValueError("bcr/upper_bcr must satisfy 0 < bcr <= upper_bcr <= 1")
         if self.far <= 0 or self.min_width < 2 or self.min_tower_distance < 0:

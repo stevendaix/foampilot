@@ -8,6 +8,22 @@ from foampilot.urban.generation import UrbGENConfig, generate_urbgen
 SITE = Polygon([(0, 0), (160, 0), (160, 120), (0, 120)])
 
 
+def test_default_config_matches_original_gha_contract():
+    c = UrbGENConfig()
+    assert c.bcr == 0.50
+    assert c.upper_bcr == pytest.approx(0.55)
+    assert c.far == 3.0
+    assert c.min_width == 12.0
+    assert c.min_footprint_per_tower == 80.0
+    assert c.max_footprint_per_tower == 350.0
+    assert c.min_tower_distance == 12.0
+    assert c.tower_typology_mode == 0
+    assert c.arm_length_ratio == 1.3
+    assert c.floor_height == 3.5
+    assert c.height_variation == 0.0
+    assert c.max_building_height == 100.0
+
+
 def test_typology_primitives_are_explicit_and_area_consistent():
     from foampilot.urban.generation.urbgen import (
         angle_candidates, estimate_extra_area, get_typology_modules,
