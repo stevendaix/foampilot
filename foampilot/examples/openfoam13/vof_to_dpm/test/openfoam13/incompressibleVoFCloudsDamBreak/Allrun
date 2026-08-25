@@ -58,5 +58,6 @@ grep -q "Selecting solver incompressibleVoF" log.foamRun
 grep -q "Selecting finite volume model type incompressibleVoFClouds" log.foamRun
 grep -q "Selecting parcelCloud collidingCloud" log.foamRun
 grep -q "Current number of parcels" log.foamRun
+grep -q "VOF fragments detected:" log.foamRun
 
 echo "PASS: incompressibleVoF + incompressibleVoFClouds + collidingCloud"

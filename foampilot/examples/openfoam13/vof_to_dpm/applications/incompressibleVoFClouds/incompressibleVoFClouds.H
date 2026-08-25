@@ -10,6 +10,7 @@
 #include "uniformDimensionedFields.H"
 #include "volFields.H"
 #include "fvMatrices.H"
+#include "vofFragmentTransition.H"
 
 namespace Foam
 {
@@ -25,6 +26,10 @@ class incompressibleVoFClouds
     const wordList cloudNames_;
     mutable volScalarField mu_;
     mutable parcelCloudList clouds_;
+    const scalar alphaThreshold_;
+    const label minCells_;
+    const scalar minVolume_;
+    const Switch detectFragments_;
     mutable label curTimeIndex_;
 
 public:

@@ -70,6 +70,10 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
         mu_,
         g_
     ),
+    alphaThreshold_(dict.lookupOrDefault<scalar>("alphaThreshold", 0.5)),
+    minCells_(dict.lookupOrDefault<label>("minCells", 1)),
+    minVolume_(dict.lookupOrDefault<scalar>("minVolume", 0)),
+    detectFragments_(dict.lookupOrDefault<Switch>("detectFragments", true)),
     curTimeIndex_(-1)
 {
     mu_ = mixture_.rho()*mixture_.nu();
@@ -88,6 +92,26 @@ void Foam::fv::incompressibleVoFClouds::correct()
     }
 
     mu_ = mixture_.rho()*mixture_.nu();
+    if (detectFragments_)
+    {
+        const volVectorField& U = mesh().lookupObject<volVectorField>("U");
+        const List<vofFragmentTransitionRecord> fragments =
+            vofFragmentTransition::detect
+            (
+                mixture_.alpha1(),
+                U,
+                alphaThreshold_,
+                minCells_,
+                minVolume_
+            );
+        scalar detectedVolume = 0;
+        forAll(fragments, fragmentI)
+        {
+            detectedVolume += fragments[fragmentI].volume;
+        }
+        Info<< "VOF fragments detected: " << fragments.size()
+            << ", convertible volume: " << detectedVolume << nl;
+    }
     clouds_.evolve();
     curTimeIndex_ = mesh().time().timeIndex();
 }
