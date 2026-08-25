@@ -128,14 +128,15 @@ class BlockMesher(OpenFOAMFile):
                 f.write(f"    {edge}\n")
             f.write(");\n\n")
 
-            # Default patch
-            f.write("defaultPatch\n{\n")
-            for key, val in self.defaultPatch.items():
-                if key in ("type", "name"):
-                    f.write(f"    {key} {val};\n")
-                else:
-                    f.write(f"    type {val};\n")
-            f.write("}\n\n")
+            # Default patch is optional in OpenFOAM blockMeshDict files.
+            if self.defaultPatch:
+                f.write("defaultPatch\n{\n")
+                for key, val in self.defaultPatch.items():
+                    if key in ("type", "name"):
+                        f.write(f"    {key} {val};\n")
+                    else:
+                        f.write(f"    type {val};\n")
+                f.write("}\n\n")
 
             # Boundary
             f.write("boundary\n(\n")

@@ -2,6 +2,7 @@ import pyvista as pv
 from pathlib import Path
 import numpy as np
 import subprocess
+import shutil
 
 
 class SnappyMesher:
@@ -187,50 +188,48 @@ class SnappyMesher:
     # ----------------------
     # Utilities
     # ----------------------
-    def run_surface_feature_extract(self):
-        """
-        Runs surfaceFeatureExtract utility for the case.
-        Creates a default surfaceFeaturesDict if none exists.
+    def run_surface_features(self):
+        """Run the OpenFOAM surface-feature utility for this case.
+
+        OpenFOAM 13 provides ``surfaceFeatures`` and deprecates
+        ``surfaceFeatureExtract``.  The method selects the modern executable
+        when available, preserves compatibility with older installations, and
+        verifies that every requested feature file was actually created.
         """
         system_path = self.case_path / "system"
         system_path.mkdir(parents=True, exist_ok=True)
         dict_file = system_path / "surfaceFeaturesDict"
 
         if not dict_file.exists():
-            stl_names = [geo.get("name", geo["file"]) for geo in self.geometry.values()]
+            stl_names = [geo.get("file", geo["name"]) for geo in self.geometry.values()]
             lines = [
-                "FoamFile",
-                "{",
-                "    version     2.0;",
-                "    format      ascii;",
-                "    class       dictionary;",
-                "    location    \"system\";",
-                "    object      surfaceFeaturesDict;",
-                "}",
-                "",
-                "module(s) (surfaceFeatures);",
-                "",
-                "surfaces",
-                "(",
+                "FoamFile", "{", "    version     2.0;", "    format      ascii;",
+                "    class       dictionary;", "    location    \"system\";",
+                "    object      surfaceFeaturesDict;", "}", "", "surfaces", "(",
             ]
-            for name in stl_names:
-                lines.append(f'    "{name}"')
-            lines.append(");")
-            lines.append("")
-            lines.append("includedAngle 60;")
-            lines.append("")
-            lines.append("featureEndPoints true;")
-            lines.append("featureSnapRefine true;")
-            lines.append("")
-            dict_file.write_text("\n".join(lines))
+            lines.extend(f'    "{name}"' for name in stl_names)
+            lines.extend([");", "", "includedAngle 60;", ""])
+            dict_file.write_text("\n".join(lines), encoding="utf-8")
 
-        cmd = ["surfaceFeatureExtract", "-case", str(self.case_path)]
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        executable = shutil.which("surfaceFeatures") or shutil.which("surfaceFeatureExtract")
+        if executable is None:
+            raise RuntimeError("Neither surfaceFeatures nor surfaceFeatureExtract is available")
+        result = subprocess.run([executable, "-case", str(self.case_path)], capture_output=True, text=True)
         if result.returncode != 0:
-            print("Error running surfaceFeatureExtract:")
-            print(result.stderr)
-        else:
-            print("surfaceFeatureExtract finished successfully.")
+            raise RuntimeError(f"{Path(executable).name} failed: {result.stderr}")
+
+        missing = []
+        for feature in self.castellatedMeshControls.get("features", []):
+            feature_path = self.case_path / "constant" / "triSurface" / feature["file"]
+            if not feature_path.exists():
+                missing.append(str(feature_path))
+        if missing:
+            raise RuntimeError("Surface feature files were not created: " + ", ".join(missing))
+        print(f"{Path(executable).name} finished successfully.")
+
+    def run_surface_feature_extract(self):
+        """Backward-compatible alias for :meth:`run_surface_features`."""
+        self.run_surface_features()
 
     def add_refinement_region(self, name, mode, levels):
         """

@@ -158,7 +158,8 @@ class ConstantDirectory:
         simulationType, model = self.solver.get_turbulence_configuration()
         is_compressible = getattr(self.solver, "compressible", False)
 
-        if is_compressible:
+        use_modular_fluid = getattr(self.solver, "solver_name", "") == "fluid"
+        if is_compressible or use_modular_fluid:
             mt_file = MomentumTransportFile(
                 parent=self.solver,
                 simulationType=simulationType,
@@ -177,7 +178,7 @@ class ConstantDirectory:
 
 
         # Transport / Physical
-        if getattr(self.solver, "compressible", False):
+        if getattr(self.solver, "compressible", False) or use_modular_fluid:
             self._physicalProperties.write(constant_path / "physicalProperties")
             self._pRef.write(constant_path / "pRef")
         else:

@@ -77,6 +77,7 @@ class CaseFieldsManager:
         self.fields: Dict[str, Dict[str, Any]] = {}
         self.physical_properties: Dict[str, ValueWithUnit] = {}
         self.turbulence_properties: Dict[str, Any] = {}
+        self.custom_initial_values: Dict[str, Any] = {}
 
         self._generate_fields()
 
@@ -136,7 +137,10 @@ class CaseFieldsManager:
         if model == "laminar":
             return
 
-        if "kepsilon" in model:
+        if model.startswith("les:") and "keqn" in model:
+            self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
+        elif "kepsilon" in model:
             self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
             self.fields["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
             self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
@@ -300,12 +304,19 @@ class CaseFieldsManager:
     # ------------------------------------------------------------------
 
     def get_field_names(self) -> list[str]:
-        """Returns the names of all generated fields.
-
-        Returns:
-            list[str]: A list of strings representing the field filenames (e.g., ['U', 'p', 'k']).
-        """
+        """Returns the names of all generated fields."""
         return list(self.fields.keys())
+
+    def register_field(self, name: str, value: Any, unit: str = "") -> None:
+        """Register an additional OpenFOAM field required by a reference case.
+
+        The field is handled by the normal system, constant and boundary writers;
+        no direct file manipulation is needed in a tutorial runner.
+        """
+        if not name or not isinstance(name, str):
+            raise ValueError("Field name must be a non-empty string")
+        self.fields[name] = {"value": ValueWithUnit(value, unit)}
+        self.custom_initial_values[name] = value
 
     def to_dict(self) -> Dict[str, Any]:
         """Exports the field configurations to a simplified dictionary format.

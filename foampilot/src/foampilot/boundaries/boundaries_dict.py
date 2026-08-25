@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 import logging
 import warnings
+from pathlib import Path
 from typing import Dict, List, Optional, Any
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from foampilot.utilities.manageunits import ValueWithUnit
@@ -31,6 +32,8 @@ class Boundary:
         self.turbulence_model = turbulence_model
         self.fields_manager = fields_manager
         self.config = BOUNDARY_CONDITIONS_CONFIG.get(self.turbulence_model)
+        if not self.config and str(self.turbulence_model).lower().startswith("les:"):
+            self.config = BOUNDARY_CONDITIONS_CONFIG["kEpsilon"]
         if not self.config:
             raise ValueError(f"Turbulence model '{self.turbulence_model}' is not supported.")
 
@@ -59,6 +62,25 @@ class Boundary:
 
         exclude = {'FoamFile', 'format', 'class', 'location', 'object'}
         return {k: v for k, v in patches.items() if k not in exclude}
+
+    def set_patch_type(self, patch_name: str, patch_type: str) -> None:
+        """Set a generated polyMesh patch type without shell/file edits.
+
+        This is useful after direct mesh exporters, which commonly emit generic
+        ``patch`` entries for faces that must be ``wall`` or ``empty``.
+        """
+        boundary_file = Path(self.parent.case_path) / "constant" / "polyMesh" / "boundary"
+        if not boundary_file.exists():
+            raise FileNotFoundError(f"File {boundary_file} not found.")
+        content = boundary_file.read_text(encoding="utf-8")
+        pattern = re.compile(
+            rf"(\b{re.escape(patch_name)}\s*\{{[^}}]*?\btype\s+)(\w+)(;)",
+            re.DOTALL,
+        )
+        updated, count = pattern.subn(rf"\g<1>{patch_type}\g<3>", content, count=1)
+        if count != 1:
+            raise KeyError(f"Patch {patch_name!r} not found in {boundary_file}")
+        boundary_file.write_text(updated, encoding="utf-8")
 
     def initialize_boundary(self):
         """
@@ -182,7 +204,10 @@ class Boundary:
             kwargs["velocity"] = (ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s"))
 
         if "type" in field_config and field_config["type"] == "wallFunction":
-            wall_func_conf = WALL_FUNCTIONS[self.turbulence_model][field_config["function"]]
+            wall_model = self.turbulence_model
+            if wall_model not in WALL_FUNCTIONS and str(wall_model).lower().startswith("les:"):
+                wall_model = "kEpsilon"
+            wall_func_conf = WALL_FUNCTIONS[wall_model][field_config["function"]]
             if kwargs.get("velocity"):
                 return wall_func_conf.get("fixedValue", wall_func_conf.get("default"))
             else:
@@ -227,6 +252,7 @@ class Boundary:
         if internal_field_overrides is None:
             internal_field_overrides = {}
         is_compressible = getattr(self.parent, "compressible", False)
+        custom_values = getattr(self.fields_manager, "custom_initial_values", {})
         for field, boundaries in self.fields.items():
             for patch, params in boundaries.items():
                 if 'value' in params and isinstance(params['value'], str):
@@ -236,12 +262,19 @@ class Boundary:
                         continue
                     if not val.startswith('uniform ') and not val.startswith('nonuniform '):
                         params['value'] = 'uniform ' + val
+            internal_field = internal_field_overrides.get(field)
+            if internal_field is None and field in custom_values:
+                value = custom_values[field]
+                if isinstance(value, (tuple, list)):
+                    internal_field = "uniform (" + " ".join(str(v) for v in value) + ")"
+                else:
+                    internal_field = f"uniform {value}"
             foam_file = OpenFOAMFile(field)
             foam_file.write_boundary_file(
                 field=field,
                 boundaries=boundaries,
                 case_path=self.parent.case_path,
-                internal_field=internal_field_overrides.get(field),
+                internal_field=internal_field,
                 compressible=is_compressible,
             )
 
