@@ -14,7 +14,7 @@ from typing import Iterable, Optional
 
 from shapely.affinity import rotate, translate
 from shapely.geometry import LineString, Point, Polygon
-from shapely.ops import split, unary_union
+from shapely.ops import split, substring, unary_union
 
 from foampilot.urban.model.urban_model import Building, CFDLOD, RoofType, UrbanModel
 
@@ -243,6 +243,24 @@ def _split_site_into_zones(region: Polygon, count: int, angle_deg: float, gap: f
 
 
 def _courtyard_ring_segments(zone: Polygon, width: float, breaks: int, break_width: float, coverage: float, shift: float, seed: int) -> list[Polygon]:
+    ring_cache = RingCache(zone, width)
+    if not ring_cache.ok:
+        return []
+    # The cache defines the exact outer/inner ring; cuts span the complete band
+    # so the returned segments are disjoint, as in the Rhino Boolean workflow.
+    ring = zone.difference(ring_cache.inner)
+    perimeter = zone.exterior
+    breaks = max(1, int(breaks))
+    phase = ((seed * 131 + int(shift * 100)) % 1000) / 1000.0
+    cuts = []
+    for i in range(breaks):
+        point = perimeter.interpolate(((i + phase) / breaks) * perimeter.length)
+        cuts.append(point.buffer(width + max(0.3, break_width * max(0.35, 1.0 - coverage))))
+    pieces = ring.difference(unary_union(cuts))
+    return [p for p in getattr(pieces, "geoms", (pieces,)) if p.geom_type == "Polygon" and p.area >= width * width * 0.3]
+
+
+def _legacy_courtyard_ring_segments(zone: Polygon, width: float, breaks: int, break_width: float, coverage: float, shift: float, seed: int) -> list[Polygon]:
     inner = zone.buffer(-width)
     if inner.is_empty:
         return []
@@ -261,6 +279,89 @@ def _courtyard_ring_segments(zone: Polygon, width: float, breaks: int, break_wid
         if part.geom_type == "Polygon" and part.area >= width * width * 0.3:
             result.append(part)
     return result
+
+
+def _as_polygon(geometry):
+    if geometry is None or geometry.is_empty:
+        return None
+    return _largest_polygon(geometry) if geometry.geom_type != "Polygon" else geometry
+
+
+def _fast_area(geometry) -> float:
+    return 0.0 if geometry is None or geometry.is_empty else float(geometry.area)
+
+
+def _fast_centroid(geometry) -> Point:
+    return geometry.centroid
+
+
+def _ensure_ccw(polygon: Polygon) -> Polygon:
+    from shapely.geometry.polygon import orient
+    return orient(polygon, sign=1.0)
+
+
+def _bbox_inside(candidate, boundary, tol=1e-6) -> bool:
+    a = candidate.bounds
+    b = boundary.bounds
+    return a[0] >= b[0] - tol and a[1] >= b[1] - tol and a[2] <= b[2] + tol and a[3] <= b[3] + tol
+
+
+def _bbox_disjoint(a, b, padding=0.0) -> bool:
+    return a[2] + padding < b[0] or b[2] + padding < a[0] or a[3] + padding < b[1] or b[3] + padding < a[1]
+
+
+def curves_overlap_safe(a, b, tol=1e-7) -> bool:
+    return not a.buffer(-tol).intersection(b.buffer(-tol)).is_empty
+
+
+def is_inside_boundary(candidate, boundary, tol=1e-7) -> bool:
+    return boundary.buffer(tol).covers(candidate)
+
+
+class RingCache:
+    """Shapely equivalent of UrbGEN's arc-length cache for an outer/inner ring."""
+    def __init__(self, zone: Polygon, ring_width: float, samples: int = 512):
+        self.outer = _ensure_ccw(zone)
+        self.inner = _as_polygon(self.outer.buffer(-ring_width))
+        self.ok = self.inner is not None and not self.inner.is_empty and self.outer.length > 0
+        self.samples = max(64, int(samples))
+        self._outer_line = LineString(self.outer.exterior.coords)
+        self._inner_line = LineString(self.inner.exterior.coords) if self.ok else None
+        self.total = self._outer_line.length
+        self.corners = list(self.outer.exterior.coords[:-1])
+
+    def arc_pos(self, s: float) -> float:
+        return float(s % self.total)
+
+    def param_at_arc(self, s: float) -> float:
+        return self.arc_pos(s)
+
+    def shift_param(self, s: float, length_delta: float) -> float:
+        return self.arc_pos(s + length_delta)
+
+    def forward_arc_len(self, s0: float, s1: float) -> float:
+        return (self.arc_pos(s1) - self.arc_pos(s0)) % self.total
+
+    def point_outer(self, s: float) -> Point:
+        return self._outer_line.interpolate(self.arc_pos(s))
+
+    def point_inner(self, s: float) -> Point:
+        if not self.ok:
+            return self.point_outer(s)
+        fraction = self.arc_pos(s) / self.total
+        return self._inner_line.interpolate(fraction * self._inner_line.length)
+
+    def segment(self, start: float, end: float, min_area: float = 1.0):
+        if not self.ok:
+            return None
+        length = self.forward_arc_len(start, end)
+        n = max(4, int(length / max(self.total / self.samples, 0.25)))
+        outer_pts = [self.point_outer(start + length * i / n) for i in range(n + 1)]
+        inner_pts = [self.point_inner(start + length * i / n) for i in range(n, -1, -1)]
+        poly = Polygon([(p.x, p.y) for p in outer_pts + inner_pts])
+        if not poly.is_valid:
+            poly = poly.buffer(0)
+        return _as_polygon(poly) if _fast_area(poly) >= min_area else None
 
 
 def _build_courtyard_layout(region: Polygon, config: UrbGENConfig, target_area: float) -> list[Polygon]:

@@ -8,6 +8,20 @@ from foampilot.urban.generation import UrbGENConfig, generate_urbgen
 SITE = Polygon([(0, 0), (160, 0), (160, 120), (0, 120)])
 
 
+def test_ringcache_arc_mapping_and_disjoint_segments():
+    from foampilot.urban.generation.urbgen import RingCache, _courtyard_ring_segments
+    zone = SITE.buffer(-8)
+    cache = RingCache(zone, 12.0, samples=128)
+    assert cache.ok
+    assert cache.total > 0
+    assert cache.inner.area < zone.area
+    assert cache.param_at_arc(cache.total + 10.0) == pytest.approx(10.0)
+    segments = _courtyard_ring_segments(zone, 12.0, 4, 18.0, 0.7, 0.0, 42)
+    assert len(segments) == 4
+    assert all(s.is_valid and zone.covers(s) for s in segments)
+    assert all(segments[i].intersection(segments[j]).area < 1e-6 for i in range(len(segments)) for j in range(i + 1, len(segments)))
+
+
 def test_default_config_matches_original_gha_contract():
     c = UrbGENConfig()
     assert c.bcr == 0.50
