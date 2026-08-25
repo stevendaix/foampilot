@@ -1,0 +1,225 @@
+"""UrbGEN-compatible stochastic urban massing for foampilot.
+
+This module mirrors the public UrbGEN generator contract: site/setback,
+centroid population, typology grammar, tower growth toward BCR, podium
+expansion, FAR-derived floors, height regulation, rotation and post-placement
+rules. It returns native ``UrbanModel`` objects for Gmsh/build123d adapters.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from math import ceil, sqrt
+from random import Random
+from typing import Iterable, Optional
+
+from shapely.affinity import rotate, translate
+from shapely.geometry import Point, Polygon
+from shapely.ops import unary_union
+
+from foampilot.urban.model.urban_model import Building, CFDLOD, RoofType, UrbanModel
+
+
+@dataclass(frozen=True)
+class UrbGENConfig:
+    bcr: float = 0.35
+    upper_bcr: Optional[float] = None
+    far: float = 2.0
+    setback: float = 5.0
+    min_width: float = 8.0
+    tower_size_mode: int = 1
+    min_footprint_per_tower: float = 20.0
+    max_footprint_per_tower: float = 500.0
+    max_length_width_ratio: float = 6.0
+    min_tower_distance: float = 8.0
+    tower_bcr_priority: float = 0.70
+    tower_grow_step: float = 1.0
+    tower_grow_iterations: int = 100
+    seed: int = 0
+    tower_typology_mode: int = 6
+    arm_length_ratio: float = 1.0
+    podium_floors: int = 2
+    podium_min_offset: float = 2.0
+    podium_max_offset: float = 12.0
+    floor_height: float = 3.0
+    global_rotation_mode: int = 0
+    uniform_rotation_deg: float = 0.0
+    courtyard_count: int = 1
+    courtyard_break_count: int = 4
+    courtyard_break_width: float = 8.0
+    courtyard_zone_gap: float = 6.0
+    courtyard_split_angle: float = 0.0
+    courtyard_break_shift: float = 0.0
+    courtyard_layout_mode: int = 0
+    height_variation: float = 0.20
+    enforce_height_regulation: bool = False
+    height_regulation_mode: int = 0
+    max_building_height: float = 1000.0
+    min_building_height: float = 3.0
+    move_to_boundary: bool = False
+    move_all_to_setback: bool = False
+    align_towers_to_edge: bool = False
+    edge_align_both_orientations: bool = True
+    move_tower_to_podium_edge: bool = False
+    floor_height_override: Optional[float] = None
+
+    def __post_init__(self) -> None:
+        if not 0.0 < self.bcr <= 1.0 or (self.upper_bcr is not None and self.upper_bcr < self.bcr):
+            raise ValueError("bcr/upper_bcr must satisfy 0 < bcr <= upper_bcr <= 1")
+        if self.far <= 0 or self.min_width < 2 or self.min_tower_distance < 0:
+            raise ValueError("far must be positive, min_width >= 2 and distance non-negative")
+        if self.max_length_width_ratio < 2 or self.tower_bcr_priority < 0 or self.tower_bcr_priority > 1:
+            raise ValueError("invalid tower sizing or BCR priority")
+        if self.tower_typology_mode not in range(8):
+            raise ValueError("tower_typology_mode must be between 0 and 7")
+
+
+@dataclass
+class UrbGENResult:
+    model: UrbanModel
+    site: Polygon
+    buildable_site: Polygon
+    tower_footprints: list[Polygon]
+    podium_footprints: list[Polygon]
+    tower_angles: list[float]
+    tower_typologies: list[int]
+    actual_bcr: float
+    actual_far: float
+    total_gfa: float
+    tower_gfa: float
+    podium_gfa: float
+    diagnostics: dict = field(default_factory=dict)
+
+    @property
+    def target_bcr(self) -> float:
+        return self.diagnostics["target_bcr"]
+
+    @property
+    def target_far(self) -> float:
+        return self.diagnostics["target_far"]
+
+    @property
+    def bcr_error(self) -> float:
+        return self.actual_bcr - self.target_bcr
+
+    @property
+    def far_error(self) -> float:
+        return self.actual_far - self.target_far
+
+
+def _rect(width: float, length: float) -> Polygon:
+    w, l = width / 2.0, length / 2.0
+    return Polygon([(-l, -w), (l, -w), (l, w), (-l, w)])
+
+
+def _grammar(width: float, length: float, typology: int, arm_ratio: float) -> Polygon:
+    base = _rect(width, length)
+    if typology == 0:
+        return base
+    arm = max(width * 0.3, width * arm_ratio)
+    if typology == 1:
+        return unary_union([base, translate(_rect(arm, length), xoff=-length / 2 + arm / 2)])
+    if typology == 2:
+        return unary_union([base, translate(_rect(length, arm), yoff=length / 2 - arm / 2)])
+    if typology == 3:
+        return unary_union([base, translate(_rect(arm, length), xoff=-length / 2 + arm / 2), translate(_rect(arm, length), xoff=length / 2 - arm / 2)])
+    if typology == 4:
+        return base.difference(translate(_rect(length * 0.65, width * 0.55), xoff=length * 0.2))
+    return unary_union([base, _rect(width * arm_ratio, length)])
+
+
+def _lattice(region: Polygon, spacing: float) -> Iterable[Point]:
+    minx, miny, maxx, maxy = region.bounds
+    y = miny + spacing / 2
+    while y <= maxy:
+        x = minx + spacing / 2
+        while x <= maxx:
+            p = Point(x, y)
+            if region.covers(p):
+                yield p
+            x += spacing
+        y += spacing
+
+
+def _angle(config: UrbGENConfig, rng: Random) -> float:
+    if config.global_rotation_mode == 1:
+        return max(0.0, min(180.0, config.uniform_rotation_deg))
+    if config.global_rotation_mode in (2, 3):
+        return float(rng.choice((0, 45, 90, 135, 180)))
+    return float(rng.choice((0, 45, 90, 135, 180)))
+
+
+def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs: Optional[str] = None, centroids: Optional[Iterable[Point]] = None) -> UrbGENResult:
+    """Generate a deterministic random UrbGEN neighbourhood from one site."""
+    if site.is_empty or not site.is_valid or site.area <= 0:
+        raise ValueError("site must be a valid, non-empty polygon")
+    buildable = site.buffer(-max(0.0, config.setback))
+    if buildable.is_empty:
+        buildable = site
+    if buildable.geom_type != "Polygon":
+        buildable = max(buildable.geoms, key=lambda g: g.area)
+    rng = Random(config.seed % 10000)
+    typology = config.tower_typology_mode
+    if typology == 7:
+        typology = 0
+    target_tower_area = site.area * config.bcr * config.tower_bcr_priority
+    width = max(2.0, config.min_width)
+    mode_factor = {0: 0.75, 1: 1.0, 2: 1.25, 3: rng.uniform(0.75, 1.25)}.get(config.tower_size_mode, 1.0)
+    length = width * min(config.max_length_width_ratio, 2.0 * mode_factor)
+    spacing = max(width + config.min_tower_distance, width * 1.5)
+    seeds = list(centroids) if centroids is not None else list(_lattice(buildable, spacing))
+    rng.shuffle(seeds)
+    towers: list[Polygon] = []
+    angles: list[float] = []
+    codes: list[int] = []
+    covered = 0.0
+    for seed in seeds:
+        if covered >= target_tower_area or len(towers) >= config.tower_grow_iterations:
+            break
+        code = rng.randrange(6) if config.tower_typology_mode == 6 else typology
+        angle = _angle(config, rng)
+        shape = rotate(_grammar(width, length, code, max(0.3, config.arm_length_ratio)), angle, origin=(0, 0))
+        shape = translate(shape, xoff=seed.x, yoff=seed.y)
+        for _ in range(max(1, config.tower_grow_iterations)):
+            if shape.area >= config.min_footprint_per_tower and shape.area <= config.max_footprint_per_tower and buildable.covers(shape) and all(shape.buffer(config.min_tower_distance).disjoint(other) for other in towers):
+                break
+            if shape.area > config.max_footprint_per_tower or not buildable.covers(shape):
+                shape = rotate(_grammar(width, max(width, length - config.tower_grow_step), code, config.arm_length_ratio), angle, origin=(0, 0))
+                shape = translate(shape, xoff=seed.x, yoff=seed.y)
+                break
+            length += config.tower_grow_step
+            shape = rotate(_grammar(width, length, code, config.arm_length_ratio), angle, origin=(0, 0))
+            shape = translate(shape, xoff=seed.x, yoff=seed.y)
+        if shape.area < config.min_footprint_per_tower or not buildable.covers(shape) or any(not shape.buffer(config.min_tower_distance).disjoint(other) for other in towers):
+            continue
+        towers.append(shape)
+        angles.append(angle)
+        codes.append(code)
+        covered += shape.area
+    if not towers:
+        raise ValueError("no UrbGEN tower fits the buildable site")
+
+    union = unary_union(towers)
+    podium: list[Polygon] = []
+    actual_offset = 0.0
+    if config.podium_floors > 0:
+        actual_offset = min(config.podium_max_offset, max(config.podium_min_offset, 0.35 * sqrt(site.area)))
+        p = union.buffer(actual_offset).intersection(buildable)
+        podium = list(p.geoms) if p.geom_type == "MultiPolygon" else [p]
+    tower_floor_area = sum(p.area for p in towers)
+    podium_area = sum(p.area for p in podium)
+    floor_h = config.floor_height_override or config.floor_height
+    target_gfa = site.area * config.far
+    tower_floors = max(1, ceil(max(0.0, target_gfa - podium_area * config.podium_floors) / tower_floor_area))
+    heights = []
+    model = UrbanModel(crs=crs)
+    for i, footprint in enumerate(towers):
+        h = tower_floors * floor_h * (1 + rng.uniform(-config.height_variation, config.height_variation))
+        if config.enforce_height_regulation:
+            h = max(config.min_building_height, min(config.max_building_height, h))
+        h = max(config.min_building_height, h)
+        heights.append(h)
+        model.add_building(Building(f"urbgen-tower-{i:04d}", footprint, 0.0, h, RoofType.FLAT, CFDLOD.LOD1, "urbgen", 1.0, {"typology": codes[i], "typology_name": ("I", "L", "T", "H", "C", "Plus")[codes[i]], "angle_deg": angles[i], "floors": round(h / floor_h)}))
+    for i, footprint in enumerate(podium):
+        model.add_building(Building(f"urbgen-podium-{i:04d}", footprint, 0.0, config.podium_floors * floor_h, RoofType.FLAT, CFDLOD.LOD1, "urbgen-podium", 1.0, {"podium_offset": actual_offset, "floors": config.podium_floors}))
+    gfa = sum(b.area * max(1, round(b.height / floor_h)) for b in model.buildings())
+    return UrbGENResult(model, site, buildable, towers, podium, angles, codes, sum(b.area for b in model.buildings()) / site.area, gfa / site.area, gfa, tower_floor_area * tower_floors, podium_area * config.podium_floors, {"target_bcr": config.bcr, "target_far": config.far, "tower_count": len(towers), "podium_count": len(podium), "actual_podium_offset": actual_offset, "heights": heights, "seed": config.seed})
