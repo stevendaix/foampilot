@@ -48,7 +48,9 @@ vofFragmentInjection<CloudType>::vofFragmentInjection
     rhoLiquid_(this->coeffDict().template lookupOrDefault<scalar>("rhoLiquid", -1)),
     cloudPhase_(this->coeffDict().template lookupOrDefault<word>("phase", "water")),
     prepared_(false),
-    emitted_(false)
+    emitted_(false),
+    lastTimeIndex_(-1),
+    injectedIds_()
 {}
 
 
@@ -74,7 +76,9 @@ vofFragmentInjection<CloudType>::vofFragmentInjection
     tetPts_(other.tetPts_),
     diameters_(other.diameters_),
     prepared_(other.prepared_),
-    emitted_(other.emitted_)
+    emitted_(other.emitted_),
+    lastTimeIndex_(other.lastTimeIndex_),
+    injectedIds_(other.injectedIds_)
 {}
 
 
@@ -86,14 +90,53 @@ void vofFragmentInjection<CloudType>::prepare()
         return;
     }
 
-    fragments_ = vofFragmentTransition::detect
-    (
-        alpha_,
-        U_,
-        threshold_,
-        minCells_,
-        minVolume_
-    );
+    const List<vofFragmentTransitionRecord> detected =
+        vofFragmentTransition::detect
+        (
+            alpha_,
+            U_,
+            threshold_,
+            minCells_,
+            minVolume_
+        );
+
+    DynamicList<std::uint64_t> activeIds(detected.size());
+    forAll(detected, fragmentI)
+    {
+        activeIds.append(detected[fragmentI].id);
+    }
+    DynamicList<std::uint64_t> retainedIds(activeIds.size());
+    forAll(injectedIds_, idI)
+    {
+        forAll(activeIds, activeI)
+        {
+            if (activeIds[activeI] == injectedIds_[idI])
+            {
+                retainedIds.append(injectedIds_[idI]);
+                break;
+            }
+        }
+    }
+    injectedIds_.transfer(retainedIds);
+
+    DynamicList<vofFragmentTransitionRecord> fresh(detected.size());
+    forAll(detected, fragmentI)
+    {
+        bool alreadyInjected = false;
+        forAll(injectedIds_, idI)
+        {
+            if (injectedIds_[idI] == detected[fragmentI].id)
+            {
+                alreadyInjected = true;
+                break;
+            }
+        }
+        if (!alreadyInjected)
+        {
+            fresh.append(detected[fragmentI]);
+        }
+    }
+    fragments_.transfer(fresh);
 
     coordinates_.setSize(fragments_.size());
     cells_.setSize(fragments_.size(), -1);
@@ -147,6 +190,14 @@ Foam::scalar vofFragmentInjection<CloudType>::nParcelsToInject
     const scalar
 )
 {
+    const label timeIndex = this->owner().db().time().timeIndex();
+    if (timeIndex != lastTimeIndex_)
+    {
+        lastTimeIndex_ = timeIndex;
+        prepared_ = false;
+        emitted_ = false;
+    }
+
     prepare();
 
     // A spray fragment may appear only after the liquid jet has entered
@@ -207,6 +258,10 @@ void vofFragmentInjection<CloudType>::setPositionAndCell
     if (parcelI == fragments_.size() - 1)
     {
         emitted_ = true;
+        forAll(fragments_, fragmentI)
+        {
+            injectedIds_.append(fragments_[fragmentI].id);
+        }
     }
 }
 

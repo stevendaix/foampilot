@@ -237,6 +237,7 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
     }
 
     mu_ = mixture_.rho()*mixture_.nu();
+    transitionApplied_ = false;
     if (detectFragments_)
     {
         const volVectorField& U = mesh().lookupObject<volVectorField>("U");
@@ -262,7 +263,7 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
         }
         Info<< "VOF fragments detected: " << fragments.size()
             << ", convertible volume: " << detectedVolume << nl;
-        if (consumeAlpha_ && !transitionApplied_)
+        if (consumeAlpha_ && !transitionApplied_ && !fragments.empty())
         {
             alphaRhoTransferRate_ =
                 dimensionedScalar(dimless/dimTime, scalar(0));

@@ -123,6 +123,7 @@ void Foam::fv::incompressibleVoFClouds::correct()
     }
 
     mu_ = mixture_.rho()*mixture_.nu();
+    transitionApplied_ = false;
     if (detectFragments_)
     {
         const volVectorField& U = mesh().lookupObject<volVectorField>("U");
@@ -154,7 +155,7 @@ void Foam::fv::incompressibleVoFClouds::correct()
                 << " id " << fragments[fragmentI].id
                 << " volume " << fragments[fragmentI].volume << nl;
         }
-        if (consumeAlpha_ && !transitionApplied_)
+        if (consumeAlpha_ && !transitionApplied_ && !fragments.empty())
         {
             alphaConsumptionRate_ =
                 dimensionedScalar(dimless/dimTime, scalar(0));

@@ -31,6 +31,8 @@ class vofFragmentInjection
     scalarList diameters_;
     bool prepared_;
     bool emitted_;
+    label lastTimeIndex_;
+    DynamicList<std::uint64_t> injectedIds_;
 
     void prepare();
 
