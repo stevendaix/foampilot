@@ -23,6 +23,7 @@ class compressibleVoFClouds : public fvModel
     const wordList cloudNames_;
     const Switch useThermoCloud_;
     mutable volScalarField mu_;
+    mutable volScalarField confirmedTransferRate_;
     mutable autoPtr<parcelCloudList> cloudsPtr_;
     mutable volScalarField fragmentMask_;
     mutable volScalarField alphaRhoTransferRate_;

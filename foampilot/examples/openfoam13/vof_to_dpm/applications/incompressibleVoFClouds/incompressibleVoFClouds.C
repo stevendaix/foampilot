@@ -63,6 +63,19 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
         mesh,
         dimensionedScalar(dimDynamicViscosity, 0)
     ),
+    confirmedTransferRate_
+    (
+        IOobject
+        (
+            "vofConfirmedTransferRate",
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless/dimTime, 0)
+    ),
     clouds_
     (
         cloudNames_,
@@ -124,6 +137,9 @@ void Foam::fv::incompressibleVoFClouds::correct()
 
     mu_ = mixture_.rho()*mixture_.nu();
     transitionApplied_ = false;
+    confirmedTransferRate_.internalFieldRef() =
+        dimensionedScalar(dimless/dimTime, 0);
+    consumptionPending_ = false;
     if (detectFragments_)
     {
         const volVectorField& U = mesh().lookupObject<volVectorField>("U");
@@ -155,26 +171,12 @@ void Foam::fv::incompressibleVoFClouds::correct()
                 << " id " << fragments[fragmentI].id
                 << " volume " << fragments[fragmentI].volume << nl;
         }
-        if (consumeAlpha_ && !transitionApplied_ && !fragments.empty())
-        {
-            alphaConsumptionRate_ =
-                dimensionedScalar(dimless/dimTime, scalar(0));
-            const scalar rate = 1/mesh().time().deltaTValue();
-            forAll(fragments, fragmentI)
-            {
-                const labelList& cells = fragments[fragmentI].cells;
-                forAll(cells, cellI)
-                {
-                    alphaConsumptionRate_[cells[cellI]] = rate;
-                }
-            }
-            consumptionPending_ = true;
-            transitionApplied_ = true;
-            Info<< "VOF alpha consumption armed for "
-                << detectedVolume << " m3" << nl;
-        }
+        transitionApplied_ = true;
     }
     clouds_.evolve();
+    consumptionPending_ =
+        consumeAlpha_
+     && gMax(confirmedTransferRate_.internalField()) > SMALL;
     curTimeIndex_ = mesh().time().timeIndex();
 }
 
@@ -201,7 +203,7 @@ void Foam::fv::incompressibleVoFClouds::addSup
     {
         if (&alpha == &mixture_.alpha1())
         {
-            eqn += -fvm::Sp(alphaConsumptionRate_, eqn.psi());
+            eqn += -fvm::Sp(confirmedTransferRate_, eqn.psi());
         }
         else
         {
@@ -217,7 +219,7 @@ void Foam::fv::incompressibleVoFClouds::addSup
             forAll(tSu(), celli)
             {
                 tSu.ref()[celli] =
-                    alphaConsumptionRate_[celli]
+                    confirmedTransferRate_[celli]
                    *mixture_.alpha1()[celli]
                    ;
             }

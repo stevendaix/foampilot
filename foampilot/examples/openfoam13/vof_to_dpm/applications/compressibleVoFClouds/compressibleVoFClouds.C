@@ -65,6 +65,19 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
         ),
         mixture_.rho()*mixture_.nu()
     ),
+    confirmedTransferRate_
+    (
+        IOobject
+        (
+            "vofConfirmedTransferRate",
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless/dimTime, 0)
+    ),
     cloudsPtr_
     (
         useThermoCloud_
@@ -203,8 +216,7 @@ void Foam::fv::compressible::compressibleVoFClouds::addSup
             (
                 "vofAlphaRhoTransfer",
                 mesh(),
-                                    dimensionedScalar(dimMass/dimVolume/dimTime, 0)
-
+                dimensionedScalar(dimDensity/dimTime, 0)
             )
         );
         const bool liquidIsPhase1 = liquidPhase_ == mixture_.alpha1().group();
@@ -213,7 +225,7 @@ void Foam::fv::compressible::compressibleVoFClouds::addSup
         forAll(tSu(), celli)
         {
             tSu.ref()[celli] =
-                sign*alphaRhoTransferRate_[celli]
+                sign*confirmedTransferRate_[celli]
                *liquidAlpha_[celli]
                *rho[celli]
                                   ;
@@ -238,6 +250,10 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
 
     mu_ = mixture_.rho()*mixture_.nu();
     transitionApplied_ = false;
+    confirmedTransferRate_.internalFieldRef() =
+        dimensionedScalar(dimless/dimTime, 0);
+    consumptionPending_ = false;
+    energyTransferPending_ = false;
     if (detectFragments_)
     {
         const volVectorField& U = mesh().lookupObject<volVectorField>("U");
@@ -263,25 +279,7 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
         }
         Info<< "VOF fragments detected: " << fragments.size()
             << ", convertible volume: " << detectedVolume << nl;
-        if (consumeAlpha_ && !transitionApplied_ && !fragments.empty())
-        {
-            alphaRhoTransferRate_ =
-                dimensionedScalar(dimless/dimTime, scalar(0));
-            const scalar rate = 1/mesh().time().deltaTValue();
-            forAll(fragments, fragmentI)
-            {
-                const labelList& cells = fragments[fragmentI].cells;
-                forAll(cells, cellI)
-                {
-                    alphaRhoTransferRate_[cells[cellI]] = rate;
-                }
-            }
-            consumptionPending_ = true;
-            energyTransferPending_ = useThermoCloud_;
-            transitionApplied_ = true;
-            Info<< "Compressible alphaRho transfer armed for "
-                << detectedVolume << " m3" << nl;
-        }
+        transitionApplied_ = true;
         forAll(fragments, fragmentI)
         {
             Info<< "  fragment " << fragmentI
@@ -290,6 +288,12 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
         }
     }
     cloudsPtr_().evolve();
+    consumptionPending_ =
+        consumeAlpha_
+     && gMax(confirmedTransferRate_.internalField()) > SMALL;
+    energyTransferPending_ =
+        useThermoCloud_
+     && consumptionPending_;
     curTimeIndex_ = mesh().time().timeIndex();
 }
 
@@ -346,7 +350,7 @@ void Foam::fv::compressible::compressibleVoFClouds::addSup
         forAll(tSu(), celli)
         {
             tSu.ref()[celli] =
-                -alphaRhoTransferRate_[celli]
+                -confirmedTransferRate_[celli]
                *liquidAlpha_[celli]
                *liquidRho[celli]
                *liquidHe[celli];

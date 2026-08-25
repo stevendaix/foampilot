@@ -32,7 +32,9 @@ class vofFragmentInjection
     bool prepared_;
     bool emitted_;
     label lastTimeIndex_;
+    scalar expectedMass_;
     DynamicList<std::uint64_t> injectedIds_;
+    DynamicList<labelList> injectedCellSets_;
 
     void prepare();
 
@@ -84,7 +86,14 @@ public:
         typename CloudType::parcelType& parcel
     );
 
-    virtual bool fullyDescribed() const { return false; }
+    virtual void postInject
+    (
+        const label parcelsAdded,
+        const scalar massAdded,
+        typename CloudType::parcelType::trackingData& td
+    );
+
+    virtual bool fullyDescribed() const;
 };
 
 } // End namespace Foam

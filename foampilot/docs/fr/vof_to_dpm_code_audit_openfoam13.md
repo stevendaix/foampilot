@@ -93,3 +93,31 @@ Le portage peut être classé **prototype avancé validé sur cas nominaux**, ma
 [3]: https://github.com/stevendaix/foampilot/blob/feat/vof-to-dpm-conservative-transition/examples/openfoam13/vof_to_dpm/applications/compressibleVoFClouds/compressibleVoFClouds.C "Modèle compressibleVoFClouds"
 [4]: https://github.com/stevendaix/foampilot/blob/feat/vof-to-dpm-conservative-transition/examples/openfoam13/vof_to_dpm/applications/incompressibleVoFClouds/incompressibleVoFClouds.C "Modèle incompressibleVoFClouds"
 [5]: https://github.com/stevendaix/foampilot/tree/feat/vof-to-dpm-conservative-transition/examples/openfoam13/vof_to_dpm/test/openfoam13 "Cas de validation OpenFOAM 13"
+
+## Mise à jour finale — 25 août 2026
+
+La transaction fragment→parcel est maintenant structurée autour de `postInject()`: le taux confirmé n’est écrit qu’après retour du cloud avec un nombre de parcels et une masse effectivement créés. Le mode OpenFOAM à `nParticle` fixé est traité explicitement lorsque `massToInject()` n’est pas appelé. Pour éviter les réinjections lorsque la topologie d’une composante évolue et que son hash de cellules change, le modèle conserve également les ensembles de cellules des fragments déjà confirmés et rejette les nouveaux fragments qui les recouvrent.
+
+Les champs de taux sont remis à zéro avec des `dimensionedScalar` compatibles avec leurs unités. La surcharge compressible `addSup(alpha,rho,eqn)` consomme le transfert confirmé dans l’équation alpha-rho, tandis que le sink d’enthalpie reste appliqué au champ `he` uniquement lorsque le mode `thermoCloud` est activé et après confirmation du lot.
+
+| Validation finale | Résultat observé |
+|---|---:|
+| Recompilation OpenFOAM Foundation 13 des deux bibliothèques | **PASS** |
+| `vofToDpmSingleCell` | **PASS** |
+| `vofToDpmParcelInBox` | **PASS** |
+| `incompressibleVoFCloudsDamBreak` | **PASS**, fin normale |
+| `compressibleVoFCloudsDamBreak` | **PASS**, un seul batch de `1.63205 kg`, fin normale à `0.01 s` |
+| `sprayCrossFlow` | **PASS**, `83` points, `5` parcels, conservation locale exacte |
+| Erreur relative masse–volume du premier fragment spray | `0.0` |
+| Tests Python ciblés | **8 passed** |
+| Nettoyage et `git diff --check` | **PASS** |
+
+Le cas compressible a d’abord révélé deux défauts réels pendant la validation: la remise à zéro non dimensionnée d’un champ `1/s`, puis l’absence de prise en compte du mode `nParticle` fixé dans la confirmation. Après correction, le journal montre un seul ajout effectif de parcel et l’application de la source alpha-rho aux deux équations de phase, sans exception flottante. Le spray incompressible termine également avec les invariants du post-traitement validés.
+
+La décision est relevée à **portage fonctionnel validé sur les cas nominaux OpenFOAM 13**, avec une réserve de production sur les cas thermoCloud compressibles fortement couplés: la validation finale ci-dessus couvre le chemin thermo-capable du code, mais un cas de référence avec `thermoCloud true`, source d’enthalpie non nulle et contrôle énergétique indépendant doit encore être ajouté avant de qualifier la solution de production-ready sans réserve.
+
+## Décision révisée
+
+Le PR peut être fusionné pour le périmètre validé et documenté. La qualification « production-ready spray compressible/thermique » reste conditionnée à l’ajout d’un cas thermoCloud compressible dédié et à la vérification quantitative de l’enthalpie transférée, ainsi qu’à une gestion explicite des fragments non localisables par `findCellAtPosition`.
+
+[6]: https://github.com/stevendaix/foampilot/pull/24 "Pull Request du portage VOF-to-DPM OpenFOAM 13"

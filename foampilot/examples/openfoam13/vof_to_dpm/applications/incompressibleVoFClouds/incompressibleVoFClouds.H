@@ -25,6 +25,7 @@ class incompressibleVoFClouds
     const uniformDimensionedVectorField g_;
     const wordList cloudNames_;
     mutable volScalarField mu_;
+    mutable volScalarField confirmedTransferRate_;
     mutable parcelCloudList clouds_;
     mutable volScalarField fragmentMask_;
     mutable volScalarField alphaConsumptionRate_;

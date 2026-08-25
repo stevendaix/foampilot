@@ -50,7 +50,9 @@ vofFragmentInjection<CloudType>::vofFragmentInjection
     prepared_(false),
     emitted_(false),
     lastTimeIndex_(-1),
-    injectedIds_()
+    expectedMass_(0),
+    injectedIds_(),
+    injectedCellSets_()
 {}
 
 
@@ -78,7 +80,9 @@ vofFragmentInjection<CloudType>::vofFragmentInjection
     prepared_(other.prepared_),
     emitted_(other.emitted_),
     lastTimeIndex_(other.lastTimeIndex_),
-    injectedIds_(other.injectedIds_)
+    expectedMass_(other.expectedMass_),
+    injectedIds_(other.injectedIds_),
+    injectedCellSets_(other.injectedCellSets_)
 {}
 
 
@@ -131,6 +135,29 @@ void vofFragmentInjection<CloudType>::prepare()
                 break;
             }
         }
+        forAll(injectedCellSets_, setI)
+        {
+            if (alreadyInjected)
+            {
+                break;
+            }
+            forAll(detected[fragmentI].cells, cellI)
+            {
+                forAll(injectedCellSets_[setI], oldCellI)
+                {
+                    if (detected[fragmentI].cells[cellI]
+                     == injectedCellSets_[setI][oldCellI])
+                    {
+                        alreadyInjected = true;
+                        break;
+                    }
+                }
+                if (alreadyInjected)
+                {
+                    break;
+                }
+            }
+        }
         if (!alreadyInjected)
         {
             fresh.append(detected[fragmentI]);
@@ -165,6 +192,61 @@ void vofFragmentInjection<CloudType>::prepare()
             );
     }
     prepared_ = true;
+}
+
+
+template<class CloudType>
+void vofFragmentInjection<CloudType>::postInject
+(
+    const label parcelsAdded,
+    const scalar massAdded,
+    typename CloudType::parcelType::trackingData& td
+)
+{
+    InjectionModel<CloudType>::postInject(parcelsAdded, massAdded, td);
+
+    const scalar massTol = 1e-8*max(mag(expectedMass_), scalar(1));
+    const bool massConfirmed =
+        expectedMass_ <= SMALL
+      ? massAdded > SMALL
+      : mag(massAdded - expectedMass_) <= massTol;
+    const bool confirmed =
+        !fragments_.empty()
+     && parcelsAdded == fragments_.size()
+     && massConfirmed;
+
+    if (!confirmed)
+    {
+        emitted_ = false;
+        prepared_ = false;
+        expectedMass_ = 0;
+        return;
+    }
+
+    if (this->owner().db().template foundObject<volScalarField>
+        ("vofConfirmedTransferRate"))
+    {
+        volScalarField& confirmedRate =
+            this->owner().db().template lookupObjectRef<volScalarField>
+            ("vofConfirmedTransferRate");
+        const scalar rate = 1/this->owner().db().time().deltaTValue();
+        forAll(fragments_, fragmentI)
+        {
+            const labelList& cells = fragments_[fragmentI].cells;
+            forAll(cells, cellI)
+            {
+                confirmedRate.internalFieldRef()[cells[cellI]] = rate;
+            }
+        }
+    }
+
+    forAll(fragments_, fragmentI)
+    {
+        injectedIds_.append(fragments_[fragmentI].id);
+        injectedCellSets_.append(fragments_[fragmentI].cells);
+    }
+
+    expectedMass_ = 0;
 }
 
 
@@ -231,6 +313,7 @@ Foam::scalar vofFragmentInjection<CloudType>::massToInject
             rhoLiquid_ > 0 ? rhoLiquid_ : rho_[cells_[fragmentI]];
         totalMass += rhoCell*fragments_[fragmentI].volume;
     }
+    expectedMass_ = totalMass;
     return totalMass;
 }
 
@@ -258,11 +341,14 @@ void vofFragmentInjection<CloudType>::setPositionAndCell
     if (parcelI == fragments_.size() - 1)
     {
         emitted_ = true;
-        forAll(fragments_, fragmentI)
-        {
-            injectedIds_.append(fragments_[fragmentI].id);
-        }
     }
+}
+
+
+template<class CloudType>
+bool vofFragmentInjection<CloudType>::fullyDescribed() const
+{
+    return true;
 }
 
 
