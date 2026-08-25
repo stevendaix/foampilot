@@ -89,6 +89,49 @@ def test_filters_are_explicit_and_do_not_change_retained_volume():
     assert fragments[0].volume == pytest.approx(3.0)
 
 
+def test_build_transition_removes_only_selected_liquid_and_conserves_volume(tmp_path: Path):
+    converter = VofToDpmConverter(alpha_threshold=0.5)
+    alpha = np.array([1.0, 0.5, 0.25])
+    volumes = np.array([2.0, 4.0, 8.0])
+    fragments = converter.extract(
+        alpha=alpha,
+        cell_centres=[(0, 0, 0), (1, 0, 0), (2, 0, 0)],
+        cell_volumes=volumes,
+        neighbours=[[], [], []],
+    )
+
+    transition = converter.build_transition(alpha, volumes, fragments)
+    assert transition.converted_cell_indices == (0, 1)
+    assert transition.remaining_alpha.tolist() == [0.0, 0.0, 0.25]
+    assert transition.converted_volume == pytest.approx(4.0)
+    assert transition.remaining_volume == pytest.approx(2.0)
+    assert transition.total_volume == pytest.approx(np.sum(alpha * volumes))
+    assert np.array_equal(alpha, np.array([1.0, 0.5, 0.25]))
+
+    residual_path = converter.write_scalar_field(
+        transition.remaining_alpha, tmp_path / "0" / "alpha.liquid"
+    )
+    residual_text = residual_path.read_text()
+    assert "nonuniform List<scalar> 3" in residual_text
+    assert "0.25" in residual_text
+
+
+def test_build_transition_rejects_duplicate_or_inconsistent_fragments():
+    converter = VofToDpmConverter(alpha_threshold=0.5)
+    fragment = converter.extract(
+        alpha=[1.0],
+        cell_centres=[(0, 0, 0)],
+        cell_volumes=[2.0],
+        neighbours=[[]],
+    )[0]
+
+    with pytest.raises(ValueError, match="more than once"):
+        converter.build_transition([1.0], [2.0], [fragment, fragment])
+    bad = type(fragment)(fragment.cell_indices, 3.0, fragment.centroid, fragment.velocity)
+    with pytest.raises(ValueError, match="does not match"):
+        converter.build_transition([1.0], [2.0], [bad])
+
+
 def _foam_field(path: Path, object_name: str, class_name: str, values: str) -> None:
     path.write_text(
         f"FoamFile\n{{\n    format ascii;\n    class {class_name};\n    object {object_name};\n}}\n"

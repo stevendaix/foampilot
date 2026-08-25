@@ -85,3 +85,18 @@ Chaque fragment doit recevoir un identifiant stable ou un empreinte géométriqu
 ## 9. Verdict
 
 Le code est **adéquat pour un prototype de recherche et un cours**, car les responsabilités sont séparées, les calculs de volume sont explicites, les entrées invalides sont rejetées et les limites sont documentées. Il est **insuffisant pour une revendication de conversion VOF-to-DPM automatique conservative en production**, car l’étape fondamentale de retrait du liquide VOF et d’insertion dynamique de parcels n’est pas encore intégrée au `fvModel`. Cette distinction doit rester centrale dans toute publication, PR ou présentation du projet.
+
+## 10. Complément implémenté sur la branche de correction
+
+La branche de correction ajoute `VofToDpmConverter.build_transition()`. Cette étape ne se contente plus de décrire les parcels : elle construit une copie du champ `alpha`, consomme à zéro les cellules appartenant aux fragments sélectionnés, conserve les cellules rejetées par `min_cells` ou `min_volume`, puis expose `converted_volume`, `remaining_volume` et les indices consommés. Le contrôle vérifie qu’un fragment n’est pas converti deux fois et que son volume est exactement égal à `sum(alpha_i*V_i)` dans la tolérance numérique définie.
+
+La méthode `write_scalar_field()` permet d’écrire le champ résiduel en ASCII OpenFOAM pour les workflows offline. Elle ne constitue pas encore une écriture complète des conditions aux limites d’un cas réel : les boundary conditions doivent être reprises du champ original ou fournies par le générateur de cas. Les tests associés couvrent la conservation du volume, l’absence de mutation de l’entrée, le maintien du liquide non sélectionné et le rejet des fragments incohérents.
+
+Cette correction ferme la lacune de comptabilité du workflow Python/offline, mais ne prétend pas fournir à elle seule la conversion automatique dans la boucle `fvModel`. Le modèle C++ `incompressibleVoFClouds` conserve encore une injection pilotée par le cloud et n’appelle pas ce code Python ; la création transactionnelle de parcels, la consommation d’alpha au même pas de temps et la réconciliation MPI restent à implémenter dans OpenFOAM natif avant de qualifier le couplage de pleinement automatique et conservatif.
+
+## 11. Références OpenFOAM 13
+
+OpenFOAM 13 annonce la maturité partielle du Lagrangien basé sur les champs et le maintien des modèles de clouds pilotés par `fvModel` [1]. La documentation Lagrangienne décrit le cloud `fvModel` comme un couplage bidirectionnel et distingue explicitement les clouds particulaires historiques des clouds basés sur les champs [2]. Le dépôt doit donc garder séparées la preuve offline du transfert et l’implémentation native runtime.
+
+[1]: https://openfoam.org/version/13/ "OpenFOAM 13 — page officielle"
+[2]: https://doc.cfd.direct/openfoam/lagrangian/ "CFD Direct — OpenFOAM Lagrangian documentation"
