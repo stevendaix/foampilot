@@ -49,6 +49,10 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
             parcelCloudList::defaultCloudNames
         )
     ),
+    useThermoCloud_
+    (
+        dict.lookupOrDefault<Switch>("thermoCloud", false)
+    ),
     mu_
     (
         IOobject
@@ -61,13 +65,31 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
         ),
         mixture_.rho()*mixture_.nu()
     ),
-    clouds_
+    cloudsPtr_
     (
-        cloudNames_,
-        mixture_.rho(),
-        mesh.lookupObject<volVectorField>("U"),
-        mu_,
-        g_
+        useThermoCloud_
+      ? new parcelCloudList
+        (
+            cloudNames_,
+            mixture_.rho(),
+            mesh.lookupObject<volVectorField>("U"),
+            g_,
+            dict.lookupOrDefault<word>
+            (
+                "liquidPhase",
+                mixture_.alpha1().group()
+            ) == mixture_.alpha1().group()
+          ? mixture_.thermo1()
+          : mixture_.thermo2()
+        )
+      : new parcelCloudList
+        (
+            cloudNames_,
+            mixture_.rho(),
+            mesh.lookupObject<volVectorField>("U"),
+            mu_,
+            g_
+        )
     ),
     fragmentMask_
     (
@@ -97,6 +119,7 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
     ),
     consumeAlpha_(dict.lookupOrDefault<Switch>("consumeAlpha", false)),
     consumptionPending_(false),
+    energyTransferPending_(false),
     transitionApplied_(false),
     liquidPhase_
     (
@@ -134,12 +157,24 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
 Foam::wordList
 Foam::fv::compressible::compressibleVoFClouds::addSupFields() const
 {
-    return
+    wordList fields
     {
         mixture_.rho1().name(),
         mixture_.rho2().name(),
         "U"
     };
+
+    if (useThermoCloud_)
+    {
+        fields.append
+        (
+            liquidPhase_ == mixture_.alpha1().group()
+          ? mixture_.thermo1().he().name()
+          : mixture_.thermo2().he().name()
+        );
+    }
+
+    return fields;
 }
 
 void Foam::fv::compressible::compressibleVoFClouds::addSup
@@ -241,6 +276,7 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
                 }
             }
             consumptionPending_ = true;
+            energyTransferPending_ = useThermoCloud_;
             transitionApplied_ = true;
             Info<< "Compressible alphaRho transfer armed for "
                 << detectedVolume << " m3" << nl;
@@ -252,8 +288,74 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
                 << " volume " << fragments[fragmentI].volume << nl;
         }
     }
-    clouds_.evolve();
+    cloudsPtr_().evolve();
     curTimeIndex_ = mesh().time().timeIndex();
+}
+
+void Foam::fv::compressible::compressibleVoFClouds::addSup
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    const volScalarField& field,
+    fvMatrix<scalar>& eqn
+) const
+{
+    if
+    (
+        !useThermoCloud_
+     || &alpha != &liquidAlpha_
+     || &rho != &(
+            liquidPhase_ == mixture_.alpha1().group()
+          ? mixture_.rho1()
+          : mixture_.rho2()
+        )
+     || &field != &(
+            liquidPhase_ == mixture_.alpha1().group()
+          ? mixture_.thermo1().he()
+          : mixture_.thermo2().he()
+        )
+    )
+    {
+        return;
+    }
+
+    eqn += cloudsPtr_().Sh(eqn.psi());
+
+    if (energyTransferPending_)
+    {
+        const volScalarField& liquidRho =
+            liquidPhase_ == mixture_.alpha1().group()
+          ? mixture_.rho1()
+          : mixture_.rho2();
+        const volScalarField& liquidHe =
+            liquidPhase_ == mixture_.alpha1().group()
+          ? mixture_.thermo1().he()
+          : mixture_.thermo2().he();
+
+        tmp<volScalarField::Internal> tSu
+        (
+            volScalarField::Internal::New
+            (
+                "vofEnthalpyTransfer",
+                mesh(),
+                dimensionedScalar(dimEnergy/dimVolume/dimTime, 0)
+            )
+        );
+
+        forAll(tSu(), celli)
+        {
+            tSu.ref()[celli] =
+                -alphaRhoTransferRate_[celli]
+               *liquidAlpha_[celli]
+               *liquidRho[celli]
+               *liquidHe[celli];
+        }
+
+        eqn += tSu;
+        energyTransferPending_ = false;
+        Info<< "Applied compressible enthalpy transfer to "
+            << eqn.psi().name() << nl;
+    }
 }
 
 void Foam::fv::compressible::compressibleVoFClouds::addSup
@@ -270,12 +372,12 @@ void Foam::fv::compressible::compressibleVoFClouds::addSup
             << exit(FatalError);
     }
 
-    eqn += clouds_.SU(eqn.psi());
+    eqn += cloudsPtr_().SU(eqn.psi());
 }
 
 void Foam::fv::compressible::compressibleVoFClouds::preUpdateMesh()
 {
-    clouds_.storeGlobalPositions();
+    cloudsPtr_().storeGlobalPositions();
 }
 
 void Foam::fv::compressible::compressibleVoFClouds::topoChange
@@ -283,7 +385,7 @@ void Foam::fv::compressible::compressibleVoFClouds::topoChange
     const polyTopoChangeMap& map
 )
 {
-    clouds_.topoChange(map);
+    cloudsPtr_().topoChange(map);
 }
 
 void Foam::fv::compressible::compressibleVoFClouds::mapMesh
@@ -291,7 +393,7 @@ void Foam::fv::compressible::compressibleVoFClouds::mapMesh
     const polyMeshMap& map
 )
 {
-    clouds_.mapMesh(map);
+    cloudsPtr_().mapMesh(map);
 }
 
 void Foam::fv::compressible::compressibleVoFClouds::distribute
@@ -299,7 +401,7 @@ void Foam::fv::compressible::compressibleVoFClouds::distribute
     const polyDistributionMap& map
 )
 {
-    clouds_.distribute(map);
+    cloudsPtr_().distribute(map);
 }
 
 bool Foam::fv::compressible::compressibleVoFClouds::movePoints()

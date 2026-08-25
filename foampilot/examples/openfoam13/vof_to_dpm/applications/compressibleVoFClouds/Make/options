@@ -7,6 +7,9 @@ EXE_INC = \
     -I$(FOAM_MODULES)/fluidSolver/lnInclude \
     -I$(LIB_SRC)/physicalProperties/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/thermophysicalProperties/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/multicomponentThermo/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
     -I$(LIB_SRC)/twoPhaseModels/VoF \
     -I$(LIB_SRC)/twoPhaseModels/interfaceCompression/lnInclude \
     -I$(LIB_SRC)/twoPhaseModels/interfaceProperties/lnInclude \
@@ -36,6 +39,8 @@ LIB_LIBS = \
     -lcompressibleMomentumTransportModels \
     -lphaseCompressibleMomentumTransportModels \
     -lthermophysicalTransportModel \
+    -lthermophysicalProperties \
+    -lmulticomponentThermophysicalModels \
     -lcoupledThermophysicalTransportModels \
     -lfiniteVolume \
     -lmeshTools \

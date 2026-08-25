@@ -52,7 +52,7 @@ Les incréments suivants ont ensuite été ajoutés et vérifiés contre l’API
 
 La consommation native est implémentée comme un transfert borné entre `alpha1` et `alpha2` : la perte de liquide est appliquée implicitement à `alpha1` et le gain est appliqué explicitement à `alpha2`, conformément au chemin `alphaSuSp.C` du solver `incompressibleVoF` d’OpenFOAM 13. Le test vérifie également l’absence de `FOAM FATAL ERROR`, d’erreur d’édition de liens et d’artefact de compilation suivi par Git.
 
-Cette étape couvre le cas incompressible mono-fragment. Le chemin compressible doit encore recevoir un transfert thermodynamique cohérent : la masse convertie est déjà identifiée par la phase liquide, mais l’énergie/enthalpie et la sélection du champ alpha doivent être intégrées dans une étape dédiée avant de généraliser le cas.
+Cette étape couvre le cas incompressible mono-fragment. Le chemin compressible est maintenant étendu au transfert thermoCloud : la masse convertie est identifiée par la phase liquide et le puits d’enthalpie correspondant est ajouté à l’équation `he` au même pas temporel.
 
 ## Incrément compressible alphaRho
 
@@ -67,10 +67,10 @@ Le fvModel compressible déclare désormais les paires de champs attendues par O
 | Intégrale finale de `alpha.water` | `0` |
 | Détection après conversion | `1` fragment au premier pas, puis `0` |
 
-Le transfert d’énergie/enthalpie compressible n’est pas déclaré comme terminé. Le cloud collisionnel utilisé par ce cas est un `collidingCloud` momentum-only et ne possède pas de degré de liberté thermodynamique pour porter l’énergie de la phase liquide convertie. Une implémentation complète devra utiliser un cloud thermodynamique compatible, définir la température/enthalpie du parcel et ajouter les sources correspondantes à `e1` et `e2` avant d’activer cette conservation dans un cas de production.
+Le transfert d’énergie/enthalpie compressible est désormais raccordé à l’API OpenFOAM 13. Lorsque `thermoCloud true` est sélectionné, le modèle construit le cloud thermo avec la phase liquide configurée, déclare le champ `he` dans `addSupFields()` et surcharge `addSup(alpha,rho,he,eqn)`. Le terme `clouds.Sh()` couvre les échanges thermoCloud, tandis qu’un puits explicite `-d(alpha rho)/dt × he_liquide` retire l’enthalpie de la masse VOF convertie exactement une fois.
 
 ## Initialisation thermique optionnelle du parcel
 
 L’injecteur VOF initialise désormais `ThermoParcel::T()` lorsqu’un champ `T` est présent dans l’objectRegistry et que le type de parcel fournit cet accesseur. L’appel est protégé par une résolution SFINAE : les clouds momentum-only qui ne disposent pas de `T()` continuent de compiler et de s’exécuter sans modification de leur comportement.
 
-La compilation et les cas incompressible et compressible actifs ont été rejoués sous OpenFOAM 13 après cette modification. Les deux cas passent, avec injection du parcel et bilan alphaRho compressible conservé. Cette étape ne constitue pas encore une conservation d’énergie complète : elle prépare le transfert de l’état thermique du parcel, mais le cloud de test reste `collidingCloud` et ne fournit pas encore le terme `Sh()` d’un `ThermoCloud` au solver.
+La compilation et les cas incompressible et compressible actifs ont été rejoués sous OpenFOAM 13 après cette modification. Les quatre validations du dépôt passent : `compressibleVoFCloudsDamBreak`, `incompressibleVoFCloudsDamBreak`, `vofToDpmParcelInBox` et `vofToDpmSingleCell`. Un cas thermoCloud multicomposant court a également été exécuté jusqu’à `0.01 s` : un fragment produit un parcel de masse `1.63205`, sa température est initialisée à `300 K`, le solveur résout `T`, et le journal contient `Applied compressible enthalpy transfer to h.water`.

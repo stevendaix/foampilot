@@ -21,12 +21,14 @@ class compressibleVoFClouds : public fvModel
     const compressibleTwoPhaseVoFMixture& mixture_;
     const uniformDimensionedVectorField g_;
     const wordList cloudNames_;
+    const Switch useThermoCloud_;
     mutable volScalarField mu_;
-    mutable parcelCloudList clouds_;
+    mutable autoPtr<parcelCloudList> cloudsPtr_;
     mutable volScalarField fragmentMask_;
     mutable volScalarField alphaRhoTransferRate_;
     const Switch consumeAlpha_;
     mutable bool consumptionPending_;
+    mutable bool energyTransferPending_;
     mutable bool transitionApplied_;
     const word liquidPhase_;
     const volScalarField& liquidAlpha_;
@@ -62,10 +64,19 @@ public:
 
     virtual void addSup
     (
+        const volScalarField& alpha,
+        const volScalarField& rho,
+        const volScalarField& field,
+        fvMatrix<scalar>& eqn
+    ) const;
+
+    virtual void addSup
+    (
         const volScalarField& rho,
         const volVectorField& U,
         fvMatrix<vector>& eqn
     ) const;
+
 
     virtual void preUpdateMesh();
     virtual void topoChange(const polyTopoChangeMap&);
