@@ -48,11 +48,13 @@ FoamFile
 EOF
 
 blockMesh > log.blockMesh 2>&1
+setFields > log.setFields 2>&1
 foamRun -solver compressibleVoF > log.foamRun 2>&1
 
 grep -q "Selecting solver compressibleVoF" log.foamRun
 grep -q "Selecting finite volume model type compressibleVoFClouds" log.foamRun
 grep -q "Selecting parcelCloud collidingCloud" log.foamRun
 grep -q "Current number of parcels" log.foamRun
+grep -Eq "VOF fragments detected: [1-9]" log.foamRun
 
 echo "PASS: compressibleVoF + compressibleVoFClouds + collidingCloud"

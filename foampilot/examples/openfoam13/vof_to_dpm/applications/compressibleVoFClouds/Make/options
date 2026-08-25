@@ -1,4 +1,5 @@
 EXE_INC = \
+    -I$(PWD)/../common \
     -I$(FOAM_MODULES)/compressibleVoF/lnInclude \
     -I$(FOAM_MODULES)/twoPhaseVoFSolver/lnInclude \
     -I$(FOAM_MODULES)/twoPhaseSolver/lnInclude \
