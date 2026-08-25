@@ -163,3 +163,34 @@ def test_explicit_centroids_are_used_when_valid():
     result = generate_urbgen(SITE, UrbGENConfig(bcr=0.08, setback=5, tower_typology_mode=0, podium_floors=0), centroids=points)
     assert result.tower_footprints
     assert any(p.centroid.distance(points[0]) < 15 for p in result.tower_footprints)
+
+
+def test_populate_region_modes_holes_rotation_and_seed():
+    from foampilot.urban.generation import PopulateRegionConfig, populate_region
+    region = Polygon([(0, 0), (100, 0), (100, 80), (0, 80)])
+    hole = Polygon([(40, 30), (60, 30), (60, 50), (40, 50)])
+    for mode in range(4):
+        result = populate_region(region, PopulateRegionConfig(count=24, mode=mode, jitter=.20, angle=.31, seed=17), holes=[hole])
+        assert result.count == 24
+        assert all(result.region.covers(p) and not hole.covers(p) for p in result.points)
+        assert result.usable_area == pytest.approx(region.area - hole.area)
+    a = populate_region(region, PopulateRegionConfig(count=18, mode=2, jitter=.25, seed=9))
+    b = populate_region(region, PopulateRegionConfig(count=18, mode=2, jitter=.25, seed=9))
+    assert [p.wkt for p in a.points] == [p.wkt for p in b.points]
+
+
+def test_populate_region_random_min_distance_is_honoured_when_feasible():
+    from foampilot.urban.generation import PopulateRegionConfig, populate_region
+    region = Polygon([(0, 0), (100, 0), (100, 100), (0, 100)])
+    result = populate_region(region, PopulateRegionConfig(count=12, mode=0, seed=4, min_dist=15))
+    assert result.count == 12
+    assert min(a.distance(b) for i, a in enumerate(result.points) for b in result.points[i + 1:]) >= 15 - 1e-9
+
+
+def test_populate_region_rejects_invalid_mode_and_negative_count():
+    from foampilot.urban.generation import PopulateRegionConfig, populate_region
+    region = Polygon([(0, 0), (10, 0), (10, 10), (0, 10)])
+    with pytest.raises(ValueError):
+        populate_region(region, PopulateRegionConfig(count=1, mode=9))
+    with pytest.raises(ValueError):
+        populate_region(region, PopulateRegionConfig(count=-1))
