@@ -37,6 +37,7 @@ incompressibleVoFClouds
 EOF
 
 cp "$FOAM_TUTORIALS/incompressibleFluid/mixerVesselHorizontal2DParticles/constant/cloudProperties" constant/cloudProperties
+sed -i 's/type            manualInjection;/type            vofFragmentInjection;/' constant/cloudProperties
 cat > constant/cloudPositions <<'EOF'
 /* OpenFOAM vector field */
 FoamFile
