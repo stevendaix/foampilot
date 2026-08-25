@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f /opt/openfoam13/etc/bashrc ]; then
+    # shellcheck disable=SC1091
+    source /opt/openfoam13/etc/bashrc
+fi
+PYTHONPATH="${ROOT}/../../../foampilot/src:${PYTHONPATH:-}" \
+    python3 "${ROOT}/validate.py"
