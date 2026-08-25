@@ -148,7 +148,15 @@ Foam::scalar vofFragmentInjection<CloudType>::nParcelsToInject
 )
 {
     prepare();
-    return emitted_ ? 0 : fragments_.size();
+
+    // A spray fragment may appear only after the liquid jet has entered
+    // the domain.  Do not cache an empty first scan forever.
+    const scalar nParcels = emitted_ ? 0 : fragments_.size();
+    if (!emitted_ && fragments_.empty())
+    {
+        prepared_ = false;
+    }
+    return nParcels;
 }
 
 

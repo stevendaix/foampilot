@@ -1,0 +1,67 @@
+#!/bin/sh
+
+caseDir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+workDir=${TMPDIR:-/tmp}/foampilot-sprayCrossFlow-$$
+trap 'status=$?; if [ "$status" -eq 0 ] && [ "${KEEP_CASE:-0}" -ne 1 ]; then rm -rf "$workDir"; else echo "CASE_DIR=$workDir" >&2; fi; exit "$status"' EXIT
+
+. /opt/openfoam13/etc/bashrc || true
+set -e
+mkdir -p "$workDir"
+cd "$workDir"
+
+foamMergeCase "$FOAM_TUTORIALS/incompressibleVoF/damBreakLaminar"
+
+cp "$caseDir/0/U" 0/U
+cp "$caseDir/0/alpha.water" 0/alpha.water
+cp "$caseDir/0/p_rgh" 0/p_rgh
+cp "$caseDir/system/blockMeshDict" system/blockMeshDict
+cp "$caseDir/system/snappyHexMeshDict" system/snappyHexMeshDict
+cp "$caseDir/system/meshQualityDict" system/meshQualityDict
+cp "$caseDir/constant/g" constant/g
+cp "$caseDir/constant/turbulenceProperties" constant/turbulenceProperties
+mkdir -p constant/triSurface
+cp "$caseDir/constant/triSurface/surface.stl" constant/triSurface/surface.stl
+
+sed -i \
+    's/solver[[:space:]]\+incompressibleVoF;/solver          incompressibleVoF;\nlibs            ("libincompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
+    system/controlDict
+sed -i 's/endTime[[:space:]]\+.*/endTime         0.01;/' system/controlDict
+sed -i 's/writePrecision[[:space:]]\+.*/writePrecision  12;/' system/controlDict
+
+cat > constant/fvModels <<'EOF'
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+sprayCrossFlowClouds
+{
+    type            incompressibleVoFClouds;
+    clouds          (cloud);
+    liquidPhase     water;
+    consumeAlpha    true;
+    alphaThreshold  0.5;
+    minCells        1;
+    minVolume       1e-8;
+}
+EOF
+
+cp "$FOAM_TUTORIALS/incompressibleFluid/mixerVesselHorizontal2DParticles/constant/cloudProperties" constant/cloudProperties
+sed -i '/type[[:space:]]\+manualInjection;/s/manualInjection/vofFragmentInjection/' constant/cloudProperties
+sed -i '/type[[:space:]]\+vofFragmentInjection;/a\            alpha           alpha.water;\n            minVolume       1e-8;\n            minCells        1;' constant/cloudProperties
+sed -i '/SOI[[:space:]]\+0;/a\            duration        1;' constant/cloudProperties
+
+blockMesh > log.blockMesh 2>&1
+snappyHexMesh -overwrite > log.snappyHexMesh 2>&1
+foamRun -solver incompressibleVoF > log.foamRun 2>&1
+
+grep -q 'Selecting solver incompressibleVoF' log.foamRun
+grep -q 'Selecting finite volume model type incompressibleVoFClouds' log.foamRun
+grep -q 'Selecting parcelCloud collidingCloud' log.foamRun
+grep -q 'VOF fragments detected: 1' log.foamRun
+grep -q '^End$' log.foamRun
+! grep -q 'FOAM FATAL' log.foamRun
+
+echo 'PASS: sprayCrossFlow VOF-to-DPM OpenFOAM 13'

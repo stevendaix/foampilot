@@ -74,3 +74,20 @@ Le transfert d’énergie/enthalpie compressible est désormais raccordé à l�
 L’injecteur VOF initialise désormais `ThermoParcel::T()` lorsqu’un champ `T` est présent dans l’objectRegistry et que le type de parcel fournit cet accesseur. L’appel est protégé par une résolution SFINAE : les clouds momentum-only qui ne disposent pas de `T()` continuent de compiler et de s’exécuter sans modification de leur comportement.
 
 La compilation et les cas incompressible et compressible actifs ont été rejoués sous OpenFOAM 13 après cette modification. Les quatre validations du dépôt passent : `compressibleVoFCloudsDamBreak`, `incompressibleVoFCloudsDamBreak`, `vofToDpmParcelInBox` et `vofToDpmSingleCell`. Un cas thermoCloud multicomposant court a également été exécuté jusqu’à `0.01 s` : un fragment produit un parcel de masse `1.63205`, sa température est initialisée à `300 K`, le solveur résout `T`, et le journal contient `Applied compressible enthalpy transfer to h.water`.
+
+## Exemple spray cross-flow
+
+Pour rapprocher la validation du cas d’usage spray, un exemple `examples/openfoam13/vof_to_dpm/example/sprayCrossFlow` a été ajouté. Il reprend la géométrie STL et la configuration cross-flow du dépôt [atomizationFoam](https://github.com/imfd-stroemungsmechanik/atomizationFoam), référence explicitement orientée vers l’atomisation VOF–Lagrangienne [3], mais remplace le solveur monolithique ancien par `foamRun -solver incompressibleVoF` et le modèle `incompressibleVoFClouds` d’OpenFOAM 13.
+
+Le script `Allrun` construit une copie temporaire, exécute `blockMesh`, `snappyHexMesh` et le solveur jusqu’à `0.01 s`. Le calcul cross-flow passe sous OpenFOAM 13, détecte un fragment liquide avec un volume convertible atteignant environ `2.42e-05 m3` et crée un parcel de masse `0.00679141 kg`. Le journal se termine par `End` sans erreur fatale.
+
+Cette validation a révélé et corrigé un point important pour les sprays : `vofFragmentInjection` ne doit pas mémoriser définitivement une détection vide au premier pas. Le modèle réarme désormais son analyse lorsqu’aucun fragment n’est encore présent, ce qui permet d’injecter les gouttelettes qui apparaissent plus tard après l’entrée et la fragmentation du jet.
+
+L’exemple est exécutable avec :
+
+```sh
+cd examples/openfoam13/vof_to_dpm/example/sprayCrossFlow
+./Allrun
+```
+
+[3]: https://github.com/imfd-stroemungsmechanik/atomizationFoam "atomizationFoam — 3D-coupling VOF/Lagrangian pour l’atomisation de sprays"
