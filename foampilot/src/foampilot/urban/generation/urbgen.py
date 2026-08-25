@@ -8,13 +8,13 @@ rules. It returns native ``UrbanModel`` objects for Gmsh/build123d adapters.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from math import ceil, sqrt, hypot, atan2, cos, sin, degrees, radians
+from math import ceil, sqrt, hypot, cos, sin, radians
 from random import Random
 from typing import Iterable, Optional
 
 from shapely.affinity import rotate, scale, translate
 from shapely.geometry import LineString, Point, Polygon
-from shapely.ops import split, substring, unary_union
+from shapely.ops import unary_union
 
 from foampilot.urban.model.urban_model import Building, CFDLOD, RoofType, UrbanModel
 
@@ -489,7 +489,6 @@ def _move_tower_to_podium_edge(shape: Polygon, podium: Polygon, region: Polygon)
 
 
 def _align_to_edge(shape: Polygon, region: Polygon, angle: float) -> Polygon:
-    nearest = region.exterior.interpolate(region.exterior.project(shape.centroid))
     tangent = 0.0
     best = 1e100
     coords = list(region.exterior.coords)
@@ -668,7 +667,6 @@ def _find_podium_offset(towers, buildable, config, target_area):
 def _converge_bcr(towers, angles, codes, lengths, buildable: Polygon, site: Polygon, width: float, config: UrbGENConfig):
     """Global BCR adjustment corresponding to UrbGEN's shrink/expand phases."""
     upper = config.upper_bcr if config.upper_bcr is not None else config.bcr * 1.1
-    target = site.area * upper
     courtyard = bool(codes and codes[0] == 7)
 
     def podium_for(items):
@@ -826,7 +824,6 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
 
     towers, lengths = _grow_towers_to_bcr(towers, angles, codes, lengths, width, buildable, config, target_tower_area)
     towers, lengths, actual_offset, podium, convergence = _converge_bcr(towers, angles, codes, lengths, buildable, site, width, config)
-    union = unary_union(towers)
     if config.move_tower_to_podium_edge and podium:
         podium_union = unary_union(podium)
         towers = [_move_tower_to_podium_edge(t, podium_union, buildable) for t in towers]
