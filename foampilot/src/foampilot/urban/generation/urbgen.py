@@ -148,6 +148,70 @@ def _angle(config: UrbGENConfig, rng: Random) -> float:
     return float(rng.choice((0, 45, 90, 135, 180)))
 
 
+def _courtyard_blocks(region: Polygon, config: UrbGENConfig) -> list[Polygon]:
+    """Create perimeter blocks with explicit gaps, matching Courtyard mode."""
+    band = max(2.0, config.min_width)
+    ring = region.difference(region.buffer(-band))
+    if ring.is_empty:
+        return []
+    perimeter = ring.boundary
+    length = max(band * 2.0, min(band * 5.0, perimeter.length / max(1, config.courtyard_break_count + 1)))
+    blocks = []
+    n = max(1, int(perimeter.length / max(length + config.courtyard_break_width, 1.0)))
+    for i in range(n):
+        distance = (i + 0.5) * perimeter.length / n
+        point = perimeter.interpolate(distance)
+        delta = 0.5
+        p0 = perimeter.interpolate(max(0.0, distance - delta))
+        p1 = perimeter.interpolate(min(perimeter.length, distance + delta))
+        angle = __import__("math").degrees(__import__("math").atan2(p1.y - p0.y, p1.x - p0.x))
+        block = translate(rotate(_rect(band, length), angle, origin=(0, 0)), xoff=point.x, yoff=point.y)
+        if region.covers(block):
+            blocks.append(block)
+    return blocks
+
+
+def _move_to_boundary(shape: Polygon, region: Polygon, radial: bool) -> Polygon:
+    center = Point(region.centroid.x, region.centroid.y)
+    direction = Point(shape.centroid.x - center.x, shape.centroid.y - center.y) if radial else Point(region.exterior.interpolate(region.exterior.project(shape.centroid)).x - shape.centroid.x, region.exterior.interpolate(region.exterior.project(shape.centroid)).y - shape.centroid.y)
+    norm = max((direction.x * direction.x + direction.y * direction.y) ** 0.5, 1e-9)
+    step = 1.0
+    moved = shape
+    for _ in range(10000):
+        candidate = translate(moved, xoff=direction.x / norm * step, yoff=direction.y / norm * step)
+        if not region.covers(candidate):
+            break
+        moved = candidate
+    return moved
+
+
+def _move_tower_to_podium_edge(shape: Polygon, podium: Polygon, region: Polygon) -> Polygon:
+    """Slide a tower toward the nearest podium/site edge without leaving it."""
+    target = region.exterior.interpolate(region.exterior.project(shape.centroid))
+    dx, dy = target.x - shape.centroid.x, target.y - shape.centroid.y
+    norm = max((dx * dx + dy * dy) ** 0.5, 1e-9)
+    moved = shape
+    for _ in range(10000):
+        candidate = translate(moved, xoff=dx / norm, yoff=dy / norm)
+        if not podium.covers(candidate):
+            break
+        moved = candidate
+    return moved
+
+
+def _align_to_edge(shape: Polygon, region: Polygon, angle: float) -> Polygon:
+    nearest = region.exterior.interpolate(region.exterior.project(shape.centroid))
+    tangent = 0.0
+    best = 1e100
+    coords = list(region.exterior.coords)
+    for a, b in zip(coords, coords[1:]):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        d = ((shape.centroid.x - (a[0] + b[0]) / 2) ** 2 + (shape.centroid.y - (a[1] + b[1]) / 2) ** 2)
+        if d < best:
+            best, tangent = d, __import__("math").degrees(__import__("math").atan2(dy, dx))
+    return rotate(shape, tangent - angle, origin="centroid")
+
+
 def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs: Optional[str] = None, centroids: Optional[Iterable[Point]] = None) -> UrbGENResult:
     """Generate a deterministic random UrbGEN neighbourhood from one site."""
     if site.is_empty or not site.is_valid or site.area <= 0:
@@ -159,14 +223,17 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
         buildable = max(buildable.geoms, key=lambda g: g.area)
     rng = Random(config.seed % 10000)
     typology = config.tower_typology_mode
-    if typology == 7:
+    courtyard_mode = typology == 7
+    if courtyard_mode:
+        courtyard_towers = _courtyard_blocks(buildable, config)
+        seeds = [p.centroid for p in courtyard_towers]
         typology = 0
     target_tower_area = site.area * config.bcr * config.tower_bcr_priority
     width = max(2.0, config.min_width)
     mode_factor = {0: 0.75, 1: 1.0, 2: 1.25, 3: rng.uniform(0.75, 1.25)}.get(config.tower_size_mode, 1.0)
     length = width * min(config.max_length_width_ratio, 2.0 * mode_factor)
     spacing = max(width + config.min_tower_distance, width * 1.5)
-    seeds = list(centroids) if centroids is not None else list(_lattice(buildable, spacing))
+    seeds = list(centroids) if centroids is not None else (seeds if courtyard_mode else list(_lattice(buildable, spacing)))
     rng.shuffle(seeds)
     towers: list[Polygon] = []
     angles: list[float] = []
@@ -191,6 +258,14 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
             shape = translate(shape, xoff=seed.x, yoff=seed.y)
         if shape.area < config.min_footprint_per_tower or not buildable.covers(shape) or any(not shape.buffer(config.min_tower_distance).disjoint(other) for other in towers):
             continue
+        if not courtyard_mode and config.move_to_boundary:
+            shape = _move_to_boundary(shape, buildable, radial=True)
+        if not courtyard_mode and config.move_all_to_setback:
+            shape = _move_to_boundary(shape, buildable, radial=False)
+        if not courtyard_mode and config.align_towers_to_edge:
+            shape = _align_to_edge(shape, buildable, angle)
+        if not buildable.covers(shape):
+            continue
         towers.append(shape)
         angles.append(angle)
         codes.append(code)
@@ -205,6 +280,9 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
         actual_offset = min(config.podium_max_offset, max(config.podium_min_offset, 0.35 * sqrt(site.area)))
         p = union.buffer(actual_offset).intersection(buildable)
         podium = list(p.geoms) if p.geom_type == "MultiPolygon" else [p]
+    if config.move_tower_to_podium_edge and podium:
+        podium_union = unary_union(podium)
+        towers = [_move_tower_to_podium_edge(t, podium_union, buildable) for t in towers]
     tower_floor_area = sum(p.area for p in towers)
     podium_area = sum(p.area for p in podium)
     floor_h = config.floor_height_override or config.floor_height
