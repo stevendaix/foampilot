@@ -100,6 +100,13 @@ The documentation includes:
 - Detailed CHT data setup, interfaces, execution, and thermal-balance validation
 - Applied theory for biomedical flow, outdoor wind, atmospheric boundary layers, and thermoregulation
 - CHT, urban CFD, weather, physiological, and geometry-conversion workflows
+- VOF-to-DPM workflows for OpenFOAM 13, including incompressible, compressible, `thermoCloud`, spray validation, and conservation post-processing
+
+### VOF-to-DPM for OpenFOAM 13
+
+The repository includes a native and Python VOF-to-DPM workflow for converting liquid VOF fragments into Lagrangian parcels. The runtime implementation supports incompressible and compressible `fvModel` bridges, transactionally confirmed parcel creation, alpha-rho transfer, and a thermodynamic `thermoCloud` path with enthalpy-source validation.
+
+Start with the [OpenFOAM 13 VOF-to-DPM guide](foampilot/docs/en/vof_to_dpm_openfoam13.md). The current implementation matrix and validated scope are maintained in the [implementation status](foampilot/docs/fr/vof_to_dpm_implementation_status.md), while the [self-contained spray example](foampilot/examples/openfoam13/vof_to_dpm/example/sprayCrossFlow/README.md) demonstrates the runtime workflow.
 
 ### MakeHuman and JOS-3 thermoregulation
 
