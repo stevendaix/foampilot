@@ -1,0 +1,33 @@
+{
+  "case": "edge_aligned",
+  "actual_bcr": 0.14013402347743875,
+  "actual_far": 3.0277817324073975,
+  "tower_count": 4,
+  "podium_count": 4,
+  "diagnostics": {
+    "target_bcr": 0.14,
+    "target_far": 3.0,
+    "tower_count": 4,
+    "podium_count": 4,
+    "actual_podium_offset": 2.003173828125,
+    "heights": [
+      94.5,
+      94.5,
+      94.5,
+      94.5
+    ],
+    "floors": [
+      27,
+      27,
+      27,
+      27
+    ],
+    "actual_tower_gfa": 64281.600000000006,
+    "actual_podium_gfa": 6568.492538333102,
+    "seed": 42,
+    "shrink_iterations": 0,
+    "expand_iterations": 0,
+    "upper_bcr": 0.15400000000000003,
+    "converged_bcr": 0.14013402347743875
+  }
+}

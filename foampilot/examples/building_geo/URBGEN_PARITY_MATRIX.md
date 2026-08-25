@@ -22,3 +22,17 @@ Le score publié doit être calculé comme la somme des groupes validés, et non
 ## Fixtures nécessaires
 
 Pour une parité numérique complète, il faut au minimum exporter depuis Grasshopper, pour trois sites (rectangle, concave, multi-zone), deux seeds et les modes typologiques 0–7 : les empreintes, centres, angles, niveaux, surfaces, BCR, FAR, podiums et diagnostics. Les fixtures doivent être stockées dans un format JSON indépendant de Rhino, avec une tolérance géométrique explicitement indiquée.
+
+## Validation visuelle round 3
+
+Le visualiseur `plot_urbgen_validation.py` produit cinq scénarios avec un PNG et un JSON de métriques pour chacun.
+
+| Scénario | BCR observé | FAR observé | Tours | Podiums | Contrôle visuel |
+|---|---:|---:|---:|---:|---|
+| random_typologies | 0.1600 | 2.4215 | 4 | 4 | Valide |
+| courtyard | 0.1555 | 2.0221 | 3 | 0 | Couronne et ruptures visibles |
+| edge_aligned | 0.1401 | 3.0278 | 4 | 4 | Orientations et containment valides |
+| setback_moved | 0.0931 | 2.5131 | 5 | 0 | Déplacement et containment valides |
+| podium_edge | 0.1201 | 2.0124 | 5 | 5 | Podiums individuels et containment valides |
+
+Les contrôles visuels ont été effectués sur les cas `setback_moved`, `podium_edge`, `edge_aligned` et `courtyard`. Les fichiers JSON associés conservent les diagnostics de convergence, le nombre d’itérations et les hauteurs pour une validation automatisée ultérieure.

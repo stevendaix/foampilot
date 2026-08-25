@@ -1,6 +1,7 @@
 """Generate visual validation images for the UrbGEN foampilot port."""
 from pathlib import Path
 import argparse
+import json
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon as MplPolygon
@@ -37,6 +38,7 @@ def render_case(name: str, config: UrbGENConfig, output_dir: Path) -> Path:
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
     ax.set_title(f"UrbGEN / {name} — {len(result.tower_footprints)} tours, BCR={result.actual_bcr:.3f}, FAR={result.actual_far:.3f}")
+    ax.text(0.01, 0.01, f"shrink={result.diagnostics.get('shrink_iterations', 0)}  expand={result.diagnostics.get('expand_iterations', 0)}  podium={result.diagnostics.get('actual_podium_offset', 0):.2f} m", transform=ax.transAxes, fontsize=8, bbox={"facecolor": "white", "alpha": 0.8, "pad": 3})
     ax.grid(True, alpha=0.2)
     handles = [plt.Line2D([0], [0], marker="s", color="w", markerfacecolor=c, label=NAMES[k], markersize=8) for k, c in COLORS.items() if k in set(result.tower_typologies)]
     if handles:
@@ -46,6 +48,8 @@ def render_case(name: str, config: UrbGENConfig, output_dir: Path) -> Path:
     fig.tight_layout()
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
+    metrics_path = output_dir / f"urbgen_{name.lower().replace(' ', '_')}.json"
+    metrics_path.write_text(json.dumps({"case": name, "actual_bcr": result.actual_bcr, "actual_far": result.actual_far, "tower_count": len(result.tower_footprints), "podium_count": len(result.podium_footprints), "diagnostics": result.diagnostics}, indent=2, default=float) + "\n")
     return path
 
 
@@ -57,6 +61,8 @@ def main():
         "random_typologies": UrbGENConfig(bcr=0.16, far=2.5, setback=8, tower_typology_mode=6, podium_floors=2, height_variation=0.25, seed=42),
         "courtyard": UrbGENConfig(bcr=0.20, far=2.0, setback=8, tower_typology_mode=7, courtyard_break_count=4, courtyard_break_width=8, podium_floors=0, seed=42),
         "edge_aligned": UrbGENConfig(bcr=0.14, far=3.0, setback=8, tower_typology_mode=3, align_towers_to_edge=True, move_to_boundary=True, podium_floors=2, seed=42),
+        "setback_moved": UrbGENConfig(bcr=0.14, far=2.5, setback=12, tower_typology_mode=2, move_all_to_setback=True, podium_floors=0, seed=42),
+        "podium_edge": UrbGENConfig(bcr=0.12, far=2.0, setback=8, tower_typology_mode=1, move_tower_to_podium_edge=True, podium_floors=2, seed=42),
     }
     for name, config in cases.items():
         print(render_case(name, config, args.output))
