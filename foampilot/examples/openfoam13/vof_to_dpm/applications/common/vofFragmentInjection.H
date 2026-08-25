@@ -20,6 +20,7 @@ class vofFragmentInjection
     const scalar threshold_;
     const label minCells_;
     const scalar minVolume_;
+    const scalar rhoLiquid_;
     const word cloudPhase_;
 
     List<vofFragmentTransitionRecord> fragments_;

@@ -24,6 +24,10 @@ class compressibleVoFClouds : public fvModel
     mutable volScalarField mu_;
     mutable parcelCloudList clouds_;
     mutable volScalarField fragmentMask_;
+    mutable volScalarField alphaRhoTransferRate_;
+    const Switch consumeAlpha_;
+    mutable bool consumptionPending_;
+    mutable bool transitionApplied_;
     const word liquidPhase_;
     const volScalarField& liquidAlpha_;
     const scalar alphaThreshold_;
@@ -48,6 +52,13 @@ public:
     virtual wordList addSupFields() const;
 
     virtual void correct();
+
+    virtual void addSup
+    (
+        const volScalarField& alpha,
+        const volScalarField& rho,
+        fvMatrix<scalar>& eqn
+    ) const;
 
     virtual void addSup
     (

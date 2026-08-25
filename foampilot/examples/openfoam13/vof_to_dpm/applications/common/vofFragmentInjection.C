@@ -28,6 +28,7 @@ vofFragmentInjection<CloudType>::vofFragmentInjection
     threshold_(this->coeffDict().template lookupOrDefault<scalar>("alphaThreshold", 0.5)),
     minCells_(this->coeffDict().template lookupOrDefault<label>("minCells", 1)),
     minVolume_(this->coeffDict().template lookupOrDefault<scalar>("minVolume", 0)),
+    rhoLiquid_(this->coeffDict().template lookupOrDefault<scalar>("rhoLiquid", -1)),
     cloudPhase_(this->coeffDict().template lookupOrDefault<word>("phase", "water")),
     prepared_(false),
     emitted_(false)
@@ -47,6 +48,7 @@ vofFragmentInjection<CloudType>::vofFragmentInjection
     threshold_(other.threshold_),
     minCells_(other.minCells_),
     minVolume_(other.minVolume_),
+    rhoLiquid_(other.rhoLiquid_),
     cloudPhase_(other.cloudPhase_),
     fragments_(other.fragments_),
     coordinates_(other.coordinates_),
@@ -149,7 +151,9 @@ Foam::scalar vofFragmentInjection<CloudType>::massToInject
     scalar totalMass = 0;
     forAll(fragments_, fragmentI)
     {
-        totalMass += rho_[cells_[fragmentI]]*fragments_[fragmentI].volume;
+        const scalar rhoCell =
+            rhoLiquid_ > 0 ? rhoLiquid_ : rho_[cells_[fragmentI]];
+        totalMass += rhoCell*fragments_[fragmentI].volume;
     }
     return totalMass;
 }

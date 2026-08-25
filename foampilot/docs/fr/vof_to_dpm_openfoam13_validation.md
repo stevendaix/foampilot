@@ -53,3 +53,18 @@ Les incréments suivants ont ensuite été ajoutés et vérifiés contre l’API
 La consommation native est implémentée comme un transfert borné entre `alpha1` et `alpha2` : la perte de liquide est appliquée implicitement à `alpha1` et le gain est appliqué explicitement à `alpha2`, conformément au chemin `alphaSuSp.C` du solver `incompressibleVoF` d’OpenFOAM 13. Le test vérifie également l’absence de `FOAM FATAL ERROR`, d’erreur d’édition de liens et d’artefact de compilation suivi par Git.
 
 Cette étape couvre le cas incompressible mono-fragment. Le chemin compressible doit encore recevoir un transfert thermodynamique cohérent : la masse convertie est déjà identifiée par la phase liquide, mais l’énergie/enthalpie et la sélection du champ alpha doivent être intégrées dans une étape dédiée avant de généraliser le cas.
+
+## Incrément compressible alphaRho
+
+Le fvModel compressible déclare désormais les paires de champs attendues par OpenFOAM 13 (`alpha1/rho1` et `alpha2/rho2`) et applique un transfert de masse volumique de phase dans les cellules des fragments. Le cas de validation active `vofFragmentInjection` avec `rhoLiquid 2526` et `consumeAlpha true`.
+
+| Vérification compressible | Résultat |
+|---|---|
+| Compilation de `libcompressibleVoFClouds.so` avec l’injecteur enregistré | PASS |
+| Création d’un parcel depuis le fragment VOF | PASS |
+| Masse introduite | `1.63205`, cohérente avec `2526 × 0.000646099` |
+| Application des sources aux deux phases | PASS, `alpha.water` et `alpha.air` |
+| Intégrale finale de `alpha.water` | `0` |
+| Détection après conversion | `1` fragment au premier pas, puis `0` |
+
+Le transfert d’énergie/enthalpie compressible n’est pas déclaré comme terminé. Le cloud collisionnel utilisé par ce cas est un `collidingCloud` momentum-only et ne possède pas de degré de liberté thermodynamique pour porter l’énergie de la phase liquide convertie. Une implémentation complète devra utiliser un cloud thermodynamique compatible, définir la température/enthalpie du parcel et ajouter les sources correspondantes à `e1` et `e2` avant d’activer cette conservation dans un cas de production.
