@@ -50,7 +50,7 @@ constantProperties
     rhoMin          1e-15;
     minParcelMass   1e-15;
 
-    rho0            2526;
+    rho0            1000;
     youngsModulus   1e8;
     poissonsRatio   0.35;
 
@@ -73,6 +73,7 @@ subModels
         {
             type            vofFragmentInjection;
             alpha           alpha.water;
+            rhoLiquid       1000;
             minVolume       1e-8;
             minCells        1;
             nParticle       1;

@@ -91,3 +91,11 @@ cd examples/openfoam13/vof_to_dpm/example/sprayCrossFlow
 ```
 
 [3]: https://github.com/imfd-stroemungsmechanik/atomizationFoam "atomizationFoam — 3D-coupling VOF/Lagrangian pour l’atomisation de sprays"
+
+## Preuve par post-traitement du cas spray
+
+Le cas `sprayCrossFlow` inclut désormais une vérification post-traitée indépendante dans `postprocess.py`. OpenFOAM écrit l’intégrale `volIntegrate(alpha.water)` dans `postProcessing/liquidVolume/0/volFieldValue.dat`. Le script lit cette série, extrait du journal le premier volume de fragment et la masse du parcel, puis vérifie localement la relation conservatrice `m_parcel = rho_liquid V_fragment`.
+
+Le dernier run OpenFOAM 13 produit `87` points temporels jusqu’à `0.01 s`, détecte un premier fragment de volume `2.74787479346e-06 m3`, et crée un parcel de masse `0.00274787479346 kg` avec `rho_liquid = 1000 kg/m3`. L’erreur relative du transfert est `0.0` dans le rapport JSON. Le solveur termine par `End` et la figure `spray_liquid_volume.png` montre l’entrée progressive de liquide dans le domaine.
+
+Ce contrôle est volontairement séparé du bilan global : le domaine est ouvert et reçoit du liquide par la buse, de sorte que le volume VOF total n’est pas une constante. Il vérifie donc la conversion locale fragment→parcel, tandis que la série volumique et les statistiques du cloud permettent de contrôler l’évolution globale du cas.

@@ -15,13 +15,19 @@ cd examples/openfoam13/vof_to_dpm/example/sprayCrossFlow
 
 Le script construit une copie temporaire du cas autonome, exécute `blockMesh`, `snappyHexMesh` et le solveur jusqu’à environ `0.01 s`, puis vérifie la sélection du solveur, du modèle `incompressibleVoFClouds`, du cloud et la fin normale du calcul. Le pas de temps est adaptatif ; la valeur finale peut donc être légèrement inférieure à `0.01 s`.
 
-Pour conserver le cas calculé et son journal :
+Pour conserver le cas calculé, les journaux et les résultats de post-traitement :
 
 ```sh
 KEEP_CASE=1 ./Allrun
 ```
 
 Le chemin du cas temporaire est alors imprimé sous la forme `CASE_DIR=...`.
+
+## Comment vérifier que le portage fonctionne réellement
+
+Le script exécute automatiquement `postprocess.py` après le solveur. Ce post-traitement lit les sorties réelles d’OpenFOAM et ne se contente pas de rechercher un code retour : il lit l’intégrale volumique `∫ alpha.water dV` produite par `volFieldValue`, extrait du journal le premier volume de fragment et la masse du parcel, puis vérifie `m_parcel = rho_liquid × V_fragment`.
+
+Le répertoire `postProcessing/` contient alors `spray_balance.json`, `spray_balance.csv` et `spray_liquid_volume.png`. Le champ `conversion_mass_balance_pass` doit être `true`, avec une erreur relative inférieure à `1e-10`, et `solver_end_pass` doit également être `true`. La figure permet de contrôler visuellement l’entrée progressive du liquide dans le domaine ; le CSV permet une analyse indépendante avec Python, pandas ou Excel.
 
 ## Conversion VOF-to-DPM
 
