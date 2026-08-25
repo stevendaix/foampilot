@@ -124,19 +124,33 @@ def get_tower_typology(tower_index: int, global_seed: int, mode: int, rng: Optio
 
 
 def get_typology_modules(spine_length: float, spine_width: float, typology: int, arm_length: float) -> list[tuple[float, float, float, float]]:
-    """Return GHA-compatible modules as (center_x, center_y, size_x, size_y)."""
-    half_l = spine_length / 2.0
-    modules = [(0.0, 0.0, spine_length, spine_width)]
+    """Return the original GHA rectangle modules in local coordinates."""
+    length = float(spine_length)
+    width = float(spine_width)
+    arm = max(float(arm_length), width * 0.5)
+    overlap = width * 0.5
+    half_length = length / 2.0
+    modules = [(0.0, 0.0, length, width)]
+
+    def one_side_arm(attach_x, sign):
+        cy = sign * ((arm - overlap) / 2.0)
+        modules.append((attach_x, cy, width, arm + overlap))
+
+    def crossbar(attach_x):
+        modules.append((attach_x, 0.0, width, 2.0 * arm + width))
+
     if typology == 1:
-        modules.append((-half_l / 2.0, 0.0, arm_length, spine_width))
+        one_side_arm(-half_length, 1.0)
     elif typology == 2:
-        modules.append((0.0, -half_l, spine_width, arm_length))
+        crossbar(-half_length)
     elif typology == 3:
-        modules.extend([(0.0, -half_l, spine_width, arm_length), (0.0, half_l, spine_width, arm_length)])
+        crossbar(-half_length)
+        crossbar(half_length)
     elif typology == 4:
-        modules.extend([(-half_l / 2.0, 0.0, arm_length, spine_width), (half_l / 2.0, 0.0, arm_length, spine_width)])
+        one_side_arm(-half_length, 1.0)
+        one_side_arm(half_length, 1.0)
     elif typology == 5:
-        modules.append((0.0, 0.0, spine_length, arm_length))
+        crossbar(0.0)
     return modules
 
 
@@ -144,15 +158,19 @@ def typology_arm_count(typology: int) -> int:
     return {0: 0, 1: 1, 2: 1, 3: 2, 4: 2, 5: 1}.get(typology, 0)
 
 
-def max_length_for_typology(typology: int, width: float, max_ratio: float) -> float:
-    factor = 1.0 if typology in (0, 1, 2) else 0.85
-    return max(width, width * max_ratio * factor)
+def max_length_for_typology(typology: int, width: float, arm_length_or_ratio: float, max_total_area: Optional[float] = None, absolute_cap_length: Optional[float] = None) -> float:
+    """GHA-compatible maximum spine length, with legacy three-argument support."""
+    if max_total_area is None or absolute_cap_length is None:
+        return max(float(width), float(width) * float(arm_length_or_ratio))
+    extra = estimate_extra_area(typology, width, arm_length_or_ratio)
+    available = max(float(width) * 2.0, float(max_total_area) - extra)
+    return max(float(width) * 2.0, min(float(absolute_cap_length), available / max(float(width), 1e-9)))
 
 
-def estimate_extra_area(typology: int, width: float, length: float, arm_ratio: float = 1.0) -> float:
-    arm = max(width * 0.3, width * arm_ratio)
-    modules = get_typology_modules(length, width, typology, arm)
-    return max(0.0, sum(sx * sy for _, _, sx, sy in modules) - width * length)
+def estimate_extra_area(typology: int, width: float, arm_length: float, arm_ratio: float = 1.0) -> float:
+    arm = max(float(arm_length), float(width) * 0.5)
+    modules = get_typology_modules(1.0, width, typology, arm)
+    return max(0.0, sum(sx * sy for _, _, sx, sy in modules) - width * 1.0)
 
 
 def adapt_arm_length_for_bcr(typology: int, width: float, length: float, target_area: float, arm_ratio: float = 1.0) -> float:

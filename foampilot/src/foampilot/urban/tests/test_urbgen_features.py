@@ -91,9 +91,12 @@ def test_typology_primitives_are_explicit_and_area_consistent():
     for mode in range(6):
         modules = get_typology_modules(24.0, 8.0, mode, 8.0)
         assert modules and modules[0] == (0.0, 0.0, 24.0, 8.0)
+        assert all(len(module) == 4 for module in modules)
         assert typology_arm_count(mode) == len(modules) - 1
         assert estimate_extra_area(mode, 8.0, 24.0) >= 0
         assert max_length_for_typology(mode, 8.0, 6.0) >= 8.0
+    assert get_typology_modules(24.0, 8.0, 1, 8.0)[1] == (-12.0, 2.0, 8.0, 12.0)
+    assert get_typology_modules(24.0, 8.0, 2, 8.0)[1] == (-12.0, 0.0, 8.0, 24.0)
     assert angle_candidates(1, 37.0) == [37.0]
     assert len(angle_candidates(3)) == 12
 
