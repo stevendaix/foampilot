@@ -8,6 +8,25 @@ from foampilot.urban.generation import UrbGENConfig, generate_urbgen
 SITE = Polygon([(0, 0), (160, 0), (160, 120), (0, 120)])
 
 
+def test_max_feasible_boundary_move_preserves_containment():
+    from foampilot.urban.generation.urbgen import _move_to_boundary
+    region = SITE.buffer(-8)
+    tower = Polygon([(60, 50), (72, 50), (72, 62), (60, 62)])
+    moved = _move_to_boundary(tower, region, radial=True)
+    assert region.covers(moved)
+    assert moved.centroid.distance(region.boundary) <= tower.centroid.distance(region.boundary) + 1e-6
+
+
+def test_max_feasible_podium_move_preserves_containment():
+    from foampilot.urban.generation.urbgen import _move_tower_to_podium_edge
+    region = SITE.buffer(-8)
+    tower = Polygon([(60, 50), (72, 50), (72, 62), (60, 62)])
+    podium = tower.buffer(18).intersection(region)
+    moved = _move_tower_to_podium_edge(tower, podium, region)
+    assert podium.covers(moved)
+    assert region.covers(moved)
+
+
 def test_bcr_convergence_on_convex_and_concave_sites():
     sites = [
         SITE,

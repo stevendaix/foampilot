@@ -8,7 +8,7 @@ rules. It returns native ``UrbanModel`` objects for Gmsh/build123d adapters.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from math import ceil, sqrt, atan2, cos, sin, degrees, radians
+from math import ceil, sqrt, hypot, atan2, cos, sin, degrees, radians
 from random import Random
 from typing import Iterable, Optional
 
@@ -413,31 +413,33 @@ def _courtyard_blocks(region: Polygon, config: UrbGENConfig) -> list[Polygon]:
 
 
 def _move_to_boundary(shape: Polygon, region: Polygon, radial: bool) -> Polygon:
-    center = Point(region.centroid.x, region.centroid.y)
-    direction = Point(shape.centroid.x - center.x, shape.centroid.y - center.y) if radial else Point(region.exterior.interpolate(region.exterior.project(shape.centroid)).x - shape.centroid.x, region.exterior.interpolate(region.exterior.project(shape.centroid)).y - shape.centroid.y)
-    norm = max((direction.x * direction.x + direction.y * direction.y) ** 0.5, 1e-9)
-    step = 1.0
-    moved = shape
-    for _ in range(10000):
-        candidate = translate(moved, xoff=direction.x / norm * step, yoff=direction.y / norm * step)
-        if not region.covers(candidate):
-            break
-        moved = candidate
-    return moved
+    center = region.centroid
+    if radial:
+        dx, dy = shape.centroid.x - center.x, shape.centroid.y - center.y
+        norm = hypot(dx, dy)
+        if norm < 1e-9:
+            nearest = region.boundary.interpolate(region.boundary.project(shape.centroid))
+            dx, dy = nearest.x - shape.centroid.x, nearest.y - shape.centroid.y
+            norm = hypot(dx, dy)
+    else:
+        nearest = region.boundary.interpolate(region.boundary.project(shape.centroid))
+        dx, dy = nearest.x - shape.centroid.x, nearest.y - shape.centroid.y
+        norm = hypot(dx, dy)
+    ux, uy = dx / max(norm, 1e-9), dy / max(norm, 1e-9)
+    max_dist = shape.centroid.distance(region.boundary)
+    distance = _max_feasible_move(lambda d: region.covers(translate(shape, xoff=ux * d, yoff=uy * d)), max_dist)
+    return translate(shape, xoff=ux * distance, yoff=uy * distance)
 
 
 def _move_tower_to_podium_edge(shape: Polygon, podium: Polygon, region: Polygon) -> Polygon:
-    """Slide a tower toward the nearest podium/site edge without leaving it."""
-    target = region.exterior.interpolate(region.exterior.project(shape.centroid))
+    """Slide a tower toward the nearest podium edge by maximal feasible distance."""
+    target = podium.boundary.interpolate(podium.boundary.project(shape.centroid))
     dx, dy = target.x - shape.centroid.x, target.y - shape.centroid.y
-    norm = max((dx * dx + dy * dy) ** 0.5, 1e-9)
-    moved = shape
-    for _ in range(10000):
-        candidate = translate(moved, xoff=dx / norm, yoff=dy / norm)
-        if not podium.covers(candidate):
-            break
-        moved = candidate
-    return moved
+    norm = max(hypot(dx, dy), 1e-9)
+    ux, uy = dx / norm, dy / norm
+    max_dist = shape.centroid.distance(podium.boundary)
+    distance = _max_feasible_move(lambda d: podium.covers(translate(shape, xoff=ux * d, yoff=uy * d)), max_dist)
+    return translate(shape, xoff=ux * distance, yoff=uy * distance)
 
 
 def _align_to_edge(shape: Polygon, region: Polygon, angle: float) -> Polygon:
