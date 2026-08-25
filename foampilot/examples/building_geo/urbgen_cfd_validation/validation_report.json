@@ -1,0 +1,21 @@
+{
+  "building_count": 7,
+  "volume_count": 8,
+  "surface_count": 48,
+  "node_count": 512,
+  "physical_volume_names": [
+    "FLUID"
+  ],
+  "physical_surface_names": [
+    "inlet",
+    "outlet",
+    "side_walls",
+    "ground",
+    "top",
+    "building_walls"
+  ],
+  "actual_bcr": 0.07753846153846156,
+  "actual_far": 1.5286153846153852,
+  "openfoam_missing_files": [],
+  "openfoam_case_valid": true
+}
