@@ -7,7 +7,7 @@ rules. It returns native ``UrbanModel`` objects for Gmsh/build123d adapters.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from math import ceil, sqrt, hypot, atan2, cos, sin, degrees, radians
 from random import Random
 from typing import Iterable, Optional
@@ -364,29 +364,75 @@ class RingCache:
         return _as_polygon(poly) if _fast_area(poly) >= min_area else None
 
 
-def _build_courtyard_layout(region: Polygon, config: UrbGENConfig, target_area: float) -> list[Polygon]:
-    """Build Courtyard segments by zones and grow their perimeter coverage to target BCR."""
-    zones = _split_site_into_zones(region, max(1, config.courtyard_count), config.courtyard_split_angle, config.courtyard_zone_gap)
-    best = []
-    coverage = {0: 0.55, 1: 0.70, 2: 0.85, 3: Random(config.seed + 7301).uniform(0.50, 0.90)}.get(config.tower_size_mode, 0.70)
-    for _ in range(max(1, config.tower_grow_iterations)):
-        segments = []
-        for zone_index, zone in enumerate(zones):
-            breaks = config.courtyard_break_count
-            if config.tower_size_mode == 0:
+class CourtyardContext:
+    """Cache indépendant de la couverture pour reconstruire rapidement les anneaux."""
+    def __init__(self, boundary: Polygon, config: UrbGENConfig):
+        self.config = config
+        self.zones = _split_site_into_zones(boundary, max(1, config.courtyard_count), config.courtyard_split_angle, config.courtyard_zone_gap)
+        self.rings = [RingCache(z, config.min_width) for z in self.zones]
+
+    def build(self, coverage: float) -> tuple[list[Polygon], list[Point], float]:
+        footprints, centers = [], []
+        for index, (zone, ring) in enumerate(zip(self.zones, self.rings)):
+            if not ring.ok:
+                continue
+            breaks = self.config.courtyard_break_count
+            if self.config.tower_size_mode == 0:
                 breaks += 2
-            elif config.tower_size_mode == 2:
+            elif self.config.tower_size_mode == 2:
                 breaks = max(1, breaks - 1)
-            elif config.tower_size_mode == 3:
-                breaks = max(1, breaks + Random(config.seed * 131 + zone_index * 17 + 6001).randint(-2, 2))
-            segments.extend(_courtyard_ring_segments(zone, config.min_width, breaks, config.courtyard_break_width, coverage, config.courtyard_break_shift, config.seed + zone_index))
-        total = sum(p.area for p in segments)
-        if total > sum(p.area for p in best):
-            best = segments
-        if total >= target_area * 0.985 or coverage >= 0.98:
+            elif self.config.tower_size_mode == 3:
+                breaks = max(1, breaks + Random(self.config.seed * 131 + index * 17 + 6001).randint(-2, 2))
+            segments = _courtyard_ring_segments(zone, self.config.min_width, breaks, self.config.courtyard_break_width, coverage, self.config.courtyard_break_shift, self.config.seed + index)
+            for segment in segments:
+                if segment.area >= self.config.min_footprint_per_tower:
+                    footprints.append(segment)
+                    centers.append(segment.centroid)
+        return footprints, centers, sum(p.area for p in footprints)
+
+
+def grow_courtyard_to_bcr(ctx: CourtyardContext, target_area: float, max_iter: int, bcr_tol: float, start_coverage: float = 0.70):
+    """Recherche binaire de couverture avec conservation du meilleur état."""
+    current = max(0.05, min(0.98, start_coverage))
+    fps, centers, area = ctx.build(current)
+    best = (fps, centers, current, area)
+    best_diff = abs(area - target_area)
+    if not fps:
+        return fps, centers, current, area, 1
+    lo, hi = 0.05, 0.98
+    if area < target_area:
+        lo = current
+    else:
+        hi = current
+    steps = 1
+    for _ in range(max(4, min(12, int(max_iter)))):
+        if hi - lo < 0.005:
             break
-        coverage = min(0.98, coverage + 0.03)
-    return best
+        mid = (lo + hi) * 0.5
+        candidate, candidate_centers, candidate_area = ctx.build(mid)
+        steps += 1
+        if not candidate:
+            lo = mid
+            continue
+        diff = abs(candidate_area - target_area)
+        if diff < best_diff:
+            best = (candidate, candidate_centers, mid, candidate_area)
+            best_diff = diff
+        if diff <= bcr_tol:
+            break
+        if candidate_area < target_area:
+            lo = mid
+        else:
+            hi = mid
+    return (*best, steps)
+
+
+def _build_courtyard_layout(region: Polygon, config: UrbGENConfig, target_area: float) -> list[Polygon]:
+    coverage = {0: 0.55, 1: 0.70, 2: 0.85, 3: Random(config.seed + 7301).uniform(0.50, 0.90)}.get(config.tower_size_mode, 0.70)
+    ctx = CourtyardContext(region, config)
+    bcr_tol = max(1.0, target_area * 0.015)
+    footprints, _, _, _, steps = grow_courtyard_to_bcr(ctx, target_area, config.tower_grow_iterations, bcr_tol, coverage)
+    return footprints
 
 
 def _courtyard_blocks(region: Polygon, config: UrbGENConfig) -> list[Polygon]:
@@ -693,6 +739,19 @@ def _converge_bcr(towers, angles, codes, lengths, buildable: Polygon, site: Poly
             break
     current, current_lengths, offset, pod, current_area = best
     return current, current_lengths, offset, pod, {"shrink_iterations": shrink_iterations, "expand_iterations": expand_iterations, "upper_bcr": upper, "converged_bcr": current_area / site.area}
+
+
+def generate_urbgen_multi_site(sites, config: UrbGENConfig = UrbGENConfig(), *, crs: Optional[str] = None):
+    """Generate independent UrbGEN results with deterministic per-site seeds."""
+    if isinstance(sites, dict):
+        items = list(sites.items())
+    else:
+        items = list(enumerate(sites))
+    results = {}
+    for index, (site_id, site) in enumerate(items):
+        site_config = replace(config, seed=config.seed + index)
+        results[site_id] = generate_urbgen(site, site_config, crs=crs)
+    return results
 
 
 def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs: Optional[str] = None, centroids: Optional[Iterable[Point]] = None) -> UrbGENResult:

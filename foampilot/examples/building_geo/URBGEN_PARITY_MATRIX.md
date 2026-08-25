@@ -36,3 +36,13 @@ Le visualiseur `plot_urbgen_validation.py` produit cinq scénarios avec un PNG e
 | podium_edge | 0.1201 | 2.0124 | 5 | 5 | Podiums individuels et containment valides |
 
 Les contrôles visuels ont été effectués sur les cas `setback_moved`, `podium_edge`, `edge_aligned` et `courtyard`. Les fichiers JSON associés conservent les diagnostics de convergence, le nombre d’itérations et les hauteurs pour une validation automatisée ultérieure.
+
+## Avancement après convergence et multi-site
+
+Le générateur utilise maintenant `CourtyardContext` et `grow_courtyard_to_bcr` pour réutiliser les anneaux et rechercher la couverture par dichotomie. Les opérations de déplacement utilisent `_max_feasible_move`. Les podiums individuels et l’allocation GFA des hauteurs sont intégrés.
+
+L’API `generate_urbgen_multi_site` accepte une liste ou un dictionnaire de sites et dérive les seeds de manière déterministe par index.
+
+Validation courante : **18 tests UrbGEN ciblés réussis**. Les validations visuelles comprennent cinq scénarios et les métriques JSON associées.
+
+Les éléments restant à comparer numériquement au GHA sont les tolérances Rhino/Shapely, les fixtures Grasshopper de référence, les détails exacts de la grammaire des typologies, les statistiques de hauteur et la chaîne de maillage CFD complète.

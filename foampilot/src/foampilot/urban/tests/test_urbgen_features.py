@@ -8,6 +8,18 @@ from foampilot.urban.generation import UrbGENConfig, generate_urbgen
 SITE = Polygon([(0, 0), (160, 0), (160, 120), (0, 120)])
 
 
+def test_multi_site_api_returns_deterministic_keyed_results():
+    from shapely.affinity import translate
+    from foampilot.urban.generation import generate_urbgen_multi_site
+    sites = {"west": SITE, "east": translate(SITE, xoff=200)}
+    first = generate_urbgen_multi_site(sites, UrbGENConfig(bcr=0.10, far=1.5, podium_floors=0, seed=30))
+    second = generate_urbgen_multi_site(sites, UrbGENConfig(bcr=0.10, far=1.5, podium_floors=0, seed=30))
+    assert list(first) == ["west", "east"]
+    assert [p.wkt for p in first["west"].tower_footprints] == [p.wkt for p in second["west"].tower_footprints]
+    assert first["west"].diagnostics["seed"] == 30
+    assert first["east"].diagnostics["seed"] == 31
+
+
 def test_max_feasible_boundary_move_preserves_containment():
     from foampilot.urban.generation.urbgen import _move_to_boundary
     region = SITE.buffer(-8)
