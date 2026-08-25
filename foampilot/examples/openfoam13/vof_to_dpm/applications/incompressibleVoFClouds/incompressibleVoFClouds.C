@@ -70,6 +70,19 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
         mu_,
         g_
     ),
+    fragmentMask_
+    (
+        IOobject
+        (
+            "vofFragmentMask",
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless, 0)
+    ),
     alphaThreshold_(dict.lookupOrDefault<scalar>("alphaThreshold", 0.5)),
     minCells_(dict.lookupOrDefault<label>("minCells", 1)),
     minVolume_(dict.lookupOrDefault<scalar>("minVolume", 0)),
@@ -105,9 +118,15 @@ void Foam::fv::incompressibleVoFClouds::correct()
                 minVolume_
             );
         scalar detectedVolume = 0;
+        fragmentMask_.internalFieldRef() = scalar(0);
         forAll(fragments, fragmentI)
         {
             detectedVolume += fragments[fragmentI].volume;
+            const labelList& cells = fragments[fragmentI].cells;
+            forAll(cells, cellI)
+            {
+                fragmentMask_[cells[cellI]] = scalar(1);
+            }
         }
         Info<< "VOF fragments detected: " << fragments.size()
             << ", convertible volume: " << detectedVolume << nl;

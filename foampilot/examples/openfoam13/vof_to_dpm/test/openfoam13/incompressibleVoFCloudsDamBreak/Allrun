@@ -17,6 +17,7 @@ sed -i \
     's/solver          incompressibleVoF;/solver          incompressibleVoF;\nlibs            ("libincompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
     system/controlDict
 sed -i 's/endTime         1;/endTime         0.02;/' system/controlDict
+sed -i 's/writeInterval   0.05;/writeInterval   0.01;/' system/controlDict
 sed -i 's/momentumPredictor no;/momentumPredictor yes;\n    models          yes;/' system/fvSolution
 
 cat > constant/fvModels <<'EOF'

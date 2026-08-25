@@ -26,6 +26,7 @@ class incompressibleVoFClouds
     const wordList cloudNames_;
     mutable volScalarField mu_;
     mutable parcelCloudList clouds_;
+    mutable volScalarField fragmentMask_;
     const scalar alphaThreshold_;
     const label minCells_;
     const scalar minVolume_;
