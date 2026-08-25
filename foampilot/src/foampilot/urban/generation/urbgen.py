@@ -496,6 +496,60 @@ def _trim_towers_to_bcr(towers, angles, codes, lengths, site, config):
     return ([towers[i] for i in keep], [angles[i] for i in keep], [codes[i] for i in keep], [lengths[i] for i in keep])
 
 
+def create_height_distribution_from_variation(count, base_floors, variation, seed, min_floors):
+    return _height_distribution(count, base_floors, variation, seed, min_floors)
+
+
+def calculate_actual_variation(floors: list[int], base_floors: int) -> float:
+    if not floors or base_floors <= 0:
+        return 0.0
+    return (max(floors) - min(floors)) / float(base_floors)
+
+
+def validate_height_variation(floors: list[int], base_floors: int, target_variation: float) -> tuple[bool, float]:
+    actual = calculate_actual_variation(floors, base_floors)
+    return abs(actual - target_variation) <= max(0.05, target_variation * 0.35), actual
+
+
+def adjust_floors_to_target(floors: list[int], areas: list[float], target_gfa: float, floor_height: float, min_floors: int) -> list[int]:
+    """Adjust individual floor counts greedily to match target tower GFA."""
+    if not floors or not areas or target_gfa <= 0 or floor_height <= 0:
+        return floors
+    out = [max(min_floors, int(v)) for v in floors]
+    def gfa(): return sum(a * f for a, f in zip(areas, out))
+    for _ in range(max(1, len(out) * 50)):
+        current = gfa()
+        if abs(current - target_gfa) <= max(floor_height * max(areas), target_gfa * 0.01):
+            break
+        if current < target_gfa:
+            i = max(range(len(out)), key=lambda j: areas[j])
+            out[i] += 1
+        else:
+            candidates = [i for i, f in enumerate(out) if f > min_floors]
+            if not candidates:
+                break
+            i = max(candidates, key=lambda j: areas[j])
+            out[i] -= 1
+    return out
+
+
+def check_height_regulations(heights: list[float], min_height: float, max_height: float, mode: int):
+    adjusted = list(heights)
+    violations = {"violations": 0, "adjusted": 0, "details": []}
+    for i, h in enumerate(adjusted):
+        new = h
+        if mode in (0, 1, 2):
+            new = min(max_height, new)
+        if mode in (0, 2):
+            new = max(min_height, new)
+        if abs(new - h) > 1e-9:
+            violations["violations"] += 1
+            violations["adjusted"] += 1
+            violations["details"].append({"index": i, "old": h, "new": new})
+            adjusted[i] = new
+    return adjusted, violations
+
+
 def _height_distribution(count, base_floors, variation, seed, min_floors):
     if count <= 0:
         return []
@@ -510,6 +564,39 @@ def _height_distribution(count, base_floors, variation, seed, min_floors):
     return values
 
 
+def _max_feasible_move(test_fn, max_dist: float, iters: int = 9) -> float:
+    if max_dist <= 1e-9:
+        return 0.0
+    if test_fn(max_dist):
+        return max_dist
+    lo, hi = 0.0, max_dist
+    for _ in range(max(1, iters)):
+        mid = (lo + hi) * 0.5
+        if test_fn(mid):
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < 0.05:
+            break
+    return lo
+
+
+def create_individual_podiums(towers: list[Polygon], offset: float, buildable: Polygon) -> tuple[float, list[Polygon]]:
+    """Create one clipped podium polygon per tower, then remove empty pieces."""
+    if offset <= 1e-9:
+        return sum(p.area for p in towers), list(towers)
+    podiums = []
+    for tower in towers:
+        piece = tower.buffer(offset).intersection(buildable)
+        if piece.is_empty:
+            continue
+        if piece.geom_type == "Polygon":
+            podiums.append(piece)
+        else:
+            podiums.extend(p for p in piece.geoms if p.geom_type == "Polygon" and p.area > 1e-9)
+    return sum(p.area for p in podiums), podiums
+
+
 def _find_podium_offset(towers, buildable, config, target_area):
     if config.podium_floors <= 0 or not towers:
         return 0.0, []
@@ -517,10 +604,7 @@ def _find_podium_offset(towers, buildable, config, target_area):
     best_offset, best_podium = 0.0, []
     for _ in range(12):
         mid = (lo + hi) / 2.0
-        union = unary_union([p.buffer(mid) for p in towers])
-        clipped = union.intersection(buildable)
-        parts = [clipped] if clipped.geom_type == "Polygon" else [p for p in clipped.geoms if p.geom_type == "Polygon"]
-        area = sum(p.area for p in parts)
+        area, parts = create_individual_podiums(towers, mid, buildable)
         if area >= target_area:
             best_offset, best_podium = mid, parts
             hi = mid
@@ -528,8 +612,7 @@ def _find_podium_offset(towers, buildable, config, target_area):
             lo = mid
     if not best_podium:
         mid = min(config.podium_max_offset, max(config.podium_min_offset, 0.35 * sqrt(buildable.area)))
-        clipped = unary_union([p.buffer(mid) for p in towers]).intersection(buildable)
-        best_podium = [clipped] if clipped.geom_type == "Polygon" else [p for p in clipped.geoms if p.geom_type == "Polygon"]
+        _, best_podium = create_individual_podiums(towers, mid, buildable)
         best_offset = mid
     return best_offset, best_podium
 
@@ -691,24 +774,23 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
     floor_h = config.floor_height_override or config.floor_height
     target_gfa = site.area * config.far
     tower_floors = max(1, ceil(max(0.0, target_gfa - podium_area * config.podium_floors) / tower_floor_area))
-    floors = _height_distribution(len(towers), tower_floors, config.height_variation, config.seed, max(1, ceil(config.min_building_height / floor_h)))
+    floors = create_height_distribution_from_variation(len(towers), tower_floors, config.height_variation, config.seed, max(1, ceil(config.min_building_height / floor_h)))
+    floors = adjust_floors_to_target(floors, [p.area for p in towers], max(0.0, target_gfa - podium_area * config.podium_floors), floor_h, max(1, ceil(config.min_building_height / floor_h)))
     heights = []
     model = UrbanModel(crs=crs)
     for i, footprint in enumerate(towers):
         h = floors[i] * floor_h
         if config.enforce_height_regulation:
-            if config.height_regulation_mode == 1:
-                h = min(config.max_building_height, h)
-            elif config.height_regulation_mode == 2:
-                h = max(config.min_building_height, min(config.max_building_height, h))
-            else:
-                h = max(config.min_building_height, min(config.max_building_height, h))
+            regulated, _ = check_height_regulations([h], config.min_building_height, config.max_building_height, config.height_regulation_mode)
+            h = regulated[0]
         h = max(config.min_building_height, h)
         heights.append(h)
         model.add_building(Building(f"urbgen-tower-{i:04d}", footprint, 0.0, h, RoofType.FLAT, CFDLOD.LOD1, "urbgen", 1.0, {"typology": codes[i], "typology_name": ("I", "L", "T", "H", "C", "Plus", "Random", "Courtyard")[codes[i]], "angle_deg": angles[i], "floors": round(h / floor_h)}))
     for i, footprint in enumerate(podium):
         model.add_building(Building(f"urbgen-podium-{i:04d}", footprint, 0.0, config.podium_floors * floor_h, RoofType.FLAT, CFDLOD.LOD1, "urbgen-podium", 1.0, {"podium_offset": actual_offset, "floors": config.podium_floors}))
     gfa = sum(b.area * max(1, round(b.height / floor_h)) for b in model.buildings())
+    actual_tower_gfa = sum(p.area * max(1, round(h / floor_h)) for p, h in zip(towers, heights))
+    actual_podium_gfa = sum(p.area * config.podium_floors for p in podium)
     footprint_union_area = unary_union([*towers, *podium]).area
-    diagnostics = {"target_bcr": config.bcr, "target_far": config.far, "tower_count": len(towers), "podium_count": len(podium), "actual_podium_offset": actual_offset, "heights": heights, "seed": config.seed, **convergence}
-    return UrbGENResult(model, site, buildable, towers, podium, angles, codes, footprint_union_area / site.area, gfa / site.area, gfa, tower_floor_area * tower_floors, podium_area * config.podium_floors, diagnostics)
+    diagnostics = {"target_bcr": config.bcr, "target_far": config.far, "tower_count": len(towers), "podium_count": len(podium), "actual_podium_offset": actual_offset, "heights": heights, "floors": floors, "actual_tower_gfa": actual_tower_gfa, "actual_podium_gfa": actual_podium_gfa, "seed": config.seed, **convergence}
+    return UrbGENResult(model, site, buildable, towers, podium, angles, codes, footprint_union_area / site.area, gfa / site.area, gfa, actual_tower_gfa, actual_podium_gfa, diagnostics)
