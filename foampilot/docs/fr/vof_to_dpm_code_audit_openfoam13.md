@@ -121,3 +121,25 @@ La décision est relevée à **portage fonctionnel validé sur les cas nominaux 
 Le PR peut être fusionné pour le périmètre validé et documenté. La qualification « production-ready spray compressible/thermique » reste conditionnée à l’ajout d’un cas thermoCloud compressible dédié et à la vérification quantitative de l’enthalpie transférée, ainsi qu’à une gestion explicite des fragments non localisables par `findCellAtPosition`.
 
 [6]: https://github.com/stevendaix/foampilot/pull/24 "Pull Request du portage VOF-to-DPM OpenFOAM 13"
+
+
+## Validation thermoCloud compressible dédiée — 25 août 2026
+
+Un cas dédié `test/openfoam13/compressibleVoFCloudsThermoDamBreak` a été ajouté. Il active explicitement `thermoCloud true`, utilise `type thermoCloud`, déclare les composants liquides H2O dans les propriétés porteuses et exécute le même transfert fragment→parcel sur la phase eau avec température de parcel initialisée depuis le champ porteur.
+
+Le cas termine normalement avec les vérifications suivantes :
+
+| Indicateur thermoCloud | Valeur |
+|---|---:|
+| Masse du batch confirmé | `0.646099 kg` |
+| Nombre de batches ajoutés | `1` |
+| Applications de la source alpha-rho | `2` |
+| Applications de la source d’enthalpie | `1` |
+| Source d’enthalpie non nulle | **PASS** |
+| Fin normale du solveur | **PASS** |
+| Absence de `FOAM FATAL` et d’exception flottante | **PASS** |
+| Validation énergétique thermoCloud | **PASS** |
+
+Le post-traitement `postprocess.py` vérifie indépendamment que la source d’enthalpie a effectivement été appliquée après création du parcel, que la source alpha-rho a été appelée et que le solveur s’est terminé sans erreur. Le journal contient notamment `Applied compressible enthalpy transfer to e.water`, ce qui confirme que le chemin `Sh()` et le sink d’enthalpie sont actifs dans l’équation thermodynamique de la phase liquide.
+
+La réserve précédente sur l’absence de cas thermoCloud dédié est donc levée. La qualification production-ready reste néanmoins limitée aux hypothèses documentées : localisation géométrique valide, un modèle de composition liquide H2O, et absence de validation parallèle ou multi-composants dans ce cas minimal.
