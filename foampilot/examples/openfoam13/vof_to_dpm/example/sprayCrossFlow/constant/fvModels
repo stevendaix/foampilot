@@ -1,0 +1,17 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+sprayCrossFlowClouds
+{
+    type            incompressibleVoFClouds;
+    clouds          (cloud);
+    liquidPhase     water;
+    consumeAlpha    true;
+    alphaThreshold  0.5;
+    minCells        1;
+    minVolume       1e-8;
+}
