@@ -47,14 +47,43 @@ class OpenFOAMDictAddFile:
                 file.write(f"{indent}{key} {str(value)};\n")
 
 
+    def write_raw(self, name_dict, base_path, content, folder="system"):
+        """Write an OpenFOAM dictionary body without serializing its syntax.
+
+        Tutorial dictionaries often contain constructs that cannot be safely
+        represented by the generic attribute serializer (for example
+        ``#include`` directives, function objects, coded entries or nested
+        lists with OpenFOAM-specific grammar).  If the supplied content already
+        contains a ``FoamFile`` header it is preserved verbatim; otherwise the
+        writer adds the standard header owned by this instance.
+
+        Returns:
+            Path: The path of the written dictionary.
+        """
+        path = Path(base_path) / folder / name_dict
+        path.parent.mkdir(parents=True, exist_ok=True)
+        text = str(content)
+        has_header = "FoamFile" in text
+        if not has_header:
+            header = "FoamFile\n{\n"
+            header += "    version     2.0;\n"
+            header += "    format      ascii;\n"
+            header += "    class       dictionary;\n"
+            header += f"    object      {self.header['object']};\n"
+            header += "}\n\n"
+            text = header + text
+        path.write_text(text, encoding="utf-8")
+        return path
+
     def write(self, name_dict, base_path, folder='system'):
         """
         Writes the OpenFOAM file to the specified filepath.
         """
         try:
             path = Path(base_path) / folder / name_dict
+            path.parent.mkdir(parents=True, exist_ok=True)
             filepath = path
-            with open(filepath, 'w') as file:
+            with open(filepath, 'w', encoding='utf-8') as file:
                 file.write("FoamFile\n{\n")
                 for key, value in self.header.items():
                     file.write(f"    {key}     {value};\n")

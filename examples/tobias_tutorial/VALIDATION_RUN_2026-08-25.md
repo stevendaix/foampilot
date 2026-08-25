@@ -1,0 +1,49 @@
+# Validation exécutée des tutoriels Tobias — 25 août 2026
+
+Cette validation a été exécutée dans le dépôt `stevendaix/foampilot` avec OpenFOAM Foundation 13 installé sous `/opt/openfoam13`. Les runners Python ont été lancés avec `PYTHONPATH=foampilot/src`; pour le contrôle principal, le cas `2d_rotational_axis_symmetric` a également été lancé sans sourcer manuellement OpenFOAM dans le shell. Le correctif de `BaseSolver` charge alors automatiquement `/opt/openfoam13/etc/bashrc` pour les commandes FoamPilot.
+
+## Résultats observés
+
+| Cas | Code retour | Résultat | Preuve observée |
+| --- | ---: | --- | --- |
+| `2d_rotational_axis_symmetric` | 0 | Validé | `blockMesh`, `surfaceFeatures`, `snappyHexMesh`, `extrudeMesh`, `createPatch`; `160590` cellules; `Finished meshing without any errors`; `End` |
+| `2d_ami_ncc` | 0 | Validé | `ideasUnvToFoam`, `snappyHexMesh`, baffles, couples non conformes et `foamRun`; `140321` cellules; `End` |
+| `catalystHeatUp` | 0 | Validé | `splitMeshRegions`, `createPatch` pour SCR1/SCR2 et `foamMultiRun`; `Finished meshing without any errors`; `End` |
+| `pitot_tube` | 0 | Validé | maillage `206180` cellules; `changeDictionary`, `extrudeMesh` et `foamRun`; `Finished meshing without any errors`; `End` |
+| `rotatingRotorNCC` | 0 | Validé | `snappyHexMesh`, baffles, `createNonConformalCouples` et `foamRun`; `265756` cellules; `End` |
+| `snappy_feature_edge_refinement` | 0 | Validé | trois variantes de feature edges; variante représentative `85067` cellules; `Finished meshing without any errors`; `End` |
+| `snappy_sphere_and_layer` | 0 | Validé | `48940` cellules avant couches, `53404` après couches; `Finished meshing without any errors`; `End` |
+| `thin_gap_meshing` | 0 | Validé | transformations d’échelle, `snappyHexMesh`, retour d’échelle et `foamRun`; `Finished meshing without any errors`; `End` |
+
+Les mêmes sorties de calcul et de maillage ont été contrôlées dans les répertoires `case` générés. Les fichiers structurants `system/controlDict`, `system/fvSchemes`, `system/fvSolution`, `constant` et `0` sont présents pour les cas réussis.
+
+## Cas non validés dans cette passe
+
+| Cas | Code retour | Diagnostic |
+| --- | ---: | --- |
+| `adaptive_mesh_refinement` | 1 | Le runner attend `cad/`, absent du clone courant. |
+| `cell_zone_generation` | 1 | Le runner attend `cad/`, absent du clone courant. |
+| `falling_droplets` | 1 | Le runner attend `cad/`, absent du clone courant. |
+| `fluidic_oscillator` | 1 | Le runner attend `cad/`, absent du clone courant. |
+| `magnus_effect` | 1 | Le runner attend `cad/`, absent du clone courant. |
+| `meshing_pipe_45deg` | 1 | Le runner attend `cad/`, absent du clone courant. |
+| `meshing_pipe_90deg` | 1 | Le runner attend `cad/`, absent du clone courant. |
+| `dakotaTeslaOneWayValve2D` | 1 | Exécution bloquée par l’exécutable externe `dakota` absent. |
+| `battery_cooling` | 124 | `snappyHexMesh` n’a pas terminé dans le délai de smoke test de 240 s. |
+| `combustion_chamber` | 124 | `snappyHexMesh` n’a pas terminé dans le délai de smoke test de 240 s. |
+
+Ces résultats ne transforment pas les cas bloqués en cas validés. Ils indiquent les prérequis restant à récupérer ou la nécessité d’un délai de calcul adapté.
+
+## Corrections FoamPilot incluses
+
+La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
+
+Les tests ciblés passent avec **6 tests réussis** : helpers OpenFOAM 13, writer brut, propagation de l’environnement, système et constantes.
+
+## Références
+
+[1]: https://openfoam.org/download/13-ubuntu/ — OpenFOAM Foundation, « Download v13 | Ubuntu ».
+
+[2]: https://github.com/stevendaix/foampilot/tree/main/examples%2Ftobias_tutorial — Répertoire des tutoriels Tobias dans FoamPilot.
+
+[3]: https://github.com/stevendaix/foampilot/tree/main/foampilot%2Fsrc%2Ffoampilot — Module source FoamPilot contrôlé.

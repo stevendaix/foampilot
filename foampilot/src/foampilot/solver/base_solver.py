@@ -1,14 +1,14 @@
 from pathlib import Path
 import logging
+import os
 import subprocess
+from pathlib import Path
 from typing import List, Optional
 
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.base.cases_variables import CaseFieldsManager
-import os
-
 logger = logging.getLogger(__name__)
 
 class BaseSolver:
@@ -141,6 +141,26 @@ class BaseSolver:
             pass
 
     # ---------- Running simulation ----------
+    def _command_environment(self) -> dict[str, str]:
+        """Return the environment used by FoamPilot utility commands.
+
+        When OpenFOAM Foundation 13 is installed at its standard location, or
+        when ``FOAMPILOT_OPENFOAM_BASHRC`` is explicitly set, load its bashrc
+        before launching a utility.  This is important for tutorial runners:
+        their commands (``blockMesh``, ``snappyHexMesh``, ``foamRun``, etc.)
+        must use the same version and module path as the configured solver.
+        Existing environments remain untouched when no OpenFOAM 13 install is
+        available, preserving the historical behaviour for custom setups.
+        """
+        bashrc = os.environ.get("FOAMPILOT_OPENFOAM_BASHRC")
+        if bashrc is None and Path("/opt/openfoam13/etc/bashrc").is_file():
+            bashrc = "/opt/openfoam13/etc/bashrc"
+        if bashrc:
+            from foampilot.tutorials.openfoam13 import OpenFOAM13Environment
+
+            return OpenFOAM13Environment(bashrc).environment()
+        return os.environ.copy()
+
     def run_command(self, cmd: List[str], log_filename: str) -> None:
         log_path = self.case_path / log_filename
         logger.info("Running command: %s -> log: %s", " ".join(cmd), log_path)
@@ -148,6 +168,7 @@ class BaseSolver:
             subprocess.run(
                 cmd,
                 cwd=self.case_path,
+                env=self._command_environment(),
                 text=True,
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
@@ -155,7 +176,7 @@ class BaseSolver:
             )
 
     def check_solver_module_exists(self) -> bool:
-        foam_modules = os.getenv("FOAM_MODULES", "")
+        foam_modules = self._command_environment().get("FOAM_MODULES", "")
         if not foam_modules:
             logger.warning("$FOAM_MODULES environment variable is not set.")
             return False
@@ -238,6 +259,7 @@ class BaseSolver:
             log_file.write("=== decomposePar ===\n")
             subprocess.run(
                 ["decomposePar", "-case", str(self.case_path)],
+                env=self._command_environment(),
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
                 check=True
@@ -250,6 +272,7 @@ class BaseSolver:
             subprocess.run(
                 ["mpirun", "--oversubscribe", "-np", str(nb_proc), "foamRun", "-solver", self.foamrun_module, "-parallel"],
                 cwd=self.case_path,
+                env=self._command_environment(),
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
                 check=True
@@ -261,6 +284,7 @@ class BaseSolver:
             log_file.write("\n=== reconstructPar ===\n")
             subprocess.run(
                 ["reconstructPar", "-case", str(self.case_path)],
+                env=self._command_environment(),
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
                 check=True
