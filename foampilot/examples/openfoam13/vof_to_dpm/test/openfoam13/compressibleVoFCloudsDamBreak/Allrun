@@ -14,6 +14,7 @@ sed -i \
     's/solver          compressibleVoF;/solver          compressibleVoF;\nlibs            ("libcompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
     system/controlDict
 sed -i 's/endTime         1;/endTime         0.01;/' system/controlDict
+sed -i 's/writeInterval   0.05;/writeInterval   0.005;/' system/controlDict
 sed -i 's/momentumPredictor[[:space:]]*no;/momentumPredictor   yes;\n    models              yes;/' system/fvSolution
 
 cat > constant/fvModels <<'EOF'
@@ -29,6 +30,7 @@ compressibleVoFClouds
 {
     type            compressibleVoFClouds;
     clouds          (cloud);
+    liquidPhase     water;
 }
 EOF
 
@@ -56,5 +58,6 @@ grep -q "Selecting finite volume model type compressibleVoFClouds" log.foamRun
 grep -q "Selecting parcelCloud collidingCloud" log.foamRun
 grep -q "Current number of parcels" log.foamRun
 grep -Eq "VOF fragments detected: [1-9]" log.foamRun
+test -f 0.01/vofFragmentMask
 
 echo "PASS: compressibleVoF + compressibleVoFClouds + collidingCloud"

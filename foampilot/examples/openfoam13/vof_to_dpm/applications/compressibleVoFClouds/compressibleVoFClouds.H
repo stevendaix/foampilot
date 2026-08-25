@@ -23,6 +23,7 @@ class compressibleVoFClouds : public fvModel
     const wordList cloudNames_;
     mutable volScalarField mu_;
     mutable parcelCloudList clouds_;
+    mutable volScalarField fragmentMask_;
     const word liquidPhase_;
     const volScalarField& liquidAlpha_;
     const scalar alphaThreshold_;
