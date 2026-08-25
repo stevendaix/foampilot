@@ -58,6 +58,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+chemistry = [
+  "cantera>=3.0",
+]
 gnn = [
   "torch>=2.5.0,<2.6.0",
   "torch-scatter",
