@@ -475,4 +475,5 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
     for i, footprint in enumerate(podium):
         model.add_building(Building(f"urbgen-podium-{i:04d}", footprint, 0.0, config.podium_floors * floor_h, RoofType.FLAT, CFDLOD.LOD1, "urbgen-podium", 1.0, {"podium_offset": actual_offset, "floors": config.podium_floors}))
     gfa = sum(b.area * max(1, round(b.height / floor_h)) for b in model.buildings())
-    return UrbGENResult(model, site, buildable, towers, podium, angles, codes, sum(b.area for b in model.buildings()) / site.area, gfa / site.area, gfa, tower_floor_area * tower_floors, podium_area * config.podium_floors, {"target_bcr": config.bcr, "target_far": config.far, "tower_count": len(towers), "podium_count": len(podium), "actual_podium_offset": actual_offset, "heights": heights, "seed": config.seed})
+    footprint_union_area = unary_union([*towers, *podium]).area
+    return UrbGENResult(model, site, buildable, towers, podium, angles, codes, footprint_union_area / site.area, gfa / site.area, gfa, tower_floor_area * tower_floors, podium_area * config.podium_floors, {"target_bcr": config.bcr, "target_far": config.far, "tower_count": len(towers), "podium_count": len(podium), "actual_podium_offset": actual_offset, "heights": heights, "seed": config.seed})

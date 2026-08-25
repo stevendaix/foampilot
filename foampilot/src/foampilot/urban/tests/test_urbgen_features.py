@@ -1,4 +1,6 @@
+import pytest
 from shapely.geometry import Point, Polygon
+from shapely.ops import unary_union
 
 from foampilot.urban.generation import UrbGENConfig, generate_urbgen
 
@@ -12,6 +14,18 @@ def test_all_six_tower_typologies_generate_valid_massings():
         assert result.tower_footprints
         assert all(p.is_valid and SITE.buffer(-8).covers(p) for p in result.tower_footprints)
         assert all(b.attributes["typology"] == mode for b in result.model.buildings())
+
+
+def test_union_bcr_does_not_double_count_podium():
+    result = generate_urbgen(SITE, UrbGENConfig(bcr=0.20, far=2.0, podium_floors=2, seed=11))
+    expected = unary_union([*result.tower_footprints, *result.podium_footprints]).area / SITE.area
+    assert result.actual_bcr == pytest.approx(expected)
+    assert result.actual_bcr <= 1.0
+
+
+def test_far_is_close_to_target():
+    result = generate_urbgen(SITE, UrbGENConfig(bcr=0.16, far=2.5, podium_floors=2, height_variation=0.0, seed=12))
+    assert abs(result.actual_far - 2.5) < 0.15
 
 
 def test_courtyard_mode_creates_perimeter_blocks():
