@@ -12,7 +12,7 @@ from math import ceil, sqrt, atan2, cos, sin, degrees, radians
 from random import Random
 from typing import Iterable, Optional
 
-from shapely.affinity import rotate, translate
+from shapely.affinity import rotate, scale, translate
 from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import split, substring, unary_union
 
@@ -534,6 +534,82 @@ def _find_podium_offset(towers, buildable, config, target_area):
     return best_offset, best_podium
 
 
+def _converge_bcr(towers, angles, codes, lengths, buildable: Polygon, site: Polygon, width: float, config: UrbGENConfig):
+    """Global BCR adjustment corresponding to UrbGEN's shrink/expand phases."""
+    upper = config.upper_bcr if config.upper_bcr is not None else config.bcr * 1.1
+    target = site.area * upper
+    courtyard = bool(codes and codes[0] == 7)
+
+    def podium_for(items):
+        return _find_podium_offset(items, buildable, config, site.area * config.bcr) if config.podium_floors > 0 else (0.0, [])
+
+    def total(items, pod):
+        return unary_union([*items, *pod]).area if items or pod else 0.0
+
+    def rebuild(factor, current):
+        result = []
+        new_lengths = []
+        for i, old in enumerate(current):
+            if courtyard:
+                candidate = scale(old, xfact=factor, yfact=factor, origin="centroid")
+                if candidate.is_valid and buildable.covers(candidate):
+                    result.append(candidate)
+                else:
+                    result.append(old)
+                new_lengths.append(lengths[i])
+                continue
+            new_length = max(width, lengths[i] * factor)
+            candidate = translate(rotate(_grammar(width, new_length, codes[i], max(0.3, config.arm_length_ratio)), angles[i], origin=(0, 0)), xoff=old.centroid.x, yoff=old.centroid.y)
+            if candidate.is_valid and buildable.covers(candidate) and candidate.area <= config.max_footprint_per_tower * 1.05:
+                result.append(candidate)
+                new_lengths.append(new_length)
+            else:
+                result.append(old)
+                new_lengths.append(lengths[i])
+        return result, new_lengths
+
+    current = list(towers)
+    current_lengths = list(lengths)
+    offset, pod = podium_for(current)
+    current_area = total(current, pod)
+    # Phase 1: shrink until the upper BCR is respected.
+    shrink_iterations = 0
+    while current_area / site.area > upper and shrink_iterations < 10:
+        previous = current_area
+        candidate, candidate_lengths = rebuild(0.90, current)
+        candidate_offset, candidate_pod = podium_for(candidate)
+        candidate_area = total(candidate, candidate_pod)
+        if candidate_area >= current_area - 1e-9:
+            break
+        current, current_lengths, offset, pod, current_area = candidate, candidate_lengths, candidate_offset, candidate_pod, candidate_area
+        shrink_iterations += 1
+        if abs(previous - current_area) < max(1.0, site.area * 1e-5):
+            break
+
+    # Phase 2: expand while retaining the best state below the upper limit.
+    threshold = upper * 0.85
+    best = (list(current), list(current_lengths), offset, list(pod), current_area)
+    expand_iterations = 0
+    while current_area / site.area < threshold and expand_iterations < 15:
+        previous = current_area
+        candidate, candidate_lengths = rebuild(1.15, current)
+        candidate_offset, candidate_pod = podium_for(candidate)
+        candidate_area = total(candidate, candidate_pod)
+        if candidate_area <= current_area + 1e-9:
+            break
+        if candidate_area / site.area <= upper:
+            current, current_lengths, offset, pod, current_area = candidate, candidate_lengths, candidate_offset, candidate_pod, candidate_area
+            if current_area > best[4]:
+                best = (list(current), list(current_lengths), offset, list(pod), current_area)
+        else:
+            break
+        expand_iterations += 1
+        if abs(previous - current_area) < max(1.0, site.area * 1e-5):
+            break
+    current, current_lengths, offset, pod, current_area = best
+    return current, current_lengths, offset, pod, {"shrink_iterations": shrink_iterations, "expand_iterations": expand_iterations, "upper_bcr": upper, "converged_bcr": current_area / site.area}
+
+
 def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs: Optional[str] = None, centroids: Optional[Iterable[Point]] = None) -> UrbGENResult:
     """Generate a deterministic random UrbGEN neighbourhood from one site."""
     if site.is_empty or not site.is_valid or site.area <= 0:
@@ -605,12 +681,8 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
         raise ValueError("no UrbGEN tower fits the buildable site")
 
     towers, lengths = _grow_towers_to_bcr(towers, angles, codes, lengths, width, buildable, config, target_tower_area)
-    towers, angles, codes, lengths = _trim_towers_to_bcr(towers, angles, codes, lengths, site, config)
+    towers, lengths, actual_offset, podium, convergence = _converge_bcr(towers, angles, codes, lengths, buildable, site, width, config)
     union = unary_union(towers)
-    podium: list[Polygon] = []
-    actual_offset = 0.0
-    if config.podium_floors > 0:
-        actual_offset, podium = _find_podium_offset(towers, buildable, config, site.area * config.bcr)
     if config.move_tower_to_podium_edge and podium:
         podium_union = unary_union(podium)
         towers = [_move_tower_to_podium_edge(t, podium_union, buildable) for t in towers]
@@ -638,4 +710,5 @@ def generate_urbgen(site: Polygon, config: UrbGENConfig = UrbGENConfig(), *, crs
         model.add_building(Building(f"urbgen-podium-{i:04d}", footprint, 0.0, config.podium_floors * floor_h, RoofType.FLAT, CFDLOD.LOD1, "urbgen-podium", 1.0, {"podium_offset": actual_offset, "floors": config.podium_floors}))
     gfa = sum(b.area * max(1, round(b.height / floor_h)) for b in model.buildings())
     footprint_union_area = unary_union([*towers, *podium]).area
-    return UrbGENResult(model, site, buildable, towers, podium, angles, codes, footprint_union_area / site.area, gfa / site.area, gfa, tower_floor_area * tower_floors, podium_area * config.podium_floors, {"target_bcr": config.bcr, "target_far": config.far, "tower_count": len(towers), "podium_count": len(podium), "actual_podium_offset": actual_offset, "heights": heights, "seed": config.seed})
+    diagnostics = {"target_bcr": config.bcr, "target_far": config.far, "tower_count": len(towers), "podium_count": len(podium), "actual_podium_offset": actual_offset, "heights": heights, "seed": config.seed, **convergence}
+    return UrbGENResult(model, site, buildable, towers, podium, angles, codes, footprint_union_area / site.area, gfa / site.area, gfa, tower_floor_area * tower_floors, podium_area * config.podium_floors, diagnostics)

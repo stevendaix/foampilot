@@ -8,6 +8,20 @@ from foampilot.urban.generation import UrbGENConfig, generate_urbgen
 SITE = Polygon([(0, 0), (160, 0), (160, 120), (0, 120)])
 
 
+def test_bcr_convergence_on_convex_and_concave_sites():
+    sites = [
+        SITE,
+        Polygon([(0, 0), (160, 0), (160, 120), (95, 120), (95, 65), (0, 65)]),
+    ]
+    for site in sites:
+        result = generate_urbgen(site, UrbGENConfig(bcr=0.18, upper_bcr=0.20, far=1.8, setback=5, podium_floors=1, seed=19))
+        assert result.actual_bcr <= 0.20 * 1.02
+        assert all(result.buildable_site.covers(p) for p in result.tower_footprints)
+        assert result.diagnostics["shrink_iterations"] >= 0
+        assert result.diagnostics["expand_iterations"] >= 0
+        assert result.diagnostics["converged_bcr"] == pytest.approx(result.actual_bcr, abs=1e-9)
+
+
 def test_ringcache_arc_mapping_and_disjoint_segments():
     from foampilot.urban.generation.urbgen import RingCache, _courtyard_ring_segments
     zone = SITE.buffer(-8)
