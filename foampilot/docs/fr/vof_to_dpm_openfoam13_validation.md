@@ -74,7 +74,3 @@ Le transfert d’énergie/enthalpie compressible n’est pas déclaré comme ter
 L’injecteur VOF initialise désormais `ThermoParcel::T()` lorsqu’un champ `T` est présent dans l’objectRegistry et que le type de parcel fournit cet accesseur. L’appel est protégé par une résolution SFINAE : les clouds momentum-only qui ne disposent pas de `T()` continuent de compiler et de s’exécuter sans modification de leur comportement.
 
 La compilation et les cas incompressible et compressible actifs ont été rejoués sous OpenFOAM 13 après cette modification. Les deux cas passent, avec injection du parcel et bilan alphaRho compressible conservé. Cette étape ne constitue pas encore une conservation d’énergie complète : elle prépare le transfert de l’état thermique du parcel, mais le cloud de test reste `collidingCloud` et ne fournit pas encore le terme `Sh()` d’un `ThermoCloud` au solver.
-
-## Préparation du chemin `thermoCloud`
-
-L’injecteur `vofFragmentInjection` est également enregistré pour le type `thermoCloud`. Les dépendances de compilation thermophysiques OpenFOAM 13 ont été ajoutées et la bibliothèque compressible compile avec cette table runtime. Cette préparation n’est pas présentée comme une validation énergétique : un cas `thermoCloud` dédié doit encore vérifier la construction du parcel thermodynamique, son `T()` initial et le terme `Sh()` avant d’activer une conservation d’enthalpie.

@@ -22,10 +22,7 @@ EXE_INC = \
     -I$(LIB_SRC)/lagrangian/basic/lnInclude \
     -I$(LIB_SRC)/lagrangian/parcel/lnInclude \
     -I$(LIB_SRC)/tracking/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/thermophysicalProperties/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/multicomponentThermo/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude
 
 LIB_LIBS = \
     -lcompressibleVoF \
@@ -39,8 +36,6 @@ LIB_LIBS = \
     -lcompressibleMomentumTransportModels \
     -lphaseCompressibleMomentumTransportModels \
     -lthermophysicalTransportModel \
-    -lthermophysicalProperties \
-    -lmulticomponentThermophysicalModels \
     -lcoupledThermophysicalTransportModels \
     -lfiniteVolume \
     -lmeshTools \
