@@ -31,9 +31,25 @@ Résultat : `7 passed`. Ces tests couvrent désormais le retrait du liquide conv
 
 ## Interprétation
 
-Cette validation confirme que le portage existant est compatible avec OpenFOAM 13 au niveau compilation et exécution des cas fournis, et que les résultats correspondent à la branche de référence. Elle ne transforme toutefois pas le modèle C++ en convertisseur runtime automatique : les cas `incompressibleVoFClouds` et `compressibleVoFClouds` utilisent toujours le chemin de cloud/injection prévu par leurs dictionnaires. La création de parcels depuis les fragments VOF dans la boucle solver, la consommation synchronisée d’`alpha`, la conservation masse-énergie en compressible et la fusion des fragments aux frontières MPI restent des développements natifs C++ distincts.
+Cette validation confirme que le portage est compatible avec OpenFOAM 13 au niveau compilation et exécution, et que les sorties de référence restent inchangées lorsque le nouveau chemin n’est pas activé. Le cas incompressible dispose désormais d’un chemin runtime natif optionnel : `vofFragmentInjection` crée un parcel équivalent par fragment détecté et `consumeAlpha` transfère le volume de `alpha1` vers `alpha2`. La conservation masse-énergie dans le chemin compressible, la fusion des fragments aux frontières MPI et la gestion de plusieurs parcels par fragment restent des développements distincts à valider.
 
 ## Références
 
 [1]: https://openfoam.org/download/13-ubuntu/ "OpenFOAM 13 — installation Ubuntu officielle"
 [2]: https://doc.cfd.direct/openfoam/lagrangian/ "CFD Direct — documentation Lagrangienne OpenFOAM"
+
+## Incréments runtime vérifiés
+
+Les incréments suivants ont ensuite été ajoutés et vérifiés contre l’API OpenFOAM 13 :
+
+| Incrément | Vérification | Résultat |
+|---|---|---|
+| `vofFragmentInjection` | Enregistrement runtime pour `collidingCloud` et compilation de `libincompressibleVoFClouds.so` | PASS |
+| Injection d’un fragment | Un fragment VOF donne exactement un parcel, avec centroïde, diamètre équivalent et vitesse du fragment | PASS |
+| Bilan de masse | `mass introduced = 1.63205`, cohérent avec `rho × volume = 2526 × 0.000646099` | PASS |
+| Consommation alpha activée | `foamPostProcess -func 'volIntegrate(alpha.water)' -time 0.01` retourne `0` | PASS |
+| Consommation alpha désactivée | Le même volume reste `0.000646099` et le parcel est toujours injecté | PASS |
+
+La consommation native est implémentée comme un transfert borné entre `alpha1` et `alpha2` : la perte de liquide est appliquée implicitement à `alpha1` et le gain est appliqué explicitement à `alpha2`, conformément au chemin `alphaSuSp.C` du solver `incompressibleVoF` d’OpenFOAM 13. Le test vérifie également l’absence de `FOAM FATAL ERROR`, d’erreur d’édition de liens et d’artefact de compilation suivi par Git.
+
+Cette étape couvre le cas incompressible mono-fragment. Le chemin compressible doit encore recevoir un transfert thermodynamique cohérent : la masse convertie est déjà identifiée par la phase liquide, mais l’énergie/enthalpie et la sélection du champ alpha doivent être intégrées dans une étape dédiée avant de généraliser le cas.

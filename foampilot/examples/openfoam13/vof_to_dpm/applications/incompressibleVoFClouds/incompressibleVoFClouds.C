@@ -2,6 +2,7 @@
   OpenFOAM 13 incompressible VoF / parcel-cloud coupling model
 \*---------------------------------------------------------------------------*/
 #include "incompressibleVoFClouds.H"
+#include "fvmSup.H"
 #include "addToRunTimeSelectionTable.H"
 
 namespace Foam
@@ -83,6 +84,22 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
         mesh,
         dimensionedScalar(dimless, 0)
     ),
+    alphaConsumptionRate_
+    (
+        IOobject
+        (
+            "vofAlphaConsumptionRate",
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless/dimTime, 0)
+    ),
+    consumeAlpha_(dict.lookupOrDefault<Switch>("consumeAlpha", false)),
+    consumptionPending_(false),
+    transitionApplied_(false),
     alphaThreshold_(dict.lookupOrDefault<scalar>("alphaThreshold", 0.5)),
     minCells_(dict.lookupOrDefault<label>("minCells", 1)),
     minVolume_(dict.lookupOrDefault<scalar>("minVolume", 0)),
@@ -94,7 +111,8 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
 
 Foam::wordList Foam::fv::incompressibleVoFClouds::addSupFields() const
 {
-    return wordList({"U"});
+    return wordList
+    ({mixture_.alpha1().name(), mixture_.alpha2().name(), "U"});
 }
 
 void Foam::fv::incompressibleVoFClouds::correct()
@@ -136,6 +154,24 @@ void Foam::fv::incompressibleVoFClouds::correct()
                 << " id " << fragments[fragmentI].id
                 << " volume " << fragments[fragmentI].volume << nl;
         }
+        if (consumeAlpha_ && !transitionApplied_)
+        {
+            alphaConsumptionRate_ =
+                dimensionedScalar(dimless/dimTime, scalar(0));
+            const scalar rate = 1/mesh().time().deltaTValue();
+            forAll(fragments, fragmentI)
+            {
+                const labelList& cells = fragments[fragmentI].cells;
+                forAll(cells, cellI)
+                {
+                    alphaConsumptionRate_[cells[cellI]] = rate;
+                }
+            }
+            consumptionPending_ = true;
+            transitionApplied_ = true;
+            Info<< "VOF alpha consumption armed for "
+                << detectedVolume << " m3" << nl;
+        }
     }
     clouds_.evolve();
     curTimeIndex_ = mesh().time().timeIndex();
@@ -143,13 +179,57 @@ void Foam::fv::incompressibleVoFClouds::correct()
 
 void Foam::fv::incompressibleVoFClouds::addSup
 (
-    const volScalarField&,
-    fvMatrix<scalar>&
+    const volScalarField& alpha,
+    fvMatrix<scalar>& eqn
 ) const
 {
-    // Parcel mass is currently supplied by the injection model.  Alpha
-    // consumption is deliberately not hidden in this hook: a future VOF
-    // transfer model must provide a bounded, conservative source.
+    if
+    (
+        &alpha != &mixture_.alpha1()
+     && &alpha != &mixture_.alpha2()
+    )
+    {
+        FatalErrorInFunction
+            << "incompressibleVoFClouds supports alpha fields "
+            << mixture_.alpha1().name() << " and "
+            << mixture_.alpha2().name()
+            << exit(FatalError);
+    }
+
+    if (consumptionPending_ && &eqn.psi() == &alpha)
+    {
+        if (&alpha == &mixture_.alpha1())
+        {
+            eqn += -fvm::Sp(alphaConsumptionRate_, eqn.psi());
+        }
+        else
+        {
+            tmp<volScalarField::Internal> tSu
+            (
+                volScalarField::Internal::New
+                (
+                    "vofAlphaTransfer",
+                    mesh(),
+                    dimensionedScalar(dimless/dimTime, 0)
+                )
+            );
+            forAll(tSu(), celli)
+            {
+                tSu.ref()[celli] =
+                    alphaConsumptionRate_[celli]
+                   *mixture_.alpha1()[celli]
+                   ;
+            }
+            eqn += tSu;
+        }
+
+        if (&alpha == &mixture_.alpha2())
+        {
+            consumptionPending_ = false;
+        }
+        Info<< "Applied conservative VOF alpha consumption to "
+            << alpha.name() << nl;
+    }
 }
 
 void Foam::fv::incompressibleVoFClouds::addSup

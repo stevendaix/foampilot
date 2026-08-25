@@ -27,6 +27,10 @@ class incompressibleVoFClouds
     mutable volScalarField mu_;
     mutable parcelCloudList clouds_;
     mutable volScalarField fragmentMask_;
+    mutable volScalarField alphaConsumptionRate_;
+    const Switch consumeAlpha_;
+    mutable bool consumptionPending_;
+    mutable bool transitionApplied_;
     const scalar alphaThreshold_;
     const label minCells_;
     const scalar minVolume_;
