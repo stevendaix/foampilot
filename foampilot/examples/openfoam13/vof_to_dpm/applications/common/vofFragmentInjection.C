@@ -3,7 +3,24 @@
 namespace Foam
 {
 
+namespace
+{
+
+template<class Parcel>
+auto setInjectedTemperature(Parcel& parcel, const scalar T, int)
+-> decltype(parcel.T(), void())
+{
+    parcel.T() = T;
+}
+
+template<class Parcel>
+void setInjectedTemperature(Parcel&, const scalar, long)
+{}
+}
+
+
 template<class CloudType>
+
 vofFragmentInjection<CloudType>::vofFragmentInjection
 (
     const dictionary& dict,
@@ -198,6 +215,13 @@ void vofFragmentInjection<CloudType>::setProperties
 {
     parcel.U() = fragments_[parcelI].velocity;
     parcel.d() = diameters_[parcelI];
+
+    if (this->owner().db().template foundObject<volScalarField>("T"))
+    {
+        const volScalarField& T =
+            this->owner().db().template lookupObject<volScalarField>("T");
+        setInjectedTemperature(parcel, T[cells_[parcelI]], 0);
+    }
 }
 
 } // End namespace Foam

@@ -68,3 +68,9 @@ Le fvModel compressible déclare désormais les paires de champs attendues par O
 | Détection après conversion | `1` fragment au premier pas, puis `0` |
 
 Le transfert d’énergie/enthalpie compressible n’est pas déclaré comme terminé. Le cloud collisionnel utilisé par ce cas est un `collidingCloud` momentum-only et ne possède pas de degré de liberté thermodynamique pour porter l’énergie de la phase liquide convertie. Une implémentation complète devra utiliser un cloud thermodynamique compatible, définir la température/enthalpie du parcel et ajouter les sources correspondantes à `e1` et `e2` avant d’activer cette conservation dans un cas de production.
+
+## Initialisation thermique optionnelle du parcel
+
+L’injecteur VOF initialise désormais `ThermoParcel::T()` lorsqu’un champ `T` est présent dans l’objectRegistry et que le type de parcel fournit cet accesseur. L’appel est protégé par une résolution SFINAE : les clouds momentum-only qui ne disposent pas de `T()` continuent de compiler et de s’exécuter sans modification de leur comportement.
+
+La compilation et les cas incompressible et compressible actifs ont été rejoués sous OpenFOAM 13 après cette modification. Les deux cas passent, avec injection du parcel et bilan alphaRho compressible conservé. Cette étape ne constitue pas encore une conservation d’énergie complète : elle prépare le transfert de l’état thermique du parcel, mais le cloud de test reste `collidingCloud` et ne fournit pas encore le terme `Sh()` d’un `ThermoCloud` au solver.
