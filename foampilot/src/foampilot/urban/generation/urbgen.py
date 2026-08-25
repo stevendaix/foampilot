@@ -115,27 +115,28 @@ class UrbGENResult:
 TYPOLOGY_NAMES = ("I", "L", "T", "H", "C", "Plus", "Random", "Courtyard")
 
 
-def get_tower_typology(mode: int, rng: Random) -> int:
-    """Return the explicit UrbGEN typology code for a mode."""
-    if mode == 6:
-        return rng.randrange(6)
-    return max(0, min(7, int(mode)))
+def get_tower_typology(tower_index: int, global_seed: int, mode: int, rng: Optional[Random] = None) -> int:
+    """Match the GHA selection rule: deterministic per tower, independent of iteration order."""
+    if mode == 7 or mode <= 5:
+        return max(0, min(7, int(mode)))
+    local = rng or Random(global_seed * 71 + tower_index * 13 + 4001)
+    return local.randrange(6)
 
 
-def get_typology_modules(typology: int, width: float, length: float, arm_ratio: float = 1.0) -> list[tuple[str, float, float, float, float]]:
-    """Return named rectangular modules as (name, width, length, x, y)."""
-    arm = max(width * 0.3, width * arm_ratio)
-    modules = [("spine", width, length, 0.0, 0.0)]
+def get_typology_modules(spine_length: float, spine_width: float, typology: int, arm_length: float) -> list[tuple[float, float, float, float]]:
+    """Return GHA-compatible modules as (center_x, center_y, size_x, size_y)."""
+    half_l = spine_length / 2.0
+    modules = [(0.0, 0.0, spine_length, spine_width)]
     if typology == 1:
-        modules.append(("arm_left", arm, length, -length / 2 + arm / 2, 0.0))
+        modules.append((-half_l / 2.0, 0.0, arm_length, spine_width))
     elif typology == 2:
-        modules.append(("crossbar_top", length, arm, 0.0, length / 2 - arm / 2))
+        modules.append((0.0, -half_l, spine_width, arm_length))
     elif typology == 3:
-        modules.extend([("crossbar_left", arm, length, -length / 2 + arm / 2, 0.0), ("crossbar_right", arm, length, length / 2 - arm / 2, 0.0)])
+        modules.extend([(0.0, -half_l, spine_width, arm_length), (0.0, half_l, spine_width, arm_length)])
     elif typology == 4:
-        modules.extend([("arm_left", arm, length, -length / 2 + arm / 2, 0.0), ("arm_right", arm, length, length / 2 - arm / 2, 0.0)])
+        modules.extend([(-half_l / 2.0, 0.0, arm_length, spine_width), (half_l / 2.0, 0.0, arm_length, spine_width)])
     elif typology == 5:
-        modules.append(("crossbar_center", length, arm, 0.0, 0.0))
+        modules.append((0.0, 0.0, spine_length, arm_length))
     return modules
 
 
@@ -149,8 +150,9 @@ def max_length_for_typology(typology: int, width: float, max_ratio: float) -> fl
 
 
 def estimate_extra_area(typology: int, width: float, length: float, arm_ratio: float = 1.0) -> float:
-    modules = get_typology_modules(typology, width, length, arm_ratio)
-    return max(0.0, sum(w * l for _, w, l, _, _ in modules) - width * length)
+    arm = max(width * 0.3, width * arm_ratio)
+    modules = get_typology_modules(length, width, typology, arm)
+    return max(0.0, sum(sx * sy for _, _, sx, sy in modules) - width * length)
 
 
 def adapt_arm_length_for_bcr(typology: int, width: float, length: float, target_area: float, arm_ratio: float = 1.0) -> float:
@@ -183,19 +185,11 @@ def _rect(width: float, length: float) -> Polygon:
 
 
 def _grammar(width: float, length: float, typology: int, arm_ratio: float) -> Polygon:
-    base = _rect(width, length)
-    if typology == 0:
-        return base
     arm = max(width * 0.3, width * arm_ratio)
-    if typology == 1:
-        return unary_union([base, translate(_rect(arm, length), xoff=-length / 2 + arm / 2)])
-    if typology == 2:
-        return unary_union([base, translate(_rect(length, arm), yoff=length / 2 - arm / 2)])
-    if typology == 3:
-        return unary_union([base, translate(_rect(arm, length), xoff=-length / 2 + arm / 2), translate(_rect(arm, length), xoff=length / 2 - arm / 2)])
-    if typology == 4:
-        return base.difference(translate(_rect(length * 0.65, width * 0.55), xoff=length * 0.2))
-    return unary_union([base, _rect(width * arm_ratio, length)])
+    rects = []
+    for cx, cy, sx, sy in get_typology_modules(length, width, typology, arm):
+        rects.append(translate(_rect(sy, sx), xoff=cx, yoff=cy))
+    return unary_union(rects)
 
 
 def _lattice(region: Polygon, spacing: float) -> Iterable[Point]:
