@@ -21,7 +21,7 @@ Le cas spray est donc une bonne démonstration de la chaîne logicielle, mais le
 | C++-04 | Cohérence énergie | `energyTransferPending_` est armé par la détection, avant confirmation de création effective d’un parcel | **Élevée** | À sécuriser |
 | C++-05 | Robustesse géométrique | Un échec éventuel de `findCellAtPosition` peut laisser un index de cellule invalide avant lecture de `rho_` ou de `T` | **Moyenne/élevée** | À durcir |
 | TEST-01 | Couverture | Les tests Python couvrent l’algorithme hors ligne, mais pas le cycle C++ fvModel–InjectionModel ni plusieurs conversions successives | **Élevée** | À compléter |
-| TEST-02 | Packaging | `pytest -q test/test_vof_to_dpm.py` échoue à la collecte car le test importe `vof_to_dpm` comme module top-level non exposé par le packaging courant | **Moyenne** | À corriger |
+| TEST-02 | Packaging | L’import global de foampilot requiert `pyfluids`; le test ciblé charge désormais directement le convertisseur pour rester isolé | **Moyenne** | Partiellement corrigé |
 | CFG-01 | Exemple | Le cas spray doit imposer une cohérence entre `rhoLiquid` et `constantProperties.rho0` ; sinon la masse du parcel est déterminée par une densité de parcel différente de celle du liquide | **Élevée** | Corrigé dans l’exemple |
 
 ## Analyse détaillée
@@ -54,7 +54,7 @@ Le centroid d’un fragment peut se trouver hors d’une cellule valide dans des
 
 Les tests Python vérifient correctement plusieurs propriétés de l’extraction hors ligne : volume pondéré par `alpha`, centroïde, vitesse moyenne, filtres, doublons et lecture ASCII. Ils ne vérifient pas le couplage temporel C++ ni la répétition des conversions. Il manque au minimum un test OpenFOAM avec deux fragments séparés apparaissant à deux pas distincts, un test avec `rho1 != rho2`, un test d’échec de localisation et un test thermoCloud avec source d’enthalpie non nulle.
 
-La commande `pytest -q test/test_vof_to_dpm.py` échoue actuellement avant exécution des tests avec `ModuleNotFoundError: No module named 'vof_to_dpm'`. Le problème est reproductible dans l’environnement audité. Il faut soit importer `foampilot.utilities.vof_to_dpm`, soit exposer explicitement un module compatibilité, soit corriger le packaging et la configuration pytest.
+La commande `pytest -q test/test_vof_to_dpm.py` passe désormais avec **8 tests**. Le test charge directement le module de conversion afin de ne pas exiger la dépendance optionnelle `pyfluids` lors de la collecte. L’import global de tout le paquet foampilot reste plus exigeant qu’un import ciblé du convertisseur.
 
 ## Validations exécutées
 
@@ -70,7 +70,7 @@ La commande `pytest -q test/test_vof_to_dpm.py` échoue actuellement avant exéc
 | Détection répétée de fragments dans le spray | **PASS** |
 | Parcels successifs après correction expérimentale non committée | `819` en fin de run |
 | Bilan local masse–volume du premier fragment | erreur relative `0.0` |
-| Tests Python sans configuration de chemin | **FAIL à la collecte** |
+| Tests Python ciblés du convertisseur | **8 passed** |
 | `git diff --check` et arbre après nettoyage | **PASS** |
 
 Le run spray avec la correction expérimentale de rafraîchissement par pas a produit 819 parcels et a conservé un bilan local exact pour le premier fragment. Cette correction a été retirée de l’arbre avant la fin de l’audit car le run compressible associé a déclenché une instabilité sévère : `alpha.water` est devenu fortement négatif, le nombre de Courant a dépassé `1112`, puis le calcul a terminé par une exception flottante dans la thermo H2O. Cela ne prouve pas que le réarmement par pas est la seule cause, mais cela prouve que cette modification ne doit pas être intégrée sans une refonte du séquencement des sources et des tests dédiés.
@@ -81,7 +81,7 @@ La première étape doit être de refondre la transaction fragment→parcel : d�
 
 La deuxième étape doit corriger la source compressible en utilisant systématiquement la densité de la phase liquide pour les signes positif et négatif. Cette correction doit être testée avec deux densités volontairement distinctes et un calcul de volume intégré des deux phases.
 
-La troisième étape doit déplacer la vérification de l’index de cellule dans l’injecteur et ajouter des tests C++ ou des cas OpenFOAM qui couvrent deux lots successifs, un fragment filtré, une frontière et un maillage parallèle. Enfin, les tests Python doivent être rendus exécutables depuis une installation propre du paquet.
+La troisième étape doit déplacer la vérification de l’index de cellule dans l’injecteur et ajouter des tests C++ ou des cas OpenFOAM qui couvrent deux lots successifs, un fragment filtré, une frontière et un maillage parallèle. Enfin, l’import global du paquet devrait être rendu tolérant aux dépendances optionnelles, et la couverture C++ doit être ajoutée aux tests Python ciblés.
 
 ## Décision d’audit
 

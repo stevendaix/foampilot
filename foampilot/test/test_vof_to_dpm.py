@@ -1,12 +1,23 @@
 """Tests for conservative VOF-to-DPM fragment extraction."""
 
+import importlib.util
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from vof_to_dpm import VofToDpmConverter
+
+_vof_to_dpm_path = Path(__file__).parents[1] / "src" / "foampilot" / "utilities" / "vof_to_dpm.py"
+_vof_to_dpm_spec = importlib.util.spec_from_file_location("foampilot_vof_to_dpm", _vof_to_dpm_path)
+if _vof_to_dpm_spec is None or _vof_to_dpm_spec.loader is None:
+    raise RuntimeError(f"Cannot load {_vof_to_dpm_path}")
+_vof_to_dpm = importlib.util.module_from_spec(_vof_to_dpm_spec)
+sys.modules[_vof_to_dpm_spec.name] = _vof_to_dpm
+_vof_to_dpm_spec.loader.exec_module(_vof_to_dpm)
+OpenFoamCaseReader = _vof_to_dpm.OpenFoamCaseReader
+VofToDpmConverter = _vof_to_dpm.VofToDpmConverter
 
 
 def line_neighbours(n: int) -> list[list[int]]:
@@ -116,6 +127,25 @@ def test_build_transition_removes_only_selected_liquid_and_conserves_volume(tmp_
     assert "0.25" in residual_text
 
 
+def test_multiple_fragment_batches_are_independently_conservative():
+    converter = VofToDpmConverter(alpha_threshold=0.5)
+    first = converter.extract(
+        alpha=[1.0, 0.0],
+        cell_centres=[(0, 0, 0), (1, 0, 0)],
+        cell_volumes=[2.0, 1.0],
+        neighbours=[[], []],
+    )
+    second = converter.extract(
+        alpha=[0.0, 1.0],
+        cell_centres=[(0, 0, 0), (1, 0, 0)],
+        cell_volumes=[2.0, 1.0],
+        neighbours=[[], []],
+    )
+    assert first[0].volume == pytest.approx(2.0)
+    assert second[0].volume == pytest.approx(1.0)
+    assert first[0].cell_indices != second[0].cell_indices
+
+
 def test_build_transition_rejects_duplicate_or_inconsistent_fragments():
     converter = VofToDpmConverter(alpha_threshold=0.5)
     fragment = converter.extract(
@@ -141,8 +171,6 @@ def _foam_field(path: Path, object_name: str, class_name: str, values: str) -> N
 
 
 def test_extract_case_reads_ascii_openfoam_files(tmp_path: Path):
-    from vof_to_dpm import OpenFoamCaseReader
-
     mesh = tmp_path / "constant" / "polyMesh"
     time_zero = tmp_path / "0"
     mesh.mkdir(parents=True)
