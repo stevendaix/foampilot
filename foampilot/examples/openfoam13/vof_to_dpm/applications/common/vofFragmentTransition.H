@@ -7,6 +7,7 @@
 #include "DynamicList.H"
 #include "fvMesh.H"
 #include "volFields.H"
+#include <cstdint>
 
 namespace Foam
 {
@@ -14,6 +15,7 @@ namespace Foam
 struct vofFragmentTransitionRecord
 {
     labelList cells;
+    std::uint64_t id;
     scalar volume;
     vector centroid;
     vector velocity;
@@ -88,6 +90,14 @@ public:
 
             vofFragmentTransitionRecord fragment;
             fragment.cells.transfer(component);
+            Foam::sort(fragment.cells);
+            fragment.id = 1469598103934665603ULL;
+            forAll(fragment.cells, cellI)
+            {
+                fragment.id ^=
+                    static_cast<std::uint64_t>(fragment.cells[cellI] + 1);
+                fragment.id *= 1099511628211ULL;
+            }
             fragment.volume = fragmentVolume;
             fragment.centroid = fragmentCentroid/fragmentVolume;
             fragment.velocity = fragmentVelocity/fragmentVolume;

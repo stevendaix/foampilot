@@ -111,6 +111,12 @@ void Foam::fv::incompressibleVoFClouds::correct()
         }
         Info<< "VOF fragments detected: " << fragments.size()
             << ", convertible volume: " << detectedVolume << nl;
+        forAll(fragments, fragmentI)
+        {
+            Info<< "  fragment " << fragmentI
+                << " id " << fragments[fragmentI].id
+                << " volume " << fragments[fragmentI].volume << nl;
+        }
     }
     clouds_.evolve();
     curTimeIndex_ = mesh().time().timeIndex();
