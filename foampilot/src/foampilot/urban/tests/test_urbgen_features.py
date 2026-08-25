@@ -8,6 +8,27 @@ from foampilot.urban.generation import UrbGENConfig, generate_urbgen
 SITE = Polygon([(0, 0), (160, 0), (160, 120), (0, 120)])
 
 
+def test_typology_primitives_are_explicit_and_area_consistent():
+    from foampilot.urban.generation.urbgen import (
+        angle_candidates, estimate_extra_area, get_typology_modules,
+        max_length_for_typology, typology_arm_count,
+    )
+    for mode in range(6):
+        modules = get_typology_modules(mode, 8.0, 24.0, 1.0)
+        assert modules and modules[0][0] == "spine"
+        assert typology_arm_count(mode) == len(modules) - 1
+        assert estimate_extra_area(mode, 8.0, 24.0) >= 0
+        assert max_length_for_typology(mode, 8.0, 6.0) >= 8.0
+    assert angle_candidates(1, 37.0) == [37.0]
+    assert len(angle_candidates(3)) == 12
+
+
+def test_upper_bcr_is_exposed_as_active_limit():
+    result = generate_urbgen(SITE, UrbGENConfig(bcr=0.10, upper_bcr=0.14, far=1.5, podium_floors=0, seed=4))
+    assert result.target_bcr == 0.10
+    assert result.actual_bcr <= 0.14 * 1.02
+
+
 def test_all_six_tower_typologies_generate_valid_massings():
     for mode in range(6):
         result = generate_urbgen(SITE, UrbGENConfig(bcr=0.12, far=1.5, setback=8, tower_typology_mode=mode, podium_floors=0, seed=10))

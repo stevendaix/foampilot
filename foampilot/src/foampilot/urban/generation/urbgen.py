@@ -106,6 +106,71 @@ class UrbGENResult:
         return self.actual_far - self.target_far
 
 
+TYPOLOGY_NAMES = ("I", "L", "T", "H", "C", "Plus", "Random", "Courtyard")
+
+
+def get_tower_typology(mode: int, rng: Random) -> int:
+    """Return the explicit UrbGEN typology code for a mode."""
+    if mode == 6:
+        return rng.randrange(6)
+    return max(0, min(7, int(mode)))
+
+
+def get_typology_modules(typology: int, width: float, length: float, arm_ratio: float = 1.0) -> list[tuple[str, float, float, float, float]]:
+    """Return named rectangular modules as (name, width, length, x, y)."""
+    arm = max(width * 0.3, width * arm_ratio)
+    modules = [("spine", width, length, 0.0, 0.0)]
+    if typology == 1:
+        modules.append(("arm_left", arm, length, -length / 2 + arm / 2, 0.0))
+    elif typology == 2:
+        modules.append(("crossbar_top", length, arm, 0.0, length / 2 - arm / 2))
+    elif typology == 3:
+        modules.extend([("crossbar_left", arm, length, -length / 2 + arm / 2, 0.0), ("crossbar_right", arm, length, length / 2 - arm / 2, 0.0)])
+    elif typology == 4:
+        modules.extend([("arm_left", arm, length, -length / 2 + arm / 2, 0.0), ("arm_right", arm, length, length / 2 - arm / 2, 0.0)])
+    elif typology == 5:
+        modules.append(("crossbar_center", length, arm, 0.0, 0.0))
+    return modules
+
+
+def typology_arm_count(typology: int) -> int:
+    return {0: 0, 1: 1, 2: 1, 3: 2, 4: 2, 5: 1}.get(typology, 0)
+
+
+def max_length_for_typology(typology: int, width: float, max_ratio: float) -> float:
+    factor = 1.0 if typology in (0, 1, 2) else 0.85
+    return max(width, width * max_ratio * factor)
+
+
+def estimate_extra_area(typology: int, width: float, length: float, arm_ratio: float = 1.0) -> float:
+    modules = get_typology_modules(typology, width, length, arm_ratio)
+    return max(0.0, sum(w * l for _, w, l, _, _ in modules) - width * length)
+
+
+def adapt_arm_length_for_bcr(typology: int, width: float, length: float, target_area: float, arm_ratio: float = 1.0) -> float:
+    if typology == 0:
+        return length
+    extra = estimate_extra_area(typology, width, length, arm_ratio)
+    if extra <= 0 or target_area <= 0:
+        return length
+    return max(width, length * min(1.0, target_area / (target_area + extra)))
+
+
+def create_tower_footprint(center: Point, width: float, length: float, typology: int, angle_deg: float, arm_ratio: float = 1.0) -> Polygon:
+    footprint = _grammar(width, length, typology, arm_ratio)
+    return translate(rotate(footprint, angle_deg, origin=(0, 0)), xoff=center.x, yoff=center.y)
+
+
+def angle_candidates(mode: int, uniform_deg: float = 0.0) -> list[float]:
+    if mode == 1:
+        return [float(uniform_deg % 180.0)]
+    if mode == 2:
+        return [0.0, 90.0]
+    if mode == 3:
+        return [float(a) for a in range(0, 180, 15)]
+    return [0.0, 45.0, 90.0, 135.0]
+
+
 def _rect(width: float, length: float) -> Polygon:
     w, l = width / 2.0, length / 2.0
     return Polygon([(-l, -w), (l, -w), (l, w), (-l, w)])
@@ -141,11 +206,7 @@ def _lattice(region: Polygon, spacing: float) -> Iterable[Point]:
 
 
 def _angle(config: UrbGENConfig, rng: Random) -> float:
-    if config.global_rotation_mode == 1:
-        return max(0.0, min(180.0, config.uniform_rotation_deg))
-    if config.global_rotation_mode in (2, 3):
-        return float(rng.choice((0, 45, 90, 135, 180)))
-    return float(rng.choice((0, 45, 90, 135, 180)))
+    return rng.choice(angle_candidates(config.global_rotation_mode, config.uniform_rotation_deg))
 
 
 def _largest_polygon(geometry):
@@ -322,7 +383,7 @@ def _grow_towers_to_bcr(towers, angles, codes, lengths, width, buildable, config
 
 
 def _trim_towers_to_bcr(towers, angles, codes, lengths, site, config):
-    target = site.area * config.bcr
+    target = site.area * (config.upper_bcr if config.upper_bcr is not None else config.bcr)
     if not towers:
         return towers, angles, codes, lengths
     center = site.centroid
