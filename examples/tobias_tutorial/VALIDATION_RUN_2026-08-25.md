@@ -42,6 +42,10 @@ Le tutoriel source `fluentMeshForCHTSolver` a été porté dans `fluent_mesh_for
 
 Le tutoriel source `fanRotationAndNCC` a été adapté dans `fan_rotation_ncc`. Le runner FoamPilot reproduit la séquence OpenFOAM 13 `ideasUnvToFoam`, `snappyHexMesh`, `createBaffles`, `splitBaffles`, `createNonConformalCouples`, `renumberMesh`, puis le calcul parallèle via `run_parallel(4)`. La génération des dictionnaires et des géométries BREP fonctionne. L’exécution s’arrête volontairement avec un diagnostic explicite, car `cad/backgroundMesh.unv` a été retiré du dépôt GitHub de Tobias ; le cas complet doit être téléchargé depuis Holzmann CFD avant de lancer le maillage.
 
+## Troisième portage préparé
+
+Le tutoriel source `arbitraryWaterPump` a été adapté dans `arbitrary_water_pump`. Le runner reproduit la préparation VOF avec `ideasUnvToFoam`, `snappyHexMesh`, `createBaffles`, `setFields` et le chemin parallèle FoamPilot. Les dictionnaires `alpha.water`, `phaseProperties`, `physicalProperties.*`, `momentumTransport` et `setFieldsDict` sont conservés. Comme pour le cas source, l’exécution attend `cad/backgroundMesh.unv`; cet asset est absent du dépôt GitHub Tobias et le runner arrête maintenant le cas avec un message explicite avant tout appel OpenFOAM.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.

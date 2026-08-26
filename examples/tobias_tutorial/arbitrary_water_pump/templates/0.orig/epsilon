@@ -1,0 +1,91 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      epsilon;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -3 0 0 0 0];
+
+internalField   uniform 0.003;
+
+boundaryField
+{
+    inletOutlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 0.01;
+        value           $internalField;
+    }
+
+    inletOutletWall
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    inletOutlet2
+    {
+        type            inletOutlet;
+        inletValue      uniform 0.01;
+        value           $internalField;
+    }
+
+    inletOutletWall2
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+
+    tankTop
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    tank
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    tankBottom
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    hopper
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    pipeSystem
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    baffle_master
+    {
+        type            cyclic;
+    }
+
+    baffle_slave
+    {
+        type            cyclic;
+    }
+}
+
+// ************************************************************************* //
