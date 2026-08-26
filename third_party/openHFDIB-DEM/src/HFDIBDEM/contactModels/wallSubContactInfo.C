@@ -45,7 +45,7 @@ wallSubContactInfo::wallSubContactInfo
     List<Tuple2<point,boundBox>> planeBBData,
     List<string> contactPatches,
     List<Tuple2<point,boundBox>> internalBBData,
-    HashTable<physicalProperties,string,Hash<string>> wallMeanPars,
+    HashTable<demPhysicalProperties,string,Hash<string>> wallMeanPars,
     boundBox BB,
     label bodyId
 )
@@ -185,7 +185,7 @@ vector wallSubContactInfo::getFA(wallContactVars& wallCntvar)
 //---------------------------------------------------------------------------//
 vector wallSubContactInfo::getFNd(wallContactVars& wallCntvar)
 {
-    physicalProperties& meanCntPar(wallCntvar.getMeanCntPar());
+    demPhysicalProperties& meanCntPar(wallCntvar.getMeanCntPar());
     return ((meanCntPar.reduceBeta_*sqrt(meanCntPar.aY_
             *reduceM_*wallCntvar.contactArea_/(wallCntvar.Lc_+SMALL))*
             wallCntvar.Vn_)*wallCntvar.contactNormal_);
@@ -194,7 +194,7 @@ vector wallSubContactInfo::getFNd(wallContactVars& wallCntvar)
 //---------------------------------------------------------------------------//
 vector wallSubContactInfo::getFt(wallContactVars& wallCntvar, scalar deltaT)
 {
-    physicalProperties& meanCntPar(wallCntvar.getMeanCntPar());
+    demPhysicalProperties& meanCntPar(wallCntvar.getMeanCntPar());
     // project last Ft into a new direction
     vector FtLastP(wallCntvar.FtPrev_
         - (wallCntvar.FtPrev_ & wallCntvar.contactNormal_)

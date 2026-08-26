@@ -38,7 +38,7 @@ void wallContactVars::setMeanCntPars
 (
     const fvMesh&   mesh,
     DynamicList<Tuple2<label,string>>& contactFaces,
-    HashTable<physicalProperties,string,Hash<string>>& wallMeanPars
+    HashTable<demPhysicalProperties,string,Hash<string>>& wallMeanPars
 )
 {
     scalar overallArea = 0;
@@ -53,7 +53,7 @@ void wallContactVars::setMeanCntPars
         scalar area = mesh.magSf()[contactFaces[faceI].first()];
         overallArea += area;
 
-        physicalProperties& cMeanCntPars(
+        demPhysicalProperties& cMeanCntPars(
             wallMeanPars[contactFaces[faceI].second()]
         );
 
@@ -75,7 +75,7 @@ void wallContactVars::setMeanCntPars_Plane
 (
     List<scalar>& contactAreas,
     List<string> contactFaces,
-    HashTable<physicalProperties,string,Hash<string>>& wallMeanPars
+    HashTable<demPhysicalProperties,string,Hash<string>>& wallMeanPars
 )
 {
     scalar overallArea = 0;
@@ -90,7 +90,7 @@ void wallContactVars::setMeanCntPars_Plane
         scalar area = contactAreas[faceI];
         overallArea += area;
 
-        physicalProperties& cMeanCntPars(
+        demPhysicalProperties& cMeanCntPars(
             wallMeanPars[contactFaces[faceI]]
         );
 

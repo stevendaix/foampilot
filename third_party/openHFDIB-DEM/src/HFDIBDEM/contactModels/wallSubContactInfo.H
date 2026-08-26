@@ -77,7 +77,7 @@ class wallSubContactInfo
     List<Tuple2<point,boundBox>> internalBBData_;
 
     // Mean model parameters
-    HashTable<physicalProperties,string,Hash<string>> wallMeanPars_;
+    HashTable<demPhysicalProperties,string,Hash<string>> wallMeanPars_;
 
     boundBox BB_;
 
@@ -104,7 +104,7 @@ class wallSubContactInfo
     List<Tuple2<point,boundBox>> planeBBData,
     List<string> contactPatches,
     List<Tuple2<point,boundBox>> internalBBData,
-    HashTable<physicalProperties,string,Hash<string>> wallMeanPars,
+    HashTable<demPhysicalProperties,string,Hash<string>> wallMeanPars,
     boundBox BB,
     label bodyId
     );
@@ -191,7 +191,7 @@ class wallSubContactInfo
         return wallMeanPars_.found(patchName);
     }
 
-    HashTable<physicalProperties,string,Hash<string>>& getWallMeanPars()
+    HashTable<demPhysicalProperties,string,Hash<string>>& getWallMeanPars()
     {
         return wallMeanPars_;
     }

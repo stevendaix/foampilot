@@ -71,7 +71,7 @@ class prtSubContactInfo
 
     Tuple2<label,label> contactPair_;
 
-    physicalProperties physicalProperties_;
+    demPhysicalProperties physicalProperties_;
 
     std::shared_ptr<virtualMeshInfo> vmInfo_;
 
@@ -100,7 +100,7 @@ class prtSubContactInfo
     prtSubContactInfo
     (
         const Tuple2<label,label>& contactPair,
-        const physicalProperties& physicalProperties
+        const demPhysicalProperties& demPhysicalProperties
     );
 
     // Destructors -------------------------------------------------
@@ -111,7 +111,7 @@ class prtSubContactInfo
         return contactPair_;
     }
 
-    physicalProperties& getPhysicalProperties()
+    demPhysicalProperties& getPhysicalProperties()
     {
         return physicalProperties_;
     }

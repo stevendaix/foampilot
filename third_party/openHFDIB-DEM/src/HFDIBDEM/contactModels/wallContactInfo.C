@@ -92,7 +92,7 @@ ibContactVars_(cVars)
         );
         wallMeanPars_.insert(
             cntPatches[patchI],
-            physicalProperties(aY, aG, aMu, maxAdhN, 0, 0, reduceBeta)
+            demPhysicalProperties(aY, aG, aMu, maxAdhN, 0, 0, reduceBeta)
         );
         // Info << "reduceBeta " <<reduceBeta <<endl;
         // Info << "sqrt(5) "<< sqrt(5) <<endl;
@@ -100,7 +100,7 @@ ibContactVars_(cVars)
 
     // forAll(cntPatches, patchI)
     // {
-    //     physicalProperties& cMeanCntPars(wallMeanPars_[cntPatches[patchI]]);
+    //     demPhysicalProperties& cMeanCntPars(wallMeanPars_[cntPatches[patchI]]);
     //     Info << "Info reduceBeta WallMeanPar" << cntPatches[patchI] << " : "<< cMeanCntPars.reduceBeta_ <<endl;
     // }
     reduceM_ = 0;

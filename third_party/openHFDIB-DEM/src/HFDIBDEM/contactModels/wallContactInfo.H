@@ -79,7 +79,7 @@ class wallContactInfo
     label bodyId_;
 
     // Mean model parameters
-    HashTable<physicalProperties,string,Hash<string>> wallMeanPars_;
+    HashTable<demPhysicalProperties,string,Hash<string>> wallMeanPars_;
 
     std::vector<std::shared_ptr<wallSubContactInfo>> subCList_;
 
@@ -105,7 +105,7 @@ class wallContactInfo
     // Destructors -------------------------------------------------
     ~wallContactInfo();
 
-    HashTable<physicalProperties,string,Hash<string>>& getWallMeanPars()
+    HashTable<demPhysicalProperties,string,Hash<string>>& getWallMeanPars()
     {
         return wallMeanPars_;
     }

@@ -107,7 +107,7 @@ prtContactInfo::~prtContactInfo()
 std::shared_ptr<prtSubContactInfo> prtContactInfo::matchSubContact
 (
     boundBox& bbox,
-    physicalProperties& physicalProperties,
+    demPhysicalProperties& demPhysicalProperties,
     Tuple2<label,label>& contactPair
 )
 {
@@ -125,7 +125,7 @@ std::shared_ptr<prtSubContactInfo> prtContactInfo::matchSubContact
     }
 
     return std::make_shared<prtSubContactInfo>
-        (contactPair, physicalProperties);
+        (contactPair, demPhysicalProperties);
 }
 //---------------------------------------------------------------------------//
 void prtContactInfo::limitBBox(boundBox& bbox)

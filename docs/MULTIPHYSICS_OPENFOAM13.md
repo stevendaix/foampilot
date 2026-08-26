@@ -83,3 +83,9 @@ cd third_party/openHFDIB-DEM/applications/solvers/pureDEM/HFDIBDEMFoam
 wclean
 wmake -j1
 ```
+
+## Validation runtime OF13
+
+Le cas `examples/01_LIGGGHTSVerificationTests/test01_normalForceTest/openHFDIB-DEM/RestituionCoeff-0.06` a été copié dans `validation/normalForce_OF13`. Après génération du maillage par `blockMesh`, le solveur `HFDIBDEMFoam` a initialisé les champs, lu les propriétés de fluide, créé les deux corps sphériques et exécuté dix pas temporels de `0.0001` à `0.001` s sans erreur fatale. Le journal contient les séquences `Time = ...`, `updated HFDIBDEM` et `ExecutionTime = ...` pour chaque pas.
+
+Le portage de `pimpleHFDIBFoam` compile également après migration de `viscosityModel`, `incompressibleMomentumTransportModels`, `fvModels`, `fvConstraints`, `constrainHbyA`, `constrainPressure`, `findRefCell` et des interfaces MRF Foundation 13. La variante livrée est statique : les mécanismes de mouvement et de raffinement topologique ne sont pas activés. Une implémentation dynamique devra être validée séparément avec `fvMeshMovers` ou `fvMeshTopoChangers` avant d’être exposée comme fonctionnalité par défaut.

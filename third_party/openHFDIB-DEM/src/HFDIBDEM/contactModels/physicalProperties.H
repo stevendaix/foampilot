@@ -33,8 +33,8 @@ Contributors
     Ondřej Studeník (2020-*)
 \*---------------------------------------------------------------------------*/
 
-#ifndef physicalProperties_H
-#define physicalProperties_H
+#ifndef demPhysicalProperties_H
+#define demPhysicalProperties_H
 
 #include "fvCFD.H"
 
@@ -44,12 +44,12 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                    Struct physicalProperties Declaration
+                    Struct demPhysicalProperties Declaration
 \*---------------------------------------------------------------------------*/
 
-struct physicalProperties
+struct demPhysicalProperties
 {
-    physicalProperties()
+    demPhysicalProperties()
     :
         aY_(0),
         aG_(0),
@@ -60,7 +60,7 @@ struct physicalProperties
         reduceBeta_(0)
     {}
 
-    physicalProperties
+    demPhysicalProperties
     (
         const scalar aY,
         const scalar aG,

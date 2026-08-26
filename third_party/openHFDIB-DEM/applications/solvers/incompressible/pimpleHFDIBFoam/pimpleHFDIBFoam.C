@@ -41,6 +41,16 @@ Description
 #include "viscosityModel.H"
 #include "incompressibleMomentumTransportModels.H"
 #include "pimpleControl.H"
+#include "findRefCell.H"
+#include "constrainHbyA.H"
+#include "constrainPressure.H"
+#include "adjustPhi.H"
+#include "fvcDdt.H"
+#include "fvcGrad.H"
+#include "fvcFlux.H"
+#include "fvmDdt.H"
+#include "fvmDiv.H"
+#include "fvmLaplacian.H"
 #include "CorrectPhi.H"
 #include "localEulerDdtScheme.H"
 #include "fvcSmooth.H"
@@ -59,6 +69,7 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
+    #include "createPimpleControl.H"
     #include "initContinuityErrs.H"
     #include "createTimeControls.H"
     #include "createFields.H"
@@ -112,7 +123,7 @@ int main(int argc, char *argv[])
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
-            if (pimple.firstPimpleIter() || moveMeshOuterCorrectors)
+            if (pimple.firstPimpleIter())
             {
                 // OpenFOAM 13 static-mesh port: no mesh update or topology change.
                 f *= lambda;
@@ -126,11 +137,8 @@ int main(int argc, char *argv[])
                 #include "pEqn.H"
             }
 
-            if (pimple.turbCorr())
-            {
-                laminarTransport.correct();
-                turbulence->correct();
-            }
+            viscosity->correct();
+            turbulence->correct();
         }
         CFDTime_ += pimpleRunClockTime.timeIncrement();
         Info << "updating HFDIBDEM" << endl;

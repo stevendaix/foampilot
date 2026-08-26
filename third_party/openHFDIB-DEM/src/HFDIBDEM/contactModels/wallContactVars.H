@@ -55,7 +55,7 @@ class wallContactVars
     vector contactNormal_;
     scalar contactArea_;
 
-    physicalProperties physicalProperties_;
+    demPhysicalProperties physicalProperties_;
 
     vector lVec_;
     vector Veli_;
@@ -90,17 +90,17 @@ class wallContactVars
     (
         const fvMesh&   mesh,
         DynamicList<Tuple2<label,string>>& contactFaces,
-        HashTable<physicalProperties,string,Hash<string>>& wallMeanPars
+        HashTable<demPhysicalProperties,string,Hash<string>>& wallMeanPars
     );
 
     void setMeanCntPars_Plane
     (
         List<scalar>& contactAreas,
         List<string> contactFaces,
-        HashTable<physicalProperties,string,Hash<string>>& wallMeanPars
+        HashTable<demPhysicalProperties,string,Hash<string>>& wallMeanPars
     );
 
-    physicalProperties& getMeanCntPar()
+    demPhysicalProperties& getMeanCntPar()
     {
         return physicalProperties_;
     }

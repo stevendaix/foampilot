@@ -38,11 +38,11 @@ using namespace Foam;
 prtSubContactInfo::prtSubContactInfo
 (
     const Tuple2<label,label>& contactPair,
-    const physicalProperties& physicalProperties
+    const demPhysicalProperties& demPhysicalProperties
 )
 :
 contactPair_(contactPair),
-physicalProperties_(physicalProperties)
+physicalProperties_(demPhysicalProperties)
 {}
 
 prtSubContactInfo::~prtSubContactInfo()

@@ -81,12 +81,12 @@ class prtContactInfo
     std::vector<std::shared_ptr<prtSubContactInfo>> contactList_;
     std::vector<std::shared_ptr<prtSubContactInfo>> newContactList_;
 
-    physicalProperties physicalProperties_;
+    demPhysicalProperties physicalProperties_;
 
     std::shared_ptr<prtSubContactInfo> matchSubContact
     (
         boundBox& bbox,
-        physicalProperties& physicalProperties,
+        demPhysicalProperties& demPhysicalProperties,
         Tuple2<label,label>& contactPair
     );
 
