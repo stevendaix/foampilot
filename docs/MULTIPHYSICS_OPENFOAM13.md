@@ -1,18 +1,54 @@
-# Intégration multiphysique OpenFOAM Foundation 13
+# Intégration multiphysique OpenFOAM 13
 
-Cette extension ajoute à Foampilot un **contrat d’intégration explicite** pour `sediFoam`, `openHFDIB-DEM` et `libAcoustics`. Elle ne vend pas un faux « copier-coller » : les trois projets ciblent des générations et parfois des distributions OpenFOAM différentes. Foampilot conserve donc les sources externes hors du paquet Python, génère un manifeste auditable et refuse les combinaisons physiques ambiguës.
+Cette extension ajoute à Foampilot un contrat d’intégration explicite pour `sediFoam`, `openHFDIB-DEM` et `libAcoustics`. Les sources portées d’openHFDIB-DEM sont conservées dans `third_party/openHFDIB-DEM` afin de rendre le build reproductible depuis Foampilot.
 
-## Architecture retenue
+## Architecture
 
-| Module | Physique | Référence amont | Statut OF13 dans cette PR |
+| Module | Physique | Référence amont | État dans cette branche |
 | --- | --- | --- | --- |
-| `sediFoam` | CFD–DEM avec LAMMPS, transport sédimentaire | `master` | Profil Foampilot et contrat de champs ; portage C++/LAMMPS à compiler séparément |
-| `openHFDIB-DEM` | CFD–DEM immersed-boundary, particules de forme arbitraire | `master`, développé pour OpenFOAM v8 | Profil Foampilot ; l’ancienne API doit être portée vers OF13 |
-| `libAcoustics` | sources acoustiques et FW-H | `v2512`, OpenFOAM+ | Profil Foampilot ; `v2512` est une référence ESI et non une compatibilité Foundation garantie |
+| `sediFoam` | CFD–DEM avec LAMMPS et transport sédimentaire | [dépôt sediFoam][1] | Profil Foampilot ; portage LAMMPS à traiter séparément |
+| `openHFDIB-DEM` | CFD–DEM immersed-boundary | [dépôt openHFDIB-DEM][2] | Bibliothèque portée et compilée avec OpenFOAM Foundation 13 ; solveurs encore à adapter |
+| `libAcoustics` | Sources acoustiques et FW-H | [branche v2512][3] | Profil Foampilot ; convention OpenFOAM+ à isoler du backend Foundation |
 
-Les deux backends DEM sont **mutuellement exclusifs dans un cas**. L’acoustique peut être ajoutée à l’un ou l’autre backend, mais elle doit être traitée comme une physique de mesure/post-traitement et non comme un solveur DEM concurrent.
+Les deux backends DEM sont mutuellement exclusifs dans un même cas. L’acoustique est modélisée comme une physique de mesure ou de post-traitement et ne concurrence pas le solveur DEM.
 
-## Utilisation
+## Portage openHFDIB-DEM validé
+
+La bibliothèque `libHFDIBDEM.so` compile avec OpenFOAM Foundation 13 après les adaptations suivantes :
+
+| Ancienne API | Adaptation OF13 |
+| --- | --- |
+| `fvCFD.H` | Shim local minimal incluant `fvMesh.H`, `volFields.H`, `surfaceFields.H`, `fvc.H`, `fvm.H`, `dimensionedTypes.H`, `IOdictionary.H`, `Pstream.H`, `randomGenerator.H`, `plane.H`, `fvMeshSubset.H`, `scalarMatrices.H` et `uniformDimensionedFields.H`. |
+| `triSurfaceMesh` | Alias local vers `triSurface`, avec inclusions explicites de `triSurfaceSearch`, `treeDataTriSurface`, `indexedOctree` et `triangleFuncs`. |
+| `triSurfaceMesh::movePoints` | Mise à jour contrôlée du `pointField` de `triSurface`, car l’API OF13 n’expose plus cette méthode. |
+| `triSurfaceMesh::getNormal` | Calcul de la normale par `triFace::normal(pointField)` à partir de l’index retourné par `triSurfaceSearch`. |
+| `Random` | Alias vers `randomGenerator`, avec conversion des constructeurs de graine historiques. |
+| `meshSearch(mesh_)` | `meshSearch::New(mesh_)`, le constructeur direct étant protégé en OF13. |
+| `cellZones().findZoneID` | `cellZones().findIndex`. |
+| `scalarRectangularMatrix` et `scalarSquareMatrix` | Inclusion explicite de `scalarMatrices.H`. |
+| `unallocLabelList` | `labelUList`. |
+| `Time::timeName()` | `Time::timeName(mesh_.time().value())`. |
+| Bibliothèques legacy `dynamicMesh`/`dynamicFvMesh` | Retrait des chemins et bibliothèques absents de Foundation 13 pour la bibliothèque compilée. |
+
+Les modifications sont conservées dans les sources vendorisées sous `third_party/openHFDIB-DEM/src/HFDIBDEM` et dans les options de build correspondantes. Les répertoires `lnInclude` restent générés par `wmakeLnInclude` et ne sont pas versionnés.
+
+## Vérifications réalisées
+
+OpenFOAM Foundation 13 est installé sous `/opt/openfoam13` et `foamVersion` retourne `OpenFOAM-13`. Le build séquentiel suivant produit `libHFDIBDEM.so` sans erreur de compilation ni d’édition de liens :
+
+```bash
+cd third_party/openHFDIB-DEM
+. /opt/openfoam13/etc/bashrc
+rm -rf src/HFDIBDEM/lnInclude
+wmakeLnInclude src/HFDIBDEM
+wmake -j1 libso src/HFDIBDEM
+```
+
+La compilation des solveurs a ensuite été lancée séparément. Elle s’arrête dès les includes de création de maillage : Foundation 13 ne fournit plus `dynamicFvMesh.H`, `createDynamicFvMesh.H` et `fvOptions.H` sous les chemins historiques utilisés par les solveurs. Le solveur `pimpleHFDIBFoam` nécessite donc un portage supplémentaire vers les mécanismes OF13 de maillage mobile, de modèles/contraintes et de transport. Le solveur `HFDIBDEMFoam` partage cette dépendance et ne doit pas être déclaré compilable tant que cette étape n’est pas réalisée.
+
+Cette distinction est volontaire : la bibliothèque est réellement portée et compilée, mais le portage complet des solveurs et la validation scientifique d’un cas DEM ne sont pas encore déclarés terminés.
+
+## Utilisation Foampilot
 
 ```python
 from foampilot import MultiphysicsConfiguration
@@ -21,17 +57,7 @@ config = MultiphysicsConfiguration(("openhfdib_dem", "libacoustics"))
 config.write_case_assets("./case")
 ```
 
-La commande produit `system/foampilotMultiphysics.json`, destiné à l’audit et à l’orchestration, et `system/foampilotMultiphysics`, dictionnaire OpenFOAM lisible. Les champs requis sont calculés automatiquement ; notamment `nu` doit continuer à être écrit explicitement dans `constant/transportProperties` par le générateur de propriétés de Foampilot.
-
-## Vérifications exécutées
-
-L’environnement a été installé depuis le dépôt officiel OpenFOAM Foundation pour Ubuntu 24.04. La commande `foamVersion` retourne `OpenFOAM-13`. Les tests ciblés de cette extension passent avec **4 tests réussis**.
-
-Un premier build réel de `openHFDIB-DEM` a également été lancé avec OF13. Il s’arrête avant la compilation métier car le code inclut `fvCFD.H`, en-tête de commodité absent de l’arborescence OF13 installée. Ce résultat est volontairement conservé comme signal de portage : remplacer l’en-tête par une simple copie ne constitue pas un portage complet, car les classes de maillage, d’interpolation, de champs et de solveur doivent ensuite être vérifiées. `sediFoam` ajoute en plus une dépendance forte à LAMMPS et à son interface C++. `libAcoustics` possède sa propre bibliothèque et des tests dans `v2512`, mais ses dictionnaires et conventions sont ceux d’OpenFOAM+.
-
-## Étapes de portage C++ restantes
-
-Le portage complet côté solveurs doit être mené dans l’ordre suivant : créer une couche d’includes OF13, adapter les options `Make/options` aux bibliothèques Foundation 13, compiler chaque bibliothèque sans parallélisme, corriger les changements de types et de signatures, puis exécuter un cas minimal et un cas de validation scientifique. Après chaque étape, le journal de build doit être conservé dans le CI ou dans les artefacts de la PR. L’adaptateur Foampilot fournit déjà le point unique de configuration afin que ces builds puissent être branchés sans dupliquer la logique des cas.
+La commande produit `system/foampilotMultiphysics.json` pour l’audit et `system/foampilotMultiphysics` comme dictionnaire lisible. Les propriétés indispensables, notamment `nu`, doivent continuer à être écrites explicitement dans `constant/transportProperties`.
 
 ## Références
 
