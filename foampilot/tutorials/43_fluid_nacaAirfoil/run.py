@@ -38,7 +38,7 @@ def main() -> None:
         "symmetry;",
         "empty;",
     )
-    solver.run_simulation(nb_proc=1, log_filename="log.fluid")
+    solver.run_simulation(nb_proc=4, log_filename="log.fluid.parallel")
 
 
 if __name__ == "__main__":
