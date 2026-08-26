@@ -652,6 +652,27 @@ class Functions:
 
             file.write("}\n")
 
+    @classmethod
+    def copy_reference_fields(cls, source_case, target_case, fields=None, source_time="0"):
+        """Copy reference field files into a case through the Foampilot API.
+
+        This supports continuation tutorials whose initial fields are nonuniform
+        results from a previous OpenFOAM case.
+        """
+        import shutil
+        source_dir = Path(source_case) / source_time
+        target_dir = Path(target_case) / source_time
+        cls.check_directory(target_dir)
+        selected = fields or [p.name for p in source_dir.iterdir() if p.is_file()]
+        copied = []
+        for field in selected:
+            source = source_dir / field
+            if source.exists():
+                destination = target_dir / field
+                shutil.copy2(source, destination)
+                copied.append(field)
+        return copied
+
     @staticmethod
     def scalar_transport(
         field="T",
@@ -675,6 +696,16 @@ class Functions:
             "writeControl": write_control,
             "writeInterval": write_interval,
         }
+
+    @staticmethod
+    def coded_function_object(code_include="", code_execute="", libs='("libutilityFunctionObjects.so")'):
+        """Return a declarative OpenFOAM ``coded`` function object."""
+        result = {"type": "coded", "libs": libs}
+        if code_include:
+            result["codeInclude"] = code_include
+        if code_execute:
+            result["codeExecute"] = code_execute
+        return result
 
     @classmethod
     def write_function_object(cls, name, function_dict, base_path, folder="system/functions", append=False):

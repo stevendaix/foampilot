@@ -187,6 +187,8 @@ class ControlDictFile(OpenFOAMFile):
 
         if getattr(self, "region_solvers", None):
             write_attrs["regionSolvers"] = self.region_solvers
+        if getattr(self, "sub_solver", None):
+            write_attrs["subSolver"] = self.sub_solver
 
         # OpenFOAM 13: use 'solver' keyword instead of 'application' for foamRun -solver
         if getattr(self, "use_solver_keyword", False) and "application" in write_attrs:
