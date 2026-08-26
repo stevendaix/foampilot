@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "${ROOT}/../../.." && pwd)"
 if [ -f /opt/openfoam13/etc/bashrc ]; then
     # shellcheck disable=SC1091
     source /opt/openfoam13/etc/bashrc
+    set -u
 else
     echo "OpenFOAM 13 absent: source /opt/openfoam13/etc/bashrc avant Allrun" >&2
     exit 2

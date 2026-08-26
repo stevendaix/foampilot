@@ -9,15 +9,15 @@
 #include "OFstream.H"
 #include "addToRunTimeSelectionTable.H"
 #include <cantera/base/Solution.h>
-#include <cantera/thermo.h>
-#include <cantera/transport.h>
+#include <cantera/thermo/ThermoPhase.h>
+#include <cantera/transport/Transport.h>
 
 using namespace Foam;
 
 int main(int argc, char *argv[])
 {
     argList::addNote("Evaluate Cantera thermochemistry for OpenFOAM cell states");
-    #include "setRootCaseLists.H"
+    #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
@@ -42,18 +42,18 @@ int main(int argc, char *argv[])
 
     volScalarField T
     (
-        IOobject("T", runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::NO_WRITE),
+        IOobject("T", runTime.timeName(runTime.value(), 6), mesh, IOobject::MUST_READ, IOobject::NO_WRITE),
         mesh
     );
     volScalarField p
     (
-        IOobject("p", runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::NO_WRITE),
+        IOobject("p", runTime.timeName(runTime.value(), 6), mesh, IOobject::MUST_READ, IOobject::NO_WRITE),
         mesh
     );
 
     auto solution = Cantera::newSolution(mechanism, phase);
     auto thermo = solution->thermo();
-    auto transport = solution->transportModel();
+    auto transport = solution->transport();
     OFstream output(runTime.path()/"canteraThermo.csv");
     output << "cell,T_eq,p_eq,rho,cp_mass,thermal_conductivity\n";
 
