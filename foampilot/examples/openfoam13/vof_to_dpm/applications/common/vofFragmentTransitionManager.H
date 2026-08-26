@@ -91,11 +91,18 @@ inline bool operator!=(const vofBoundaryLink& a, const vofBoundaryLink& b)
 struct vofFragmentBatch
 {
     label timeIndex;
+    word cloudName;
+    word alphaFieldName;
+    word namespaceKey;
     List<vofGlobalFragment> fragments;
 
     vofFragmentBatch()
     :
-        timeIndex(-1), fragments()
+        timeIndex(-1),
+        cloudName(),
+        alphaFieldName(),
+        namespaceKey(),
+        fragments()
     {}
 
     inline label size() const { return fragments.size(); }
@@ -164,6 +171,17 @@ class vofFragmentTransitionManager
     label minCells_;
     scalar minVolume_;
     scalar rhoLiquid_;
+    word cloudName_;
+    word alphaFieldName_;
+    word namespaceKey_;
+    scalarList speciesFractions_;
+    mutable vofFragmentBatch lastBatch_;
+    mutable label lastTimeIndex_;
+
+    word objectName(const word& stem) const
+    {
+        return stem + "." + namespaceKey_;
+    }
 
     labelList globalCellIds() const;
     vofGlobalFragment makeGlobalFragment
@@ -182,7 +200,10 @@ public:
         const scalar threshold,
         const label minCells,
         const scalar minVolume,
-        const scalar rhoLiquid
+        const scalar rhoLiquid,
+        const word& cloudName = word(),
+        const word& alphaFieldName = word(),
+        const scalarList& speciesFractions = scalarList()
     );
 
     // Detect locally, reconcile processor-boundary fragments, and return a
@@ -195,6 +216,11 @@ public:
     ) const;
 
     vofFragmentBatch reconcileMPI(const label timeIndex) const;
+
+    const word& cloudName() const { return cloudName_; }
+    const word& alphaFieldName() const { return alphaFieldName_; }
+    const word& namespaceKey() const { return namespaceKey_; }
+    const vofFragmentBatch& lastBatch() const { return lastBatch_; }
 
     // Reconcile local post-injection confirmations. This is collective only
     // when called by the fvModel, never from an InjectionModel callback.

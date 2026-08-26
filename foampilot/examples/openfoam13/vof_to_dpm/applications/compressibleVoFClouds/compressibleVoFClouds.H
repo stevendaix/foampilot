@@ -21,6 +21,7 @@ class compressibleVoFClouds : public fvModel
     const compressibleTwoPhaseVoFMixture& mixture_;
     const uniformDimensionedVectorField g_;
     const wordList cloudNames_;
+    const scalarList speciesFractions_;
     const Switch useThermoCloud_;
     mutable volScalarField mu_;
     mutable volScalarField confirmedTransferRate_;

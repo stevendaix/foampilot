@@ -49,6 +49,14 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
             parcelCloudList::defaultCloudNames
         )
     ),
+    speciesFractions_
+    (
+        dict.lookupOrDefault<scalarList>
+        (
+            "speciesMassFractions",
+            scalarList()
+        )
+    ),
     useThermoCloud_
     (
         dict.lookupOrDefault<Switch>("thermoCloud", false)
@@ -57,7 +65,7 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
     (
         IOobject
         (
-            "mu",
+            sourceName + ":mu",
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -69,7 +77,7 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
     (
         IOobject
         (
-            "vofConfirmedTransferRate",
+            sourceName + ":vofConfirmedTransferRate",
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -108,7 +116,7 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
     (
         IOobject
         (
-            "vofFragmentMask",
+            sourceName + ":vofFragmentMask",
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -121,7 +129,7 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
     (
         IOobject
         (
-            "vofAlphaRhoTransferRate",
+            sourceName + ":vofAlphaRhoTransferRate",
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -164,7 +172,10 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
             alphaThreshold_,
             minCells_,
             minVolume_,
-            dict.lookupOrDefault<scalar>("rhoLiquid", 0)
+            dict.lookupOrDefault<scalar>("rhoLiquid", 0),
+            cloudNames_[0],
+            liquidAlpha_.name(),
+            speciesFractions_
         )
     ),
     transitionBatch_()
@@ -391,6 +402,8 @@ void Foam::fv::compressible::compressibleVoFClouds::commitDirectLocalParcels
         }
 
         parcelCloud::directParcelData data;
+        data.cloudName = cloudNames_[0];
+        data.speciesMassFractions = speciesFractions_;
         data.position = fragment.centroid;
         data.celli = fragment.localCells[0];
         data.diameter = cbrt(6*fragment.volume/pi);
@@ -404,15 +417,27 @@ void Foam::fv::compressible::compressibleVoFClouds::commitDirectLocalParcels
             cloudsPtr_().commitDirect(cloudNames_[0], data, -1);
 
         vofParcelConfirmation confirmation;
+        confirmation.cloudName = cloudNames_[0];
+        confirmation.alphaFieldName = liquidAlpha_.name();
         confirmation.fragmentId = fragment.id;
         confirmation.ownerProc = Pstream::myProcNo();
         confirmation.parcelsAdded = committed ? 1 : 0;
         confirmation.massAdded = committed ? fragment.mass : scalar(0);
         confirmation.expectedMass = fragment.mass;
+        confirmation.speciesMassAdded.setSize(speciesFractions_.size(), 0);
+        confirmation.expectedSpeciesMass.setSize(speciesFractions_.size(), 0);
+        forAll(speciesFractions_, speciesI)
+        {
+            confirmation.speciesMassAdded[speciesI] =
+                committed ? fragment.mass*speciesFractions_[speciesI] : scalar(0);
+            confirmation.expectedSpeciesMass[speciesI] =
+                fragment.mass*speciesFractions_[speciesI];
+        }
         confirmation.success = committed;
         localConfirmations.append(confirmation);
 
-        Info<< "VOF direct commit fragmentId=" << fragment.id
+        Info<< "VOF direct commit cloud=" << data.cloudName
+            << " fragmentId=" << fragment.id
             << " success=" << committed
             << " mass=" << confirmation.massAdded << nl;
     }
@@ -557,6 +582,17 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
                 break;
             }
         }
+    }
+
+    forAll(localResults, resultI)
+    {
+        const vofParcelConfirmation& result = localResults[resultI];
+        Info<< "VOF confirmation cloud=" << result.cloudName
+            << " alphaField=" << result.alphaFieldName
+            << " fragmentId=" << result.fragmentId
+            << " success=" << result.success
+            << " mass=" << result.massAdded
+            << " speciesMass=" << result.speciesMassAdded << nl;
     }
 
     applyConfirmedResults(localResults);

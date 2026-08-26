@@ -24,6 +24,7 @@ class incompressibleVoFClouds
     const incompressibleTwoPhaseVoFMixture& mixture_;
     const uniformDimensionedVectorField g_;
     const wordList cloudNames_;
+    const scalarList speciesFractions_;
     mutable volScalarField mu_;
     mutable volScalarField confirmedTransferRate_;
     mutable parcelCloudList clouds_;

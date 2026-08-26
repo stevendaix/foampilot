@@ -22,7 +22,10 @@ vofFragmentTransitionManager::vofFragmentTransitionManager
     const scalar threshold,
     const label minCells,
     const scalar minVolume,
-    const scalar rhoLiquid
+    const scalar rhoLiquid,
+    const word& cloudName,
+    const word& alphaFieldName,
+    const scalarList& speciesFractions
 )
 :
     mesh_(mesh),
@@ -32,16 +35,26 @@ vofFragmentTransitionManager::vofFragmentTransitionManager
     threshold_(threshold),
     minCells_(minCells),
     minVolume_(minVolume),
-    rhoLiquid_(rhoLiquid)
-{}
+    rhoLiquid_(rhoLiquid),
+    cloudName_(cloudName),
+    alphaFieldName_(alphaFieldName),
+    namespaceKey_(cloudName + "." + alphaFieldName),
+    speciesFractions_(speciesFractions),
+    lastBatch_(),
+    lastTimeIndex_(-1)
+{
+    if (cloudName_.empty() || alphaFieldName_.empty())
+    {
+        FatalErrorInFunction
+            << "vofFragmentTransitionManager requires non-empty cloudName "
+            << "and alphaFieldName" << exit(FatalError);
+    }
+}
 
 
 labelList vofFragmentTransitionManager::globalCellIds() const
 {
-    // Build a decomposition-independent numbering from the mesh geometry.
-    // For a fixed mesh, sorting cell centres gives the same numbering in
-    // serial and in every processor decomposition. Coincident centres are
-    // rejected since they would make any geometric numbering ambiguous.
+    // Build a decomposition-independent numbering from cell centres.
     const vectorField& centres = mesh_.C();
     List<List<point>> gathered(Pstream::nProcs());
     gathered[Pstream::myProcNo()] = List<point>(centres);
@@ -69,9 +82,11 @@ labelList vofFragmentTransitionManager::globalCellIds() const
                 ++node;
             }
         }
-
         labelList order(total);
-        forAll(order, i) order[i] = i;
+        forAll(order, i)
+        {
+            order[i] = i;
+        }
         Foam::sort(order, [&](const label a, const label b)
         {
             const point& pa = allCentres[a];
@@ -84,20 +99,36 @@ labelList vofFragmentTransitionManager::globalCellIds() const
                 << exit(FatalError);
             return a < b;
         });
-
         forAll(perProc, procI)
         {
             perProc[procI].setSize(gathered[procI].size());
         }
         forAll(order, globalCellI)
         {
-            perProc[procOf[order[globalCellI]]][localOf[order[globalCellI]]] = globalCellI;
+            perProc[procOf[order[globalCellI]]][localOf[order[globalCellI]]]
+                = globalCellI;
         }
     }
-    Pstream::scatterList(perProc);
-    return perProc[Pstream::myProcNo()];
-}
 
+    // A nested List<labelList> is not reliably distributed by scatterList in
+    // every OpenFOAM 13 communication mode. Broadcast one rank payload at a
+    // time instead; all ranks execute the same collective sequence.
+    labelList localIds;
+    for (label targetProc = 0; targetProc < Pstream::nProcs(); ++targetProc)
+    {
+        labelList payload;
+        if (Pstream::master())
+        {
+            payload = perProc[targetProc];
+        }
+        Pstream::scatter(payload);
+        if (targetProc == Pstream::myProcNo())
+        {
+            localIds = payload;
+        }
+    }
+    return localIds;
+}
 
 vofGlobalFragment vofFragmentTransitionManager::makeGlobalFragment
 (
@@ -120,6 +151,7 @@ vofGlobalFragment vofFragmentTransitionManager::makeGlobalFragment
       : scalar(0);
     result.centroid = local.centroid;
     result.velocity = local.velocity;
+    result.composition = speciesFractions_;
     return result;
 }
 
@@ -239,8 +271,16 @@ vofFragmentBatch vofFragmentTransitionManager::reconcileMPI
     const label timeIndex
 ) const
 {
+    if (lastTimeIndex_ == timeIndex)
+    {
+        return lastBatch_;
+    }
+
     vofFragmentBatch batch;
     batch.timeIndex = timeIndex;
+    batch.cloudName = cloudName_;
+    batch.alphaFieldName = alphaFieldName_;
+    batch.namespaceKey = namespaceKey_;
 
     // This is intentionally collective. Build the decomposition-independent
     // cell numbering before assigning fragment identities.
@@ -407,7 +447,9 @@ vofFragmentBatch vofFragmentTransitionManager::reconcileMPI
         }
     }
     batch.fragments.transfer(ordered);
-    return batch;
+    lastBatch_ = batch;
+    lastTimeIndex_ = timeIndex;
+    return lastBatch_;
 }
 
 bool vofFragmentTransitionManager::reconcileConfirmationsMPI
@@ -429,8 +471,8 @@ bool vofFragmentTransitionManager::reconcileConfirmationsMPI
 
     if (Pstream::master())
     {
-        HashTable<vofParcelConfirmation, std::uint64_t> byId;
-        HashSet<std::uint64_t> duplicateIds;
+        HashTable<vofParcelConfirmation, word> byTransaction;
+        HashSet<word> duplicateTransactions;
 
         forAll(gathered, procI)
         {
@@ -438,14 +480,18 @@ bool vofFragmentTransitionManager::reconcileConfirmationsMPI
             {
                 const vofParcelConfirmation& confirmation =
                     gathered[procI][confirmationI];
+                const word key =
+                    confirmation.cloudName + "."
+                  + confirmation.alphaFieldName + "."
+                  + Foam::name(confirmation.fragmentId);
 
-                if (byId.found(confirmation.fragmentId))
+                if (byTransaction.found(key))
                 {
-                    duplicateIds.insert(confirmation.fragmentId);
+                    duplicateTransactions.insert(key);
                 }
                 else
                 {
-                    byId.insert(confirmation.fragmentId, confirmation);
+                    byTransaction.insert(key, confirmation);
                 }
             }
         }
@@ -454,21 +500,33 @@ bool vofFragmentTransitionManager::reconcileConfirmationsMPI
         {
             const vofGlobalFragment& fragment = batch.fragments[fragmentI];
             vofParcelConfirmation status;
+            status.cloudName = batch.cloudName;
+            status.alphaFieldName = batch.alphaFieldName;
             status.fragmentId = fragment.id;
             status.ownerProc = fragment.ownerProc;
             status.expectedMass = fragment.mass;
+            status.expectedSpeciesMass.setSize(fragment.composition.size(), 0);
+            forAll(fragment.composition, speciesI)
+            {
+                status.expectedSpeciesMass[speciesI] =
+                    fragment.mass*fragment.composition[speciesI];
+            }
             status.success = false;
 
+            const word key =
+                batch.cloudName + "."
+              + batch.alphaFieldName + "."
+              + Foam::name(fragment.id);
             bool valid =
                 fragment.ownerProc >= 0
              && fragment.ownerProc < nProcs
-             && !duplicateIds.found(fragment.id)
-             && byId.found(fragment.id);
+             && !duplicateTransactions.found(key)
+             && byTransaction.found(key);
 
             if (valid)
             {
                 const vofParcelConfirmation& confirmation =
-                    byId[fragment.id];
+                    byTransaction[key];
                 const scalar tolerance =
                     1e-8*max(mag(fragment.mass), scalar(1));
 
@@ -476,11 +534,31 @@ bool vofFragmentTransitionManager::reconcileConfirmationsMPI
                 valid =
                     confirmation.ownerProc == fragment.ownerProc
                  && confirmation.success
-                 && confirmation.parcelsAdded == 1
-                 && mag(confirmation.massAdded - fragment.mass)
+                    && confirmation.cloudName == batch.cloudName
+                    && confirmation.alphaFieldName == batch.alphaFieldName
+                    && confirmation.parcelsAdded == 1
+                    && mag(confirmation.massAdded - fragment.mass)
                     <= tolerance
                  && mag(confirmation.massAdded - confirmation.expectedMass)
-                    <= tolerance;
+                    <= tolerance
+                 && confirmation.speciesMassAdded.size()
+                    == status.expectedSpeciesMass.size()
+                 && confirmation.expectedSpeciesMass.size()
+                    == status.expectedSpeciesMass.size();
+
+                if (valid)
+                {
+                    forAll(status.expectedSpeciesMass, speciesI)
+                    {
+                        valid =
+                            valid
+                         && mag
+                            (
+                                confirmation.speciesMassAdded[speciesI]
+                              - status.expectedSpeciesMass[speciesI]
+                            ) <= tolerance;
+                    }
+                }
             }
 
             status.success = valid;

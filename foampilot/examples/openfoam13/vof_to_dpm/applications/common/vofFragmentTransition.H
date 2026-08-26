@@ -56,6 +56,22 @@ public:
         const fvMesh& mesh = alpha.mesh();
         const scalarField& alphaField = alpha.internalField();
         const scalarField& cellVolumes = mesh.V();
+        if (alphaField.size() != mesh.nCells())
+        {
+            FatalErrorInFunction
+                << "alpha field " << alpha.name()
+                << " has " << alphaField.size()
+                << " values, but mesh has " << mesh.nCells()
+                << exit(FatalError);
+        }
+        if (globalCellIds && globalCellIds->size() != mesh.nCells())
+        {
+            FatalErrorInFunction
+                << "global cell map for alpha field " << alpha.name()
+                << " has " << globalCellIds->size()
+                << " entries, but mesh has " << mesh.nCells()
+                << exit(FatalError);
+        }
         const vectorField& cellCentres = mesh.C();
         const labelListList& cellNeighbours = mesh.cellCells();
 
@@ -90,6 +106,14 @@ public:
                 forAll(neighbours, nbrI)
                 {
                     const label nbr = neighbours[nbrI];
+                    if (nbr < 0 || nbr >= mesh.nCells())
+                    {
+                        FatalErrorInFunction
+                            << "invalid neighbour " << nbr
+                            << " for cell " << celli
+                            << " in alpha field " << alpha.name()
+                            << exit(FatalError);
+                    }
                     if (!visited[nbr] && alphaField[nbr] >= threshold)
                     {
                         visited[nbr] = true;
@@ -116,6 +140,13 @@ public:
             forAll(fragment.cells, cellI)
             {
                 const label localCell = fragment.cells[cellI];
+                if (localCell < 0 || localCell >= mesh.nCells())
+                {
+                    FatalErrorInFunction
+                        << "invalid local cell " << localCell
+                        << " in alpha field " << alpha.name()
+                        << exit(FatalError);
+                }
                 const label identityCell =
                     globalCellIds
                   ? (*globalCellIds)[localCell]

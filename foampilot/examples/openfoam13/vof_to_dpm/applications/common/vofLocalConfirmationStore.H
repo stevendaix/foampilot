@@ -10,20 +10,28 @@ namespace Foam
 
 struct vofParcelConfirmation
 {
+    word cloudName;
+    word alphaFieldName;
     std::uint64_t fragmentId;
     label ownerProc;
     label parcelsAdded;
     scalar massAdded;
     scalar expectedMass;
+    scalarList speciesMassAdded;
+    scalarList expectedSpeciesMass;
     bool success;
 
     vofParcelConfirmation()
     :
+        cloudName(),
+        alphaFieldName(),
         fragmentId(0),
         ownerProc(-1),
         parcelsAdded(0),
         massAdded(0),
         expectedMass(0),
+        speciesMassAdded(),
+        expectedSpeciesMass(),
         success(false)
     {}
 };
@@ -33,33 +41,45 @@ inline bool operator!=(
     const vofParcelConfirmation& b
 )
 {
-    return a.fragmentId != b.fragmentId
+    return a.cloudName != b.cloudName
+        || a.alphaFieldName != b.alphaFieldName
+        || a.fragmentId != b.fragmentId
         || a.ownerProc != b.ownerProc
         || a.parcelsAdded != b.parcelsAdded
         || a.massAdded != b.massAdded
         || a.expectedMass != b.expectedMass
+        || a.speciesMassAdded != b.speciesMassAdded
+        || a.expectedSpeciesMass != b.expectedSpeciesMass
         || a.success != b.success;
 }
 
 inline Ostream& operator<<(Ostream& os, const vofParcelConfirmation& c)
 {
     return os
+        << c.cloudName
+        << c.alphaFieldName
         << c.fragmentId
         << c.ownerProc
         << c.parcelsAdded
         << c.massAdded
         << c.expectedMass
+        << c.speciesMassAdded
+        << c.expectedSpeciesMass
         << c.success;
 }
 
 inline Istream& operator>>(Istream& is, vofParcelConfirmation& c)
 {
     return is
+        >> c.cloudName
+        >> c.alphaFieldName
         >> c.fragmentId
         >> c.ownerProc
         >> c.parcelsAdded
         >> c.massAdded
         >> c.expectedMass
+        >> c.speciesMassAdded
+        >> c.expectedSpeciesMass
         >> c.success;
 }
 

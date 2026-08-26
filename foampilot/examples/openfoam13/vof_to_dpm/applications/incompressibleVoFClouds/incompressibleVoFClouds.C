@@ -50,11 +50,19 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
             parcelCloudList::defaultCloudNames
         )
     ),
+    speciesFractions_
+    (
+        dict.lookupOrDefault<scalarList>
+        (
+            "speciesMassFractions",
+            scalarList()
+        )
+    ),
     mu_
     (
         IOobject
         (
-            "mu",
+            sourceName + ":mu",
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -67,7 +75,7 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
     (
         IOobject
         (
-            "vofConfirmedTransferRate",
+            sourceName + ":vofConfirmedTransferRate",
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -88,7 +96,7 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
     (
         IOobject
         (
-            "vofFragmentMask",
+            sourceName + ":vofFragmentMask",
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -101,7 +109,7 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
     (
         IOobject
         (
-            "vofAlphaConsumptionRate",
+            sourceName + ":vofAlphaConsumptionRate",
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -129,7 +137,10 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
             alphaThreshold_,
             minCells_,
             minVolume_,
-            dict.lookupOrDefault<scalar>("rhoLiquid", 0)
+            dict.lookupOrDefault<scalar>("rhoLiquid", 0),
+            cloudNames_[0],
+            mixture_.alpha1().name(),
+            speciesFractions_
         )
     ),
     transitionBatch_()
@@ -285,23 +296,37 @@ void Foam::fv::incompressibleVoFClouds::commitDirectLocalParcels
         data.velocity = fragment.velocity;
         data.nParticle = 1;
         data.temperature = fragment.temperature;
+        data.speciesMassFractions = speciesFractions_;
         data.Cp = -GREAT;
 
         const bool committed =
             clouds_.commitDirect(cloudNames_[0], data, -1);
 
         vofParcelConfirmation confirmation;
+        confirmation.cloudName = cloudNames_[0];
+        confirmation.alphaFieldName = mixture_.alpha1().name();
         confirmation.fragmentId = fragment.id;
         confirmation.ownerProc = Pstream::myProcNo();
         confirmation.parcelsAdded = committed ? 1 : 0;
         confirmation.massAdded = committed ? fragment.mass : scalar(0);
         confirmation.expectedMass = fragment.mass;
+        confirmation.speciesMassAdded.setSize(speciesFractions_.size(), 0);
+        confirmation.expectedSpeciesMass.setSize(speciesFractions_.size(), 0);
+        forAll(speciesFractions_, speciesI)
+        {
+            confirmation.speciesMassAdded[speciesI] =
+                committed ? fragment.mass*speciesFractions_[speciesI] : scalar(0);
+            confirmation.expectedSpeciesMass[speciesI] =
+                fragment.mass*speciesFractions_[speciesI];
+        }
         confirmation.success = committed;
         localConfirmations.append(confirmation);
 
-        Info<< "VOF direct commit fragmentId=" << fragment.id
+        Info<< "VOF direct commit cloud=" << confirmation.cloudName
+            << " fragmentId=" << fragment.id
             << " success=" << committed
-            << " mass=" << confirmation.massAdded << nl;
+            << " mass=" << confirmation.massAdded
+            << " speciesMass=" << confirmation.speciesMassAdded << nl;
     }
 }
 

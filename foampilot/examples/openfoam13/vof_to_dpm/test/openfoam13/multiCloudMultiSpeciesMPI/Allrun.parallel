@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+NP=${NP:-2}
+ROOT_DIR=$(cd "$(dirname "$0")" && pwd)
+WORK_DIR=${TMPDIR:-/tmp}/foampilot-multiCloudMultiSpeciesMPI-$$
+trap 'status=$?; if [ "$status" -eq 0 ] && [ "${KEEP_CASE:-0}" -ne 1 ]; then rm -rf "$WORK_DIR"; else echo "CASE_DIR=$WORK_DIR" >&2; fi; exit "$status"' EXIT
+
+. /opt/openfoam13/etc/bashrc || true
+set -u
+mkdir -p "$WORK_DIR"
+cp -a "$FOAM_TUTORIALS/compressibleVoF/damBreak/." "$WORK_DIR/"
+cd "$WORK_DIR"
+cat >> constant/physicalProperties.water <<'EOF'
+
+liquids
+{
+    H2O;
+    C2H5OH;
+}
+solids {}
+EOF
+cat >> constant/physicalProperties.air <<'EOF'
+
+liquids
+{
+    H2O;
+    C2H5OH;
+}
+solids {}
+EOF
+
+sed -i \
+  's/solver[[:space:]]*compressibleVoF;/solver          compressibleVoF;\nlibs            ("libcompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
+  system/controlDict
+sed -i 's/endTime[[:space:]]*1;/endTime         0.001;/' system/controlDict
+sed -i 's/writeInterval[[:space:]]*0.05;/writeInterval   0.001;/' system/controlDict
+
+cat > constant/clouds <<'EOF'
+FoamFile
+{
+    format ascii;
+    class wordGlobalIOList;
+    location "constant";
+    object clouds;
+}
+2
+(
+    waterCloud
+    fuelCloud
+)
+EOF
+
+cat > constant/fvModels <<'EOF'
+FoamFile
+{
+    format ascii;
+    class dictionary;
+    location "constant";
+    object fvModels;
+}
+waterTransition
+{
+    type compressibleVoFClouds;
+    clouds (waterCloud);
+    liquidPhase water;
+    thermoCloud true;
+    consumeAlpha true;
+    rhoLiquid 1000;
+    species (H2O C2H5OH);
+    speciesMassFractions (0.70 0.30);
+}
+fuelTransition
+{
+    type compressibleVoFClouds;
+    clouds (fuelCloud);
+    liquidPhase air;
+    thermoCloud true;
+    consumeAlpha false;
+    rhoLiquid 1000;
+    species (H2O C2H5OH);
+    speciesMassFractions (0.20 0.80);
+}
+EOF
+
+cat > constant/cloudProperties <<'EOF'
+FoamFile
+{
+    format ascii;
+    class dictionary;
+    location "constant";
+    object cloudProperties;
+}
+type thermoCloud;
+solution
+{
+    coupled yes;
+    transient yes;
+    cellValueSourceCorrection no;
+    maxCo 0.2;
+    sourceTerms { schemes { rho explicit 1; U explicit 1; h explicit 1; } }
+    integrationSchemes { U Euler; T analytical; }
+    interpolationSchemes
+    {
+        rho cell; rho.water cell; U cellPoint; mu.water cell;
+        T.water cell; Cp.water cell; kappa.water cell; p cell;
+    }
+}
+constantProperties { rho0 1000; T0 350; Cp0 4187; constantVolume false; }
+subModels
+{
+    particleForces { sphereDrag; gravity; }
+    injectionModels
+    {
+        model1
+        {
+            type vofFragmentInjection;
+            alpha alpha.water;
+            rhoLiquid 1000;
+            uniformParcelSize volume;
+            SOI 0; duration 1; parcelsPerSecond 1; massTotal 1;
+            sizeDistribution { type fixedValue; fixedValueDistribution { value 1e-3; } }
+        }
+    }
+    dispersionModel none;
+    patchInteractionModel standardWallInteraction;
+    heatTransferModel none;
+    compositionModel singlePhaseMixture;
+    phaseChangeModel none;
+    stochasticCollisionModel none;
+    surfaceFilmModel none;
+    radiation off;
+    standardWallInteractionCoeffs { type rebound; }
+    singlePhaseMixtureCoeffs { phases ( liquid { H2O 0.5; C2H5OH 0.5; } ); }
+}
+cloudFunctions {}
+EOF
+for cloud in waterCloud fuelCloud; do
+    cp constant/cloudProperties "constant/${cloud}Properties"
+done
+
+blockMesh > log.blockMesh 2>&1
+setFields > log.setFields 2>&1
+cat > system/decomposeParDict <<EOF
+FoamFile { format ascii; class dictionary; object decomposeParDict; }
+numberOfSubdomains $NP;
+method simple;
+simpleCoeffs { n ($NP 1 1); delta 0; }
+EOF
+decomposePar -force > log.decomposePar 2>&1
+mpirun --allow-run-as-root -np "$NP" foamRun -parallel -solver compressibleVoF > log.foamRun.mpi 2>&1
+python3 "$ROOT_DIR/analyze_multi_cloud_species.py" --log log.foamRun.mpi --expected "$ROOT_DIR/expected/fragments.json" --json | tee validation.json
