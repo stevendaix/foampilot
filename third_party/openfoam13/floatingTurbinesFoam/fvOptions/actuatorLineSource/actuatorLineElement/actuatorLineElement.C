@@ -90,13 +90,14 @@ void Foam::fv::actuatorLineElement::read()
         );
     }
 
-    // Read nu from object registry
-    const dictionary& transportProperties = mesh_.lookupObject<IOdictionary>
+    // OpenFOAM 13 stores incompressible transport data in
+    // physicalProperties rather than transportProperties.
+    const dictionary& physicalProperties = mesh_.lookupObject<IOdictionary>
     (
-        "transportProperties"
+        "physicalProperties"
     );
     dimensionedScalar nu;
-    transportProperties.lookup("nu") >> nu;
+    physicalProperties.lookup("nu") >> nu;
     nu_ = nu.value();
 
     // Read writePerf switch
