@@ -1,14 +1,16 @@
 # Turbine flottante et OpenFOAM 13
 
-Cette extension apporte une couche déclarative Foampilot autour des physiques du dépôt [thesis-FloatingTurbine](https://github.com/fronterapp/thesis-FloatingTurbine). Elle couvre la source **actuator-line** `axialFlowTurbineALSource`, le mouvement de corps rigide **sixDoF** et les lignes d’amarrage caténaires `mooringLine`.
+Cette extension apporte une couche déclarative Foampilot autour des physiques du dépôt [thesis-FloatingTurbine](https://github.com/fronterapp/thesis-FloatingTurbine). Elle couvre la source actuator-line `axialFlowTurbineALSource`, le mouvement de corps rigide sixDoF et les lignes d’amarrage caténaires `mooringLine`.
 
-## Choix d’architecture
+## État du portage C++
 
-Les cas historiques du dépôt source ciblent OpenFOAM v2012 et copient des arbres de cas complets. Foampilot suit au contraire son principe de dictionnaires générés : `FloatingTurbine` ne copie pas les anciens cas et produit uniquement les fichiers appartenant à la physique (`constant/fvOptions` par défaut et, lorsqu’il y a des lignes d’amarrage, `constant/dynamicMeshDict`). Les bibliothèques C++ restent des dépendances runtime explicites, enregistrées dans `system/controlDict` par `configure_solver()`.
+Le dépôt source annonce OpenFOAM v2012 et recopie un ancien cœur sixDoF. OpenFOAM 13 fournit une implémentation native sous `libsixDoFRigidBodyMotion`, avec des interfaces différentes pour les dictionnaires, les pointeurs et la gestion du temps. Le portage ne recopie donc pas le cœur sixDoF historique : le plugin `third_party/openfoam13/floatingSixDoFRigidBodyMotion` réutilise l’implémentation native OpenFOAM 13 et porte les extensions `mooringLine`, `catenaryShape` et `constantLoad` comme restraints runtime.
 
-Le code C++ fourni par le dépôt source s’enregistre dans l’API historique `fvOptions`. La méthode `render_fv_models()` permet de produire la variante `fvModels` attendue par un portage OpenFOAM 13 de cette bibliothèque, mais elle n’est pas sélectionnée silencieusement : `write(..., source_container="fvModels")` doit être demandé explicitement. Cela évite de générer un dictionnaire moderne que la bibliothèque historique ne saurait pas charger.
+Ce plugin a été compilé avec succès contre OpenFOAM 13. Son Makefile lie explicitement `-lsixDoFRigidBodyMotion` et `-lfiniteVolume`. Le script `Allwmake` est reproductible après chargement de `/opt/openfoam13/etc/bashrc`.
 
-## Exemple
+L’actuator-line `floatingTurbinesFoam` demeure une conversion séparée. Le code upstream est basé sur `fvOptions` et `cellSetOption`, alors que l’API OpenFOAM 13 attend `fvModel`/`fvModels`, le constructeur `(name, modelType, mesh, dict)`, `addSupFields()` et les callbacks de topologie. Le générateur Python conserve donc un choix explicite entre `fvOptions` historique et `fvModels` cible ; il ne prétend pas que la bibliothèque actuator-line est déjà compilée OpenFOAM 13.
+
+## Utilisation Python
 
 ```python
 from foampilot.solver import Solver
@@ -28,24 +30,31 @@ turbine = FloatingTurbine(
 )
 turbine.configure_solver(solver)
 solver.write_case()
-turbine.write(solver.case_path, cell_zone="rotor")  # fvOptions pour la bibliothèque historique
-# Après portage C++ vers l’API OpenFOAM 13 :
-# turbine.write(solver.case_path, cell_zone="rotor", source_container="fvModels")
+turbine.write(solver.case_path, cell_zone="rotor")
 ```
 
-Avant l’exécution, il faut compiler les bibliothèques compatibles avec OpenFOAM 13 et vérifier que le maillage contient la zone `rotor` et le patch `floater`. La validation Python contrôle les vecteurs unitaires, les dimensions positives et la présence des entrées physiques essentielles ; elle ne remplace pas `checkMesh`, la compilation C++ ni un test de convergence.
+Pour compiler le plugin sixDoF porté :
+
+```bash
+. /opt/openfoam13/etc/bashrc
+cd foampilot/third_party/openfoam13/floatingSixDoFRigidBodyMotion
+./Allwmake
+```
+
+Avant l’exécution, il faut vérifier que le maillage contient la zone `rotor` et le patch `floater`, charger la bibliothèque portée dans le `controlDict` ou le dictionnaire de mouvement, puis exécuter `checkMesh`. La validation Python ne remplace ni la compilation actuator-line, ni `checkMesh`, ni un test transitoire de convergence.
 
 ## Vérifications recommandées
 
 | Étape | Contrôle | Résultat attendu |
 | --- | --- | --- |
 | 1 | `pytest foampilot/test/wind/test_floating_turbine.py` | Rendu et validations Python cohérents |
-| 2 | Vérification des fichiers générés | `fvOptions` (ou `fvModels` après portage), `dynamicMeshDict` et `controlDict` complets |
-| 3 | Compilation des bibliothèques | `libfloatingTurbinesFoam.so` et `libfloatingSixDoFRigidBodyMotion.so` chargées |
+| 2 | `git diff --check` | Aucun espace parasite ni erreur de patch |
+| 3 | `./third_party/openfoam13/floatingSixDoFRigidBodyMotion/Allwmake` | Plugin sixDoF compilé avec OpenFOAM 13 |
 | 4 | `checkMesh` | Zone rotor et patch floater présents, maillage valide |
-| 5 | Petit cas transitoire | Résidus finis, forces et mouvement sixDoF écrits |
-| 6 | Étude physique | Sensibilité au pas de temps, au maillage et aux coefficients d’amarrage documentée |
+| 5 | Petit cas transitoire | Restraints chargées, forces et mouvement sixDoF écrits |
+| 6 | Portage actuator-line | `floatingTurbinesFoam` compilé comme `fvModel` et chargé par `fvModels` |
+| 7 | Étude physique | Sensibilité au pas de temps, au maillage et aux coefficients d’amarrage documentée |
 
-## Provenance et limites
+## Provenance et licence
 
-Les noms des modèles, paramètres et bibliothèques sont alignés sur le dépôt source fourni et sur ses README. Celui-ci annonce une base OpenFOAM v2012 et une diffusion à visée éducative ; cette PR fournit donc l’intégration déclarative et les contrôles de cas dans Foampilot, mais ne prétend pas transformer automatiquement le code C++ historique en bibliothèque OpenFOAM 13 validée. La compilation effective doit être faite dans un environnement OpenFOAM 13 avec les sources C++ portées et leurs dépendances disponibles.
+Les fichiers du plugin proviennent des extensions physiques du dépôt source fourni et conservent leurs en-têtes de licence. Le cœur sixDoF OpenFOAM 13 reste celui distribué par OpenFOAM Foundation ; seules les extensions nécessaires aux cas de turbine flottante sont compilées dans le plugin Foampilot.
