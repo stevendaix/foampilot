@@ -1,23 +1,44 @@
 # Validation status — multiCloudMultiSpeciesMPI
 
-Date: 2026-08-26
+**Date :** 2026-08-26
+**Version :** OpenFOAM 13 / C++14
+**Statut :** validé pour le scénario nominal `NP=2`
 
-## Résultats
+## Résultat validé
 
-Le cas compile et initialise deux instances `compressibleVoFClouds`, deux `thermoCloud` nommés (`waterCloud`, `fuelCloud`) et deux composants liquides (`H2O`, `C2H5OH`). Le patch framework multi-cloud ajoute le dispatch exact par nom et transporte un vecteur `speciesMassFractions` dans `directParcelData`.
+Le cas compile et initialise deux instances `compressibleVoFClouds`, deux `thermoCloud` nommés (`waterCloud`, `fuelCloud`) et deux composants (`H2O`, `C2H5OH`). Les objets auxiliaires sont namespacés par couple `(cloudName, alphaFieldName)`, et les confirmations utilisent la clé composite `(cloudName, alphaFieldName, fragmentId)`.
 
-Avec deux rangs MPI, le premier modèle produit un commit Direct Commit confirmé :
+Avec deux rangs MPI, le solveur atteint `End` et l’audit retourne `pass=true` :
 
 ```text
-massDetected=0.646099 massPrepared=0.646099 enthalpyDetected=5000.73 enthalpyPrepared=5000.73
-VOF direct commit cloud=waterCloud fragmentId=0 success=true mass=0.646099
-massCreated=0.646099 massConfirmed=0.646099 enthalpyCreated=5000.73 enthalpyConfirmed=5000.73
+allExpectedCommittedExactlyOnce: true
+allExpectedConfirmedExactlyOnce: true
+speciesMassesConserved: true
+noDefaultCloudFallback: true
+noFatalOrMPI: true
+solverEnd: true
+pass: true
 ```
 
-Le scénario n’est pas encore passant. Lors de la seconde réconciliation, le processus MPI déclenche un segfault dans `vofFragmentTransition::detect()`. L’audit doit donc retourner `pass=false`. Aucune conclusion de conservation multi-cloud ne doit être publiée à partir de cette exécution.
+Les confirmations observées sont :
 
-## Diagnostic
+```text
+VOF confirmation cloud=waterCloud alphaField=alpha.water fragmentId=0 success=true mass=0.646099 speciesMass=2(0.452269 0.19383)
+VOF confirmation cloud=fuelCloud alphaField=alpha.air fragmentId=8 success=true mass=4.3165 speciesMass=2(0.8633 3.4532)
+```
 
-Le cas expose vraisemblablement un état partagé ou un nom d’objet partagé entre plusieurs instances du modèle : `vofFragmentTransitionManager` doit être rendu indépendant par cloud, et les champs temporaires d’audit (`vofFragmentMask`, `vofAlphaRhoTransferRate`, `vofConfirmedTransferRate`) doivent être namespacés par instance ou cloud. Les fragments doivent également porter leur `cloudName` dès la détection ; une seule liste globale de fragments ne suffit pas pour router deux champs VOF différents.
+La légère différence entre les valeurs affichées et les références provient de la précision d’écriture des `scalarList` dans `Info`. L’auditeur utilise une tolérance limitée et documentée ; les valeurs internes de la réconciliation restent les valeurs OpenFOAM complètes.
 
-Le prochain correctif doit introduire un manager par `(cloudName, alphaField)`, des noms de champs par cloud et des confirmations indexées par `(cloudName, fragmentId)`. Le test ne pourra être déclaré vert qu’après un lancement à `NP=2` puis `NP=4`, sans segfault, avec exactement un commit et une confirmation pour chaque clé et un bilan par espèce.
+## Vérifications réalisées
+
+Les bibliothèques `libcompressibleVoFClouds.so` et `libincompressibleVoFClouds.so` compilent sans erreur. Le chemin Direct Commit insère le parcel uniquement sur le rang propriétaire, écrit une confirmation locale, puis attend la réconciliation MPI avant l’application des sources.
+
+La diffusion des identifiants globaux utilise des listes plates et non une sérialisation imbriquée `List<labelList>`. Cette correction évite la carte de cellules vide constatée précédemment sur les rangs non maîtres.
+
+## Limites de qualification
+
+Le test nominal qualifie `NP=2` avec deux clouds et deux fractions massiques configurées. Il ne constitue pas encore une qualification complète de `NP=4`, d’une décomposition différente, du chemin incompressible exécuté dans ce scénario, de l’évaporation, des réactions chimiques, de la diffusion des espèces ou d’un modèle thermo réactif complet.
+
+Les masses d’espèces sont actuellement calculées à partir de `fragment.mass * speciesFractions_`. Elles valident le transport et la comptabilité du vecteur de composition, mais ne remplacent pas une validation où les espèces sont reconstruites depuis des champs physiques indépendants ou modifiées par un modèle de changement de phase.
+
+Avant un merge de production, il est recommandé d’exécuter le même cas avec `NP=4`, de comparer les identités et les bilans, puis d’ajouter des tests négatifs pour le double commit, le cloud inconnu et les fractions dont la somme est différente de un.

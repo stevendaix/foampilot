@@ -1,6 +1,7 @@
 # Méthode VOF-to-DPM : théorie, algorithmes et implémentation OpenFOAM 13
 
-**Statut :** documentation de référence de l’implémentation foampilot
+**Statut :** documentation théorique et technique revue
+**Qualification associée :** scénario multi-cloud/multi-espèces `NP=2` validé ; `NP=4` et les modèles réactifs restent hors qualification
 **Version :** OpenFOAM 13, C++14
 **Domaine :** transition de fragments liquides résolus par VOF vers des parcels lagrangiens DPM
 **Auteur :** Manus AI
@@ -415,7 +416,7 @@ M_{added}=M_{expected},
 M_{added,i}=M_{expected,i}\quad\forall i.
 \]
 
-Le statut validé est ensuite diffusé aux rangs propriétaires. L’application des sources est réalisée uniquement pour les statuts valides.
+Le statut validé est ensuite diffusé aux rangs propriétaires. Cette diffusion concerne la décision de réconciliation ; elle ne signifie pas que tous les modèles thermo-réactifs OpenFOAM sont couverts. L’application des sources est réalisée uniquement pour les statuts valides.
 
 ## 9. Cycle d’un pas temporel
 
@@ -521,7 +522,7 @@ waterCloud.alpha.water : Y = (0.70, 0.30)
 fuelCloud.alpha.air    : Y = (0.20, 0.80)
 ```
 
-Cette configuration teste :
+Dans le cas livré, cette configuration teste :
 
 1. le dispatch par cloud ;
 2. l’absence de collision de registre ;
@@ -554,7 +555,7 @@ La matrice minimale est :
 
 ### 13.3 Critères d’acceptation
 
-Une validation est acceptée seulement si :
+Pour déclarer une configuration qualifiée, il faut vérifier au minimum :
 
 - le solveur atteint `End` ;
 - aucun rang ne reste bloqué dans une collective ;
