@@ -106,9 +106,10 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `94_incompressibleFluid_planarContraction` | Présent | Présent | Conforme | Validé OF13 — `End=0.25 s`, champ `sigma` et sorties `graphCell` `lineA`, `lineB`, `lineC` générés |
 | `95_incompressibleFluid_planarCouette` | Présent | Présent | Conforme | Validé OF13 — `End=25 s`, modèle Maxwell, champ `sigma` et patches cycliques reproduits |
 | `96_incompressibleFluid_planarPoiseuille` | Présent | Présent | Conforme | Validé OF13 — `End=25 s`, modèle Maxwell, champ `sigma`, `residuals`, `graphCell` et `probes` générés |
+| `97_incompressibleFluid_porousBlockage` | Présent | Présent | Conforme | Validé OF13 — `End=100 s`, zone `porousBlockage`, force `DarcyForchheimer` et `createZones` reproduits |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `96_incompressibleFluid_planarPoiseuille` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `97_incompressibleFluid_porousBlockage` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
