@@ -202,7 +202,7 @@ class BlockMesher(OpenFOAMFile):
         """Write the ordered list of temporal mesh names."""
         target = self.case_path / destination
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text("\\n".join(str(t) for t in times) + "\\n")
+        target.write_text("\n".join(str(t) for t in times) + "\n")
         return target
 
     def create_non_conformal_couples(self) -> None:

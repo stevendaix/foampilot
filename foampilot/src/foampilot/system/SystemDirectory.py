@@ -429,6 +429,36 @@ class SystemDirectory:
 
 
 
+    def rename_dictionary_entries(self, dictionary: str | Path, renames: dict[str, str]) -> Path:
+        """Rename dictionary entries through the OpenFOAM ``foamDictionary`` utility."""
+        dictionary_path = Path(dictionary)
+        if not dictionary_path.is_absolute():
+            dictionary_path = Path(self.parent.case_path) / dictionary_path
+        if not dictionary_path.is_file():
+            raise FileNotFoundError(dictionary_path)
+        mapping = ", ".join(f"{old}={new}" for old, new in renames.items())
+        self.run_utility(
+            "foamDictionary",
+            [str(dictionary_path), "-rename", mapping],
+            log_filename=f"log.foamDictionary.rename.{dictionary_path.name}",
+        )
+        return dictionary_path
+
+    def remove_dictionary_entries(self, dictionary: str | Path, entries: list[str]) -> Path:
+        """Remove entries from an OpenFOAM dictionary through ``foamDictionary``."""
+        dictionary_path = Path(dictionary)
+        if not dictionary_path.is_absolute():
+            dictionary_path = Path(self.parent.case_path) / dictionary_path
+        if not dictionary_path.is_file():
+            raise FileNotFoundError(dictionary_path)
+        for entry in entries:
+            self.run_utility(
+                "foamDictionary",
+                [str(dictionary_path), "-remove", "-entry", entry],
+                log_filename=f"log.foamDictionary.remove.{dictionary_path.name}.{entry.replace('/', '_')}",
+            )
+        return dictionary_path
+
     def update_dictionary_entries(self, dictionary: str | Path, entries: dict[str, str]) -> Path:
         """Update OpenFOAM dictionary entries through ``foamDictionary``."""
         dictionary_path = Path(dictionary)
