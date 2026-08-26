@@ -1,29 +1,8 @@
-for (label level=0;level<maxRefinementLevel+1;level++)
+// OpenFOAM 13 static-mesh port: initial refinement is disabled.
+// Dynamic refinement requires a dedicated fvMeshTopoChanger implementation.
+if (maxRefinementLevel > 0)
 {
-    mesh.update();
-
-    if (mesh.changing())
-    {
-        MRF.update();
-
-        if (correctPhi)
-        {
-            // Calculate absolute flux
-            // from the mapped surface velocity
-            phi = mesh.Sf() & Uf();
-
-            #include "correctPhi.H"
-
-            // Make the flux relative to the mesh motion
-            fvc::makeRelative(phi, U);
-        }
-
-        if (checkMeshCourantNo)
-        {
-            #include "meshCourantNo.H"
-        }
-
-        lambda *= 0;
-        HFDIBDEM.recreateBodies(lambda,refineF);
-    }
+    FatalErrorInFunction
+        << "Static OF13 pimpleHFDIBFoam cannot perform dynamic refinement"
+        << exit(FatalError);
 }

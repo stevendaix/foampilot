@@ -2,25 +2,17 @@ EXE_INC = \
     -I$(LIB_SRC)/MomentumTransportModels/momentumTransportModels/lnInclude \
     -I$(LIB_SRC)/MomentumTransportModels/incompressible/lnInclude \
     -I$(LIB_SRC)/transportModels/lnInclude \
-    -I$(LIB_SRC)/transportModels/transportModel \
-    -I$(LIB_SRC)/transportModels/singlePhaseTransportModel \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/polyTopoChange/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
-    -I$(LIB_SRC)/fvOptions/lnInclude \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(LIB_SRC)/sampling/lnInclude \
     -I../../../../src/HFDIBDEM/compat/openfoam13 \
     -I../../../../src/HFDIBDEM/lnInclude
 
 EXE_LIBS = \
-    -lmomentumTransportModels \
-    -lincompressibleMomentumTransportModels \
-    -lincompressibleTransportModels \
     -lfiniteVolume \
     -lmeshTools \
     -ltriSurface \
-    -lfvOptions \
-    -lsampling \
     -L$(FOAM_USER_LIBBIN) \
     -lHFDIBDEM

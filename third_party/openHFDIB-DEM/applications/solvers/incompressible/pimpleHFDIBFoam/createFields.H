@@ -1,12 +1,10 @@
-#include "createRDeltaT.H"
-
 Info<< "Reading field p\n" << endl;
 volScalarField p
 (
     IOobject
     (
         "p",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::MUST_READ,
         IOobject::AUTO_WRITE
@@ -20,7 +18,7 @@ volVectorField U
     IOobject
     (
         "U",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::MUST_READ,
         IOobject::AUTO_WRITE
@@ -34,7 +32,7 @@ volVectorField Ui
     IOobject
     (
         "Ui",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE
@@ -48,7 +46,7 @@ volScalarField lambda
     IOobject
     (
         "lambda",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE
@@ -63,7 +61,7 @@ volVectorField f
     IOobject
     (
         "f",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::MUST_READ,
         IOobject::AUTO_WRITE
@@ -77,7 +75,7 @@ volScalarField refineF
     IOobject
     (
         "refineF",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE
@@ -92,7 +90,7 @@ volScalarField surface
     IOobject
     (
         "surface",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE
@@ -111,12 +109,13 @@ mesh.setFluxRequired(p.name());
 
 #include "readGravitationalAcceleration.H"
 
-singlePhaseTransportModel laminarTransport(U, phi);
+autoPtr<viscosityModel> viscosity(viscosityModel::New(mesh));
 
 autoPtr<incompressible::momentumTransportModel> turbulence
 (
-    incompressible::momentumTransportModel::New(U, phi, laminarTransport)
+    incompressible::momentumTransportModel::New(U, phi, viscosity)
 );
 
 #include "createMRF.H"
-#include "createFvOptions.H"
+#include "createFvModels.H"
+#include "createFvConstraints.H"

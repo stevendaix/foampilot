@@ -1,7 +1,8 @@
-// assume static mesh
+// OpenFOAM 13 static-mesh port.
+// Dynamic mesh motion/topology changes are rejected until the Foundation-13
+// fvMeshMover/fvMeshTopoChanger port is implemented.
 label maxRefinementLevel = 0;
 
-// load dynamicMeshDict
 IOdictionary dynamicMeshDict
 (
     IOobject
@@ -9,24 +10,26 @@ IOdictionary dynamicMeshDict
         "dynamicMeshDict",
         runTime.constant(),
         mesh,
-        IOobject::MUST_READ_IF_MODIFIED,
+        IOobject::READ_IF_PRESENT,
         IOobject::NO_WRITE
     )
 );
 
-// get the dynamicFvMeshType
-const word dynamicFvMeshTypeName(dynamicMeshDict.lookup("dynamicFvMesh"));
-Info<< "Just to confirm, working with " << dynamicFvMeshTypeName << endl;
-
-const word stMesh("staticFvMesh");
-const word rfMesh("dynamicRefineFvMesh");
-
-if (dynamicFvMeshTypeName!=stMesh)
+if (dynamicMeshDict.found("dynamicFvMesh"))
 {
-    if (dynamicFvMeshTypeName==rfMesh)
+    const word dynamicFvMeshTypeName
+    (
+        dynamicMeshDict.lookup("dynamicFvMesh")
+    );
+
+    if (dynamicFvMeshTypeName != "staticFvMesh")
     {
-        maxRefinementLevel = readLabel(dynamicMeshDict.subDict("dynamicRefineFvMeshCoeffs").lookup("maxRefinement"));
-        
-        Info << "Will try to refine mesh based on the bodies location" << endl;
+        FatalErrorInFunction
+            << "HFDIBDEMFoam OF13 static port does not support dynamic mesh "
+            << "type " << dynamicFvMeshTypeName << nl
+            << "Use staticFvMesh or complete the fvMeshMover port."
+            << exit(FatalError);
     }
 }
+
+Info<< "Using OpenFOAM 13 static fvMesh" << endl;

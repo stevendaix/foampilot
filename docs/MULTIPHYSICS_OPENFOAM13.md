@@ -68,3 +68,18 @@ La commande produit `system/foampilotMultiphysics.json` pour l’audit et `syste
 [3]: https://github.com/unicfdlab/libAcoustics/tree/v2512 "Branche v2512 de libAcoustics"
 
 [4]: https://openfoam.org/download/13-ubuntu/ "Installation officielle OpenFOAM 13 pour Ubuntu"
+
+## État du portage des solveurs après modification directe
+
+La variante `HFDIBDEMFoam` à maillage fixe a été modifiée directement puis compilée avec succès sous OpenFOAM Foundation 13. L’exécutable produit est `HFDIBDEMFoam` dans `$FOAM_USER_APPBIN`. Le portage remplace `dynamicFvMesh` par `fvMesh`, crée `fvModels` et `fvConstraints`, supprime les mises à jour de maillage et conserve un refus explicite de toute configuration `dynamicRefineFvMesh`.
+
+Le portage statique de `pimpleHFDIBFoam` est engagé mais n’est pas encore compilable. Les erreurs restantes ne sont plus des includes omnibus : elles concernent notamment la collision de nom entre l’ancien `physicalProperties` DEM et la classe Foundation 13, `setRefCell`, `setFluxRequired`, `moveMeshOuterCorrectors`, les méthodes MRF supprimées (`correctBoundaryVelocity`, `zeroFilter`), `constrainHbyA`, `constrainPressure` et la variable `laminarTransport`. Ces éléments nécessitent une adaptation métier et ne doivent pas être remplacés par des aliases aveugles.
+
+Les journaux de compilation associés doivent être conservés avec la PR. La commande reproductible pour le solveur DEM est :
+
+```bash
+cd third_party/openHFDIB-DEM/applications/solvers/pureDEM/HFDIBDEMFoam
+. /opt/openfoam13/etc/bashrc
+wclean
+wmake -j1
+```

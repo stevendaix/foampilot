@@ -4,7 +4,7 @@ volVectorField U
     IOobject
     (
         "U",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::MUST_READ,
         IOobject::AUTO_WRITE
@@ -18,7 +18,7 @@ volScalarField lambda
     IOobject
     (
         "lambda",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE
@@ -33,7 +33,7 @@ volVectorField f
     IOobject
     (
         "f",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE
@@ -47,7 +47,7 @@ volScalarField refineF
     IOobject
     (
         "refineF",
-        runTime.timeName(),
+        Time::timeName(runTime.value()),
         mesh,
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE

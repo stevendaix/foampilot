@@ -4,7 +4,7 @@ surfaceScalarField phiHbyA
 (
     "phiHbyA",
     fvc::flux(HbyA)
-  + MRF.zeroFilter(fvc::interpolate(rAU)*fvc::ddtCorr(U, phi, Uf))
+  + MRF.zeroFilter(fvc::interpolate(rAU)*fvc::ddtCorr(U, phi))
 );
 
 MRF.makeRelative(phiHbyA);
@@ -68,12 +68,8 @@ p.relax();
 
 U = HbyA - rAtU*fvc::grad(p) + rAU*f;
 U.correctBoundaryConditions();
-fvOptions.correct(U);
+fvConstraints.constrain(U);
 
-// Correct Uf if the mesh is moving
-fvc::correctUf(Uf, U, phi);
-
-// Make the fluxes relative to the mesh motion
 fvc::makeRelative(phi, U);
 
 HFDIBDEM.updateFSCoupling(lambda,f);

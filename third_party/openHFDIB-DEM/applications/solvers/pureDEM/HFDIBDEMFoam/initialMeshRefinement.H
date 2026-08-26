@@ -1,12 +1,9 @@
-for (label level=0;level<maxRefinementLevel+1;level++)
+// OpenFOAM 13 static-mesh port: initial refinement is disabled.
+// A dynamic refinement implementation must use the OF13
+// fvMeshTopoChanger API and explicitly rebuild HFDIB bodies after changes.
+if (maxRefinementLevel > 0)
 {
-    // update mesh
-    Info << "Updating the mesh: initial refinment" << endl;
-    mesh.update();
-
-    if (mesh.changing())
-    {                
-        lambda *= 0;
-        HFDIBDEM.recreateBodies(lambda,refineF);
-    }
+    FatalErrorInFunction
+        << "Static OF13 HFDIBDEMFoam cannot perform dynamic refinement"
+        << exit(FatalError);
 }

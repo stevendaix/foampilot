@@ -32,40 +32,41 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "argList.H"
+#include "timeSelector.H"
 #include "fvCFD.H"
-#include "dynamicFvMesh.H"
-#include "singlePhaseTransportModel.H"
-#include "kinematicMomentumTransportModel.H"
+#include "fvMesh.H"
+#include "fvModels.H"
+#include "fvConstraints.H"
+#include "viscosityModel.H"
+#include "incompressibleMomentumTransportModels.H"
 #include "pimpleControl.H"
 #include "CorrectPhi.H"
-#include "fvOptions.H"
 #include "localEulerDdtScheme.H"
 #include "fvcSmooth.H"
 
 #include "triSurfaceMesh.H"
 #include "openHFDIBDEM.H"
 #include "clockTime.H"
+
+using namespace Foam;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "postProcess.H"
 
-    #include "setRootCaseLists.H"
+    #include "setRootCase.H"
     #include "createTime.H"
-    #include "createDynamicFvMesh.H"
+    #include "createMesh.H"
     #include "initContinuityErrs.H"
-    #include "createDyMControls.H"
+    #include "createTimeControls.H"
     #include "createFields.H"
-    #include "createUfIfPresent.H"
 
     turbulence->validate();
 
-    if (!LTS)
-    {
-        #include "CourantNo.H"
-        #include "setInitialDeltaT.H"
-    }
+    #include "CourantNo.H"
+    #include "setInitialDeltaT.H"
 
     #include "readDynMeshDict.H"
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
 
     Info << "\nInitializing HFDIBDEM\n" << endl;
     openHFDIBDEM  HFDIBDEM(mesh);
-    HFDIBDEM.initialize(lambda,U,refineF,maxRefinementLevel,runTime.timeName());
+    HFDIBDEM.initialize(lambda,U,refineF,maxRefinementLevel,Time::timeName(runTime.value()));
     #include "initialMeshRefinement.H"
     
     if(HFDIBDEM.getRecordFirstTime())
@@ -90,21 +91,14 @@ int main(int argc, char *argv[])
 
     while (pimple.run(runTime))
     {
-        #include "readDyMControls.H"
+        #include "readTimeControls.H"
 
-        if (LTS)
-        {
-            #include "setRDeltaT.H"
-        }
-        else
-        {
-            #include "CourantNo.H"
-            #include "setDeltaT.H"
-        }
+        #include "CourantNo.H"
+        #include "setDeltaT.H"
 
         runTime++;
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info<< "Time = " << Time::timeName(runTime.value()) << nl << endl;
 
         clockTime createBodiesTime; // OS time efficiency testing
         HFDIBDEM.createBodies(lambda,refineF);
@@ -120,33 +114,7 @@ int main(int argc, char *argv[])
         {
             if (pimple.firstPimpleIter() || moveMeshOuterCorrectors)
             {
-                mesh.update();
-
-                if (mesh.changing())
-                {
-                    MRF.update();
-
-                    if (correctPhi)
-                    {
-                        // Calculate absolute flux
-                        // from the mapped surface velocity
-                        phi = mesh.Sf() & Uf();
-
-                        #include "correctPhi.H"
-
-                        // Make the flux relative to the mesh motion
-                        fvc::makeRelative(phi, U);
-                    }
-
-                    if (checkMeshCourantNo)
-                    {
-                        #include "meshCourantNo.H"
-                    }
-
-                    lambda *= 0;
-                    HFDIBDEM.recreateBodies(lambda,refineF);
-                }
-
+                // OpenFOAM 13 static-mesh port: no mesh update or topology change.
                 f *= lambda;
             }
 
@@ -184,7 +152,7 @@ int main(int argc, char *argv[])
         runTime.write();
 
         clockTime writeBodiesInfoTime;
-        if(runTime.outputTime())
+        if(runTime.writeTime())
         {
             HFDIBDEM.writeBodiesInfo();
         }

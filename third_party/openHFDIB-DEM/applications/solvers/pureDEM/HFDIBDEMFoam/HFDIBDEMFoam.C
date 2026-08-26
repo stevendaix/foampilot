@@ -29,15 +29,20 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "argList.H"
+#include "timeSelector.H"
 #include "fvCFD.H"
-#include "dynamicFvMesh.H"
+#include "fvMesh.H"
+#include "fvModels.H"
+#include "fvConstraints.H"
 #include "openHFDIBDEM.H"
 #include "pimpleControl.H"
-#include "fvOptions.H"
 #include "fvcSmooth.H"
 
 #include "triSurfaceMesh.H"
 #include "clockTime.H"
+
+using namespace Foam;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,12 +52,11 @@ int main(int argc, char *argv[])
 
     #include "setRootCase.H"
     #include "createTime.H"
-    #include "createDynamicFvMesh.H"
-    #include "createDyMControls.H"
+    #include "createMesh.H"
     #include "createFields.H"
-    #include "createUfIfPresent.H"
-    #include "createFvOptions.H"
-    #include "createMRF.H"
+    #include "createTimeControls.H"
+    #include "createFvModels.H"
+    #include "createFvConstraints.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
@@ -62,7 +66,7 @@ int main(int argc, char *argv[])
 
     Info << "\nInitializing HFDIBDEM\n" << endl;
     openHFDIBDEM  HFDIBDEM(mesh);
-    HFDIBDEM.initialize(lambda,U,refineF,maxRefinementLevel,runTime.timeName());
+    HFDIBDEM.initialize(lambda,U,refineF,maxRefinementLevel,Time::timeName(runTime.value()));
     HFDIBDEM.setSolverInfo();
     #include "initialMeshRefinement.H"
 
@@ -88,13 +92,12 @@ int main(int argc, char *argv[])
     while (runTime.run())
     {
 
-        #include "readDyMControls.H"
         #include "CourantNo.H"
         #include "setDeltaT.H"
 
         runTime++;
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info<< "Time = " << Time::timeName(runTime.value()) << nl << endl;
 
         clockTime createBodiesTime; // OS time efficiency testing
         HFDIBDEM.createBodies(lambda,refineF);
@@ -104,17 +107,7 @@ int main(int argc, char *argv[])
         HFDIBDEM.preUpdateBodies(lambda,f);
         // preUpdateTime_ += preUpdateBodiesTime.timeIncrement(); // OS time efficiency testing
 
-        // clockTime meshUpdateTime; // OS time efficiency testing
-        mesh.update();
-        // meshUpdateTime_ += meshUpdateTime.timeIncrement(); // OS time efficiency testing
-
-        // clockTime meshChangingTime; // OS time efficiency testing
-        if (mesh.changing())
-        {
-            lambda *= 0;
-            HFDIBDEM.recreateBodies(lambda,refineF);
-        }
-        // meshChangingTime_ += meshChangingTime.timeIncrement(); // OS time efficiency testing
+        // OpenFOAM 13 static-mesh port: no geometry or topology update.
 
         Info << "updating HFDIBDEM" << endl;
 
@@ -135,7 +128,7 @@ int main(int argc, char *argv[])
         runTime.write();
 
         // clockTime writeBodiesInfoTime;
-        if(runTime.outputTime())
+        if(runTime.writeTime())
         {
             HFDIBDEM.writeBodiesInfo();
         }
