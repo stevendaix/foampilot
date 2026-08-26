@@ -52,14 +52,14 @@ La vérification effectuée le 26 août 2026 confirme que les **47 runners actue
 | `40_fluid_hotRoomComfort` | Présent | Présent | Conforme | Validé OF13 — convergence à `2356` itérations |
 | `41_fluid_iglooWithFridges` | Présent | Présent | Conforme | Validé OF13 — `End=4000` |
 | `42_fluid_mixerVessel2DMRF` | Présent | Présent | Conforme | Validé OF13 — `End=0.1 s` |
-| `43_fluid_nacaAirfoil` | Présent | Présent | Conforme | Validation OF13 en arrière-plan — cible `End=0.01 s` |
+| `43_fluid_nacaAirfoil` | Présent | Présent | Conforme | Non validé — délai atteint à `t≈0.000556 s`, reprise nécessaire |
 | `44_fluid_prism` | Présent | Présent | Conforme | Validé OF13 — `End=0.0004 s` |
-| `45_fluid_roomHeating` | Présent | Présent | Conforme | Validation OF13 en arrière-plan — phases steady/transient |
+| `45_fluid_roomHeating` | Présent | Présent | Conforme | Partiel — steady `End=2000 s`; transitoire interrompu vers `t≈3476/6000 s` |
 | `46_fluid_shockTube` | Présent | Présent | Conforme | Validé OF13 — `End=0.007 s` |
 | `47_fluid_squareBend` | Présent | Présent | Conforme | Validé OF13 — `End=500 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `47_fluid_squareBend` sont effectivement présents. `prism`, `shockTube` et `squareBend` sont validés sous OF13; `nacaAirfoil` et `roomHeating` restent en validation arrière-plan avec progression sans erreur documentée dans la matrice.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `47_fluid_squareBend` sont effectivement présents. `prism`, `shockTube` et `squareBend` sont validés sous OF13; `nacaAirfoil` est non validé après expiration de délai et `roomHeating` reste partiellement validé, avec steady terminé et transitoire interrompu avant `End=6000 s`.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
