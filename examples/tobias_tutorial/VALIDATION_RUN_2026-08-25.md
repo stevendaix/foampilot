@@ -38,6 +38,10 @@ Ces résultats ne transforment pas les cas bloqués en cas validés. Ils indique
 
 Le tutoriel source `fluentMeshForCHTSolver` a été porté dans `fluent_mesh_for_cht`. Le runner FoamPilot écrit les dictionnaires source avec `write_raw`, copie `cad/fluentMesh.cas`, puis exécute `fluentMeshToFoam -writeSets`, `topoSet -constant` et `splitMeshRegions -cellZonesOnly -overwrite` avec OpenFOAM 13. Le lancement s’est terminé avec le code retour 0. Les deux régions produites ont ensuite été contrôlées par `checkMesh` : la région `fluid` contient `128657` cellules et la région `solid` `73311` cellules ; les deux journaux terminent par `Mesh OK.` et `End`.
 
+## Deuxième portage préparé
+
+Le tutoriel source `fanRotationAndNCC` a été adapté dans `fan_rotation_ncc`. Le runner FoamPilot reproduit la séquence OpenFOAM 13 `ideasUnvToFoam`, `snappyHexMesh`, `createBaffles`, `splitBaffles`, `createNonConformalCouples`, `renumberMesh`, puis le calcul parallèle via `run_parallel(4)`. La génération des dictionnaires et des géométries BREP fonctionne. L’exécution s’arrête volontairement avec un diagnostic explicite, car `cad/backgroundMesh.unv` a été retiré du dépôt GitHub de Tobias ; le cas complet doit être téléchargé depuis Holzmann CFD avant de lancer le maillage.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
