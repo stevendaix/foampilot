@@ -4,7 +4,7 @@
 
 Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
 
-La vérification effectuée le 26 août 2026 confirme que les **50 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/stackPlume`.
+La vérification effectuée le 26 août 2026 confirme que les **60 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/TJunction`.
 
 ## Résultats
 
@@ -60,9 +60,19 @@ La vérification effectuée le 26 août 2026 confirme que les **50 runners actue
 | `48_fluid_squareBendLiq` | Présent | Présent | Conforme | Validé OF13 — `End=0.5 s` |
 | `49_fluid_squareBendLiqSteady` | Présent | Présent | Conforme | Validé OF13 — `End=500 s` |
 | `50_fluid_stackPlume` | Présent | Présent | Conforme | Validé OF13 — `End=250 s` |
+| `51_incompressibleDenseParticleFluid_Goldschmidt` | Présent | Présent | Conforme | Accepté avec réserve — `t≈0.04004/5 s`, sans erreur fatale visible |
+| `52_incompressibleDenseParticleFluid_GoldschmidtMPPIC` | Présent | Présent | Conforme | Accepté avec réserve — `t≈0.5744/5 s`, sans erreur fatale visible |
+| `53_incompressibleDenseParticleFluid_column` | Présent | Présent | Conforme | Validé OF13 — `End=1 s` |
+| `54_incompressibleDenseParticleFluid_cyclone` | Présent | Présent | Conforme | Accepté avec réserve — `t≈0.9694/7 s`, sans erreur fatale visible |
+| `55_incompressibleDenseParticleFluid_injectionChannel` | Présent | Présent | Conforme | Accepté avec réserve — `t≈0.0528/0.1 s`, `createZones` validé |
+| `56_incompressibleDriftFlux_dahl` | Présent | Présent | Conforme | Accepté avec réserve — `t≈445.44/6400 s`, sans erreur fatale visible |
+| `57_incompressibleDriftFlux_mixerVessel2DMRF` | Présent | Présent | Conforme | Accepté avec réserve — `t≈9.67/10 s`, sans erreur fatale visible |
+| `58_incompressibleDriftFlux_tank3D` | Présent | Présent | Conforme | En cours — runner créé et calcul lancé |
+| `59_incompressibleFluid_T3A` | Présent | Présent | Conforme | Accepté avec réserve — convergence à `Time=268` |
+| `60_incompressibleFluid_TJunction` | Présent | Présent | Conforme | Validé OF13 — `End=1.5 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `50_fluid_stackPlume` sont effectivement présents. `prism`, `shockTube`, `squareBend`, `squareBendLiq`, `squareBendLiqSteady` et `stackPlume` sont validés sous OF13; `nacaAirfoil` est non validé après expiration de délai et `roomHeating` reste partiellement validé, avec steady terminé et transitoire interrompu avant `End=6000 s`.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `60_incompressibleFluid_TJunction` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
