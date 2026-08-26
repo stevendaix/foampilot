@@ -1,0 +1,193 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        //- Which linear solver is used to calculate Ax = b
+        solver PCG;
+
+        //- Which preconditioner is used for the linear solver
+        preconditioner FDIC;
+
+        //- To which tolerance the linear solver calculated the solution
+        //  After this value is reached, the linear solver stops
+        tolerance 1e-8;
+
+        //- If relTol or tolerance is reached within the SIMPLE calculation
+        //  (outer-corrections), stop and go on with the next outer correction
+        relTol 0.01;
+
+        //- Force the linear solver to do at least 1 iteration unless the
+        //  tolerance criterions are already fullfilled
+        minIter 1;
+
+        //- Force the linear solver to stop after the maximum number of
+        //  iterations is reached. Useful for energy calculations in solids,
+        //  or any calculations in which no gradient exists at the beginning
+        //  Indicator: No iterations = 1000 (1000 := default value)
+        maxIter 400;
+    }
+
+    pFinal
+    {
+        $p;
+        tolerance       1e-08;
+        relTol          0;
+    }
+
+    pcorr
+    {
+        $p
+        relTol          0.01;
+    }
+
+    pcorrFinal
+    {
+        $pcorr
+        tolerance       1e-06;
+        relTol          0;
+    }
+
+    "(k|omega|U|S)"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-8;
+        relTol          0.1;
+        minIter         1;
+    }
+
+    "(k|omega|U|S)Final"
+    {
+        $U;
+        tolerance       1e-08;
+        relTol          0;
+        minIter         1;
+    }
+
+    cellMotionUx
+    {
+        solver          PCG;
+        preconditioner  FDIC;
+        tolerance       1e-06;
+        relTol          0;
+        minIter         1;
+    }
+
+    MeshPhi
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       0.05;
+        relTol          0;
+    }
+}
+
+PIMPLE
+{
+    //- Correct the fluxes based on mesh motion. See header files of the solver
+    correctPhi          true;
+    correctMeshPhi      true;
+
+    //- Turn on of off the momentum predictor. In a numerical point of view
+    //  not necessary. Useful for 2-phase and high viscosity ratios
+    momentumPredictor   false;
+
+    //- Calculate the turbulence in each outer loop or only at the end of one
+    //  time step calculation. High turbulent flow calculation should calculate
+    //  the turbulence properties in each outer loop
+    turbOnFinalIterOnly false;
+
+    //- Use the SIMPLE(C) := C =  consistent / corrected algorithm for
+    //  the outer corrections. A pressure term that is neglected in the
+    //  SIMPLE algorithm is included. More inner calculations but the
+    //  coupling U-p in general is solved faster
+    consistent          true;
+
+    //- Mesh non-orthogonality correctors. Foam handles non-orthogonality quite
+    //  good, so there is no need to use or only up to 2 - 3
+    nNonOrthogonalCorrectors 0;
+
+    //- Outer loops, re-calculation around p-U and other equations within
+    //  one time step. For stiff problems while using under-relaxation
+    nOuterCorrectors    15;
+
+    //- Pressure corrections
+    nCorrectors         3;
+
+    //- If the transient solution tends towards a steady state solution,
+    //  end the calculation after the residual control is reached
+    residualControl
+    {
+        p   1e-5;
+        U   4e-6;
+    }
+
+    //- Control over each time step. The outer loops are recalculated
+    //  till the residuals are reached. For outer loops, we can use
+    //  under-relaxation as it is kind of a SIMPLE loop. Stiff problems
+    //  can be handled and the time step can be increased. Further information
+    //  are given in the book Mathematics, Numerics, Derivations and OpenFOAM
+    outerCorrectorResidualControl
+    {
+        //- Weak control - bad accuracy but faster
+        p
+        {
+            relTol      0;
+            tolerance   1e-3;
+        }
+
+        U
+        {
+            relTol      0;
+            tolerance   1e-3;
+        }
+    }
+}
+
+//- Relaxation factors applied to the fields or equations in the outer loops
+//  If nOuterCorrectors is not used, no underrelaxation should be placed.
+//  Always use the *.Final factor too, only you really know what your are doing
+//  ++ Relaxation of the final outer correction is possible, if the residual
+//     controls are very strict.
+relaxationFactors
+{
+    //- Relaxation of the fields: See doxygen
+    //  Range [0-1] while 0 does not change the field (no sense)
+    fields
+    {
+        p               0.85;
+        pFinal          1;
+    }
+    //- Relaxation of the equation:
+    //  Factor: -1 disables the usage
+    //  Factor: 1 makes the matrix diagonal dominant or at least equal
+    //          --> matrix might be manipulated
+    //  Factor: 0 < alpha < 1; underrelaxation - make matrix diagonal dominat
+    //  Factor: alpha > 1; over-relaxation - make matrix diagonal dominat weak
+    //          --> can be used in some cases, generally not stable
+    equations
+    {
+        "(k|S|omega|U)"           0.8;
+        "(k|S|omega|U)Final"      1;
+    }
+}
+
+
+// ************************************************************************* //

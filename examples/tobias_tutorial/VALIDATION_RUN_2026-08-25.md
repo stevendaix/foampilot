@@ -82,6 +82,10 @@ Le tutoriel `kaplanTurbineNCC` a été adapté dans `kaplan_turbine_ncc`. Le run
 
 Le tutoriel `suzannesHead` a été adapté dans `suzannes_head`. Le runner conserve le maillage parallèle `snappyHexMesh`, le `checkMesh` parallèle, la mise à l’échelle, la renumérotation et le calcul stationnaire `foamRun` sous OpenFOAM 13. La génération et la compilation Python sont valides ; l’exécution attend `cad/backgroundMesh.unv`, absent du dépôt Tobias.
 
+## Treizième portage préparé
+
+Le tutoriel `verticalAxialWindTurbineNCC` a été adapté dans `vertical_axial_wind_turbine_ncc`. Le runner conserve la génération des features, `snappyHexMesh`, `extrudeMesh`, le changement des conditions, la création des couples NCC et le calcul parallèle `foamRun` 6-DoF. La génération et la compilation Python sont valides ; l’exécution OpenFOAM 13 attend le `backgroundMesh.unv` absent du dépôt Tobias.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
