@@ -135,9 +135,10 @@ La vérification effectuée le 26 août 2026 confirme que les **61 runners actue
 | `123_incompressibleVoF_damBreak3D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — `subsetMesh -noFields`, raffinement dynamique stable, progression à `Time≈0,369745 s`, aucun `FOAM FATAL` |
 | `124_incompressibleVoF_damBreakTracer` | Présent | Présent | Conforme OF13 | Validé — deux champs `tracer.*`, deux `phaseScalarTransport`, `End=1 s`, aucun `FOAM FATAL` |
 | `125_incompressibleVoF_floatingObject` | Présent | Présent | Conforme OF13 | Validé — mouvement rigide Newmark `Py/Ry`, raffinement dynamique, forces écrites, `End=6 s`, aucun `FOAM FATAL` |
+| `126_incompressibleVoF_floatingObjectWaves` | Présent | Présent | Conforme OF13 | Accepté avec réserve — vagues Stokes5, mouvement Newmark et raffinement actifs jusqu’à `Time≈0,871186 s`, aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/floatingObject` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/floatingObjectWaves` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
