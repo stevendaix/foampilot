@@ -4,7 +4,7 @@
 
 Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
 
-La vérification effectuée le 26 août 2026 confirme que les **22 runners actuellement présents** couvrent les 21 équivalents déjà déclarés dans la matrice ainsi que le runner récemment ajouté pour `compressibleVoF/throttle`.
+La vérification effectuée le 26 août 2026 confirme que les **24 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés pour `compressibleVoF/throttle`, `fluid/BernardCells` et `fluid/aerofoilNACA0012`.
 
 ## Résultats
 
@@ -32,9 +32,11 @@ La vérification effectuée le 26 août 2026 confirme que les **22 runners actue
 | `20_compressibleVoF_depthCharge3D` | Présent | Présent | Conforme | Validé OF13 |
 | `21_compressibleVoF_sloshingTank2D` | Présent | Présent | Conforme | Validé OF13 |
 | `22_compressibleVoF_throttle` | Présent | Présent | Conforme | Validé OF13 après calcul parallèle à 4 processus |
+| `23_fluid_BernardCells` | Présent | Présent | Conforme | Validé OF13 — `End=1000` |
+| `24_fluid_aerofoilNACA0012` | Présent | Présent | Conforme | Validé OF13 — `End=0.15 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les 21 runners déjà suivis sont donc effectivement présents. Le 22e runner, `22_compressibleVoF_throttle`, est également présent et sa validation OF13 est terminée jusqu’à `End=0.001 s`; il doit être ajouté à la branche et à la matrice lors du prochain commit.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `24_fluid_aerofoilNACA0012` sont effectivement présents. Les cas `throttle`, `BernardCells` et `aerofoilNACA0012` sont validés sous OF13 aux temps de fin documentés dans la matrice.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
