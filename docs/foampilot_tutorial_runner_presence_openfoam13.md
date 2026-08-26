@@ -94,6 +94,7 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `82_incompressibleFluid_movingCone` | Présent | Présent | Conforme | Validé OF13 — `End=0.0099 s`, maillages mobiles et cutPlane générés |
 | `83_incompressibleFluid_offsetCylinder` | Présent | Présent | Conforme | Validé OF13 — `End=2 s`, CrossPowerLaw reproduit |
 | `84_incompressibleFluid_oscillatingInlet` | Présent | Présent | Conforme | Validé OF13 — `End=5 s`, mouvement oscillant et patchFlowRate reproduits |
+| `85_incompressibleFluid_pipeCyclic` | Présent | Présent | Conforme | Accepté avec réserve — convergence à `Time=251 s` avant `End=1000 s` |
 
 ## Conclusion
 
