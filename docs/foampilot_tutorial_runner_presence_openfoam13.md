@@ -14,7 +14,7 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `02_simpleCar_turbulent` | Présent | Présent | Conforme | Validé |
 | `03_pitzDaily_step` | Présent | Présent | Conforme | Validation longue partielle |
 | `04_damBreak_multiphase` | Présent | Présent | Conforme | Validé |
-| `05_scalarTransport` | Présent | Présent | Conforme | Validé |
+| `05_scalarTransport` | Présent | Présent | Conforme | Validé OF13 — `pitzDailyScalarTransport`, `End=0.2 s`, `subSolver`, `scalarTransport` et `mixingQualityCheck` reproduits |
 | `06_buildingAero` | Présent | Présent | Conforme | Validé |
 | `07_motorBike` | Présent | Présent | Conforme | Validé |
 | `08_thermalBuoyancy` | Présent | Présent | Conforme | Validé |
