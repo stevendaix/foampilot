@@ -120,9 +120,10 @@ La vérification effectuée le 26 août 2026 confirme que les **61 runners actue
 | `108_incompressibleFluid_wingMotion2D_steady` | Présent | Présent | Conforme OF13 | Validé — `End=3000 s`, maillage extrudé et patch `wing` créés, aucun `FOAM FATAL` |
 | `109_incompressibleFluid_wingMotion2D_transient` | Présent | Présent | Conforme OF13 | Accepté avec réserve — sixDoF MPI stable jusqu’à `t≈0,722 s`, limite d’exécution atteinte avant reconstruction |
 | `110_incompressibleMultiphaseVoF_damBreak4phase` | Présent | Présent | Conforme OF13 | Validé — quatre phases initialisées par `setFields`, `End=6 s`, aucun `FOAM FATAL` |
+| `111_incompressibleMultiphaseVoF_damBreak4phaseFineLaminar` | Présent | Présent | Conforme OF13 | Accepté avec réserve — maillage fin et quatre phases stables jusqu’à `t≈0,560 s`, limite atteinte avant `End=6 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleMultiphaseVoF/damBreak4phase` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleMultiphaseVoF/damBreak4phaseFineLaminar` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
