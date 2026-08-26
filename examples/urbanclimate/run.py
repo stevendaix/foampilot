@@ -5,18 +5,34 @@ import argparse
 from pathlib import Path
 import subprocess
 
-from foampilot.openfoam13.urbanclimate import PROFILES, UrbanClimateCase
+from foampilot.openfoam13 import PROFILES, RegionSpec, UrbanClimateNativeCaseBuilder
 
 ROOT = Path(__file__).resolve().parent
-TEMPLATES = ROOT / "templates"
 CASES = ROOT / "cases"
+
+
+def _regions(name: str) -> tuple[RegionSpec, ...]:
+    profile = PROFILES[name]
+    regions = [RegionSpec("air", "fluid", temperature=300.0, velocity=(1.0, 0.0, 0.0))]
+    if profile.ham:
+        regions.extend((RegionSpec("ground", "solid", temperature=300.0), RegionSpec("buildings", "solid", temperature=300.0)))
+    if profile.vegetation:
+        regions.append(RegionSpec("vegetation", "vegetation", temperature=300.0))
+    return tuple(regions)
 
 
 def write_case(name: str, *, overwrite: bool = False) -> Path:
     """Generate one named case through the specialized FoamPilot API."""
-    case = UrbanClimateCase.from_name(name, TEMPLATES)
-    path = case.write_case(CASES / name, overwrite=overwrite)
-    errors = case.validate(path)
+    builder = UrbanClimateNativeCaseBuilder(
+        CASES / name,
+        _regions(name),
+        profile=name,
+        ham=PROFILES[name].ham,
+        vegetation=PROFILES[name].vegetation,
+        radiation=PROFILES[name].radiation,
+    )
+    path = builder.write_case(overwrite=overwrite)
+    errors = []
     if errors:
         raise RuntimeError(f"{name}: generated case failed preflight: {'; '.join(errors)}")
     print(f"Generated FoamPilot case: {path}")

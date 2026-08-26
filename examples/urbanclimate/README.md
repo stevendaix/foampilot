@@ -29,7 +29,7 @@ Le script compile les bibliothèques `buildingMaterialModel`, `grassModel`, `ble
 
 ## Génération et validation avec FoamPilot
 
-Les six répertoires sous `cases/` sont des sorties générées et ne constituent pas la source de configuration. Les ressources de référence sont conservées sous `templates/`. La génération passe par la classe spécialisée `foampilot.openfoam13.UrbanClimateCase`, appelée par `run.py` :
+Les six répertoires sous `cases/` sont des sorties générées. La configuration des cas est construite depuis les profils Python `UrbanClimateProfile` et les classes `UrbanClimateCase`/`UrbanClimateNativeCaseBuilder`. Le dossier `resources/` ne contient que les géométries et données externes lourdes ; il ne contient aucun dictionnaire `0`, `constant` ou `system`. La génération passe par `run.py` :
 
 ```sh
 export PYTHONPATH="$PWD/../../foampilot/src${PYTHONPATH:+:$PYTHONPATH}"
@@ -37,7 +37,7 @@ python3 run.py --list
 python3 run.py --all --generate --overwrite
 ```
 
-Chaque profil est matérialisé avec ses répertoires `0`, `constant` et `system`, puis reçoit les fichiers de provenance et de configuration propres à FoamPilot. La génération est non destructive par défaut ; `--overwrite` est requis pour remplacer un cas existant.
+Chaque profil est reconstruit avec ses répertoires `0`, `constant` et `system`. Les fichiers sont écrits par les APIs Foampilot de maillage, de champs, de régions et de dictionnaires OpenFOAM, puis reçoivent les fichiers de provenance et de configuration propres à FoamPilot. La génération est non destructive par défaut ; `--overwrite` est requis pour remplacer un cas existant.
 
 La validation statique de tous les six cas se fait avec :
 

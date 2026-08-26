@@ -1,16 +1,8 @@
-"""FoamPilot materialization helpers for the urbanMicroclimateFoam cases.
-
-The original tutorials remain versioned as controlled templates.  A case is
-never run directly from those templates: :class:`UrbanClimateCase` creates a
-new case directory, copies the selected multi-region template, and asks the
-OpenFOAM 13 physics layer to write provenance and optional support dictionaries.
-"""
+"""Typed urban climate profiles and the public FoamPilot case API."""
 from __future__ import annotations
 
 from dataclasses import dataclass
-import json
 from pathlib import Path
-import shutil
 from typing import Any, Mapping
 
 from .physics import PhysicsConfig, check_openfoam13_case
@@ -27,93 +19,40 @@ class UrbanClimateProfile:
 
 
 PROFILES: dict[str, UrbanClimateProfile] = {
-    "streetCanyon_CFD": UrbanClimateProfile(
-        "streetCanyon_CFD", "Single-region street canyon CFD", ("air",)
-    ),
-    "streetCanyon_CFDHAM": UrbanClimateProfile(
-        "streetCanyon_CFDHAM", "Street canyon with heat-air-moisture coupling", ("air", "ground", "buildings", "street", "leeward", "windward"), ham=True, radiation=True
-    ),
-    "streetCanyon_CFDHAM_grass": UrbanClimateProfile(
-        "streetCanyon_CFDHAM_grass", "Street canyon HAM case with grass", ("air", "ground", "buildings", "street", "leeward", "windward"), ham=True, radiation=True, vegetation=True
-    ),
-    "streetCanyon_CFDHAM_veg": UrbanClimateProfile(
-        "streetCanyon_CFDHAM_veg", "Street canyon HAM case with vegetation", ("air", "vegetation", "ground", "buildings", "street", "leeward", "windward"), ham=True, radiation=True, vegetation=True
-    ),
-    "windAroundBuildings_CFDHAM": UrbanClimateProfile(
-        "windAroundBuildings_CFDHAM", "Wind around buildings with HAM", ("air", "ground", "buildings"), ham=True, radiation=True
-    ),
-    "windAroundBuildings_CFDHAM_veg": UrbanClimateProfile(
-        "windAroundBuildings_CFDHAM_veg", "Wind around buildings with HAM and vegetation", ("air", "vegetation", "ground", "buildings"), ham=True, radiation=True, vegetation=True
-    ),
+    "streetCanyon_CFD": UrbanClimateProfile("streetCanyon_CFD", "Single-region street canyon CFD", ("air",)),
+    "streetCanyon_CFDHAM": UrbanClimateProfile("streetCanyon_CFDHAM", "Street canyon with heat-air-moisture coupling", ("air", "ground", "buildings"), ham=True, radiation=True),
+    "streetCanyon_CFDHAM_grass": UrbanClimateProfile("streetCanyon_CFDHAM_grass", "Street canyon HAM case with grass", ("air", "ground", "buildings", "vegetation"), ham=True, radiation=True, vegetation=True),
+    "streetCanyon_CFDHAM_veg": UrbanClimateProfile("streetCanyon_CFDHAM_veg", "Street canyon HAM case with vegetation", ("air", "ground", "buildings", "vegetation"), ham=True, radiation=True, vegetation=True),
+    "windAroundBuildings_CFDHAM": UrbanClimateProfile("windAroundBuildings_CFDHAM", "Wind around buildings with HAM", ("air", "ground", "buildings"), ham=True, radiation=True),
+    "windAroundBuildings_CFDHAM_veg": UrbanClimateProfile("windAroundBuildings_CFDHAM_veg", "Wind around buildings with HAM and vegetation", ("air", "ground", "buildings", "vegetation"), ham=True, radiation=True, vegetation=True),
 }
 
 
 class UrbanClimateCase:
-    """Create and validate a named urbanMicroclimateFoam case."""
+    """Specialized public facade for native multi-region case generation.
 
-    def __init__(self, profile: UrbanClimateProfile, template_root: str | Path):
+    The case is generated from typed profile configuration; no complete case
+    tree is copied.
+    """
+
+    def __init__(self, profile: UrbanClimateProfile):
         self.profile = profile
-        self.template_root = Path(template_root)
 
     @classmethod
-    def from_name(cls, name: str, template_root: str | Path) -> "UrbanClimateCase":
+    def from_name(cls, name: str) -> "UrbanClimateCase":
         try:
-            profile = PROFILES[name]
+            return cls(PROFILES[name])
         except KeyError as exc:
             raise ValueError(f"Unknown urbanclimate profile: {name}") from exc
-        return cls(profile, template_root)
 
-    def materialize(
-        self,
-        destination: str | Path,
-        *,
-        overwrite: bool = False,
-        physics: PhysicsConfig | None = None,
-        urban_properties: Mapping[str, Any] | None = None,
-    ) -> Path:
-        """Materialize a case and write FoamPilot-owned support files.
-
-        The template is copied into a new destination. Existing destinations
-        are protected unless ``overwrite=True``. The generated manifest records
-        the selected profile, source template and OpenFOAM version.
-        """
-        source = self.template_root / self.profile.name
-        destination = Path(destination)
-        if not source.is_dir():
-            raise FileNotFoundError(f"Urban climate template not found: {source}")
-        if destination.exists():
-            if not overwrite:
-                raise FileExistsError(f"Refusing to overwrite existing case: {destination}")
-            shutil.rmtree(destination)
-        shutil.copytree(source, destination)
-
-        profile_properties = {
-            "profile": self.profile.name,
-            "ham": self.profile.ham,
-            "radiation": self.profile.radiation,
-            "vegetation": self.profile.vegetation,
-        }
-        if physics is None:
-            cfg = PhysicsConfig(urban=dict(urban_properties or profile_properties))
-        else:
-            cfg = physics
-            if urban_properties:
-                cfg.urban.update(urban_properties)
-            for key, value in profile_properties.items():
-                cfg.urban.setdefault(key, value)
-        cfg.write_support_files(destination)
-        manifest = destination / "foampilotUrbanClimate.json"
-        manifest.write_text(json.dumps({
-            "profile": self.profile.name,
-            "description": self.profile.description,
-            "regions": self.profile.regions,
-            "vegetation": self.profile.vegetation,
-            "ham": self.profile.ham,
-            "radiation": self.profile.radiation,
-            "template": str(source),
-            "openfoam": {"vendor": cfg.openfoam_vendor, "version": cfg.openfoam_version},
-        }, indent=2) + "\n", encoding="utf-8")
-        return destination
+    def _region_specs(self):
+        from .urbanclimate_native import RegionSpec
+        specs = [RegionSpec("air", "fluid", temperature=300.0, velocity=(1.0, 0.0, 0.0))]
+        if self.profile.ham:
+            specs.extend((RegionSpec("ground", "solid"), RegionSpec("buildings", "solid")))
+        if self.profile.vegetation:
+            specs.append(RegionSpec("vegetation", "vegetation"))
+        return tuple(specs)
 
     def write_case(
         self,
@@ -123,37 +62,40 @@ class UrbanClimateCase:
         physics: PhysicsConfig | None = None,
         urban_properties: Mapping[str, Any] | None = None,
     ) -> Path:
-        """FoamPilot-compatible alias used by example ``run.py`` entry points."""
-        return self.materialize(
+        from .urbanclimate_native import UrbanClimateNativeCaseBuilder
+        properties = {
+            "profile": self.profile.name,
+            "ham": self.profile.ham,
+            "radiation": self.profile.radiation,
+            "vegetation": self.profile.vegetation,
+        }
+        if urban_properties:
+            properties.update(urban_properties)
+        builder = UrbanClimateNativeCaseBuilder(
             destination,
-            overwrite=overwrite,
-            physics=physics,
-            urban_properties=urban_properties,
+            self._region_specs(),
+            profile=self.profile.name,
+            ham=self.profile.ham,
+            vegetation=self.profile.vegetation,
+            radiation=self.profile.radiation,
+            physics=physics or PhysicsConfig(urban=properties),
         )
+        return builder.write_case(overwrite=overwrite)
+
+    materialize = write_case
 
     @staticmethod
     def validate(case_path: str | Path) -> list[str]:
-        """Run Foampilot preflight checks and verify all expected case roots."""
         errors = check_openfoam13_case(case_path)
         root = Path(case_path)
-        for path in (root / "0", root / "constant", root / "system"):
-            if not path.is_dir():
-                errors.append(f"missing generated case directory: {path.relative_to(root)}")
+        for required in (root / "0", root / "constant", root / "system"):
+            if not required.is_dir():
+                errors.append(f"missing generated case directory: {required.relative_to(root)}")
         return errors
 
 
-def materialize_all(
-    template_root: str | Path,
-    output_root: str | Path,
-    *,
-    overwrite: bool = False,
-) -> list[Path]:
-    """Materialize all six profiles under ``output_root``."""
+def materialize_all(output_root: str | Path, *, overwrite: bool = False) -> list[Path]:
+    """Generate all six native cases under ``output_root``."""
     output_root = Path(output_root)
     output_root.mkdir(parents=True, exist_ok=True)
-    paths = []
-    for name in PROFILES:
-        paths.append(UrbanClimateCase.from_name(name, template_root).materialize(
-            output_root / name, overwrite=overwrite
-        ))
-    return paths
+    return [UrbanClimateCase.from_name(name).write_case(output_root / name, overwrite=overwrite) for name in PROFILES]
