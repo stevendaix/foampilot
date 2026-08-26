@@ -101,9 +101,10 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `89_incompressibleFluid_pitzDailyLTS` | Présent | Présent | Conforme | Validé OF13 — `End=1000 s`, schéma `localEuler` et paramètres LTS reproduits |
 | `90_incompressibleFluid_pitzDailyPulse` | Présent | Présent | Conforme | Validé OF13 — `End=1 s`, inlet `uniformFixedValue coded` pulsé et `patchAverage` reproduits |
 | `91_incompressibleFluid_pitzDailySteady` | Présent | Présent | Conforme | Accepté avec réserve — convergence SIMPLE à 285 itérations avant `End=2000`, streamlines et `kEpsilon:G` générés |
+| `92_incompressibleFluid_pitzDailySteadyExperimentalInlet` | Présent | Présent | Conforme | Accepté avec réserve — convergence SIMPLE à 786 itérations avant `End=1000`, données `boundaryData` et streamlines reproduites |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `91_incompressibleFluid_pitzDailySteady` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `92_incompressibleFluid_pitzDailySteadyExperimentalInlet` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
