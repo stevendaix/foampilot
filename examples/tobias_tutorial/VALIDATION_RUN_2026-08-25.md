@@ -50,6 +50,10 @@ Le tutoriel source `arbitraryWaterPump` a été adapté dans `arbitrary_water_pu
 
 Le tutoriel `dakotaGeometricVariation` a été adapté dans `dakota_geometric_variation`. Le maillage OpenFOAM 13 se génère maintenant avec `blockMesh`, `extrudeMesh`, `createPatch` et `renumberMesh`. Le portage a également corrigé une incompatibilité de dictionnaire : OpenFOAM 13 exige `nLayers` et `expansionRatio` dans `linearNormalCoeffs`, alors que le fichier source OpenFOAM 12 les plaçait au niveau racine. La phase d’optimisation reste bloquée après le maillage car l’exécutable `dakota` n’est pas installé dans l’environnement.
 
+## Cinquième portage préparé
+
+Le tutoriel `solarChimney` a été adapté dans `solar_chimney`. Le runner conserve les dictionnaires thermiques, de radiation et de convection naturelle, puis prévoit `ideasUnvToFoam`, `snappyHexMesh` et un lancement parallèle FoamPilot. La génération des fichiers fonctionne ; le lancement OpenFOAM 13 est bloqué avant le maillage par l’absence de `cad/backgroundMesh.unv` dans le dépôt GitHub source.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.

@@ -1,0 +1,75 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      epsilon;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -3 0 0 0 0];
+
+internalField   uniform 1;
+
+boundaryField
+{
+    inlet
+    {
+        type            turbulentMixingLengthDissipationRateInlet;
+        mixingLength    0.037;
+        value           uniform 0.1;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    glass
+    {
+        type            epsilonWallFunction;
+        value           uniform 0.01;
+    }
+    heaterTop
+    {
+        type            epsilonWallFunction;
+        value           uniform 0.01;
+    }
+    heaterSides
+    {
+        type            epsilonWallFunction;
+        value           uniform 0.01;
+    }
+    side
+    {
+        type            epsilonWallFunction;
+        value           uniform 0.01;
+    }
+    ground
+    {
+        type            epsilonWallFunction;
+        value           uniform 0.01;
+    }
+    chimney
+    {
+        type            epsilonWallFunction;
+        value           uniform 0.01;
+    }
+    symmetry1
+    {
+        type            symmetry;
+    }
+    symmetry2
+    {
+        type            symmetry;
+    }
+}
+
+
+// ************************************************************************* //
