@@ -86,6 +86,12 @@ Le tutoriel `suzannesHead` a été adapté dans `suzannes_head`. Le runner conse
 
 Le tutoriel `verticalAxialWindTurbineNCC` a été adapté dans `vertical_axial_wind_turbine_ncc`. Le runner conserve la génération des features, `snappyHexMesh`, `extrudeMesh`, le changement des conditions, la création des couples NCC et le calcul parallèle `foamRun` 6-DoF. La génération et la compilation Python sont valides ; l’exécution OpenFOAM 13 attend le `backgroundMesh.unv` absent du dépôt Tobias.
 
+## Remplacement Python de Dakota
+
+Le script `dakota_geometric_variation/run_python_optimization.py` remplace l’interface Dakota par une campagne Python reproductible. Par défaut, il reproduit les dix échantillons Latin Hypercube de `dakota.in`, avec la graine `124523`, les variables `angle1` et `angle2` dans `[0, 180]` degrés et `length` dans `[0.005, 0.03]` m. Chaque évaluation possède un répertoire isolé, génère les STL de baffles, modifie `blockMeshDict`, lance le workflow FoamPilot/OpenFOAM 13 et écrit les résultats dans `python_optimization.csv` et `python_optimization.json`.
+
+Les deux réponses Dakota sont conservées : `objective_average = abs(320 - Taverage)` et `objective_distribution = abs(Tmax - Tmin)`. Le meilleur point est sélectionné selon l’objectif moyen puis la dispersion. Le script accepte `--samples`, `--seed`, `--target-temperature` et `--keep-runs`. Une campagne courte a été vérifiée ; elle produit un échec explicite avec les chemins manquants `baffle1_original.stl` et `baffle2_original.stl`, sans lancer de calcul incomplet.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
