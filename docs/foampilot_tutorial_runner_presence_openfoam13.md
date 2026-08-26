@@ -72,9 +72,11 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `60_incompressibleFluid_TJunction` | Présent | Présent | Conforme | Validé OF13 — `End=1.5 s` |
 | `61_incompressibleFluid_TJunctionFan` | Présent | Présent | Conforme | Validé OF13 — `End=1.5 s` |
 | `62_incompressibleFluid_airFoil2D` | Présent | Présent | Conforme | Accepté avec réserve — convergence SIMPLE à `Time=313` avant `End=500` |
+| `63_incompressibleFluid_ballValve` | Présent | Présent | Conforme | En cours — chaîne multi-utilitaire avec calcul parallèle à 8 processus |
+| `64_incompressibleFluid_blockedChannel` | Présent | Présent | Conforme | Validé OF13 — `End=0.03 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `62_incompressibleFluid_airFoil2D` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `64_incompressibleFluid_blockedChannel` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
