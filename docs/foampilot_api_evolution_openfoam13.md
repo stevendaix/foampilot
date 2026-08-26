@@ -46,3 +46,6 @@ Pour chaque nouveau tutoriel, le runner doit utiliser uniquement des appels Foam
 ## État au 26 août 2026
 
 Les tutoriels validés dans la tranche courante sont `compressibleMultiphaseVoF/damBreak4phaseLaminar`, `compressibleVoF/angledDuct`, `compressibleVoF/climbingRod`, `compressibleVoF/damBreak`, `compressibleVoF/depthCharge2D`, `compressibleVoF/depthCharge3D`, `compressibleVoF/sloshingTank2D` et `compressibleVoF/throttle`. Le cas `throttle` a atteint `End=0.001 s` sous OF13 avec `Solver.run_parallel` à quatre processus, sans `FOAM FATAL`.
+
+| API-029 | `BaseSolver.import_reference_asset` | Nouvelle fonction générique | Copier un asset de référence non dictionnaire vers n’importe quel chemin relatif du cas, en conservant les permissions exécutables | `fluid/externalCoupledCavity` | Ajoutée pour importer le script `externalSolver` dans le cas sans appel shell dans le runner; validée sous OpenFOAM 13 jusqu’à `End=100 s`. |
+| API-030 | `BaseSolver.run_command_async` et `BaseSolver.wait_command` | Nouvelles fonctions génériques | Démarrer une commande FoamPilot en arrière-plan, journaliser sa sortie et attendre son code de retour | `fluid/externalCoupledCavity` | Ajoutées pour coordonner `foamRun` et le processus externe de couplage; validées sous OpenFOAM 13 jusqu’à `End=100 s`. |

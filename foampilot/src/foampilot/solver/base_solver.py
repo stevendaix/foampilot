@@ -1,6 +1,7 @@
 from pathlib import Path
 import logging
 import subprocess
+import shutil
 from typing import List, Optional
 
 from foampilot.system.SystemDirectory import SystemDirectory
@@ -152,6 +153,25 @@ class BaseSolver:
         except Exception:
             pass
 
+    # ---------- Reference assets ----------
+    def import_reference_asset(self, source_path: str | Path, destination: str | Path) -> Path:
+        """Copy a non-dictionary reference asset into the case.
+
+        The destination is relative to the case unless an absolute path is
+        provided. Executable assets retain their executable permission.
+        """
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(f"Reference asset not found: {source}")
+        target = Path(destination)
+        if not target.is_absolute():
+            target = self.case_path / target
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+        if source.stat().st_mode & 0o111:
+            target.chmod(target.stat().st_mode | 0o111)
+        return target
+
     # ---------- Running simulation ----------
     def run_command(self, cmd: List[str], log_filename: str) -> None:
         log_path = self.case_path / log_filename
@@ -165,6 +185,31 @@ class BaseSolver:
                 stderr=subprocess.STDOUT,
                 check=True,
             )
+
+    def run_command_async(self, cmd: List[str], log_filename: str):
+        """Start a FoamPilot-managed command and return its process handle."""
+        log_path = self.case_path / log_filename
+        logger.info("Starting async command: %s -> log: %s", " ".join(cmd), log_path)
+        log_file = open(log_path, "w", encoding="utf-8")
+        process = subprocess.Popen(
+            cmd,
+            cwd=self.case_path,
+            text=True,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+        )
+        process._foampilot_log_file = log_file
+        return process
+
+    def wait_command(self, process, check: bool = True) -> int:
+        """Wait for a process returned by :meth:`run_command_async`."""
+        returncode = process.wait()
+        log_file = getattr(process, "_foampilot_log_file", None)
+        if log_file is not None:
+            log_file.close()
+        if check and returncode != 0:
+            raise subprocess.CalledProcessError(returncode, process.args)
+        return returncode
 
     def check_solver_module_exists(self) -> bool:
         foam_modules = os.getenv("FOAM_MODULES", "")
