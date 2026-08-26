@@ -77,9 +77,14 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `65_incompressibleFluid_boxTurb16` | Présent | Présent | Conforme | Validé OF13 — `End=10 s` |
 | `66_incompressibleFluid_cavity` | Présent | Présent | Conforme | Validé OF13 — `End=10 s` |
 | `67_incompressibleFluid_cavityCoupledU` | Présent | Présent | Conforme | Validé OF13 — `End=10 s` |
+| `68_incompressibleFluid_channel395` | Présent | Présent | Conforme | En cours — calcul parallèle à 4 processus jusqu’à `End=1000` |
+| `69_incompressibleFluid_cylinder` | Présent | Présent | Conforme | En cours — calcul long jusqu’à `End=5000` |
+| `70_incompressibleFluid_ductSecondaryFlow` | Présent | Présent | Conforme | En cours — calcul long jusqu’à `End=20000` |
+| `71_incompressibleFluid_elipsekkLOmega` | Présent | Présent | Conforme | En cours — calcul à `t≈0.128/1 s` |
+| `72_incompressibleFluid_flowWithOpenBoundary` | Présent | Présent | Conforme | Validé OF13 — `End=100 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `67_incompressibleFluid_cavityCoupledU` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `72_incompressibleFluid_flowWithOpenBoundary` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
