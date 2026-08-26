@@ -66,6 +66,10 @@ Le tutoriel `meshingAHelix` a été adapté dans `meshing_a_helix`. Le runner co
 
 Le tutoriel `sneezingSimulation` a été adapté dans `sneezing_simulation`. Le runner conserve les champs `T`, `U`, `p`, les propriétés de nuage, les données CSV/ODS/PNG de distribution et la séquence `ideasUnvToFoam`, décomposition, `snappyHexMesh` parallèle, initialisation des champs, `renumberMesh` et `foamRun`. La génération du cas fonctionne ; l’exécution s’arrête avant le maillage faute de `cad/backgroundMesh.unv`, absent du dépôt Tobias.
 
+## Neuvième portage préparé
+
+Le tutoriel `arbitraryRotatingInletNCC` a été adapté dans `arbitrary_rotating_inlet_ncc`. Le runner reproduit la séquence OpenFOAM 13 `ideasUnvToFoam`, `snappyHexMesh`, `createPatch`, `createNonConformalCouples`, `topoSet`, `renumberMesh` et `foamRun`. La compilation Python et la génération des dictionnaires sont validées ; l’exécution s’arrête proprement avant le maillage car `cad/backgroundMesh.unv` n’est pas inclus dans le dépôt Tobias.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
