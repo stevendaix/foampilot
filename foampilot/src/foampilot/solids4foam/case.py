@@ -208,6 +208,33 @@ mechanical
             path.write_text(content, encoding="utf-8")
         return {str(path.relative_to(self.case_path)): path for path in files}
 
+    def prepare_from_gmsh_entities(
+        self,
+        *,
+        fluid_volumes: list[int] | tuple[int, ...],
+        solid_volumes: list[int] | tuple[int, ...],
+        interface_surfaces: list[int] | tuple[int, ...],
+        fluid_volume: str = "FLUID",
+        solid_volume: str = "SOLID",
+        interface_surface: str = "interface",
+    ) -> dict[str, object]:
+        """Create physical groups from CAD tags, then export a two-region case."""
+        from .gmsh_regions import create_fsi_physical_groups
+
+        create_fsi_physical_groups(
+            fluid_volumes=fluid_volumes,
+            solid_volumes=solid_volumes,
+            interface_surfaces=interface_surfaces,
+            fluid_name=fluid_volume,
+            solid_name=solid_volume,
+            interface_name=interface_surface,
+        )
+        return self.prepare_from_gmsh(
+            fluid_volume=fluid_volume,
+            solid_volume=solid_volume,
+            interface_surface=interface_surface,
+        )
+
     def prepare_from_gmsh(
         self,
         *,

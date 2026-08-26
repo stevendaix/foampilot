@@ -101,3 +101,32 @@ constant/solid/polyMesh/*
 Il ne s’agit pas d’un simple découpage arbitraire du maillage : la continuité géométrique et le nommage des faces d’interface doivent être préparés dans le modèle Gmsh. Une surface commune doit être associée au même nom de patch dans les deux régions. Le contrôle final doit être effectué avec `checkMesh -region fluid` et `checkMesh -region solid`, puis avec un cas solids4foam court avant toute étude paramétrique.
 
 L’exporteur direct sait déjà écrire des maillages multi-régions à partir de groupes physiques 3-D. La nouvelle méthode fournit donc le lien manquant entre les objets Gmsh de Foampilot et la configuration solids4foam, sans ajouter de convertisseur externe.
+
+## Création automatique des groupes physiques
+
+Pour éviter les appels directs à `gmsh.model.addPhysicalGroup`, utiliser les tags d’entités CAD retournés par les opérations `gmsh.model.occ` :
+
+```python
+case = Solids4FoamCase("cases/beamInCrossFlow")
+result = case.prepare_from_gmsh_entities(
+    fluid_volumes=[fluid_volume_tag],
+    solid_volumes=[solid_volume_tag],
+    interface_surfaces=[interface_surface_tag],
+)
+```
+
+Cette méthode crée les groupes physiques `FLUID`, `SOLID` et `interface`, lance le maillage Gmsh déjà préparé, puis appelle l’export multi-région. Les tags d’interface doivent représenter les faces communes aux deux volumes. Si les volumes proviennent d’une opération booléenne, il est conseillé d’appeler `gmsh.model.occ.fragment` avant de récupérer les faces d’interface afin d’obtenir une partition conforme.
+
+Le helper bas niveau est également disponible :
+
+```python
+from foampilot.solids4foam import create_fsi_physical_groups
+
+groups = create_fsi_physical_groups(
+    fluid_volumes=[fluid_volume_tag],
+    solid_volumes=[solid_volume_tag],
+    interface_surfaces=[interface_surface_tag],
+)
+```
+
+Il refuse les listes vides, les tags invalides et les volumes fluide/solide qui se recouvrent. Le constructeur vérifie ensuite que le patch d’interface apparaît dans les deux fichiers OpenFOAM `boundary`.
