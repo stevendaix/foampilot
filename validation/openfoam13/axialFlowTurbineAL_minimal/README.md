@@ -16,7 +16,7 @@ Le script exige que `libturbinesFoam.so` ait été compilée et soit disponible 
 
 ## Résultat observé
 
-`blockMesh` et `checkMesh` passent. Le calcul de deux pas temporels s’achève avec `foamRun -solver incompressibleFluid` et instancie les six objets `turbine`, `blade1`, `blade2`, `blade3`, `hub` et `tower`.
+`blockMesh` et `checkMesh` passent. Le calcul de deux pas temporels s’achève avec `foamRun -solver incompressibleFluid` et instancie les six objets `turbine`, `blade1`, `blade2`, `blade3`, `hub` et `tower`. Le même cas a été décomposé et exécuté avec deux rangs MPI via `AllrunMPI`, puis les champs ont été reconstruits sans erreur.
 
 | Grandeur | t = 0,01 s | t = 0,02 s |
 | --- | ---: | ---: |
@@ -24,5 +24,7 @@ Le script exige que `libturbinesFoam.so` ait été compilée et soit disponible 
 | Coefficient de traînée rotor | 0,593972 | 0,667113 |
 | Erreur de continuité globale par pas | -4,74e-08 | -4,71e-08 |
 | Nombre de cellules | 3 456 | 3 456 |
+
+En MPI à deux rangs, `Cp` vaut 0,380156 à `t = 0,01 s` et 0,451833 à `t = 0,02 s`. Les valeurs sont cohérentes avec le calcul séquentiel à mieux que `3e-7` sur `Cp` au second pas. L’erreur de continuité globale reste de l’ordre de `1e-7`, et `reconstructPar -latestTime` se termine correctement.
 
 Ce test est un smoke test de fonctionnement et non une validation scientifique de maillage ou de convergence. Une validation physique devra comparer les forces et `Cp` à un cas de référence, augmenter la résolution et vérifier l’effet de la sélection `cellZone` sur un maillage partitionné.
