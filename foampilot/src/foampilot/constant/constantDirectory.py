@@ -92,7 +92,7 @@ class ConstantDirectory:
             phase_properties: Dict mapping phase name → {"nu": ..., "rho": ...}.
         """
         self._vof_phases = list(phases) if phases else ["water", "air"]
-        self._vof_sigma = float(sigma)
+        self._vof_sigma = float(sigma) if isinstance(sigma, (int, float)) else sigma
         self._vof_phase_properties = phase_properties or {}
 
     def _write_vof_constants(self, constant_path: Path):
@@ -134,13 +134,23 @@ class ConstantDirectory:
         mt_file.write(constant_path / "momentumTransport")
 
         # --- Remove files that conflict with the two-phase transport model ---
-        conflicting_files = ["transportProperties", "turbulenceProperties"]
+        conflicting_files = ["transportProperties", "turbulenceProperties", "physicalProperties"]
         if not getattr(self.solver, "compressible", False):
             conflicting_files.append("pRef")
         for fname in conflicting_files:
             fpath = constant_path / fname
             if fpath.exists():
                 fpath.unlink()
+
+    def import_reference_file(self, source_path: str | Path, filename: str | None = None) -> Path:
+        """Import a complete OpenFOAM constant dictionary without lossy parsing."""
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        target = Path(self.solver.case_path) / "constant" / (filename or source.name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        return target
 
     # Radiation management
     def enable_radiation(self, model: str = "P1", **kwargs):

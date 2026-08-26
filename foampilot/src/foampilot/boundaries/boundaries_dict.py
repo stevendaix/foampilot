@@ -32,6 +32,8 @@ class Boundary:
         self.turbulence_model = turbulence_model
         self.fields_manager = fields_manager
         self.config = BOUNDARY_CONDITIONS_CONFIG.get(self.turbulence_model)
+        if not self.config and self.turbulence_model in {"realizableKE", "RNGkEpsilon"}:
+            self.config = BOUNDARY_CONDITIONS_CONFIG["kEpsilon"]
         if not self.config and str(self.turbulence_model).lower().startswith("les:"):
             self.config = BOUNDARY_CONDITIONS_CONFIG["kEpsilon"]
         if not self.config:
