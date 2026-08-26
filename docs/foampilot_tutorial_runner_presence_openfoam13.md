@@ -124,9 +124,10 @@ La vérification effectuée le 26 août 2026 confirme que les **61 runners actue
 | `112_incompressibleMultiphaseVoF_damBreak4phaseLaminar` | Présent | Présent | Conforme OF13 | Validé — modèle laminaire, gravité et quatre phases, `End=6 s`, aucun `FOAM FATAL` |
 | `113_incompressibleMultiphaseVoF_mixerVessel2DMRF` | Présent | Présent | Conforme OF13 | Validé — zone `rotor`, MRF `60 rpm`, quatre phases, `End=4 s`, aucun `FOAM FATAL` |
 | `114_incompressibleVoF_DTCHull` | Présent | Présent | Conforme OF13 | Accepté avec réserve — maillage 851 477 cellules, calcul MPI stable jusqu’à `Time≈340 s`, limite atteinte avant `End=4000 s` |
+| `115_incompressibleVoF_DTCHullMoving` | Présent | Présent | Conforme OF13 | Accepté avec réserve — mouvement rigide Newmark confirmé jusqu’à `Time≈0,885 s`, fraction d’eau stable, limite avant `End=50 s` et Courant maximal ≈4,93 |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/DTCHull` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/DTCHullMoving` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
