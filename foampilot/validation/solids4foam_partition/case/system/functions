@@ -1,0 +1,21 @@
+functions
+{
+    fluidForces
+    {
+        type                forces;
+        region              fluid;
+        libs                ("libforces.so");
+        writeControl        timeStep;
+        writeInterval       1;
+        patches             (interface);
+        rho                 rhoInf;
+        rhoInf              1000;
+        CofR                (0 0 0);
+        log                 true;
+    }
+    solidDisplacement
+    {
+        type                solidPointDisplacement;
+        point               (0 0 0);
+    }
+}

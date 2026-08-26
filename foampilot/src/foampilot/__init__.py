@@ -48,7 +48,12 @@ from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.commons.read_polymesh import BoundaryFileHandler
 from foampilot.commons import STLAnalyzer
 
-from foampilot.report import latex_pdf,ScientificDocument, TypstRenderer
+try:
+    from foampilot.report import latex_pdf, ScientificDocument, TypstRenderer
+except ImportError:  # Optional report-generation dependencies
+    latex_pdf = None
+    ScientificDocument = None
+    TypstRenderer = None
 from foampilot.utilities import ValueWithUnit, FluidMechanics, Functions, ResidualsPost, HumanGeometry, OpenFOAMDictAddFile, CSVFoamIntegrator,WeatherFileEPW, AortaSurfaceCleaner,AortaCapMethod, create_closed_aorta_mesh
 from foampilot.model_addon.windkessel import WindkesselModel
 from foampilot.fsi import FSIConfigurationError, NativeRigidFSI, RigidBody, write_native_rigid_fsi

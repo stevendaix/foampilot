@@ -1,0 +1,19 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      mechanicalProperties;
+}
+
+planeStress {'yes' if m.plane_stress else 'no'};
+mechanical
+(
+    rubber
+    {
+        type neoHookeanElastic;
+        rho rho [1 -3 0 0 0 0 0] 1000;
+        E   E   [1 -1 -2 0 0 0 0] 10000;
+        nu  nu  [0 0 0 0 0 0 0] 0.4;
+    }
+);
