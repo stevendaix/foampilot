@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      solarLoadProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solarLoadModel  directAndDiffuse;
+
+directAndDiffuseCoeffs
+{
+    smoothing true; //Smooth view factor matrix (use when in a close surface 
+                //to force Sum(Fij = 1)
+    constantAlbedo true; //constant emissivity on surfaces.
+
+}
+
+
+// Number of flow iterations per radiation iteration
+solverFreq 1;
+
+solarLoadAbsorptionEmissionModel none;
+
+solarLoadScatterModel none;
+
+// ************************************************************************* //

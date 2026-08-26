@@ -1,0 +1,6 @@
+SOURCE += blendingLayer.C
+
+SOURCE += derivedFvPatchFields/readScalarField/readFieldFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/readVectorField/readFieldFvPatchVectorField.C
+
+LIB = $(FOAM_USER_LIBBIN)/libblendingLayer

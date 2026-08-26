@@ -1,0 +1,24 @@
+SOURCE += viewFactorSky/viewFactorSky.C
+SOURCE += solarLoadModel/solarLoadModel.C
+SOURCE += solarLoadModel/solarLoadModelNew.C
+SOURCE += directAndDiffuse/directAndDiffuse.C
+SOURCE += noSolarLoad/noSolarLoad.C
+SOURCE += submodels/absorptionEmissionModel/solarLoadAbsorptionEmissionModel/solarLoadAbsorptionEmissionModel.C
+SOURCE += submodels/absorptionEmissionModel/solarLoadAbsorptionEmissionModel/solarLoadAbsorptionEmissionModelNew.C
+SOURCE += derivedFvPatchFields/CFDHAMfluidTemperatureCoupledMixed/CFDHAMfluidTemperatureCoupledMixedFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/CFDHAMfluidMoistureCoupledImpermeable/CFDHAMfluidMoistureCoupledImpermeableFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/CFDHAMsolidTemperatureCoupledMixed/CFDHAMsolidTemperatureCoupledMixedFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/CFDHAMsolidMoistureCoupledImpermeable/CFDHAMsolidMoistureCoupledImpermeableFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/CFDHAMfluidMoistureCoupledMixed/CFDHAMfluidMoistureCoupledMixedFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/CFDHAMsolidMoistureCoupledMixed/CFDHAMsolidMoistureCoupledMixedFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/CFDHAMsolidMoistureTransferCoeff/CFDHAMsolidMoistureTransferCoeffFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/CFDHAMsolidTemperatureHeatCoeff/CFDHAMsolidTemperatureTransferCoeffFvPatchScalarField.C
+SOURCE += derivedFvPatchFields/CFDHAMsolidTemperatureHeatCoeffInterior/CFDHAMsolidTemperatureTransferCoeffInteriorFvPatchScalarField.C
+SOURCE += submodels/absorptionEmissionModel/noAbsorptionEmission/noAbsorptionEmission.C
+SOURCE += submodels/scatterModel/solarLoadScatterModel/solarLoadScatterModel.C
+SOURCE += submodels/scatterModel/solarLoadScatterModel/solarLoadScatterModelNew.C
+SOURCE += submodels/scatterModel/noScatter/noScatter.C
+SOURCE += derivedFvPatchFields/solarRadiationCoupledBase/solarRadiationCoupledBase.C
+SOURCE += derivedFvPatchFields/solarLoadViewFactor/solarLoadViewFactorFixedValueFvPatchScalarField.C
+
+LIB = $(FOAM_USER_LIBBIN)/libsolarLoad

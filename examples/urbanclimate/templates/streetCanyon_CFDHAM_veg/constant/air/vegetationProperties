@@ -1,0 +1,53 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      vegetationProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+vegetationModel     simplifiedVegetation;
+
+simplifiedVegetationCoeffs
+{
+
+    a1                  a1     [1 0 -3 0 0 0 0] 169; // stomatal resistance parameters
+
+    a2                  a2     [1 0 -3 0 0 0 0] 18; // stomatal resistance parameters
+
+    a3                  a3     [1 -1 -2 0 0 0 0] 0.005; // stomatal resistance parameters
+
+    D0                  D0     [1 -1 -2 0 0 0 0] 1.2; // stomatal resistance parameters
+
+    C                   C       [ 0 -1 0.5 0 0 0 0 ] 131.035;//200; // proportionality factor
+
+    betaP               betaP   [ 0 0 0 0 0 0 0 ] 1.0; // turbulent production coeff
+
+    betaD               betaD   [ 0 0 0 0 0 0 0 ] 5.1; // turbulent destruction coeff
+
+    H                   H       [ 0 1 0 0 0 0 0 ] 1.5; // location of canopy height
+
+    kc                  kc      [ 0 0 0 0 0 0 0 ] 0.5; // extinction coefficient of radiation
+
+    l                   l       [ 0 1 0 0 0 0 0 ] 0.1; // characteristic length of leaf
+
+    rsMin               rsMin   [ 0 -1 1 0 0 0 0 ] 150; // stomatal resistance ???
+
+    Rg0                 Rg0     [1 0 -3 0 0 0 0] 800;//404; // global radiation at top of canopy
+
+    Rl0                 Rl0     [1 0 -3 0 0 0 0] 350; // long-wave radiation at top of canopy
+
+    nEvapSides          nEvapSides [ 0 0 0 0 0 0 0 ] 1;
+
+}
+
+// ************************************************************************* //

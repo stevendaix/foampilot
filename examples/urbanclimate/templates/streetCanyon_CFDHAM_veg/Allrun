@@ -1,0 +1,33 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+NPROCS=$(foamDictionary -entry numberOfSubdomains -value system/decomposeParDict)
+
+echo "Decomposing regions"
+for i in air vegetation street leeward windward
+do 
+decomposePar -region $i
+done
+
+mpirun -np $NPROCS faceAgglomerate -region vegetation -parallel
+mpirun -np $NPROCS calcLAI -region air -parallel
+mpirun -np $NPROCS viewFactorsGen -region vegetation -parallel
+mpirun -np $NPROCS solarRayTracingGen -region vegetation -parallel
+mpirun -np $NPROCS urbanMicroclimateFoam -parallel
+
+for i in air vegetation ground buildings
+do 
+reconstructPar -region $i
+done
+
+# ---- Serial alternative ----
+# faceAgglomerate    -region vegetation
+# calcLAI     -region air
+# viewFactorsGen     -region vegetation
+# solarRayTracingGen -region vegetation
+# urbanMicroclimateFoam
+
+# ----------------------------------------------------------------- end-of-file

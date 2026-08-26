@@ -1,0 +1,22 @@
+SOURCE += buildingMaterialModel/buildingMaterialModel.C
+SOURCE += buildingMaterialModel/newbuildingMaterialModel.C
+SOURCE += HamstadBrick/HamstadBrick.C
+SOURCE += HamstadPlaster/HamstadPlaster.C
+SOURCE += HamstadCase2/HamstadCase2.C
+SOURCE += Hamstad5Brick/Hamstad5Brick.C
+SOURCE += Hamstad5Insulation/Hamstad5Insulation.C
+SOURCE += Hamstad5Mortar/Hamstad5Mortar.C
+SOURCE += Soil/Soil.C
+SOURCE += HamstadConcrete/HamstadConcrete.C
+SOURCE += SabaBrickMod/SabaBrickMod.C
+SOURCE += SabaBrick/SabaBrick.C
+SOURCE += CalciumSilicate/CalciumSilicate.C
+SOURCE += AsphaltConcrete/AsphaltConcrete.C
+SOURCE += PorousAsphalt/PorousAsphalt.C
+SOURCE += Savonnieres/Savonnieres.C
+SOURCE += Impermeable/Impermeable.C
+SOURCE += OSB/OSB.C
+SOURCE += VanGenuchten/VanGenuchten.C
+SOURCE += VanGenuchtenVapDiff/VanGenuchtenVapDiff.C
+
+LIB = $(FOAM_USER_LIBBIN)/libbuildingMaterialModel

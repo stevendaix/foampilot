@@ -1,0 +1,38 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      meshQualityDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#includeEtc "caseDicts/mesh/generation/meshQualityDict.cfg"
+
+minTetQuality -1e+30;//1E-12;
+maxBoundarySkewness 4;
+minTwist -1e+30;//0.01;
+maxConcave 80;
+maxInternalSkewness 4; 
+
+// Advanced
+
+//- Number of error distribution iterations
+nSmoothScale 4;
+//- Amount to scale back displacement at error points
+errorReduction 0.75;
+
+relaxed
+{   
+    //- Maximum non-orthogonality allowed. Set to 180 to disable.
+    maxNonOrtho 75; 
+}   
+
+// ************************************************************************* //

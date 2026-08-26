@@ -1,0 +1,6 @@
+SOURCE += grassModel/grassModel.C
+SOURCE += grassModel/grassModelNew.C
+SOURCE += noGrass/noGrass.C
+SOURCE += simpleGrass/simpleGrass.C
+
+LIB=$(FOAM_USER_LIBBIN)/libgrassModel

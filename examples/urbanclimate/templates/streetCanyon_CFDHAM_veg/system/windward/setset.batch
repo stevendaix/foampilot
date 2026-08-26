@@ -1,0 +1,2 @@
+cellSet brick new boxToCell (70.0 100.0 0)(70.1 150.0 10.0)
+cellZoneSet brick new setToCellZone brick

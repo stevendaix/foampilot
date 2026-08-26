@@ -1,4 +1,5 @@
 """OpenFOAM 13 integrations for FoamPilot."""
+from .urbanclimate import PROFILES, UrbanClimateCase, UrbanClimateProfile, materialize_all
 from .physics import (
     DEFAULT_MODULES,
     ExternalModule,
@@ -15,4 +16,8 @@ __all__ = [
     "SUPPORTED_MODULES",
     "check_openfoam13_case",
     "module_catalog",
+    "PROFILES",
+    "UrbanClimateCase",
+    "UrbanClimateProfile",
+    "materialize_all",
 ]

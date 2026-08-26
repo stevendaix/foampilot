@@ -1,0 +1,65 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0/air";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (5 0 0); 
+
+boundaryField
+{
+    west
+    {
+        type            readVectorField;
+        inputTimeStep   86400;    
+        value           uniform (1 1 0); 
+    }
+    east
+    {
+        type            readVectorField;
+        inputTimeStep   86400;    
+        value           uniform (1 1 0); 
+    }
+    top
+    {
+        type            slip;
+    }
+    ground
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    north
+    {
+        type            readVectorField;
+        inputTimeStep   86400;    
+        value           uniform (1 1 0); 
+    }
+    south
+    {
+        type            readVectorField;
+        inputTimeStep   86400;    
+        value           uniform (1 1 0); 
+    }
+    buildings
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+}
+
+
+// ************************************************************************* //

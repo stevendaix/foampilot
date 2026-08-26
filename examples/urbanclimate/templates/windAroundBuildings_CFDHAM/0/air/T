@@ -1,0 +1,87 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0/air";
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 293.15; 
+
+boundaryField
+{
+    west
+    {
+        type            uniformFixedValue;
+        uniformValue    tableFile;
+        uniformValueCoeffs
+        {
+            file        "$FOAM_CASE/0/air/Tambient";
+        }
+        value           uniform 285.0; 
+    }
+    east
+    {
+        type            uniformFixedValue;
+        uniformValue    tableFile;
+        uniformValueCoeffs
+        {
+            file        "$FOAM_CASE/0/air/Tambient";
+        }
+        value           uniform 285.0; 
+    }
+    top
+    {
+        type            uniformFixedValue;
+        uniformValue    tableFile;
+        uniformValueCoeffs
+        {
+            file        "$FOAM_CASE/0/air/Tambient";
+        }
+        value           uniform 285.0; 
+    }
+    ground
+    {
+        type            compressible::CFDHAMfluidTemperatureCoupledMixed;
+        value           uniform 298.15;
+    }
+    north
+    {
+        type            uniformFixedValue;
+        uniformValue    tableFile;
+        uniformValueCoeffs
+        {
+            file        "$FOAM_CASE/0/air/Tambient";
+        }
+        value           uniform 285.0; 
+    }
+    south
+    {
+        type            uniformFixedValue;
+        uniformValue    tableFile;
+        uniformValueCoeffs
+        {
+            file        "$FOAM_CASE/0/air/Tambient";
+        }
+        value           uniform 285.0; 
+    }
+    buildings
+    {
+        type            compressible::CFDHAMfluidTemperatureCoupledMixed;
+        value           uniform 298.15; 
+    }
+}
+
+
+// ************************************************************************* //

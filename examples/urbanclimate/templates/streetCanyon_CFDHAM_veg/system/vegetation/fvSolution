@@ -1,0 +1,91 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p_rgh
+    {
+        solver           GAMG;
+        tolerance        1e-9;
+        relTol           0.01;
+
+        smoother         DIC;
+
+        cacheAgglomeration true;
+        nCellsInCoarsestLevel 10;
+        agglomerator     faceAreaPair;
+        mergeLevels      1;
+
+        maxIter          100;
+    }
+
+    "(U|k|epsilon|w)"
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-12;
+        relTol          0.01;
+    }
+    "(h|e)"
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-12;
+        relTol          0.01;
+        minIter         1;
+        maxIter         100;
+    }
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+    rhoMax          rhoMax [ 1 -3 0 0 0 ] 1.5;
+    rhoMin          rhoMin [ 1 -3 0 0 0 ] 0.9;
+    
+    residualControl
+    {
+        p_rgh           1e-3;
+        U               1e-3;
+        h               1e-3;
+        w               1e-3;
+
+        // possibly check turbulence fields
+        "(k|epsilon|omega)" 1e-3;
+    }
+}
+
+
+relaxationFactors
+{
+    fields
+    {
+        rho             1.0;
+        p_rgh           0.5;
+    }
+    equations
+    {
+        U               0.7;
+        "(h|e)"         0.95;
+        k               0.5;
+        epsilon         0.5;
+        w               0.95;
+    }
+}
+
+
+// ************************************************************************* //

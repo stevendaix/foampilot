@@ -1,0 +1,148 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#includeEtc "caseDicts/mesh/generation/snappyHexMeshDict.cfg"
+
+castellatedMesh on;
+snap            on;
+addLayers       off;
+
+geometry
+{
+    buildings
+    {
+        type triSurfaceMesh;
+        file "buildings_refined.stl";
+    }
+    trees
+    {
+        type triSurfaceMesh;
+        file "trees.stl";
+    }
+
+    refinementBox
+    {
+        type searchableBox;
+        min  (  0   0   0);
+        max  (250 180  90);
+    }
+};
+
+castellatedMeshControls
+{
+    minRefinementCells 0;
+    nCellsBetweenLevels 1;//2;
+    features
+    (
+      { file  "buildings_refined.eMesh"; level 5; }
+      { file  "trees.eMesh"; level 4; }
+    );
+
+    refinementSurfaces
+    {
+        buildings
+        {
+            level (3 5);
+            patchInfo { type wall; }
+        }
+        trees
+        {
+            level (3 5);
+            patchInfo { type wall; }
+        }
+    }
+
+    refinementRegions
+    {
+        refinementBox
+        {
+            mode inside;
+            levels ((1E15 2));
+        }
+        buildings
+        {
+            mode distance;
+            levels ((3.0 4)(10.0 3));  
+        }
+        trees
+        {
+            mode distance;
+            levels ((1.0 5)(2.0 4));  
+        }
+    }
+
+    locationInMesh (1 1 1);
+
+    resolveFeatureAngle 10;
+    allowFreeStandingZoneFaces true;
+}
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 1.0;
+    nSolveIter 80;
+    nRelaxIter 8;
+
+    nFeatureSnapIter 20;
+
+    explicitFeatureSnap    true;
+    implicitFeatureSnap    false;
+}
+
+addLayersControls
+{
+    layers
+    {
+        buildings
+        {
+            nSurfaceLayers 3;//1;
+        }
+    }
+
+    relativeSizes       false;
+    expansionRatio      1.2;
+    firstLayerThickness 0.15;
+    minThickness        1e-3;
+    
+    nGrow 0;
+    featureAngle 30;//60;
+    slipFeatureAngle 30;
+    nRelaxIter 8;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals 3;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedianAxisAngle 90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 10;
+}
+
+meshQualityControls
+{}
+
+writeFlags
+(
+    noRefinement
+    scalarLevels
+    layerSets
+    layerFields
+);
+
+mergeTolerance 1e-6;
+
+// ************************************************************************* //

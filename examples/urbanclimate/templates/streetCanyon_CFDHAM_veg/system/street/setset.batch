@@ -1,0 +1,4 @@
+cellSet soil new boxToCell (60.0 100.0 -2.0)(70.0 150.0 -0.1)
+cellZoneSet soil new setToCellZone soil
+cellSet brick new boxToCell (60.0 100.0 -0.1)(70.0 150.0 0)
+cellZoneSet brick new setToCellZone brick

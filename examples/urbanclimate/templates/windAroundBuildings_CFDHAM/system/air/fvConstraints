@@ -1,0 +1,29 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvConstraints;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+limitp
+{
+    type        limitPressure;
+    p           p_rgh;
+
+    minFactor   0.8;
+    maxFactor   1.2;
+}
+
+limitT
+{
+    type            limitTemperature;
+
+    selectionMode   all;
+
+    min             273.15;
+    max             373.15;
+}
+
+// ************************************************************************* //

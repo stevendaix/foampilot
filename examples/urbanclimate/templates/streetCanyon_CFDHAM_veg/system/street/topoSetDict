@@ -1,0 +1,54 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    {
+        name    soil;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        sourceInfo
+        {
+            box (60.0 100.0 -2.0)(70.0 150.0 -0.1);
+        }
+    }
+    {
+        name    soil;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set    soil;
+        }
+    }
+    {
+        name    brick;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        sourceInfo
+        {
+            box (60.0 100.0 -0.1)(70.0 150.0 0);
+        }
+    }
+    {
+        name    brick;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set    brick;
+        }
+    }
+);
+
+// ************************************************************************* //
