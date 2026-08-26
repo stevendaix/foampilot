@@ -1,0 +1,57 @@
+# Dakota Input File
+#
+# Tobias Holzmann
+# Three design variable:
+#   angle1 (baffle orientation close to outlet)
+#   angle2 (baffle orientation close to the inlets)
+#   length (size of the inlet length)
+#
+# A hybrid sampling method is used to check out different results for
+# different design quantities. An optimization is not done here but can
+# be added simply by change the method.
+#
+# The method that is used it the Latin Hypercube Sampling (LHS)
+#-----------------------------------------------------------------------------
+
+
+environment
+    error_file 'dakotaError'
+    output_precision 4
+    tabular_graphics_data
+        tabular_graphics_file = 'dakotaData.dat'
+
+
+method
+    sampling
+    seed        = 124523
+    initial_samples = 10
+        sample_type lhs
+        #samples     = 80
+
+
+model
+    single
+
+
+variables
+    continuous_design = 3
+        descriptors   = 'angle1'    'angle2'    'length'
+        initial_point =    0           0         0.01
+        lower_bounds  =    0           0         0.005
+        upper_bounds  =  180         180         0.03
+
+
+interface
+    fork
+        analysis_driver = 'dakota.sh'
+        parameters_file = 'params.in'
+        results_file    = 'results.out'
+
+
+responses
+    objective_functions = 2
+        descriptors     = 'Tmean' 'TemperatureDifference'
+    no_hessians
+    no_gradients
+
+#-----------------------------------------------------------------------------

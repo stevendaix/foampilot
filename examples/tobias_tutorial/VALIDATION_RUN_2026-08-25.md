@@ -46,6 +46,10 @@ Le tutoriel source `fanRotationAndNCC` a été adapté dans `fan_rotation_ncc`. 
 
 Le tutoriel source `arbitraryWaterPump` a été adapté dans `arbitrary_water_pump`. Le runner reproduit la préparation VOF avec `ideasUnvToFoam`, `snappyHexMesh`, `createBaffles`, `setFields` et le chemin parallèle FoamPilot. Les dictionnaires `alpha.water`, `phaseProperties`, `physicalProperties.*`, `momentumTransport` et `setFieldsDict` sont conservés. Comme pour le cas source, l’exécution attend `cad/backgroundMesh.unv`; cet asset est absent du dépôt GitHub Tobias et le runner arrête maintenant le cas avec un message explicite avant tout appel OpenFOAM.
 
+## Quatrième portage préparé
+
+Le tutoriel `dakotaGeometricVariation` a été adapté dans `dakota_geometric_variation`. Le maillage OpenFOAM 13 se génère maintenant avec `blockMesh`, `extrudeMesh`, `createPatch` et `renumberMesh`. Le portage a également corrigé une incompatibilité de dictionnaire : OpenFOAM 13 exige `nLayers` et `expansionRatio` dans `linearNormalCoeffs`, alors que le fichier source OpenFOAM 12 les plaçait au niveau racine. La phase d’optimisation reste bloquée après le maillage car l’exécutable `dakota` n’est pas installé dans l’environnement.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
