@@ -1,6 +1,7 @@
 import os
 import logging
 from pathlib import Path
+import re
 from foampilot.system.controlDictFile import ControlDictFile
 from foampilot.system.fvSchemesFile import FvSchemesFile
 from foampilot.system.fvSolutionFile import FvSolutionFile
@@ -473,6 +474,99 @@ class SystemDirectory:
                 log_filename=f"log.foamDictionary.{dictionary_path.name}.{entry.replace('/', '_')}",
             )
         return dictionary_path
+
+    def merge_reference_dictionary(
+        self,
+        target: str | Path,
+        source: str | Path,
+        *,
+        blocks: list[str] | None = None,
+    ) -> Path:
+        """Merge top-level blocks from a reference dictionary into a case file.
+
+        This reproduces the dictionary-overlay part of OpenFOAM's
+        ``foamMergeCase`` while keeping the operation under FoamPilot control.
+        Existing top-level blocks are replaced by matching reference blocks;
+        new blocks are appended to the target dictionary.
+        """
+        target_path = Path(target)
+        source_path = Path(source)
+        if not target_path.is_absolute():
+            target_path = Path(self.parent.case_path) / target_path
+        if not source_path.is_absolute():
+            source_path = Path(self.parent.case_path) / source_path
+        if not target_path.is_file():
+            raise FileNotFoundError(target_path)
+        if not source_path.is_file():
+            raise FileNotFoundError(source_path)
+        target_text = target_path.read_text(encoding="utf-8")
+        source_text = source_path.read_text(encoding="utf-8")
+        wanted = set(blocks or [])
+
+        def extract(text: str) -> dict[str, str]:
+            result: dict[str, str] = {}
+            pattern = re.compile(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\s*\{")
+            for match in pattern.finditer(text):
+                name = match.group(1)
+                if wanted and name not in wanted:
+                    continue
+                depth = 0
+                end = None
+                for index in range(match.end() - 1, len(text)):
+                    if text[index] == "{":
+                        depth += 1
+                    elif text[index] == "}":
+                        depth -= 1
+                        if depth == 0:
+                            end = index + 1
+                            while end < len(text) and text[end].isspace():
+                                end += 1
+                            if end < len(text) and text[end] == ";":
+                                end += 1
+                            break
+                if end is not None:
+                    result[name] = text[match.start():end]
+            return result
+
+        overlays = extract(source_text)
+        for name, block in overlays.items():
+            target_match = re.search(rf"(?m)^{re.escape(name)}\s*\{{", target_text)
+            if not target_match:
+                target_text = target_text.rstrip() + "\n\n" + block + "\n"
+                continue
+            depth = 0
+            end = None
+            for index in range(target_match.end() - 1, len(target_text)):
+                if target_text[index] == "{":
+                    depth += 1
+                elif target_text[index] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        end = index + 1
+                        while end < len(target_text) and target_text[end].isspace():
+                            end += 1
+                        if end < len(target_text) and target_text[end] == ";":
+                            end += 1
+                        break
+            if end is None:
+                continue
+            target_block = target_text[target_match.start():end]
+            target_open = target_block.find("{")
+            target_close = target_block.rfind("}")
+            source_open = block.find("{")
+            source_close = block.rfind("}")
+            if target_open >= 0 and target_close > target_open and source_open >= 0 and source_close > source_open:
+                merged = (
+                    target_block[:target_open + 1]
+                    + target_block[target_open + 1:target_close].rstrip()
+                    + "\n"
+                    + block[source_open + 1:source_close].strip()
+                    + "\n"
+                    + target_block[target_close:]
+                )
+                target_text = target_text[:target_match.start()] + merged + target_text[end:]
+        target_path.write_text(target_text, encoding="utf-8")
+        return target_path
 
     def replace_file_text(self, file: str | Path, old: str, new: str, count: int = -1) -> Path:
         """Replace text in a case file through a FoamPilot-managed API.
