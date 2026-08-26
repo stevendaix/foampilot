@@ -47,6 +47,17 @@ class SystemDirectory:
 
 
 
+    def import_reference_file(self, source_path: str | Path, filename: str | None = None) -> Path:
+        """Import a complete OpenFOAM system dictionary without lossy parsing."""
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        target_name = filename or source.name
+        target = Path(self.parent.case_path) / "system" / target_name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        return target
+
     def write(self):
         """
         Write all system files to the case directory.
