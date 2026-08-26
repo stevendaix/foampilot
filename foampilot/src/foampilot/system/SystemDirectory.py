@@ -474,6 +474,25 @@ class SystemDirectory:
             )
         return dictionary_path
 
+    def replace_file_text(self, file: str | Path, old: str, new: str, count: int = -1) -> Path:
+        """Replace text in a case file through a FoamPilot-managed API.
+
+        This is intended for deterministic post-processing of files generated
+        by OpenFOAM utilities when a reference tutorial applies a small text
+        transformation that is not safely expressible through a dictionary
+        parser.
+        """
+        path = Path(file)
+        if not path.is_absolute():
+            path = Path(self.parent.case_path) / path
+        if not path.is_file():
+            raise FileNotFoundError(path)
+        content = path.read_text(encoding="utf-8")
+        if old not in content:
+            raise ValueError(f"Text not found in {path}: {old!r}")
+        path.write_text(content.replace(old, new, count), encoding="utf-8")
+        return path
+
     def run_utility(self, utility: str, args=None, log_filename=None) -> Path:
         """Run an OpenFOAM utility in the case directory through FoamPilot.
 
