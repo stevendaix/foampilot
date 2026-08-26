@@ -4,7 +4,7 @@
 
 Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
 
-La vérification effectuée le 26 août 2026 confirme que les **47 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/squareBend`.
+La vérification effectuée le 26 août 2026 confirme que les **48 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/squareBendLiq`.
 
 ## Résultats
 
@@ -57,9 +57,10 @@ La vérification effectuée le 26 août 2026 confirme que les **47 runners actue
 | `45_fluid_roomHeating` | Présent | Présent | Conforme | Partiel — steady `End=2000 s`; transitoire interrompu vers `t≈3476/6000 s` |
 | `46_fluid_shockTube` | Présent | Présent | Conforme | Validé OF13 — `End=0.007 s` |
 | `47_fluid_squareBend` | Présent | Présent | Conforme | Validé OF13 — `End=500 s` |
+| `48_fluid_squareBendLiq` | Présent | Présent | Conforme | Validé OF13 — `End=0.5 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `47_fluid_squareBend` sont effectivement présents. `prism`, `shockTube` et `squareBend` sont validés sous OF13; `nacaAirfoil` est non validé après expiration de délai et `roomHeating` reste partiellement validé, avec steady terminé et transitoire interrompu avant `End=6000 s`.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `48_fluid_squareBendLiq` sont effectivement présents. `prism`, `shockTube`, `squareBend` et `squareBendLiq` sont validés sous OF13; `nacaAirfoil` est non validé après expiration de délai et `roomHeating` reste partiellement validé, avec steady terminé et transitoire interrompu avant `End=6000 s`.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
