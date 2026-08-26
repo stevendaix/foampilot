@@ -315,7 +315,10 @@ class CaseFieldsManager:
         """
         if not name or not isinstance(name, str):
             raise ValueError("Field name must be a non-empty string")
-        self.fields[name] = {"value": ValueWithUnit(value, unit)}
+        if isinstance(value, str) and (value.startswith("uniform ") or value.startswith("nonuniform ")):
+            self.fields[name] = {"value": value}
+        else:
+            self.fields[name] = {"value": ValueWithUnit(value, unit)}
         self.custom_initial_values[name] = value
 
     def to_dict(self) -> Dict[str, Any]:

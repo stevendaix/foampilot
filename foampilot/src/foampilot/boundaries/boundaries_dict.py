@@ -265,7 +265,9 @@ class Boundary:
             internal_field = internal_field_overrides.get(field)
             if internal_field is None and field in custom_values:
                 value = custom_values[field]
-                if isinstance(value, (tuple, list)):
+                if isinstance(value, str) and (value.startswith("uniform ") or value.startswith("nonuniform ")):
+                    internal_field = value
+                elif isinstance(value, (tuple, list)):
                     internal_field = "uniform (" + " ".join(str(v) for v in value) + ")"
                 else:
                     internal_field = f"uniform {value}"
