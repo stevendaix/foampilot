@@ -6,7 +6,7 @@ Cette matrice est générée à partir du dépôt officiel OpenFOAM 14 (`master`
 
 | Famille | Tutoriel officiel | Runner FoamPilot correspondant | Statut |
 |---|---|---|---|
-| `XiFluid` | `engine2Valve2D` | `—` | À intégrer |
+| `XiFluid` | `engine2Valve2D` | `11_XiFluid_engine2Valve2D` | En cours — audit détaillé terminé; maillage dynamique et opérations NCC à intégrer |
 | `XiFluid` | `kivaTest` | `—` | À intégrer |
 | `XiFluid` | `moriyoshiHomogeneous` | `—` | À intégrer |
 | `compressibleVoF` | `angledDuct` | `—` | À intégrer |
