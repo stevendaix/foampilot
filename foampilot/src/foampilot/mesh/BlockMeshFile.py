@@ -86,6 +86,20 @@ class BlockMesher(OpenFOAMFile):
         print("blocks:", len(self.blocks))
 
 
+    def import_reference_dict(self, source_path: str | Path, destination: str | Path | None = None) -> Path:
+        """Import a complete OpenFOAM ``blockMeshDict`` without lossy parsing.
+
+        This preserves advanced entries such as ``arc`` and ``project`` edges
+        that are not representable by the JSON convenience format.
+        """
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        target = Path(destination) if destination is not None else self.case_path / "system" / "blockMeshDict"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        return target
+
     def write(self, file_path: Path):
         """
         Write the blockMeshDict content to a file.
