@@ -429,6 +429,41 @@ class SystemDirectory:
 
 
 
+    def update_dictionary_entries(self, dictionary: str | Path, entries: dict[str, str]) -> Path:
+        """Update OpenFOAM dictionary entries through ``foamDictionary``."""
+        dictionary_path = Path(dictionary)
+        if not dictionary_path.is_absolute():
+            dictionary_path = Path(self.parent.case_path) / dictionary_path
+        if not dictionary_path.is_file():
+            raise FileNotFoundError(dictionary_path)
+        for entry, value in entries.items():
+            self.run_utility(
+                "foamDictionary",
+                [str(dictionary_path), "-entry", entry, "-set", str(value)],
+                log_filename=f"log.foamDictionary.{dictionary_path.name}.{entry.replace('/', '_')}",
+            )
+        return dictionary_path
+
+    def run_utility(self, utility: str, args=None, log_filename=None) -> Path:
+        """Run an OpenFOAM utility in the case directory through FoamPilot.
+
+        ``args`` contains only utility arguments; the case directory is selected
+        automatically and stdout/stderr are persisted in a deterministic log.
+        """
+        base_path = Path(self.parent.case_path)
+        if not base_path.is_dir():
+            raise NotADirectoryError(f"The case path '{base_path}' is not a directory.")
+        cmd = [utility, *(str(arg) for arg in (args or []))]
+        log_path = base_path / (log_filename or f"log.{utility}")
+        try:
+            result = subprocess.run(cmd, cwd=base_path, text=True,
+                                    capture_output=True, check=True)
+        except subprocess.CalledProcessError as exc:
+            log_path.write_text((exc.stdout or "") + "\n" + (exc.stderr or ""))
+            raise RuntimeError(f"{utility} failed: {exc.stderr}") from exc
+        log_path.write_text(result.stdout + "\n" + result.stderr)
+        return log_path
+
     def run_topoSet(self):
         """
         Execute the topoSet utility in the case directory.

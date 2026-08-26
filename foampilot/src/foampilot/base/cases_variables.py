@@ -303,6 +303,17 @@ class CaseFieldsManager:
     # Public API (backward-compatible)
     # ------------------------------------------------------------------
 
+    def import_reference_field(self, source_path: Union[str, Path], case_path: Union[str, Path], field_name: Optional[str] = None) -> Path:
+        """Import a complete OpenFOAM initial field without lossy parsing."""
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        target_dir = Path(case_path) / "0"
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / (field_name or source.name)
+        target.write_bytes(source.read_bytes())
+        return target
+
     def get_field_names(self) -> list[str]:
         """Returns the names of all generated fields."""
         return list(self.fields.keys())
