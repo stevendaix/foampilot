@@ -32,6 +32,30 @@ class ExternalModule:
     enabled: bool = False
 
 
+PORTED_COMPONENTS = {
+    "ZYturbulentInlet": {
+        "source": "boundaryConditions",
+        "path": "third_party/openfoam13/ported/boundaryConditions/ZYturbulentInlet",
+        "status": "compiled-foundation13",
+    },
+    "turbulentInletTable": {
+        "source": "boundaryConditions",
+        "path": "third_party/openfoam13/ported/boundaryConditions/turbulentInletTable",
+        "status": "compiled-foundation13",
+    },
+    "calculateNut": {
+        "source": "MachineLearningTurbulenceModels",
+        "path": "third_party/openfoam13/ported/MachineLearningTurbulenceModels/calculateNut",
+        "status": "compiled-foundation13",
+    },
+    "calculateGamma": {
+        "source": "MachineLearningTurbulenceModels",
+        "path": "third_party/openfoam13/ported/MachineLearningTurbulenceModels/calculateGamma",
+        "status": "compiled-foundation13",
+    },
+}
+
+
 DEFAULT_MODULES = (
     ExternalModule("boundaryConditions", "ZhangYanTJU/boundaryConditions", "dd3c819e4a715ee64f1782b71b56889ac487f352", "GPL-3.0", ("ESI", "Foundation")),
     ExternalModule("MachineLearningTurbulenceModels", "mthsmcd/MachineLearningTurbulenceModels", "955df440c5bd38c5cbded3f5c889a655ac57750a", "AGPL-3.0", ("ESI",)),
@@ -87,6 +111,7 @@ class PhysicsConfig:
         return {
             "openfoam": {"vendor": self.openfoam_vendor, "version": self.openfoam_version},
             "modules": [m.__dict__ for m in self.modules],
+            "portedComponents": PORTED_COMPONENTS,
             "capabilities": {
                 "boundaryConditions": bool(self.boundary_conditions),
                 "machineLearningTurbulence": bool(self.turbulence),

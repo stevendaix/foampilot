@@ -43,6 +43,22 @@ def test_writes_non_destructive_support_files(tmp_path: Path):
     assert json.loads((tmp_path / "foampilotPhysics.json").read_text())["openfoam"]["version"] == 13
 
 
+def test_ported_components_use_foundation13_api():
+    root = Path(__file__).parents[3]
+    manifest = PhysicsConfig().manifest()["portedComponents"]
+    assert {"ZYturbulentInlet", "turbulentInletTable", "calculateNut", "calculateGamma"} <= set(manifest)
+    for name, spec in manifest.items():
+        source_root = root / spec["path"]
+        assert source_root.exists()
+        for source in source_root.rglob("*.C"):
+            text = source.read_text(encoding="utf-8")
+            assert "Random.H" not in text
+            assert "fvCFD.H" not in text
+            assert "timeOutputValue" not in text
+            assert ".autoMap(" not in text
+            assert ".rmap(" not in text
+
+
 def test_preflight_catches_missing_nu(tmp_path: Path):
     (tmp_path / "system").mkdir()
     (tmp_path / "constant").mkdir()

@@ -53,6 +53,9 @@ __pycache__/
 !third_party/
 !third_party/yade-openfoam-coupling/
 !third_party/yade-openfoam-coupling/**
+!third_party/openfoam13/
+!third_party/openfoam13/ported/
+!third_party/openfoam13/ported/**
 !validation/
 !validation/yade-openfoam13/
 !validation/yade-openfoam13/**
