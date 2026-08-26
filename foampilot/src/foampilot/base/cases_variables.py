@@ -307,6 +307,21 @@ class CaseFieldsManager:
         """Returns the names of all generated fields."""
         return list(self.fields.keys())
 
+    def set_vof_primary_phase(self, phase: str) -> None:
+        """Select the primary VoF phase field, e.g. ``alpha.vapour``.
+
+        This replaces the historical ``alpha.water``/``alpha.air`` defaults
+        while preserving the generic VoF field-generation workflow.
+        """
+        if not self.is_vof:
+            raise ValueError("set_vof_primary_phase requires a VoF case")
+        if not phase or any(ch.isspace() for ch in phase):
+            raise ValueError("phase must be a non-empty OpenFOAM word")
+        for field_name in list(self.fields):
+            if field_name.startswith("alpha."):
+                self.fields.pop(field_name)
+        self.fields[f"alpha.{phase}"] = {"value": ValueWithUnit(0.0, "")}
+
     def register_field(self, name: str, value: Any, unit: str = "") -> None:
         """Register an additional OpenFOAM field required by a reference case.
 

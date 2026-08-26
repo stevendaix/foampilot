@@ -13,7 +13,7 @@
 | 7 | `XiFluid` | `stratified` | `/opt/openfoam13/tutorials/XiFluid/stratified` | — | À traiter | — | — |
 | 8 | `compressibleMultiphaseVoF` | `damBreak4phaseLaminar` | `/opt/openfoam13/tutorials/compressibleMultiphaseVoF/damBreak4phaseLaminar` | — | À traiter | — | — |
 | 9 | `compressibleVoF` | `angledDuct` | `/opt/openfoam13/tutorials/compressibleVoF/angledDuct` | — | À traiter | — | — |
-| 10 | `compressibleVoF` | `ballValve` | `/opt/openfoam13/tutorials/compressibleVoF/ballValve` | — | À traiter | — | — |
+| 10 | `compressibleVoF` | `ballValve` | `/opt/openfoam13/tutorials/compressibleVoF/ballValve` | `10_compressibleVoF_ballValve` | En cours — audit de référence terminé | `CaseFieldsManager.set_vof_primary_phase`; `PhasePhysicalPropertiesFile` accepte `thermo_type`/`mixture`; `PhasePropertiesFile` accepte un `sigma` dictionnaire; `ConstantDirectory.configure_vof` conserve `pRef` en compressibleVoF | Référence OF13 : phases `vapour/water`, `sigma { type liquidProperties; phase water; }`, `physicalProperties.vapour/water`, RAS `realizableKE`, `pRef`, champs `alpha.vapour`, `T`, `p`, `p_rgh`, `k`, `epsilon`, `nut`, initialisation `potentialFoam`, puis `foamRun`. Runner FoamPilot à construire. |
 | 11 | `compressibleVoF` | `climbingRod` | `/opt/openfoam13/tutorials/compressibleVoF/climbingRod` | — | À traiter | — | — |
 | 12 | `compressibleVoF` | `damBreak` | `/opt/openfoam13/tutorials/compressibleVoF/damBreak` | — | À traiter | — | — |
 | 13 | `compressibleVoF` | `depthCharge2D` | `/opt/openfoam13/tutorials/compressibleVoF/depthCharge2D` | — | À traiter | — | — |

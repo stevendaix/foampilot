@@ -116,7 +116,12 @@ class ConstantDirectory:
             nu = props.get("nu", 1e-6)
             rho = props.get("rho", 1000)
             pp_file = PhasePhysicalPropertiesFile(
-                parent=self.solver, phase=phase, nu=nu, rho=rho
+                parent=self.solver,
+                phase=phase,
+                nu=nu,
+                rho=rho,
+                thermo_type=props.get("thermoType"),
+                mixture=props.get("mixture"),
             )
             pp_file.write(constant_path / f"physicalProperties.{phase}")
 
@@ -129,7 +134,10 @@ class ConstantDirectory:
         mt_file.write(constant_path / "momentumTransport")
 
         # --- Remove files that conflict with the two-phase transport model ---
-        for fname in ("transportProperties", "turbulenceProperties", "pRef"):
+        conflicting_files = ["transportProperties", "turbulenceProperties"]
+        if not getattr(self.solver, "compressible", False):
+            conflicting_files.append("pRef")
+        for fname in conflicting_files:
             fpath = constant_path / fname
             if fpath.exists():
                 fpath.unlink()

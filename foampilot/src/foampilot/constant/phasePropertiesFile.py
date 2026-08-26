@@ -27,7 +27,7 @@ class PhasePropertiesFile(OpenFOAMFile):
         """
         self.parent = parent
         self.phases = list(phases) if phases else ["water", "air"]
-        self.sigma = float(sigma)
+        self.sigma = float(sigma) if isinstance(sigma, (int, float)) else sigma
 
         super().__init__(object_name="phaseProperties")
         self.attributes = {
