@@ -67,3 +67,37 @@ Cette intégration prépare les dictionnaires standards, mais elle ne fournit pa
 [1]: https://www.solids4foam.com/documentation/overview.html "solids4foam — Overview"
 [2]: https://www.solids4foam.com/tutorials/tutorial3.html "solids4foam — beamInCrossFlow"
 [3]: https://github.com/solids4foam/solids4foam "solids4foam — dépôt officiel"
+
+## Connexion automatique avec un modèle Gmsh Foampilot
+
+Lorsque le modèle Gmsh actif contient deux volumes physiques nommés `FLUID` et `SOLID`, ainsi qu’une surface physique `interface`, la génération peut exporter directement les deux régions :
+
+```python
+import gmsh
+from foampilot.solids4foam import Solids4FoamCase
+
+# Le modèle peut être construit avec les helpers géométriques Foampilot.
+gmsh.initialize()
+gmsh.model.add("beamInCrossFlow")
+# ... création des volumes et groupes physiques FLUID, SOLID, interface ...
+gmsh.model.mesh.generate(3)
+
+case = Solids4FoamCase("cases/beamInCrossFlow", fluid_patch="interface", solid_patch="interface")
+result = case.prepare_from_gmsh(
+    fluid_volume="FLUID",
+    solid_volume="SOLID",
+    interface_surface="interface",
+)
+gmsh.finalize()
+```
+
+Cette méthode effectue trois contrôles avant l’export : les deux volumes physiques 3-D existent, le groupe de surface d’interface existe, et la carte des régions associe bien les volumes aux répertoires `fluid` et `solid`. Elle appelle ensuite l’exporteur direct déjà présent dans Foampilot et produit :
+
+```text
+constant/fluid/polyMesh/*
+constant/solid/polyMesh/*
+```
+
+Il ne s’agit pas d’un simple découpage arbitraire du maillage : la continuité géométrique et le nommage des faces d’interface doivent être préparés dans le modèle Gmsh. Une surface commune doit être associée au même nom de patch dans les deux régions. Le contrôle final doit être effectué avec `checkMesh -region fluid` et `checkMesh -region solid`, puis avec un cas solids4foam court avant toute étude paramétrique.
+
+L’exporteur direct sait déjà écrire des maillages multi-régions à partir de groupes physiques 3-D. La nouvelle méthode fournit donc le lien manquant entre les objets Gmsh de Foampilot et la configuration solids4foam, sans ajouter de convertisseur externe.

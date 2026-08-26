@@ -208,6 +208,88 @@ mechanical
             path.write_text(content, encoding="utf-8")
         return {str(path.relative_to(self.case_path)): path for path in files}
 
+    def prepare_from_gmsh(
+        self,
+        *,
+        region_map: Mapping[str, str] | None = None,
+        fluid_volume: str = "FLUID",
+        solid_volume: str = "SOLID",
+        interface_surface: str | None = "interface",
+    ) -> dict[str, object]:
+        """Write configuration and export the active Gmsh model as two regions.
+
+        The active Gmsh model must contain two named 3-D physical groups and,
+        preferably, one shared 2-D physical group for the FSI interface. The
+        existing :class:`DirectOpenFOAMExporter` writes each region to
+        ``constant/<region>/polyMesh``; no external mesh converter is used.
+        """
+        try:
+            import gmsh
+        except ImportError as error:  # pragma: no cover - depends on installation
+            raise Solids4FoamConfigurationError(
+                "prepare_from_gmsh requires the optional gmsh dependency"
+            ) from error
+
+        region_map = dict(region_map or {fluid_volume: "fluid", solid_volume: "solid"})
+        if fluid_volume not in region_map or solid_volume not in region_map:
+            raise Solids4FoamConfigurationError(
+                "region_map must define both fluid and solid physical volumes"
+            )
+        physical_volumes = {
+            gmsh.model.getPhysicalName(3, tag)
+            for _, tag in gmsh.model.getPhysicalGroups(3)
+        }
+        missing = {fluid_volume, solid_volume} - physical_volumes
+        if missing:
+            raise Solids4FoamConfigurationError(
+                "missing Gmsh 3-D physical volume(s): " + ", ".join(sorted(missing))
+            )
+        if interface_surface is not None:
+            physical_surfaces = {
+                gmsh.model.getPhysicalName(2, tag)
+                for _, tag in gmsh.model.getPhysicalGroups(2)
+            }
+            if interface_surface not in physical_surfaces:
+                raise Solids4FoamConfigurationError(
+                    f"missing Gmsh 2-D FSI interface physical group: {interface_surface}"
+                )
+
+        from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+
+        generated = self.write()
+        mesh_paths = DirectOpenFOAMExporter(self.case_path).export_multi_region(
+            region_map=region_map
+        )
+        generated["regionMeshes"] = mesh_paths
+        if interface_surface is not None:
+            expected_patch = interface_surface
+            missing_regions = []
+            for region_name in (region_map[fluid_volume], region_map[solid_volume]):
+                boundary_file = (
+                    self.case_path / "constant" / region_name / "polyMesh" / "boundary"
+                )
+                if not boundary_file.is_file() or not self._boundary_has_patch(
+                    boundary_file, expected_patch
+                ):
+                    missing_regions.append(region_name)
+            if missing_regions:
+                raise Solids4FoamConfigurationError(
+                    "FSI interface patch is missing from region(s): "
+                    + ", ".join(missing_regions)
+                    + ". Assign the shared Gmsh interface surface to both sides "
+                    "of the fluid-solid interface."
+                )
+        return generated
+
+    @staticmethod
+    def _boundary_has_patch(path: Path, patch_name: str) -> bool:
+        """Check a generated OpenFOAM boundary file without a parser dependency."""
+        for line in path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped == patch_name or stripped.startswith(patch_name + " "):
+                return True
+        return False
+
     def run_plan(self, parallel: bool = False) -> list[list[str]]:
         """Return commands in solids4foam's standard serial/parallel workflow."""
         commands: list[list[str]] = [
