@@ -58,6 +58,10 @@ Le tutoriel `solarChimney` a été adapté dans `solar_chimney`. Le runner conse
 
 Le tutoriel `TEGModule` a été adapté dans `teg_module` avec un runner partagé pour `testDevice` et `optimizedDevice`. Le module C++ `solverTEGModule` compile avec succès contre OpenFOAM 13 après ajout des quatre méthodes abstraites introduites par l’interface `solver` 13 : `momentumTransportPredictor`, `thermophysicalTransportPredictor`, `momentumTransportCorrector` et `thermophysicalTransportCorrector`. Les deux runners génèrent leurs dictionnaires et s’arrêtent avant le maillage faute de `cad/backgroundMesh.unv`; le solveur utilisateur `TEGFoam` devra aussi être exposé dans l’environnement avant le calcul.
 
+## Septième portage préparé
+
+Le tutoriel `meshingAHelix` a été adapté dans `meshing_a_helix`. Le runner conserve les deux passes de `snappyHexMesh` — une passe avec couches puis une passe sans couches —, les dictionnaires `meshQualityDict.layer` et `meshQualityDict.normal`, la reconstruction et le `checkMesh` final. Le lancement parallèle de `snappyHexMesh` est appelé explicitement via `mpirun`, car `FoamPilot.run_parallel` est destiné aux calculs `foamRun`. La génération s’arrête avant OpenFOAM faute de `cad/backgroundMesh.unv`, `layer_orig.stl` et `regionSTL_orig.stl` dans le clone Tobias.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
