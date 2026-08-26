@@ -24,6 +24,10 @@ Sous OpenFOAM 13, le solveur recommandé est `foamRun -solver multicomponentFlui
 
 Les options `--nx`, `--ny`, `--end-time` et `--write-interval` sont uniquement destinées aux smoke tests bornés. Sans ces options, le maillage et le temps de calcul restent ceux de la référence publiée.
 
+## Benchmark MPI
+
+Le script `benchmark_mpi.py` exécute le même cas borné avec 1, 2 et 3 rangs MPI, puis `analyze_benchmark.py` calcule le speedup, l’efficacité et produit `benchmark_results/mpi_speedup.png` ainsi qu’un rapport Markdown. Les sorties sont ignorées par Git. Le benchmark de 2×2 cellules valide le chemin MPI, mais il est trop petit pour caractériser le scaling physique du cas 2000×2000 ; pour une mesure exploitable, augmenter `NX`, `NY` et le nombre d’itérations dans le script, puis répéter chaque configuration.
+
 ## Validation
 
 La validation automatisée vérifie que le cas est complet, que le journal du solveur existe et qu’un répertoire de temps numérique est produit. La comparaison quantitative des profils de température, vitesse et espèces doit être réalisée avec les bibliothèques DLBFoam/FickianTransportFoam effectivement compilées et avec le même nombre de processeurs que la référence. Le dépôt source indique qu’au-delà d’environ 150 temps de flamme, le champ doit être remappé pour maintenir la flamme dans le domaine ; cette opération reste une étape physique manuelle du tutoriel original [1].
