@@ -118,9 +118,10 @@ La vérification effectuée le 26 août 2026 confirme que les **61 runners actue
 | `106_incompressibleFluid_venturiTube` | Présent | Présent | Conforme | Accepté avec réserve — convergence PIMPLE à 380 itérations, sondes et profils `graphA`–`graphF` générés avant `End=1000` |
 | `107_incompressibleFluid_waveSubSurface` | Présent | Présent | Conforme | Accepté avec réserve — `setWaves` Stokes5, calcul MPI stable à `Time=96.89 s` avant `End=100 s`, reconstruction non atteinte sous la limite de temps |
 | `108_incompressibleFluid_wingMotion2D_steady` | Présent | Présent | Conforme OF13 | Validé — `End=3000 s`, maillage extrudé et patch `wing` créés, aucun `FOAM FATAL` |
+| `109_incompressibleFluid_wingMotion2D_transient` | Présent | Présent | Conforme OF13 | Accepté avec réserve — sixDoF MPI stable jusqu’à `t≈0,722 s`, limite d’exécution atteinte avant reconstruction |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleFluid/wingMotion2D_steady` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleFluid/wingMotion2D_transient` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).

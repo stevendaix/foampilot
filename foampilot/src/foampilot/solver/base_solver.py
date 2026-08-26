@@ -172,6 +172,30 @@ class BaseSolver:
             target.chmod(target.stat().st_mode | 0o111)
         return target
 
+    def copy_case_tree(
+        self,
+        source_case: str | Path,
+        source_relative: str | Path,
+        destination_relative: str | Path,
+        *,
+        overwrite: bool = True,
+    ) -> Path:
+        """Copy a file or directory between FoamPilot-managed case trees."""
+        source = Path(source_case) / source_relative
+        target = self.case_path / destination_relative
+        if not source.exists():
+            raise FileNotFoundError(source)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if source.is_dir():
+            if target.exists() and not overwrite:
+                raise FileExistsError(target)
+            shutil.copytree(source, target, dirs_exist_ok=overwrite)
+        else:
+            if target.exists() and not overwrite:
+                raise FileExistsError(target)
+            shutil.copy2(source, target)
+        return target
+
     # ---------- Running simulation ----------
     def run_command(self, cmd: List[str], log_filename: str) -> None:
         log_path = self.case_path / log_filename
