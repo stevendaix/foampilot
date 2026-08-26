@@ -57,6 +57,11 @@ _LAZY_ATTRS = {
     "AortaCapMethod": ("foampilot.utilities", "AortaCapMethod"),
     "create_closed_aorta_mesh": ("foampilot.utilities", "create_closed_aorta_mesh"),
     "WindkesselModel": ("foampilot.model_addon.windkessel", "WindkesselModel"),
+    "MODULES": ("foampilot.multiphysics.integration", "MODULES"),
+    "MultiphysicsConfiguration": ("foampilot.multiphysics.integration", "MultiphysicsConfiguration"),
+    "MultiphysicsConfigurationError": ("foampilot.multiphysics.integration", "MultiphysicsConfigurationError"),
+    "build_plan": ("foampilot.multiphysics.integration", "build_plan"),
+    "check_openfoam13": ("foampilot.multiphysics.integration", "check_openfoam13"),
 }
 
 __all__ = sorted(_LAZY_ATTRS)
