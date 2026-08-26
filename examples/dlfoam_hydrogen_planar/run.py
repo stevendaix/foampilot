@@ -11,7 +11,6 @@ import argparse
 import os
 import re
 import shutil
-import subprocess
 from pathlib import Path
 
 from foampilot.solver import Solver
@@ -142,7 +141,7 @@ def run_case(
     mechanism = case_dir / "constant" / "mech"
     if not (mechanism / "Allwmake").is_file():
         raise RuntimeError(f"PyJac build script is missing: {mechanism / 'Allwmake'}")
-    subprocess.run(["bash", "./Allwmake"], cwd=mechanism, check=True)
+    solver.run_external(["bash", "./Allwmake"], "log.mechanism", cwd=mechanism)
     solver.run_command(["blockMesh"], "log.blockMesh")
     if nproc > 1:
         solver.run_command(["decomposePar", "-force"], "log.decomposePar")
@@ -161,16 +160,9 @@ def run_case(
 
 def validate_case(case_dir: Path, solver_name: str) -> None:
     """Fail loudly when the requested solver did not produce a usable result."""
-    log = case_dir / f"log.{solver_name}"
-    if not log.exists():
-        raise RuntimeError(f"Solver log was not produced: {log}")
-    latest = sorted(
-        (p for p in case_dir.iterdir() if p.is_dir() and p.name.replace(".", "", 1).isdigit()),
-        key=lambda p: float(p.name),
-    )
-    if not latest:
-        raise RuntimeError("The solver produced no numeric time directory")
-    print(f"Validated latest OpenFOAM time: {latest[-1].name}")
+    solver = Solver(case_dir)
+    latest = solver.validate_results(f"log.{solver_name}")
+    print(f"Validated latest OpenFOAM time: {latest.name}")
 
 
 def main() -> None:
@@ -201,6 +193,8 @@ def main() -> None:
         print("Preparation only. Add --run to execute OpenFOAM.")
         return
 
+    checker = Solver(case_dir)
+    checker.require_openfoam(13)
     if not command_available("blockMesh"):
         raise RuntimeError("OpenFOAM 13 is not sourced: blockMesh is unavailable")
     if not command_available(args.solver):
