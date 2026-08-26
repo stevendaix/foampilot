@@ -113,9 +113,10 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `101_incompressibleFluid_rotor2DSRF` | Présent | Présent | Conforme | Validé OF13 — maillage partagé, SRF `omega=60 [rpm]`, conditions MRF et `End=2 s` atteints |
 | `102_incompressibleFluid_rotorDisk` | Présent | Présent | Conforme | Accepté avec réserve — zone `rotatingZone`, modèle rotorDisk à `1000 rpm`, convergence SIMPLE à `Time=103 s` avant `End=1000` |
 | `103_incompressibleFluid_simpleRushtonMRF` | Présent | Présent | Conforme | Validé OF13 — double `mirrorMesh`, zone MRF, baffles `stirrer`/`baffles`, `End=4000 s`, sorties de puissance générées |
+| `104_incompressibleFluid_simpleRushtonNCC` | Présent | Présent | Conforme | Validé OF13 — couples non conformes, `splitBaffles`, rotation `5 rpm`, `End=100 s`, erreurs de flux nulles et sorties de puissance générées |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `103_incompressibleFluid_simpleRushtonMRF` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `104_incompressibleFluid_simpleRushtonNCC` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
