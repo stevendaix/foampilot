@@ -4,7 +4,7 @@
 
 Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
 
-La vérification effectuée le 26 août 2026 confirme que les **42 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/mixerVessel2DMRF`.
+La vérification effectuée le 26 août 2026 confirme que les **46 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/shockTube`.
 
 ## Résultats
 
@@ -52,9 +52,13 @@ La vérification effectuée le 26 août 2026 confirme que les **42 runners actue
 | `40_fluid_hotRoomComfort` | Présent | Présent | Conforme | Validé OF13 — convergence à `2356` itérations |
 | `41_fluid_iglooWithFridges` | Présent | Présent | Conforme | Validé OF13 — `End=4000` |
 | `42_fluid_mixerVessel2DMRF` | Présent | Présent | Conforme | Validé OF13 — `End=0.1 s` |
+| `43_fluid_nacaAirfoil` | Présent | Présent | Conforme | Validation OF13 en arrière-plan — cible `End=0.01 s` |
+| `44_fluid_prism` | Présent | Présent | Conforme | Validé OF13 — `End=0.0004 s` |
+| `45_fluid_roomHeating` | Présent | Présent | Conforme | Validation OF13 en arrière-plan — phases steady/transient |
+| `46_fluid_shockTube` | Présent | Présent | Conforme | Validé OF13 — `End=0.007 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `42_fluid_mixerVessel2DMRF` sont effectivement présents. Les cas ajoutés dans cette tranche sont validés sous OF13 aux temps de fin ou critères de convergence documentés dans la matrice.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `46_fluid_shockTube` sont effectivement présents. `prism` et `shockTube` sont validés sous OF13; `nacaAirfoil` et `roomHeating` restent en validation arrière-plan avec progression sans erreur documentée dans la matrice.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
