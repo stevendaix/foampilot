@@ -54,6 +54,10 @@ Le tutoriel `dakotaGeometricVariation` a été adapté dans `dakota_geometric_va
 
 Le tutoriel `solarChimney` a été adapté dans `solar_chimney`. Le runner conserve les dictionnaires thermiques, de radiation et de convection naturelle, puis prévoit `ideasUnvToFoam`, `snappyHexMesh` et un lancement parallèle FoamPilot. La génération des fichiers fonctionne ; le lancement OpenFOAM 13 est bloqué avant le maillage par l’absence de `cad/backgroundMesh.unv` dans le dépôt GitHub source.
 
+## Sixième portage préparé
+
+Le tutoriel `TEGModule` a été adapté dans `teg_module` avec un runner partagé pour `testDevice` et `optimizedDevice`. Le module C++ `solverTEGModule` compile avec succès contre OpenFOAM 13 après ajout des quatre méthodes abstraites introduites par l’interface `solver` 13 : `momentumTransportPredictor`, `thermophysicalTransportPredictor`, `momentumTransportCorrector` et `thermophysicalTransportCorrector`. Les deux runners génèrent leurs dictionnaires et s’arrêtent avant le maillage faute de `cad/backgroundMesh.unv`; le solveur utilisateur `TEGFoam` devra aussi être exposé dans l’environnement avant le calcul.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
