@@ -309,7 +309,7 @@ class BaseSolver:
             logger.info("Serial legacy solver run")
             self.run_command([self.solver_name], log_filename)
 
-    def run_parallel(self, nb_proc: int, log_filename: str | None = None):
+    def run_parallel(self, nb_proc: int, log_filename: str | None = None, force_decompose: bool = False):
 
         if log_filename is None:
             log_filename = f"log.{self.solver_name}"
@@ -331,7 +331,7 @@ class BaseSolver:
         with open(log_path, "w", encoding="utf-8") as log_file:
             log_file.write("=== decomposePar ===\n")
             subprocess.run(
-                ["decomposePar", "-case", str(self.case_path)],
+                ["decomposePar", "-force", "-case", str(self.case_path)] if force_decompose else ["decomposePar", "-case", str(self.case_path)],
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
                 check=True
