@@ -28,7 +28,7 @@
 | 22 | `fluid` | `angledDuctLTS` | `/opt/openfoam13/tutorials/fluid/angledDuctLTS` | — | À traiter | — | — |
 | 23 | `fluid` | `annularThermalMixer` | `/opt/openfoam13/tutorials/fluid/annularThermalMixer` | — | À traiter | — | — |
 | 24 | `fluid` | `blockedChannel` | `/opt/openfoam13/tutorials/fluid/blockedChannel` | — | À traiter | — | — |
-| 25 | `fluid` | `buoyantCavity` | `/opt/openfoam13/tutorials/fluid/buoyantCavity` | — | À traiter | — | — |
+| 25 | `fluid` | `buoyantCavity` | `/opt/openfoam13/tutorials/fluid/buoyantCavity` | `08_thermalBuoyancy` | Validé | `CaseFieldsManager.register_field` pour valeurs initiales de référence | Géométrie source `convertToMeters 0,001`, maillage `35×150×15`, patches `topAndBottom/frontAndBack/hot/cold`, Boussinesq `fluid`, valeurs `k=3,75e-4`, `omega=0,12`, calcul jusqu’à t=1000 sans erreur OpenFOAM. |
 | 26 | `fluid` | `decompressionTank` | `/opt/openfoam13/tutorials/fluid/decompressionTank/decompressionTank` | — | À traiter | — | — |
 | 27 | `fluid` | `externalCoupledCavity` | `/opt/openfoam13/tutorials/fluid/externalCoupledCavity` | — | À traiter | — | — |
 | 28 | `fluid` | `forwardStep` | `/opt/openfoam13/tutorials/fluid/forwardStep` | — | À traiter | — | — |
