@@ -78,13 +78,21 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `66_incompressibleFluid_cavity` | Présent | Présent | Conforme | Validé OF13 — `End=10 s` |
 | `67_incompressibleFluid_cavityCoupledU` | Présent | Présent | Conforme | Validé OF13 — `End=10 s` |
 | `68_incompressibleFluid_channel395` | Présent | Présent | Conforme | En cours — calcul parallèle à 4 processus jusqu’à `End=1000` |
-| `69_incompressibleFluid_cylinder` | Présent | Présent | Conforme | En cours — calcul long jusqu’à `End=5000` |
-| `70_incompressibleFluid_ductSecondaryFlow` | Présent | Présent | Conforme | En cours — calcul long jusqu’à `End=20000` |
-| `71_incompressibleFluid_elipsekkLOmega` | Présent | Présent | Conforme | En cours — calcul à `t≈0.128/1 s` |
+| `69_incompressibleFluid_cylinder` | Présent | Présent | Conforme | Validé OF13 — `End=5000 s` |
+| `70_incompressibleFluid_ductSecondaryFlow` | Présent | Présent | Conforme | Accepté avec réserve — convergence à `Time=5207` avant `End=20000` |
+| `71_incompressibleFluid_elipsekkLOmega` | Présent | Présent | Conforme | En cours — calcul long jusqu’à `End=1 s` |
 | `72_incompressibleFluid_flowWithOpenBoundary` | Présent | Présent | Conforme | Validé OF13 — `End=100 s` |
+| `73_incompressibleFluid_hopperParticles_hopperEmptying` | Présent | Présent | Conforme | Validé OF13 — `End=5 s` |
+| `74_incompressibleFluid_hopperParticles_hopperInitialState` | Présent | Présent | Conforme | Accepté avec réserve — interrompu avant `End=0.25 s` |
+| `75_incompressibleFluid_impeller` | Présent | Présent | Conforme | Accepté avec réserve — progression sans erreur visible vers `End=5 s` |
+| `76_incompressibleFluid_mixerSRF` | Présent | Présent | Conforme | Préparé; validation à reprendre |
+| `77_incompressibleFluid_mixerVessel2D` | Présent | Présent | Conforme | En cours — calcul jusqu’à `End=5 s` |
+| `78_incompressibleFluid_mixerVessel2DMRF` | Présent | Présent | Conforme | En cours — calcul jusqu’à `End=500 s` |
+| `79_incompressibleFluid_mixerVesselHorizontal2DParticles` | Présent | Présent | Conforme | En cours — calcul particulaire OF13 jusqu’à `End=0.25 s` |
+| `80_incompressibleFluid_moodyChart` | Présent | Présent | Conforme | Validé OF13 — `End=2 s`, frictionFactor et Uprofile générés |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `72_incompressibleFluid_flowWithOpenBoundary` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `80_incompressibleFluid_moodyChart` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).

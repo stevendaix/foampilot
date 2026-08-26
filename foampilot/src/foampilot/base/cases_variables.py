@@ -312,7 +312,11 @@ class CaseFieldsManager:
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / (field_name or source.name)
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(source.read_bytes())
+        if source.suffix == ".gz":
+            import gzip
+            target.write_bytes(gzip.decompress(source.read_bytes()))
+        else:
+            target.write_bytes(source.read_bytes())
         return target
 
     def get_field_names(self) -> list[str]:
