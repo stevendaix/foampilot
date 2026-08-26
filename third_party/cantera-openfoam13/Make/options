@@ -1,0 +1,10 @@
+EXE_INC = \
+    -I$(CANTERA_ROOT)/include \
+    -I$(WM_PROJECT_DIR)/src/finiteVolume/lnInclude \
+    -I$(WM_PROJECT_DIR)/src/meshTools/lnInclude
+
+EXE_LIBS = \
+    -L$(CANTERA_ROOT)/lib -lcantera \
+    -lfiniteVolume \
+    -lmeshTools \
+    -lOpenFOAM

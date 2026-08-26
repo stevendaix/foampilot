@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "${ROOT}/../../.." && pwd)"
 if [ -f /opt/openfoam13/etc/bashrc ]; then
     # shellcheck disable=SC1091
     source /opt/openfoam13/etc/bashrc
+else
+    echo "OpenFOAM 13 absent: source /opt/openfoam13/etc/bashrc avant Allrun" >&2
+    exit 2
 fi
-PYTHONPATH="${ROOT}/../../../foampilot/src:${PYTHONPATH:-}" \
-    python3 "${ROOT}/validate.py"
+: "${CANTERA_ROOT:?Définir CANTERA_ROOT vers l’installation C++ de Cantera}"
+export LD_LIBRARY_PATH="${CANTERA_ROOT}/lib:${LD_LIBRARY_PATH:-}"
+(cd "${REPO}/third_party/cantera-openfoam13" && wmake)
+blockMesh -case "${ROOT}/openfoam_case"
+canteraFoam -case "${ROOT}/openfoam_case"
+PYTHONPATH="${REPO}/foampilot/src:${PYTHONPATH:-}" python3 "${ROOT}/validate.py"
