@@ -66,7 +66,7 @@ class FloatingTurbine:
     n_blades: int = 3
     blade_pitch: float = 0.0
     airfoil_data: str = "constant/airfoilData"
-    turbine_library: str = "libfloatingTurbinesFoam.so"
+    turbine_library: str = "libturbinesFoam.so"
     rigid_body_library: str = "libfloatingSixDoFRigidBodyMotion.so"
     coupling: bool = True
     mooring_lines: tuple[MooringLine, ...] = field(default_factory=tuple)
@@ -98,13 +98,12 @@ class FloatingTurbine:
             libraries.append(self.rigid_body_library)
         return tuple(libraries)
 
-    def render_source_dictionary(self, *, cell_zone: str = "rotor", container: str = "fvOptions") -> str:
+    def render_source_dictionary(self, *, cell_zone: str = "rotor", container: str = "fvModels") -> str:
         """Render the actuator-line source in ``fvOptions`` or ``fvModels``.
 
-        The thesis library is registered against the legacy ``fvOptions`` API.
-        A port of that library to OpenFOAM 13 can request ``fvModels``
-        explicitly; silently selecting the newer container would otherwise
-        produce a case that cannot load the historical shared library.
+        The OpenFOAM 13 port is registered against the ``fvModel`` runtime table.
+        ``fvModels`` is therefore the preferred container for the ported
+        library; ``fvOptions`` remains available only for legacy cases.
         """
         if container not in {"fvOptions", "fvModels"}:
             raise ValueError("container must be 'fvOptions' or 'fvModels'")
@@ -239,7 +238,7 @@ sixDoFRigidBodyMotionCoeffs
         case_path: str | Path,
         *,
         cell_zone: str = "rotor",
-        source_container: str = "fvOptions",
+        source_container: str = "fvModels",
         **dynamic_mesh: object,
     ) -> dict[str, Path]:
         """Write only physics-owned dictionaries and return their paths."""

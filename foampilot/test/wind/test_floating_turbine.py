@@ -71,7 +71,7 @@ def test_configure_solver_composes_runtime_libraries():
     FloatingTurbine(mooring_lines=(MooringLine("line1", (0, 0, -1), (0, 0, 0), 1, 2),)).configure_solver(solver)
     assert solver.transient is True
     assert solver.system.controlDict.libs == [
-        "libfloatingTurbinesFoam.so",
+        "libturbinesFoam.so",
         "libfloatingSixDoFRigidBodyMotion.so",
     ]
 
@@ -87,9 +87,9 @@ def test_write_emits_physics_files(tmp_path: Path):
     paths = FloatingTurbine(mooring_lines=(line,)).write(
         tmp_path, mass=1000.0, moment_of_inertia=(1.0, 2.0, 3.0)
     )
-    assert set(paths) == {"fvOptions", "dynamicMeshDict"}
+    assert set(paths) == {"fvModels", "dynamicMeshDict"}
     assert all(path.exists() for path in paths.values())
-    assert "nu" not in paths["fvOptions"].read_text(encoding="utf-8")
+    assert "nu" not in paths["fvModels"].read_text(encoding="utf-8")
 
 
 def test_mooring_line_requires_positive_physics():
