@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Tutoriel 5 : Transport de scalaire passif (scalarTransport function object).
 
-Reference OpenFOAM-13 : tutorials/fluid/stackPlume
-https://develop.openfoam.com/Development/openfoam/-/tree/master/tutorials/fluid/stackPlume
+Reference OpenFOAM-13 : tutorials/incompressibleFluid/pitzDailyScalarTransport
+https://develop.openfoam.com/Development/openfoam/-/tree/master/tutorials/incompressibleFluid/pitzDailyScalarTransport
 
-Ecoulement laminaire dans un canal avec transport d'un scalaire passif (T).
+Écoulement turbulent dans pitzDaily avec transport d'un scalaire passif (T).
 Le scalarTransport est configure comme function object dans controlDict.
 
 Points cles :
@@ -134,32 +134,21 @@ def main():
     solver.boundary.write_boundary_conditions()
 
     # --- 6. Scalar transport function object ---
-    # Create system/scalarTransport function object file
-    scalar_transport_content = """/*--------------------------------*- C++ -*----------------------------------*\\
-| =========                 |                                                 |
-| \\\\      / F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\\\    / O peration     | Version:  13                                    |
-|   \\\\  / A nd           | Website: www.openfoam.org                        |
-|    \\\\/  M anipulation  |                                                 |
-\\*-------------------------------------------------------------------------*/
-
-type            scalarTransport;
-libs            ("libsolverFunctionObjects.so");
-
-field           T;
-schemesField    T;
-diffusivity     viscosity;
-alphal          1;
-alphat          0.85;
-
-writeControl    timeStep;
-writeInterval   50;
-
-// ************************************************************************* //
-"""
-    ft_path = case_path / "system" / "functions" / "scalarTransport"
-    ft_path.parent.mkdir(parents=True, exist_ok=True)
-    ft_path.write_text(scalar_transport_content)
+    # Generate the OpenFOAM 13 function object through Foampilot only.
+    scalar_transport = Functions.scalar_transport(
+        field="T",
+        schemes_field="T",
+        diffusivity="viscosity",
+        alphal=1,
+        alphat=0.85,
+        write_control="timeStep",
+        write_interval=50,
+    )
+    Functions.write_function_object(
+        "scalarTransport",
+        scalar_transport,
+        case_path,
+    )
 
 
     # --- 7. Lancer la simulation ---

@@ -652,6 +652,54 @@ class Functions:
 
             file.write("}\n")
 
+    @staticmethod
+    def scalar_transport(
+        field="T",
+        schemes_field="T",
+        diffusivity="viscosity",
+        alphal=1,
+        alphat=0.85,
+        write_control="timeStep",
+        write_interval=50,
+        libs='("libsolverFunctionObjects.so")',
+    ):
+        """Return a declarative OpenFOAM ``scalarTransport`` function object."""
+        return {
+            "type": "scalarTransport",
+            "libs": libs,
+            "field": field,
+            "schemesField": schemes_field,
+            "diffusivity": diffusivity,
+            "alphal": alphal,
+            "alphat": alphat,
+            "writeControl": write_control,
+            "writeInterval": write_interval,
+        }
+
+    @classmethod
+    def write_function_object(cls, name, function_dict, base_path, folder="system/functions", append=False):
+        """Write an arbitrary OpenFOAM function object from a nested dictionary."""
+        path = Path(base_path) / folder / name
+        cls.check_directory(path.parent)
+
+        def write_value(file, key, value, indent):
+            pad = "    " * indent
+            if isinstance(value, dict):
+                file.write(f"{pad}{key}\n{pad}{{\n")
+                for sub_key, sub_value in value.items():
+                    write_value(file, sub_key, sub_value, indent + 1)
+                file.write(f"{pad}}}\n")
+            elif isinstance(value, (list, tuple)):
+                rendered = " ".join(str(item) for item in value)
+                file.write(f"{pad}{key} ({rendered});\n")
+            else:
+                file.write(f"{pad}{key} {value};\n")
+
+        with open(path, "a" if append else "w") as file:
+            for key, value in function_dict.items():
+                write_value(file, key, value, 1)
+        return path
+
     @classmethod
     def write_functions_in_controlDict(cls, base_path, folder='system', 
                                     control_dict_filename='controlDict', 
