@@ -29,7 +29,7 @@ Le script compile les bibliothèques `buildingMaterialModel`, `grassModel`, `ble
 
 ## Génération et validation avec FoamPilot
 
-Les six répertoires sous `cases/` sont des sorties générées. La configuration des cas est construite depuis les profils Python `UrbanClimateProfile` et les classes `UrbanClimateCase`/`UrbanClimateNativeCaseBuilder`. Le dossier `resources/` ne contient que les géométries et données externes lourdes ; il ne contient aucun dictionnaire `0`, `constant` ou `system`. La génération passe par `run.py` :
+Les six répertoires sous `cases/` sont des sorties générées. La configuration des cas est construite depuis les profils Python `UrbanClimateProfile`, `RegionSpec` et `UrbanClimateNativeCaseBuilder`. Le dossier `resources/` ne contient que les géométries et données externes lourdes ; il ne contient aucun dictionnaire `0`, `constant` ou `system`. La génération passe par `run.py` :
 
 ```sh
 export PYTHONPATH="$PWD/../../foampilot/src${PYTHONPATH:+:$PYTHONPATH}"
@@ -56,10 +56,10 @@ Elle régénère et contrôle la présence de `controlDict`, `decomposeParDict`,
 ./run_case.sh windAroundBuildings_CFDHAM_veg
 ```
 
-Les cas végétalisés requièrent une installation fonctionnelle de `blockMesh`, `decomposePar`, `faceAgglomerate`, `calcLAI`, `viewFactorsGen`, `solarRayTracingGen`, `urbanMicroclimateFoam` et `reconstructPar`. Ils sont exécutés en parallèle conformément aux `decomposeParDict` d’origine. Les cas peuvent être lancés en séquence sur une machine disposant de suffisamment de mémoire ; leurs résultats sont générés dans les répertoires de cas et ne sont pas versionnés.
+Les cas végétalisés requièrent une installation fonctionnelle de `blockMesh`, `faceAgglomerate`, `calcLAI`, `viewFactorsGen`, `solarRayTracingGen` et `urbanMicroclimateFoam`. `Allrun` exécute séquentiellement `blockMesh`, le script généré `make_cell_zones.py`, `faceAgglomerate`, `calcLAI`, `viewFactorsGen`, `solarRayTracingGen`, puis le solveur. Le script crée les cartes `cellZones` et `finalAgglom` et transforme les frontières de vegetation en patches `mapped`/`mappedWall` vers air ; cette approche ne dépend donc pas de `topoSet` ou de `changeDictionary`. Les résultats sont générés dans les répertoires de cas et ne sont pas versionnés.
 
 ## Portage et limites explicites
 
 Les cas proviennent du tag Foundation v12 du projet original. Aucun fichier n’est présenté comme Foundation 13 sans compilation : le solveur et les outils sont portés puis compilés avec `wmake` sous Foundation 13. Les modèles physiques sont conservés, tandis que les changements portent sur les interfaces retirées ou modifiées dans Foundation 13.
 
-Les résultats numériques doivent être vérifiés avec `checkMesh`, les journaux de chaque région et les champs produits. Une réussite de compilation ne remplace pas une validation scientifique ; il faut notamment comparer les températures de surface, les vitesses à hauteur de piéton et les flux chaleur–humidité aux cas de référence du projet d’origine.
+Les résultats numériques doivent être vérifiés avec `checkMesh`, les journaux de chaque région et les champs produits. La compatibilité d’exécution Foundation 13 a été contrôlée pour les profils végétalisés avec maillage, LAI, facteurs de vue, ray-tracing solaire et solveur complets. Une réussite d’exécution ne remplace pas une validation scientifique ; il faut notamment comparer les températures de surface, les vitesses à hauteur de piéton et les flux chaleur–humidité aux cas de référence du projet d’origine.

@@ -13,7 +13,8 @@ CASES = ROOT / "cases"
 
 def _regions(name: str) -> tuple[RegionSpec, ...]:
     profile = PROFILES[name]
-    regions = [RegionSpec("air", "fluid", temperature=300.0, velocity=(1.0, 0.0, 0.0))]
+    velocity = (0.0, 0.0, 0.0) if name == "streetCanyon_CFD" else (1.0, 0.0, 0.0)
+    regions = [RegionSpec("air", "fluid", temperature=285.0, velocity=velocity)]
     if profile.ham:
         regions.extend((RegionSpec("ground", "solid", temperature=300.0), RegionSpec("buildings", "solid", temperature=300.0)))
     if profile.vegetation:
