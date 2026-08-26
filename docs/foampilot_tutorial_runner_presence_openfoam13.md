@@ -1,0 +1,40 @@
+# Contrôle de présence des runners FoamPilot — OpenFOAM 13
+
+## Méthode
+
+Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
+
+La vérification effectuée le 26 août 2026 confirme que les **22 runners actuellement présents** couvrent les 21 équivalents déjà déclarés dans la matrice ainsi que le runner récemment ajouté pour `compressibleVoF/throttle`.
+
+## Résultats
+
+| Équivalent FoamPilot | Dossier | `run.py` | Présence | Statut matrice |
+|---|---|---|---|---|
+| `01_cavity_laminar` | Présent | Présent | Conforme | Validé |
+| `02_simpleCar_turbulent` | Présent | Présent | Conforme | Validé |
+| `03_pitzDaily_step` | Présent | Présent | Conforme | Validation longue partielle |
+| `04_damBreak_multiphase` | Présent | Présent | Conforme | Validé |
+| `05_scalarTransport` | Présent | Présent | Conforme | Validé |
+| `06_buildingAero` | Présent | Présent | Conforme | Validé |
+| `07_motorBike` | Présent | Présent | Conforme | Validé |
+| `08_thermalBuoyancy` | Présent | Présent | Conforme | Validé |
+| `09_CHT_heatedDuct` | Présent | Présent | Conforme | Validé OF13 |
+| `10_compressibleVoF_ballValve` | Présent | Présent | Conforme | Validé OF13 |
+| `11_XiFluid_engine2Valve2D` | Présent | Présent | Conforme | Validé OF13 |
+| `12_XiFluid_moriyoshiHomogeneous` | Présent | Présent | Conforme | Validé OF13 |
+| `13_XiFluid_stratified` | Présent | Présent | Conforme | Validé OF13 |
+| `14_fluid_cavity` | Présent | Présent | Conforme | Validé OF13 |
+| `15_compressibleMultiphaseVoF_damBreak4phaseLaminar` | Présent | Présent | Conforme | Validé OF13 |
+| `16_compressibleVoF_angledDuct` | Présent | Présent | Conforme | Validé OF13 |
+| `17_compressibleVoF_climbingRod` | Présent | Présent | Conforme | Validé OF13 |
+| `18_compressibleVoF_damBreak` | Présent | Présent | Conforme | Validé OF13 |
+| `19_compressibleVoF_depthCharge2D` | Présent | Présent | Conforme | Validé OF13 |
+| `20_compressibleVoF_depthCharge3D` | Présent | Présent | Conforme | Validé OF13 |
+| `21_compressibleVoF_sloshingTank2D` | Présent | Présent | Conforme | Validé OF13 |
+| `22_compressibleVoF_throttle` | Présent | Présent | Conforme | Validé OF13 après calcul parallèle à 4 processus |
+
+## Conclusion
+
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les 21 runners déjà suivis sont donc effectivement présents. Le 22e runner, `22_compressibleVoF_throttle`, est également présent et sa validation OF13 est terminée jusqu’à `End=0.001 s`; il doit être ajouté à la branche et à la matrice lors du prochain commit.
+
+Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).

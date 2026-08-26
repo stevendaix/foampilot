@@ -45,4 +45,4 @@ Pour chaque nouveau tutoriel, le runner doit utiliser uniquement des appels Foam
 
 ## État au 26 août 2026
 
-Les tutoriels validés dans la tranche courante sont `compressibleMultiphaseVoF/damBreak4phaseLaminar`, `compressibleVoF/angledDuct`, `compressibleVoF/climbingRod`, `compressibleVoF/damBreak`, `compressibleVoF/depthCharge2D`, `compressibleVoF/depthCharge3D` et `compressibleVoF/sloshingTank2D`. Le tutoriel `compressibleVoF/throttle` est en cours de validation et ne doit pas encore être marqué comme validé tant que son journal OF13 n’a pas atteint `End=0.001 s`.
+Les tutoriels validés dans la tranche courante sont `compressibleMultiphaseVoF/damBreak4phaseLaminar`, `compressibleVoF/angledDuct`, `compressibleVoF/climbingRod`, `compressibleVoF/damBreak`, `compressibleVoF/depthCharge2D`, `compressibleVoF/depthCharge3D`, `compressibleVoF/sloshingTank2D` et `compressibleVoF/throttle`. Le cas `throttle` a atteint `End=0.001 s` sous OF13 avec `Solver.run_parallel` à quatre processus, sans `FOAM FATAL`.
