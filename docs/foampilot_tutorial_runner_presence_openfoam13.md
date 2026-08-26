@@ -4,7 +4,7 @@
 
 Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
 
-La vérification effectuée le 26 août 2026 confirme que les **25 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés pour `compressibleVoF/throttle`, `fluid/BernardCells`, `fluid/aerofoilNACA0012` et `fluid/aerofoilNACA0012Steady`.
+La vérification effectuée le 26 août 2026 confirme que les **26 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés pour `compressibleVoF/throttle`, `fluid/BernardCells`, `fluid/aerofoilNACA0012`, `fluid/aerofoilNACA0012Steady` et `fluid/angledDuct`.
 
 ## Résultats
 
@@ -35,9 +35,10 @@ La vérification effectuée le 26 août 2026 confirme que les **25 runners actue
 | `23_fluid_BernardCells` | Présent | Présent | Conforme | Validé OF13 — `End=1000` |
 | `24_fluid_aerofoilNACA0012` | Présent | Présent | Conforme | Validé OF13 — `End=0.15 s` |
 | `25_fluid_aerofoilNACA0012Steady` | Présent | Présent | Conforme | Validé OF13 — convergence à `1575` itérations |
+| `26_fluid_angledDuct` | Présent | Présent | Conforme | Validé OF13 — `End=10 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `25_fluid_aerofoilNACA0012Steady` sont effectivement présents. Les cas `throttle`, `BernardCells`, `aerofoilNACA0012` et `aerofoilNACA0012Steady` sont validés sous OF13 aux temps de fin ou critères de convergence documentés dans la matrice.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `26_fluid_angledDuct` sont effectivement présents. Les cas `throttle`, `BernardCells`, `aerofoilNACA0012`, `aerofoilNACA0012Steady` et `angledDuct` sont validés sous OF13 aux temps de fin ou critères de convergence documentés dans la matrice.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
