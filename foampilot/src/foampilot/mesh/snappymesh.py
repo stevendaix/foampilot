@@ -142,7 +142,12 @@ class SnappyMesher:
         target_name = target_name or source.name
         target = self.case_path / "constant" / "triSurface" / target_name
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
+        if source.suffix == ".gz":
+            import gzip
+            with gzip.open(source, "rb") as source_stream, open(target, "wb") as target_stream:
+                shutil.copyfileobj(source_stream, target_stream)
+        else:
+            shutil.copy2(source, target)
         self.stl_file = target
         self.geometry = {}
         self.add_geometry(target.stem, target)

@@ -80,7 +80,7 @@
 | 73 | `incompressibleFluid` | `mixerVessel2DMRF` | `/opt/openfoam13/tutorials/incompressibleFluid/mixerVessel2DMRF` | — | À traiter | — | — |
 | 74 | `incompressibleFluid` | `mixerVesselHorizontal2DParticles` | `/opt/openfoam13/tutorials/incompressibleFluid/mixerVesselHorizontal2DParticles` | — | À traiter | — | — |
 | 75 | `incompressibleFluid` | `moodyChart` | `/opt/openfoam13/tutorials/incompressibleFluid/moodyChart` | — | À traiter | — | — |
-| 76 | `incompressibleFluid` | `motorBike` | `/opt/openfoam13/tutorials/incompressibleFluid/motorBike/motorBike` | — | À traiter | — | — |
+| 76 | `incompressibleFluid` | `motorBike` | `/opt/openfoam13/tutorials/incompressibleFluid/motorBike/motorBike` | `07_motorBike` | Validé CFD — rapport PDF à corriger | `SnappyMesher.import_reference_surface`, `SnappyMesher.run_surface_features` | Asset officiel `resources/geometry/motorBike.obj.gz` importé via Foampilot, maillage snappy et solveur Spalart–Allmaras exécutés jusqu’à End sans erreur OpenFOAM; visualisations et statistiques produites. Génération PDF échouée uniquement faute de `pdflatex`. |
 | 77 | `incompressibleFluid` | `motorBikeSteady` | `/opt/openfoam13/tutorials/incompressibleFluid/motorBikeSteady` | — | À traiter | — | — |
 | 78 | `incompressibleFluid` | `movingCone` | `/opt/openfoam13/tutorials/incompressibleFluid/movingCone` | — | À traiter | — | — |
 | 79 | `incompressibleFluid` | `offsetCylinder` | `/opt/openfoam13/tutorials/incompressibleFluid/offsetCylinder` | — | À traiter | — | — |
