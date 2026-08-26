@@ -34,6 +34,10 @@ Les mêmes sorties de calcul et de maillage ont été contrôlées dans les rép
 
 Ces résultats ne transforment pas les cas bloqués en cas validés. Ils indiquent les prérequis restant à récupérer ou la nécessité d’un délai de calcul adapté.
 
+## Nouveau portage exécuté
+
+Le tutoriel source `fluentMeshForCHTSolver` a été porté dans `fluent_mesh_for_cht`. Le runner FoamPilot écrit les dictionnaires source avec `write_raw`, copie `cad/fluentMesh.cas`, puis exécute `fluentMeshToFoam -writeSets`, `topoSet -constant` et `splitMeshRegions -cellZonesOnly -overwrite` avec OpenFOAM 13. Le lancement s’est terminé avec le code retour 0. Les deux régions produites ont ensuite été contrôlées par `checkMesh` : la région `fluid` contient `128657` cellules et la région `solid` `73311` cellules ; les deux journaux terminent par `Mesh OK.` et `End`.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
