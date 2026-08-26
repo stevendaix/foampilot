@@ -91,6 +91,7 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `79_incompressibleFluid_mixerVesselHorizontal2DParticles` | Présent | Présent | Conforme | En cours — calcul particulaire OF13 jusqu’à `End=0.25 s` |
 | `80_incompressibleFluid_moodyChart` | Présent | Présent | Conforme | Validé OF13 — `End=2 s`, frictionFactor et Uprofile générés |
 | `81_incompressibleFluid_motorBikeSteady` | Présent | Présent | Conforme | Validé OF13 — `End=500 s`, snappyHexMesh MPI et reconstruction réussis |
+| `82_incompressibleFluid_movingCone` | Présent | Présent | Conforme | Validé OF13 — `End=0.0099 s`, maillages mobiles et cutPlane générés |
 
 ## Conclusion
 
