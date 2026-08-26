@@ -185,6 +185,26 @@ class BlockMesher(OpenFOAMFile):
                 f.write(f"    ({pair[0]} {pair[1]});\n")
             f.write(");\n")
             
+    def copy_mesh(self, source_mesh: str, destination: str = "constant") -> Path:
+        """Copy a named mesh ``polyMesh`` into the case constant mesh."""
+        import shutil
+        source = self.case_path / "constant" / "meshes" / source_mesh / "polyMesh"
+        target = self.case_path / destination / "polyMesh"
+        if not source.is_dir():
+            raise FileNotFoundError(source)
+        if target.exists():
+            shutil.rmtree(target)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source, target)
+        return target
+
+    def write_mesh_times(self, times, destination: str = "constant/meshTimes") -> Path:
+        """Write the ordered list of temporal mesh names."""
+        target = self.case_path / destination
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("\\n".join(str(t) for t in times) + "\\n")
+        return target
+
     def create_non_conformal_couples(self) -> None:
         """Create non-conformal couples required by OF13 multi-patch meshes."""
         log_path = self.case_path / "log.createNonConformalCouples"
