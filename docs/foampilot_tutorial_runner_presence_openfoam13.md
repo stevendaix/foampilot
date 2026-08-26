@@ -4,7 +4,7 @@
 
 Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
 
-La vérification effectuée le 26 août 2026 confirme que les **29 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/annularThermalMixer`.
+La vérification effectuée le 26 août 2026 confirme que les **30 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/blockedChannel`.
 
 ## Résultats
 
@@ -39,9 +39,10 @@ La vérification effectuée le 26 août 2026 confirme que les **29 runners actue
 | `27_fluid_angledDuctExplicitFixedCoeff` | Présent | Présent | Conforme | Validé OF13 — convergence à `516` itérations |
 | `28_fluid_angledDuctLTS` | Présent | Présent | Conforme | Validé OF13 — `End=500` |
 | `29_fluid_annularThermalMixer` | Présent | Présent | Conforme | Validé OF13 — `End=2 s` |
+| `30_fluid_blockedChannel` | Présent | Présent | Conforme | Validé OF13 — `End=0.03 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `29_fluid_annularThermalMixer` sont effectivement présents. Les cas ajoutés dans cette tranche sont validés sous OF13 aux temps de fin ou critères de convergence documentés dans la matrice.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `30_fluid_blockedChannel` sont effectivement présents. Les cas ajoutés dans cette tranche sont validés sous OF13 aux temps de fin ou critères de convergence documentés dans la matrice.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
