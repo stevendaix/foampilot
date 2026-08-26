@@ -70,9 +70,10 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `58_incompressibleDriftFlux_tank3D` | Présent | Présent | Conforme | En cours — runner créé et calcul lancé |
 | `59_incompressibleFluid_T3A` | Présent | Présent | Conforme | Accepté avec réserve — convergence à `Time=268` |
 | `60_incompressibleFluid_TJunction` | Présent | Présent | Conforme | Validé OF13 — `End=1.5 s` |
+| `61_incompressibleFluid_TJunctionFan` | Présent | Présent | Conforme | Validé OF13 — `End=1.5 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `60_incompressibleFluid_TJunction` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `61_incompressibleFluid_TJunctionFan` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
