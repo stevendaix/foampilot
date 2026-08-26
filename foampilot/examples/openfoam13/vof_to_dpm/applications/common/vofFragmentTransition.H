@@ -8,6 +8,7 @@
 #include "fvMesh.H"
 #include "volFields.H"
 #include <cstdint>
+#include <limits>
 
 namespace Foam
 {
@@ -15,11 +16,29 @@ namespace Foam
 struct vofFragmentTransitionRecord
 {
     labelList cells;
+    labelList globalCells;
     std::uint64_t id;
     scalar volume;
     vector centroid;
     vector velocity;
 };
+
+inline Ostream& operator<<(Ostream& os, const vofFragmentTransitionRecord& f)
+{
+    os << f.cells << f.globalCells << f.id << f.volume << f.centroid << f.velocity;
+    return os;
+}
+
+inline Istream& operator>>(Istream& is, vofFragmentTransitionRecord& f)
+{
+    is >> f.cells >> f.globalCells >> f.id >> f.volume >> f.centroid >> f.velocity;
+    return is;
+}
+
+inline bool operator!=(const vofFragmentTransitionRecord& a, const vofFragmentTransitionRecord& b)
+{
+    return a.id != b.id;
+}
 
 class vofFragmentTransition
 {
@@ -30,7 +49,8 @@ public:
         const volVectorField& U,
         const scalar threshold,
         const label minCells,
-        const scalar minVolume
+        const scalar minVolume,
+        const labelList* globalCellIds = nullptr
     )
     {
         const fvMesh& mesh = alpha.mesh();
@@ -91,12 +111,21 @@ public:
             vofFragmentTransitionRecord fragment;
             fragment.cells.transfer(component);
             Foam::sort(fragment.cells);
-            fragment.id = 1469598103934665603ULL;
+            fragment.globalCells.setSize(fragment.cells.size());
+            fragment.id = std::numeric_limits<std::uint64_t>::max();
             forAll(fragment.cells, cellI)
             {
-                fragment.id ^=
-                    static_cast<std::uint64_t>(fragment.cells[cellI] + 1);
-                fragment.id *= 1099511628211ULL;
+                const label localCell = fragment.cells[cellI];
+                const label identityCell =
+                    globalCellIds
+                  ? (*globalCellIds)[localCell]
+                  : localCell;
+                fragment.globalCells[cellI] = identityCell;
+                fragment.id = min
+                (
+                    fragment.id,
+                    static_cast<std::uint64_t>(identityCell)
+                );
             }
             fragment.volume = fragmentVolume;
             fragment.centroid = fragmentCentroid/fragmentVolume;

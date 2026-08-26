@@ -1,10 +1,26 @@
 #include "vofFragmentInjection.H"
+#include "Pstream.H"
 
 namespace Foam
 {
 
 namespace
 {
+
+inline void vofInjectionTrace
+(
+    const word& cloudName,
+    const word& phase,
+    const label timeIndex,
+    const string& message
+)
+{
+    Pout<< "[vofFragmentInjection] rank=" << Pstream::myProcNo()
+        << " cloud=" << cloudName
+        << " phase=" << phase
+        << " timeIndex=" << timeIndex
+        << " " << message << nl << flush;
+}
 
 template<class Parcel>
 auto setInjectedTemperature(Parcel& parcel, const scalar T, int)
@@ -52,7 +68,8 @@ vofFragmentInjection<CloudType>::vofFragmentInjection
     lastTimeIndex_(-1),
     expectedMass_(0),
     injectedIds_(),
-    injectedCellSets_()
+    injectedCellSets_(),
+    confirmationStoreName_("vofConfirmations." + owner.name())
 {}
 
 
@@ -82,94 +99,156 @@ vofFragmentInjection<CloudType>::vofFragmentInjection
     lastTimeIndex_(other.lastTimeIndex_),
     expectedMass_(other.expectedMass_),
     injectedIds_(other.injectedIds_),
-    injectedCellSets_(other.injectedCellSets_)
+    injectedCellSets_(other.injectedCellSets_),
+    confirmationStoreName_(other.confirmationStoreName_)
 {}
 
 
 template<class CloudType>
 void vofFragmentInjection<CloudType>::prepare()
 {
-    if (prepared_)
+    const label timeIndex = this->owner().db().time().timeIndex();
+
+    vofInjectionTrace
+    (
+        this->owner().name(),
+        "prepare.begin",
+        timeIndex,
+        "prepared=" + name(prepared_)
+      + " lastTimeIndex=" + name(lastTimeIndex_)
+      + " injectedIds=" + name(injectedIds_.size())
+    );
+
+    if (prepared_ && lastTimeIndex_ == timeIndex)
     {
+        vofInjectionTrace
+        (
+            this->owner().name(),
+            "prepare.cached-return",
+            timeIndex,
+            "fragments=" + name(fragments_.size())
+        );
         return;
     }
 
-    const List<vofFragmentTransitionRecord> detected =
-        vofFragmentTransition::detect
+    const word batchName =
+        "vofLocalTransitionBatch." + this->owner().name();
+
+    fragments_.clear();
+    prepared_ = false;
+    emitted_ = false;
+
+    if
+    (
+        !this->owner().db().template foundObject
+        <vofLocalTransitionBatch>(batchName)
+    )
+    {
+        lastTimeIndex_ = timeIndex;
+        prepared_ = true;
+
+        vofInjectionTrace
         (
-            alpha_,
-            U_,
-            threshold_,
-            minCells_,
-            minVolume_
+            this->owner().name(),
+            "prepare.no-batch-return",
+            timeIndex,
+            "batch=" + batchName
+        );
+        return;
+    }
+
+    const vofLocalTransitionBatch& published =
+        this->owner().db().template lookupObject
+        <vofLocalTransitionBatch>(batchName);
+
+    vofInjectionTrace
+    (
+        this->owner().name(),
+        "prepare.batch-found",
+        timeIndex,
+        "publishedTimeIndex=" + name(published.timeIndex())
+      + " fragments=" + name(published.fragments().size())
+    );
+
+    if (published.timeIndex() != timeIndex)
+    {
+        FatalErrorInFunction
+            << "Stale local transition batch for cloud "
+            << this->owner().name()
+            << ": batch timeIndex=" << published.timeIndex()
+            << ", current timeIndex=" << timeIndex
+            << exit(FatalError);
+    }
+
+    DynamicList<std::uint64_t> activeIds(published.fragments().size());
+
+    forAll(published.fragments(), fragmentI)
+    {
+        const vofGlobalFragment& global =
+            published.fragments()[fragmentI];
+
+        if (global.ownerProc != Pstream::myProcNo())
+        {
+            continue;
+        }
+
+        if (global.localCells.empty())
+        {
+            FatalErrorInFunction
+                << "Owner fragment " << global.id
+                << " has no localCells"
+                << exit(FatalError);
+        }
+
+        vofFragmentTransitionRecord local;
+        local.id = global.id;
+        local.cells = global.localCells;
+        local.globalCells = global.globalCells;
+        local.volume = global.volume;
+        local.centroid = global.centroid;
+        local.velocity = global.velocity;
+
+        activeIds.append(local.id);
+
+        vofInjectionTrace
+        (
+            this->owner().name(),
+            "prepare.fragment",
+            timeIndex,
+            "id=" + name(local.id)
+          + " globalCells=" + name(local.globalCells.size())
+          + " localCells=" + name(local.cells.size())
         );
 
-    DynamicList<std::uint64_t> activeIds(detected.size());
-    forAll(detected, fragmentI)
-    {
-        activeIds.append(detected[fragmentI].id);
-    }
-    DynamicList<std::uint64_t> retainedIds(activeIds.size());
-    forAll(injectedIds_, idI)
-    {
-        forAll(activeIds, activeI)
-        {
-            if (activeIds[activeI] == injectedIds_[idI])
-            {
-                retainedIds.append(injectedIds_[idI]);
-                break;
-            }
-        }
-    }
-    injectedIds_.transfer(retainedIds);
-
-    DynamicList<vofFragmentTransitionRecord> fresh(detected.size());
-    forAll(detected, fragmentI)
-    {
         bool alreadyInjected = false;
         forAll(injectedIds_, idI)
         {
-            if (injectedIds_[idI] == detected[fragmentI].id)
+            if (injectedIds_[idI] == local.id)
             {
                 alreadyInjected = true;
                 break;
             }
         }
-        forAll(injectedCellSets_, setI)
-        {
-            if (alreadyInjected)
-            {
-                break;
-            }
-            forAll(detected[fragmentI].cells, cellI)
-            {
-                forAll(injectedCellSets_[setI], oldCellI)
-                {
-                    if (detected[fragmentI].cells[cellI]
-                     == injectedCellSets_[setI][oldCellI])
-                    {
-                        alreadyInjected = true;
-                        break;
-                    }
-                }
-                if (alreadyInjected)
-                {
-                    break;
-                }
-            }
-        }
+
         if (!alreadyInjected)
         {
-            fresh.append(detected[fragmentI]);
+            fragments_.append(local);
         }
     }
-    fragments_.transfer(fresh);
 
     coordinates_.setSize(fragments_.size());
     cells_.setSize(fragments_.size(), -1);
     tetFaces_.setSize(fragments_.size(), -1);
     tetPts_.setSize(fragments_.size(), -1);
     diameters_.setSize(fragments_.size(), 0);
+
+    vofInjectionTrace
+    (
+        this->owner().name(),
+        "prepare.before-mesh-search",
+        timeIndex,
+        "ownedFragments=" + name(fragments_.size())
+    );
 
     const meshSearch& searchEngine = meshSearch::New(this->owner().mesh());
     forAll(fragments_, fragmentI)
@@ -183,6 +262,25 @@ void vofFragmentInjection<CloudType>::prepare()
             tetFaces_[fragmentI],
             tetPts_[fragmentI]
         );
+
+        bool cellBelongsToFragment = false;
+        forAll(fragments_[fragmentI].cells, cellI)
+        {
+            if (fragments_[fragmentI].cells[cellI] == cells_[fragmentI])
+            {
+                cellBelongsToFragment = true;
+                break;
+            }
+        }
+
+        if (!cellBelongsToFragment)
+        {
+            FatalErrorInFunction
+                << "Centroid of fragment " << fragments_[fragmentI].id
+                << " was located outside its localCells"
+                << exit(FatalError);
+        }
+
         diameters_[fragmentI] =
             pow
             (
@@ -191,7 +289,57 @@ void vofFragmentInjection<CloudType>::prepare()
                 scalar(1)/3
             );
     }
+
+    lastTimeIndex_ = timeIndex;
     prepared_ = true;
+
+    vofInjectionTrace
+    (
+        this->owner().name(),
+        "prepare.end",
+        timeIndex,
+        "fragments=" + name(fragments_.size())
+      + " expectedMass=" + name(expectedMass_)
+    );
+}
+
+
+template<class CloudType>
+vofLocalConfirmationStore&
+vofFragmentInjection<CloudType>::confirmationStore() const
+{
+    const objectRegistry& db = this->owner().db();
+
+    if (!db.template foundObject<vofLocalConfirmationStore>
+        (confirmationStoreName_))
+    {
+        autoPtr<vofLocalConfirmationStore> store
+        (
+            new vofLocalConfirmationStore(db, confirmationStoreName_)
+        );
+        regIOobject::store(store.ptr());
+    }
+
+    return const_cast<objectRegistry&>(db).template lookupObjectRef
+    <vofLocalConfirmationStore>(confirmationStoreName_);
+}
+
+
+template<class CloudType>
+const DynamicList<vofParcelConfirmation>&
+vofFragmentInjection<CloudType>::confirmations() const
+{
+    return confirmationStore().confirmations();
+}
+
+
+template<class CloudType>
+void vofFragmentInjection<CloudType>::clearConfirmations() const
+{
+    confirmationStore().clear
+    (
+        this->owner().db().time().timeIndex()
+    );
 }
 
 
@@ -215,29 +363,29 @@ void vofFragmentInjection<CloudType>::postInject
      && parcelsAdded == fragments_.size()
      && massConfirmed;
 
+    vofLocalConfirmationStore& store = confirmationStore();
+    forAll(fragments_, fragmentI)
+    {
+        vofParcelConfirmation confirmation;
+        confirmation.fragmentId = fragments_[fragmentI].id;
+        confirmation.ownerProc = Pstream::myProcNo();
+        confirmation.parcelsAdded = confirmed ? 1 : 0;
+        confirmation.expectedMass =
+            rhoLiquid_ > 0
+          ? rhoLiquid_*fragments_[fragmentI].volume
+          : rho_[cells_[fragmentI]]*fragments_[fragmentI].volume;
+        confirmation.massAdded =
+            confirmed ? confirmation.expectedMass : scalar(0);
+        confirmation.success = confirmed;
+        store.append(confirmation);
+    }
+
     if (!confirmed)
     {
         emitted_ = false;
         prepared_ = false;
         expectedMass_ = 0;
         return;
-    }
-
-    if (this->owner().db().template foundObject<volScalarField>
-        ("vofConfirmedTransferRate"))
-    {
-        volScalarField& confirmedRate =
-            this->owner().db().template lookupObjectRef<volScalarField>
-            ("vofConfirmedTransferRate");
-        const scalar rate = 1/this->owner().db().time().deltaTValue();
-        forAll(fragments_, fragmentI)
-        {
-            const labelList& cells = fragments_[fragmentI].cells;
-            forAll(cells, cellI)
-            {
-                confirmedRate.internalFieldRef()[cells[cellI]] = rate;
-            }
-        }
     }
 
     forAll(fragments_, fragmentI)
@@ -273,6 +421,16 @@ Foam::scalar vofFragmentInjection<CloudType>::nParcelsToInject
 )
 {
     const label timeIndex = this->owner().db().time().timeIndex();
+
+    vofInjectionTrace
+    (
+        this->owner().name(),
+        "nParcelsToInject.begin",
+        timeIndex,
+        "prepared=" + name(prepared_)
+      + " emitted=" + name(emitted_)
+      + " lastTimeIndex=" + name(lastTimeIndex_)
+    );
     if (timeIndex != lastTimeIndex_)
     {
         lastTimeIndex_ = timeIndex;
@@ -280,7 +438,23 @@ Foam::scalar vofFragmentInjection<CloudType>::nParcelsToInject
         emitted_ = false;
     }
 
+    vofInjectionTrace
+    (
+        this->owner().name(),
+        "nParcelsToInject.before-prepare",
+        timeIndex,
+        "calling prepare"
+    );
+
     prepare();
+
+    vofInjectionTrace
+    (
+        this->owner().name(),
+        "nParcelsToInject.after-prepare",
+        timeIndex,
+        "fragments=" + name(fragments_.size())
+    );
 
     // A spray fragment may appear only after the liquid jet has entered
     // the domain.  Do not cache an empty first scan forever.
@@ -289,6 +463,16 @@ Foam::scalar vofFragmentInjection<CloudType>::nParcelsToInject
     {
         prepared_ = false;
     }
+    vofInjectionTrace
+    (
+        this->owner().name(),
+        "nParcelsToInject.end",
+        timeIndex,
+        "return=" + name(nParcels)
+      + " emitted=" + name(emitted_)
+      + " fragments=" + name(fragments_.size())
+    );
+
     return nParcels;
 }
 

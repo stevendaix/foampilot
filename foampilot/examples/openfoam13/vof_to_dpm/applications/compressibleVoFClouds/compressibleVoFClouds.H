@@ -8,7 +8,7 @@
 #include "uniformDimensionedFields.H"
 #include "volFields.H"
 #include "fvMatrices.H"
-#include "vofFragmentTransition.H"
+#include "vofFragmentTransitionManager.H"
 
 namespace Foam
 {
@@ -38,6 +38,25 @@ class compressibleVoFClouds : public fvModel
     const scalar minVolume_;
     const Switch detectFragments_;
     mutable label curTimeIndex_;
+    mutable autoPtr<vofFragmentTransitionManager> transitionManagerPtr_;
+    mutable vofFragmentBatch transitionBatch_;
+
+    void publishLocalBatchForEachCloud(const label timeIndex) const;
+
+    void commitDirectLocalParcels
+    (
+        List<vofParcelConfirmation>& localConfirmations
+    ) const;
+
+    List<vofParcelConfirmation> collectLocalInjectionConfirmations
+    (
+        const label timeIndex
+    ) const;
+
+    void applyConfirmedResults
+    (
+        const List<vofParcelConfirmation>& results
+    ) const;
 
 public:
     TypeName("compressibleVoFClouds");

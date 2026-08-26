@@ -4,15 +4,15 @@
 **Branche de référence :** `feat/vof-to-dpm-conservative-transition`  
 **Pull Request :** [#24](https://github.com/stevendaix/foampilot/pull/24)  
 **Environnement validé :** OpenFOAM Foundation 13, C++14, Ubuntu 24.04  
-**Dernière mise à jour :** 25 août 2026
+**Dernière mise à jour :** 26 août 2026
 
 ## Synthèse
 
-Le portage VOF-to-DPM est maintenant **fonctionnel et validé sur les cas nominaux séquentiels OpenFOAM 13**. Il couvre l’extraction offline de fragments, la détection native de composantes VOF, la création dynamique de parcels, le couplage mécanique incompressible et compressible, ainsi que le chemin thermodynamique `thermoCloud` avec transfert d’enthalpie.
+Le portage VOF-to-DPM est maintenant **fonctionnel et validé en séquentiel et en MPI sur OpenFOAM 13** pour le périmètre nominal documenté. Il couvre l’extraction offline de fragments, la détection native de composantes VOF, la création dynamique de parcels, le couplage mécanique incompressible et compressible, ainsi que le chemin thermodynamique `thermoCloud` avec transfert d’enthalpie. Le chemin MPI de création utilise désormais un **Direct Commit** local qui contourne les callbacks collectifs de `InjectionModel`.
 
-La conversion est organisée comme une transaction conservatrice. Le fragment est d’abord préparé, puis la création effective du parcel est confirmée par le hook `postInject()`. Le volume ou la masse VOF n’est consommé et les sources Euleriennes ne sont armées qu’après cette confirmation.
+La conversion est organisée comme une transaction conservatrice. Le fragment est réconcilié globalement, son rang propriétaire construit directement le parcel via l’API patchée `parcelCloudList::commitDirect()`, puis la création effective est confirmée par le cycle MPI du `fvModel`. Le volume, la masse VOF et les sources eulériennes ne sont armés qu’après cette confirmation. Aucun callback d’injection contenant une collective MPI n’est utilisé dans ce chemin.
 
-> **Statut global :** prêt pour revue et merge pour le périmètre OpenFOAM 13 nominal documenté ; extension parallèle, multi-composants et géométriquement pathologique encore hors couverture de régression.
+> **Statut global :** prêt pour revue et merge pour le périmètre OpenFOAM 13 nominal, y compris le cas thermoCloud MPI à deux rangs ; les extensions multi-composants, maillages pathologiques et configurations multi-cloud restent hors qualification.
 
 ## Matrice de fonctionnalités
 
@@ -23,15 +23,15 @@ La conversion est organisée comme une transaction conservatrice. Le fragment es
 | Volume pondéré `sum(alpha × V)` | **Terminée** | Bilan spray, erreur relative `0.0` |
 | Centroïde, vitesse moyenne, diamètre équivalent | **Terminée** | Tests Python |
 | Détection native runtime | **Terminée** | `vofFragmentInjection` |
-| Identifiants déterministes FNV-1a | **Terminée** | Cas multi-pas |
+| Identifiants déterministes par numérotation globale | **Terminée** | Tri global des centres de cellules, indépendant de la décomposition |
 | Prévention des doublons par identifiant et cellules | **Terminée** | Spray multi-pas |
 | Confirmation effective de création | **Terminée** | `postInject()`, mode `nParticle` |
 | Consommation VOF après confirmation | **Terminée** | Cas incompressible/compressible |
 | Couplage mécanique incompressible | **Terminée** | `incompressibleVoFCloudsDamBreak` |
 | Couplage alpha-rho compressible | **Terminée** | `compressibleVoFCloudsDamBreak` |
-| Parcels thermodynamiques `thermoCloud` | **Terminée** | Cas thermoCloud dédié |
+| Parcels thermodynamiques `thermoCloud` | **Terminée** | Cas thermoCloud dédié séquentiel et MPI |
 | Transfert d’enthalpie confirmé | **Terminée** | Une application vers `e.water` par batch |
-| Validation MPI et réconciliation inter-rangs | **À faire** | Pas encore de régression dédiée |
+| Numérotation globale séquentielle/MPI | **Terminée** | Rassemblement global, diffusion et cas thermoCloud MPI à deux rangs |
 | Maillages fortement non orthogonaux / topologie variable | **À faire** | Durcissement de `findCellAtPosition` |
 | Mélanges multi-composants thermodynamiques | **À faire** | Cas H2O monophasé uniquement |
 
@@ -77,17 +77,23 @@ Le cas thermoCloud dédié vérifie l’initialisation de `thermoCloud`, la déc
 | Bibliothèques C++ OpenFOAM 13 | Compilation réussie |
 | Cas incompressibles et compressibles nominaux | Fin normale |
 | Exemple spray | `5` parcels finaux, erreur masse-volume `0.0` |
-| Cas thermoCloud | `1` batch confirmé de `0.646099 kg` |
+| Cas thermoCloud MPI | `1` commit direct confirmé de `0.646099 kg`, fin `End` |
 | Source d’enthalpie thermoCloud | `1` application confirmée |
-| Arbre Git après nettoyage | Propre |
+| Audit thermoCloud MPI | Tous les checks conservation, fin solveur et absence d’erreur : `pass=true` |
 
 ## Limites et recommandations
 
-La confirmation transactionnelle sécurise le chemin nominal, mais elle ne remplace pas une stratégie de redistribution MPI. Pour une utilisation parallèle, il faudra réconcilier les composantes traversant les frontières de décomposition et garantir l’unicité du commit global.
+La détection n’utilise plus le hash FNV-1a ni les labels locaux pour l’identité persistante. Le manager rassemble les centres des cellules sur le maître, les trie lexicographiquement selon `(x, y, z)`, attribue les indices globaux `[0, N-1]`, puis redistribue la table locale à chaque rang. Un maillage contenant deux centres exactement coïncidents est rejeté, car une numérotation géométrique serait alors ambiguë. La réconciliation des composantes traversant les frontières processor utilise ensuite ces indices globaux pour agréger les cellules et choisir un propriétaire déterministe.
+
+La compilation OpenFOAM 13 du manager, de la détection, du chemin Direct Commit et des deux `fvModel` est validée. L’exécution MPI complète de `run_thermoDamBreak_parallel.sh` avec deux rangs atteint `End`, produit `VOF direct commit ... success=true`, confirme `0.646099 kg` et passe l’audit automatisé. Le patch framework doit être appliqué avant la compilation de l’exemple.
 
 La localisation du centroïde par `findCellAtPosition` doit encore être durcie pour les fragments proches d’une frontière, les maillages fortement non orthogonaux et les changements topologiques. Un fragment non localisable devra être rejeté sans armer de source ni de consommation.
 
 La validation thermoCloud actuelle utilise une composition liquide H2O monophasée. Un cas multi-composants avec bilan d’enthalpie indépendant serait nécessaire avant d’étendre la qualification aux sprays réactifs ou aux mélanges liquides complexes.
+
+## Patch framework requis
+
+Le Direct Commit nécessite le patch versionné `examples/openfoam13/vof_to_dpm/patches/openfoam13/commitDirect.patch`. Les instructions d’application et les limites de l’API sont décrites dans `patches/openfoam13/README.md`. Sans ce patch, le lien dynamique échoue avec un symbole `parcelCloudList::commitDirect` absent.
 
 ## Références
 

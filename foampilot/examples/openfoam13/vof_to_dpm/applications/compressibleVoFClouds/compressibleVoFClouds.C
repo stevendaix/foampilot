@@ -152,7 +152,22 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
     minCells_(dict.lookupOrDefault<label>("minCells", 1)),
     minVolume_(dict.lookupOrDefault<scalar>("minVolume", 0)),
     detectFragments_(dict.lookupOrDefault<Switch>("detectFragments", true)),
-    curTimeIndex_(-1)
+    curTimeIndex_(-1),
+    transitionManagerPtr_
+    (
+        new vofFragmentTransitionManager
+        (
+            mesh,
+            liquidAlpha_,
+            mesh.lookupObject<volVectorField>("U"),
+            mixture_.rho(),
+            alphaThreshold_,
+            minCells_,
+            minVolume_,
+            dict.lookupOrDefault<scalar>("rhoLiquid", 0)
+        )
+    ),
+    transitionBatch_()
 {
     if
     (
@@ -241,6 +256,169 @@ void Foam::fv::compressible::compressibleVoFClouds::addSup
     }
 }
 
+Foam::List<Foam::vofParcelConfirmation>
+Foam::fv::compressible::compressibleVoFClouds::collectLocalInjectionConfirmations
+(
+    const label timeIndex
+) const
+{
+    List<vofParcelConfirmation> result;
+    forAll(cloudNames_, cloudI)
+    {
+        const word name = "vofConfirmations." + cloudNames_[cloudI];
+        if (!mesh().foundObject<vofLocalConfirmationStore>(name))
+        {
+            continue;
+        }
+        const vofLocalConfirmationStore& store =
+            mesh().lookupObject<vofLocalConfirmationStore>(name);
+        if (store.timeIndex() != timeIndex)
+        {
+            FatalErrorInFunction
+                << "Stale confirmation store for cloud "
+                << cloudNames_[cloudI] << exit(FatalError);
+        }
+        forAll(store.confirmations(), confirmationI)
+        {
+            result.append(store.confirmations()[confirmationI]);
+        }
+    }
+    return result;
+}
+
+
+void Foam::fv::compressible::compressibleVoFClouds::applyConfirmedResults
+(
+    const List<vofParcelConfirmation>& results
+) const
+{
+    const scalar rate = 1/mesh().time().deltaTValue();
+    forAll(results, resultI)
+    {
+        if (!results[resultI].success)
+        {
+            continue;
+        }
+        forAll(transitionBatch_.fragments, fragmentI)
+        {
+            const vofGlobalFragment& fragment =
+                transitionBatch_.fragments[fragmentI];
+            if
+            (
+                fragment.id == results[resultI].fragmentId
+             && fragment.ownerProc == Pstream::myProcNo()
+            )
+            {
+                forAll(fragment.localCells, cellI)
+                {
+                    confirmedTransferRate_
+                    [fragment.localCells[cellI]] = rate;
+                }
+                break;
+            }
+        }
+    }
+}
+
+
+void Foam::fv::compressible::compressibleVoFClouds::publishLocalBatchForEachCloud
+(
+    const label timeIndex
+) const
+{
+    forAll(cloudNames_, cloudI)
+    {
+        const word objectName =
+            "vofLocalTransitionBatch." + cloudNames_[cloudI];
+
+        if (!mesh().foundObject<vofLocalTransitionBatch>(objectName))
+        {
+            autoPtr<vofLocalTransitionBatch> object
+            (
+                new vofLocalTransitionBatch(mesh(), objectName)
+            );
+            regIOobject::store(object.ptr());
+        }
+
+        vofLocalTransitionBatch& object =
+            const_cast<fvMesh&>(mesh()).lookupObjectRef
+            <vofLocalTransitionBatch>(objectName);
+        object.reset(transitionBatch_, timeIndex);
+
+        const word confirmationName =
+            "vofConfirmations." + cloudNames_[cloudI];
+        if (!mesh().foundObject<vofLocalConfirmationStore>(confirmationName))
+        {
+            autoPtr<vofLocalConfirmationStore> confirmationStore
+            (
+                new vofLocalConfirmationStore(mesh(), confirmationName)
+            );
+            regIOobject::store(confirmationStore.ptr());
+        }
+        const_cast<fvMesh&>(mesh()).lookupObjectRef
+        <vofLocalConfirmationStore>(confirmationName).clear(timeIndex);
+    }
+}
+
+
+void Foam::fv::compressible::compressibleVoFClouds::commitDirectLocalParcels
+(
+    List<vofParcelConfirmation>& localConfirmations
+) const
+{
+    if (cloudNames_.empty())
+    {
+        return;
+    }
+
+    const scalar pi = 3.14159265358979323846;
+    const scalar minValue = SMALL;
+
+    forAll(transitionBatch_.fragments, fragmentI)
+    {
+        const vofGlobalFragment& fragment =
+            transitionBatch_.fragments[fragmentI];
+
+        if
+        (
+            fragment.ownerProc != Pstream::myProcNo()
+         || fragment.localCells.empty()
+         || fragment.volume <= minValue
+         || fragment.mass <= minValue
+        )
+        {
+            continue;
+        }
+
+        parcelCloud::directParcelData data;
+        data.position = fragment.centroid;
+        data.celli = fragment.localCells[0];
+        data.diameter = cbrt(6*fragment.volume/pi);
+        data.density = fragment.mass/fragment.volume;
+        data.velocity = fragment.velocity;
+        data.nParticle = 1;
+        data.temperature = fragment.temperature;
+        data.Cp = -GREAT;
+
+        const bool committed =
+            cloudsPtr_().commitDirect(cloudNames_[0], data, -1);
+
+        vofParcelConfirmation confirmation;
+        confirmation.fragmentId = fragment.id;
+        confirmation.ownerProc = Pstream::myProcNo();
+        confirmation.parcelsAdded = committed ? 1 : 0;
+        confirmation.massAdded = committed ? fragment.mass : scalar(0);
+        confirmation.expectedMass = fragment.mass;
+        confirmation.success = committed;
+        localConfirmations.append(confirmation);
+
+        Info<< "VOF direct commit fragmentId=" << fragment.id
+            << " success=" << committed
+            << " mass=" << confirmation.massAdded << nl;
+    }
+}
+
+
 void Foam::fv::compressible::compressibleVoFClouds::correct()
 {
     if (curTimeIndex_ == mesh().time().timeIndex())
@@ -254,40 +432,140 @@ void Foam::fv::compressible::compressibleVoFClouds::correct()
         dimensionedScalar(dimless/dimTime, 0);
     consumptionPending_ = false;
     energyTransferPending_ = false;
+    transitionBatch_ = vofFragmentBatch();
+    transitionBatch_.timeIndex = mesh().time().timeIndex();
+    fragmentMask_.internalFieldRef() = scalar(0);
+
+    scalar detectedMass = 0;
+    scalar preparedMass = 0;
+    scalar detectedEnthalpy = 0;
+    scalar preparedEnthalpy = 0;
+    const volScalarField& auditRho =
+        liquidPhase_ == mixture_.alpha1().group()
+      ? mixture_.rho1()
+      : mixture_.rho2();
+    const volScalarField& auditHe =
+        liquidPhase_ == mixture_.alpha1().group()
+      ? mixture_.thermo1().he()
+      : mixture_.thermo2().he();
+
     if (detectFragments_)
     {
-        const volVectorField& U = mesh().lookupObject<volVectorField>("U");
-        const List<vofFragmentTransitionRecord> fragments =
-            vofFragmentTransition::detect
+        transitionBatch_ =
+            transitionManagerPtr_().reconcileMPI
             (
-                liquidAlpha_,
-                U,
-                alphaThreshold_,
-                minCells_,
-                minVolume_
+                mesh().time().timeIndex()
             );
+        publishLocalBatchForEachCloud
+        (
+            mesh().time().timeIndex()
+        );
+
         scalar detectedVolume = 0;
-        fragmentMask_.internalFieldRef() = scalar(0);
-        forAll(fragments, fragmentI)
+        forAll(transitionBatch_.fragments, fragmentI)
         {
-            detectedVolume += fragments[fragmentI].volume;
-            const labelList& cells = fragments[fragmentI].cells;
-            forAll(cells, cellI)
+            const vofGlobalFragment& fragment =
+                transitionBatch_.fragments[fragmentI];
+
+            if (fragment.ownerProc != Pstream::myProcNo())
             {
-                fragmentMask_[cells[cellI]] = scalar(1);
+                continue;
+            }
+
+            detectedVolume += fragment.volume;
+            detectedMass += fragment.mass;
+            preparedMass += fragment.mass;
+            forAll(fragment.localCells, cellI)
+            {
+                const label celli = fragment.localCells[cellI];
+                fragmentMask_[celli] = scalar(1);
+                const scalar cellMass =
+                    fragment.mass*liquidAlpha_[celli]
+                   *mesh().V()[celli]
+                   /max(fragment.volume, SMALL);
+                detectedEnthalpy += cellMass*auditHe[celli];
+                preparedEnthalpy += cellMass*auditHe[celli];
             }
         }
-        Info<< "VOF fragments detected: " << fragments.size()
-            << ", convertible volume: " << detectedVolume << nl;
+
+        Info<< "VOF fragments detected globally: "
+            << transitionBatch_.fragments.size()
+            << ", local convertible volume: " << detectedVolume << nl
+            << "massDetected=" << detectedMass
+            << " massPrepared=" << preparedMass
+            << " enthalpyDetected=" << detectedEnthalpy
+            << " enthalpyPrepared=" << preparedEnthalpy << nl;
         transitionApplied_ = true;
-        forAll(fragments, fragmentI)
+    }
+    else
+    {
+        publishLocalBatchForEachCloud
+        (
+            mesh().time().timeIndex()
+        );
+    }
+
+    List<vofParcelConfirmation> localConfirmations;
+    commitDirectLocalParcels(localConfirmations);
+
+    List<vofParcelConfirmation> localResults;
+    transitionManagerPtr_().reconcileConfirmationsMPI
+    (
+        transitionBatch_,
+        localConfirmations,
+        localResults
+    );
+    scalar createdMass = 0;
+    scalar confirmedMass = 0;
+    scalar createdEnthalpy = 0;
+    scalar confirmedEnthalpy = 0;
+
+    forAll(localResults, resultI)
+    {
+        const vofParcelConfirmation& result =
+            localResults[resultI];
+
+        if (!result.success)
         {
-            Info<< "  fragment " << fragmentI
-                << " id " << fragments[fragmentI].id
-                << " volume " << fragments[fragmentI].volume << nl;
+            continue;
+        }
+
+        createdMass += result.massAdded;
+        confirmedMass += result.massAdded;
+
+        forAll(transitionBatch_.fragments, fragmentI)
+        {
+            const vofGlobalFragment& fragment =
+                transitionBatch_.fragments[fragmentI];
+
+            if
+            (
+                fragment.id == result.fragmentId
+             && fragment.ownerProc == Pstream::myProcNo()
+            )
+            {
+                forAll(fragment.localCells, cellI)
+                {
+                    const label celli = fragment.localCells[cellI];
+                    const scalar cellMass =
+                        fragment.mass*liquidAlpha_[celli]
+                       *mesh().V()[celli]
+                       /max(fragment.volume, SMALL);
+                    createdEnthalpy += cellMass*auditHe[celli];
+                    confirmedEnthalpy += cellMass*auditHe[celli];
+                }
+                break;
+            }
         }
     }
-    cloudsPtr_().evolve();
+
+    applyConfirmedResults(localResults);
+
+    Info<< "massCreated=" << createdMass
+        << " massConfirmed=" << confirmedMass
+        << " enthalpyCreated=" << createdEnthalpy
+        << " enthalpyConfirmed=" << confirmedEnthalpy << nl;
+
     consumptionPending_ =
         consumeAlpha_
      && gMax(confirmedTransferRate_.internalField()) > SMALL;

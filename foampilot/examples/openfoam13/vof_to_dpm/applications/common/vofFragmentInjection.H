@@ -2,9 +2,10 @@
 #define vofFragmentInjection_H
 
 #include "InjectionModel.H"
-#include "vofFragmentTransition.H"
+#include "vofFragmentTransitionManager.H"
 #include "meshSearch.H"
 #include "mathematicalConstants.H"
+#include "vofLocalConfirmationStore.H"
 
 namespace Foam
 {
@@ -35,8 +36,11 @@ class vofFragmentInjection
     scalar expectedMass_;
     DynamicList<std::uint64_t> injectedIds_;
     DynamicList<labelList> injectedCellSets_;
+    word confirmationStoreName_;
 
     void prepare();
+
+    vofLocalConfirmationStore& confirmationStore() const;
 
 public:
     TypeName("vofFragmentInjection");
@@ -94,6 +98,9 @@ public:
     );
 
     virtual bool fullyDescribed() const;
+
+    const DynamicList<vofParcelConfirmation>& confirmations() const;
+    void clearConfirmations() const;
 };
 
 } // End namespace Foam
