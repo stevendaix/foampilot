@@ -311,6 +311,7 @@ class CaseFieldsManager:
         target_dir = Path(case_path) / "0"
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / (field_name or source.name)
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(source.read_bytes())
         return target
 

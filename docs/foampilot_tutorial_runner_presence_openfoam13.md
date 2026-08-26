@@ -4,7 +4,7 @@
 
 Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
 
-La vérification effectuée le 26 août 2026 confirme que les **49 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/squareBendLiqSteady`.
+La vérification effectuée le 26 août 2026 confirme que les **50 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `fluid/stackPlume`.
 
 ## Résultats
 
@@ -59,9 +59,10 @@ La vérification effectuée le 26 août 2026 confirme que les **49 runners actue
 | `47_fluid_squareBend` | Présent | Présent | Conforme | Validé OF13 — `End=500 s` |
 | `48_fluid_squareBendLiq` | Présent | Présent | Conforme | Validé OF13 — `End=0.5 s` |
 | `49_fluid_squareBendLiqSteady` | Présent | Présent | Conforme | Validé OF13 — `End=500 s` |
+| `50_fluid_stackPlume` | Présent | Présent | Conforme | Validé OF13 — `End=250 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `49_fluid_squareBendLiqSteady` sont effectivement présents. `prism`, `shockTube`, `squareBend`, `squareBendLiq` et `squareBendLiqSteady` sont validés sous OF13; `nacaAirfoil` est non validé après expiration de délai et `roomHeating` reste partiellement validé, avec steady terminé et transitoire interrompu avant `End=6000 s`.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `50_fluid_stackPlume` sont effectivement présents. `prism`, `shockTube`, `squareBend`, `squareBendLiq`, `squareBendLiqSteady` et `stackPlume` sont validés sous OF13; `nacaAirfoil` est non validé après expiration de délai et `roomHeating` reste partiellement validé, avec steady terminé et transitoire interrompu avant `End=6000 s`.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
