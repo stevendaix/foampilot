@@ -74,6 +74,10 @@ Le tutoriel `arbitraryRotatingInletNCC` a été adapté dans `arbitrary_rotating
 
 Le tutoriel `ginTonicCHT` a été adapté dans `gin_tonic_cht`. Le runner conserve les trois régions `ginTonic`, `iceCube1` et `iceCube2`, les dictionnaires CHT par région, les changements de conditions aux limites et les propriétés thermiques fluides/solides. Le lancement multi-régions utilise explicitement `foamMultiRun` avec une décomposition par région, car `FoamPilot.run_parallel` est dédié à `foamRun`. La génération est validée ; l’exécution OpenFOAM 13 attend le `backgroundMesh.unv` absent du dépôt source.
 
+## Onzième portage préparé
+
+Le tutoriel `kaplanTurbineNCC` a été adapté dans `kaplan_turbine_ncc`. Le runner conserve les dictionnaires 6-DoF, les variantes de maillage, la séquence parallèle `snappyHexMesh`, reconstruction, `createNonConformalCouples`, renumérotation et `foamRun`. La génération et la compilation Python sont valides ; l’exécution OpenFOAM 13 reste conditionnée par `cad/backgroundMesh.unv`, absent du dépôt Tobias.
+
 ## Corrections FoamPilot incluses
 
 La classe `OpenFOAMDictAddFile` fournit désormais `write_raw`, qui conserve un header `FoamFile` existant, ajoute un header standard lorsqu’il manque, crée les dossiers parents et écrit sans déformer la syntaxe OpenFOAM originale. `BaseSolver.run_command`, ainsi que les chemins sériel et parallèle de `run_simulation`, chargent l’environnement OpenFOAM 13 avant l’exécution. Les imports CAD optionnels ne bloquent plus l’import de l’API OpenFOAM lorsque `jupyter_cadquery` n’est pas installé.
