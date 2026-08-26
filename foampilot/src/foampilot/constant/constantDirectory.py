@@ -152,6 +152,22 @@ class ConstantDirectory:
         target.write_bytes(source.read_bytes())
         return target
 
+    def remove_files(self, filenames: list[str]) -> list[Path]:
+        """Remove named files from ``constant`` and return removed paths.
+
+        This is useful after importing a complete reference case when
+        ``setup_case`` has emitted legacy/default dictionaries that must not
+        coexist with the imported OpenFOAM dictionaries.
+        """
+        constant_path = Path(self.solver.case_path) / "constant"
+        removed: list[Path] = []
+        for filename in filenames:
+            path = constant_path / filename
+            if path.is_file():
+                path.unlink()
+                removed.append(path)
+        return removed
+
     # Radiation management
     def enable_radiation(self, model: str = "P1", **kwargs):
         self.with_radiation = True
