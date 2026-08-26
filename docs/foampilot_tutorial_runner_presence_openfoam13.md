@@ -4,7 +4,7 @@
 
 Le contrôle compare les équivalents FoamPilot déclarés dans [`openfoam13_foampilot_integration.md`](openfoam13_foampilot_integration.md) avec le chemin attendu `foampilot/tutorials/<équivalent>/run.py`. Un tutoriel est considéré comme présent uniquement lorsque son dossier et son fichier `run.py` existent effectivement dans le dépôt.
 
-La vérification effectuée le 26 août 2026 confirme que les **60 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `incompressibleFluid/windAroundBuildings`.
+La vérification effectuée le 26 août 2026 confirme que les **61 runners actuellement présents** couvrent les équivalents déclarés dans la matrice ainsi que les runners récemment ajoutés jusqu’à `incompressibleFluid/wingMotion2D_steady`.
 
 ## Résultats
 
@@ -117,9 +117,10 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `105_incompressibleFluid_turbineSiting` | Présent | Présent | Conforme | Validé OF13 — terrain STL, chaîne parallèle à 4 processus, maillage de 120 246 cellules, convergence SIMPLE à 164 itérations et reconstruction réussie |
 | `106_incompressibleFluid_venturiTube` | Présent | Présent | Conforme | Accepté avec réserve — convergence PIMPLE à 380 itérations, sondes et profils `graphA`–`graphF` générés avant `End=1000` |
 | `107_incompressibleFluid_waveSubSurface` | Présent | Présent | Conforme | Accepté avec réserve — `setWaves` Stokes5, calcul MPI stable à `Time=96.89 s` avant `End=100 s`, reconstruction non atteinte sous la limite de temps |
+| `108_incompressibleFluid_wingMotion2D_steady` | Présent | Présent | Conforme OF13 | Validé — `End=3000 s`, maillage extrudé et patch `wing` créés, aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleFluid/windAroundBuildings` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleFluid/wingMotion2D_steady` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
