@@ -1,0 +1,13 @@
+chem_utils.c
+dydt.c
+jacob.c
+mass_mole.c
+mechanism.c
+rxn_rates.c
+rxn_rates_pres_mod.c
+sparse_multiplier.c
+spec_rates.c
+jacobs/jacob_0.c
+jacobs/jacob_1.c
+jacobs/jacob_2.c
+LIB = ../lib/libc_pyjac
