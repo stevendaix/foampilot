@@ -128,9 +128,10 @@ La vérification effectuée le 26 août 2026 confirme que les **61 runners actue
 | `116_incompressibleVoF_DTCHullWave` | Présent | Présent | Conforme OF13 | Accepté avec réserve — maillage 960 381 cellules, `setWaves` Stokes2 et mouvement MPI démarrés sans `FOAM FATAL`, limite avant `End=20 s` |
 | `117_incompressibleVoF_angledDuct` | Présent | Présent | Conforme OF13 | Validé — VoF water/air, résidus alpha faibles, `End=10 s`, aucun `FOAM FATAL` |
 | `118_incompressibleVoF_capillaryRise` | Présent | Présent | Conforme OF13 | Accepté avec réserve — montée capillaire stable jusqu’à `Time≈0,42635 s`, Courant max ≈0,20, limite avant `End=0,5 s` |
+| `119_incompressibleVoF_cavitatingBullet` | Présent | Présent | Conforme OF13 | Accepté avec réserve — maillage snappy 372 938 cellules, cavitation Schnerr–Sauer démarrée, résidus alpha faibles, limite avant `End=0,05 s` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/capillaryRise` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/cavitatingBullet` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
