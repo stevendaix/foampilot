@@ -58,6 +58,10 @@ Elle régénère et contrôle la présence de `controlDict`, `decomposeParDict`,
 
 Les cas végétalisés requièrent une installation fonctionnelle de `blockMesh`, `faceAgglomerate`, `calcLAI`, `viewFactorsGen`, `solarRayTracingGen` et `urbanMicroclimateFoam`. `Allrun` exécute séquentiellement `blockMesh`, le script généré `make_cell_zones.py`, `faceAgglomerate`, `calcLAI`, `viewFactorsGen`, `solarRayTracingGen`, puis le solveur. Le script crée les cartes `cellZones` et `finalAgglom` et transforme les frontières de vegetation en patches `mapped`/`mappedWall` vers air ; cette approche ne dépend donc pas de `topoSet` ou de `changeDictionary`. Les résultats sont générés dans les répertoires de cas et ne sont pas versionnés.
 
+## Guide théorique
+
+Le document [`URBAN_CLIMATE_THEORY_GUIDE.md`](./URBAN_CLIMATE_THEORY_GUIDE.md) présente les équations, hypothèses, fermetures physiques, modèles HAM, végétation, rayonnement, facteurs de vue, méthodes volumes finis, couplage multi-région et protocoles de vérification/validation.
+
 ## Portage et limites explicites
 
 Les cas proviennent du tag Foundation v12 du projet original. Aucun fichier n’est présenté comme Foundation 13 sans compilation : le solveur et les outils sont portés puis compilés avec `wmake` sous Foundation 13. Les modèles physiques sont conservés, tandis que les changements portent sur les interfaces retirées ou modifiées dans Foundation 13.
