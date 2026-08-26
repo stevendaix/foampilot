@@ -1,0 +1,70 @@
+sequenceDiagram
+    autonumber
+    participant S as Solver / fvModel
+    participant W as Manager W<br/>waterCloud.alpha.water
+    participant F as Manager F<br/>fuelCloud.alpha.air
+    participant R0 as Rank 0
+    participant R1 as Rank 1
+    participant M as Rank maître<br/>réconciliation globale
+    participant C as parcelCloudList
+    participant SW as Store W<br/>vofConfirmations.waterCloud.alpha.water
+    participant SF as Store F<br/>vofConfirmations.fuelCloud.alpha.air
+
+    Note over W,F: Les deux managers sont des états indépendants.<br/>Pstream utilise toutefois le communicateur global.
+    S->>W: correct(timeIndex)
+    W->>W: Vérifier lastTimeIndex_<br/>et namespaceKey_
+    W->>R0: Détection locale alpha.water
+    W->>R1: Détection locale alpha.water
+    R0->>R1: Échange liens processor W
+    R1->>R0: Réponse liens processor W
+    R0->>M: gatherList(fragments, links) W
+    R1->>M: gatherList(fragments, links) W
+    M->>M: Union-Find global W<br/>choisir ownerProc W
+    M-->>R0: scatterList(batch W propriétaire)
+    M-->>R1: scatterList(batch W propriétaire)
+    Note over R0,R1: Fin collective reconcileMPI(W)
+
+    par Commit local W sur chaque rang
+        R0->>C: commitDirect("waterCloud", data W)
+        C-->>R0: addParticle() = success/failure
+        R0->>SW: append(confirm W)
+    and Aucun commit W sur R1 si non-propriétaire
+        R1->>SW: aucune insertion distante
+    end
+
+    R0->>M: gatherList(confirmations W)
+    R1->>M: gatherList(confirmations W)
+    M->>M: Clé W = cloud.alpha.fragmentId<br/>valider masse et espèces
+    M-->>R0: scatter(success/status W)
+    M-->>R1: scatter(success/status W)
+    R0->>R0: Appliquer sources W<br/>si confirmation valide
+    Note over W,SW: Namespace W terminé avant de commencer F.
+
+    S->>F: correct(timeIndex)
+    F->>F: Vérifier lastTimeIndex_<br/>et namespaceKey_
+    F->>R0: Détection locale alpha.air
+    F->>R1: Détection locale alpha.air
+    R0->>R1: Échange liens processor F
+    R1->>R0: Réponse liens processor F
+    R0->>M: gatherList(fragments, links) F
+    R1->>M: gatherList(fragments, links) F
+    M->>M: Union-Find global F<br/>choisir ownerProc F
+    M-->>R0: scatterList(batch F propriétaire)
+    M-->>R1: scatterList(batch F propriétaire)
+    Note over R0,R1: Fin collective reconcileMPI(F)
+
+    par Commit local F sur chaque rang
+        R0->>C: commitDirect("fuelCloud", data F)
+        C-->>R0: addParticle() = success/failure
+        R0->>SF: append(confirm F)
+    and Aucun commit F sur R1 si non-propriétaire
+        R1->>SF: aucune insertion distante
+    end
+
+    R0->>M: gatherList(confirmations F)
+    R1->>M: gatherList(confirmations F)
+    M->>M: Clé F = cloud.alpha.fragmentId<br/>valider masse et espèces
+    M-->>R0: scatter(success/status F)
+    M-->>R1: scatter(success/status F)
+    R0->>R0: Appliquer sources F<br/>si confirmation valide
+    Note over S: L'ordre W puis F doit être identique<br/>sur tous les rangs. Ne jamais entrelacer W/F différemment.
