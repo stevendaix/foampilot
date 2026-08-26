@@ -109,7 +109,7 @@
 | 102 | `incompressibleFluid` | `turbineSiting` | `/opt/openfoam13/tutorials/incompressibleFluid/turbineSiting` | — | À traiter | — | — |
 | 103 | `incompressibleFluid` | `venturiTube` | `/opt/openfoam13/tutorials/incompressibleFluid/venturiTube` | — | À traiter | — | — |
 | 104 | `incompressibleFluid` | `waveSubSurface` | `/opt/openfoam13/tutorials/incompressibleFluid/waveSubSurface` | — | À traiter | — | — |
-| 105 | `incompressibleFluid` | `windAroundBuildings` | `/opt/openfoam13/tutorials/incompressibleFluid/windAroundBuildings` | — | À traiter | — | — |
+| 105 | `incompressibleFluid` | `windAroundBuildings` | `/opt/openfoam13/tutorials/incompressibleFluid/windAroundBuildings` | `06_buildingAero` | En cours — maillage validé | `SnappyMesher.import_reference_surface`, `SnappyMesher.run_surface_features` | Asset officiel `buildings.obj.gz` importé et maillage `blockMesh`/`surfaceFeatures`/`snappyHexMesh` exécuté sans erreur ; le solveur atteint t=163 sur 400 avant délai, validation complète restante. |
 | 106 | `incompressibleFluid` | `wingMotion2D_steady` | `/opt/openfoam13/tutorials/incompressibleFluid/wingMotion/wingMotion2D_steady` | — | À traiter | — | — |
 | 107 | `incompressibleFluid` | `wingMotion2D_transient` | `/opt/openfoam13/tutorials/incompressibleFluid/wingMotion/wingMotion2D_transient` | — | À traiter | — | — |
 | 108 | `incompressibleMultiphaseVoF` | `damBreak4phase` | `/opt/openfoam13/tutorials/incompressibleMultiphaseVoF/damBreak4phase` | — | À traiter | — | — |

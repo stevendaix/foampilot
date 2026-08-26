@@ -113,7 +113,7 @@ def main():
     solver.system.controlDict.use_solver_keyword = True
     solver.system.controlDict.startTime = 0.0
     solver.system.controlDict.stopAt = "endTime"
-    solver.system.controlDict.endTime = 100.0
+    solver.system.controlDict.endTime = 400.0
     solver.system.controlDict.deltaT = 1.0
     solver.system.controlDict.writeControl = "timeStep"
     solver.system.controlDict.writeInterval = 50
@@ -170,27 +170,23 @@ def main():
     blockmesh.mergePatchPairs = []
     blockmesh.write(case_path / "system" / "blockMeshDict")
 
-    # Step 3b: blockMesh, surfaceFeatureExtract, snappyHexMesh
-    stl_file = case_path / "constant" / "triSurface" / "buildings.stl"
-    stl_file.parent.mkdir(parents=True, exist_ok=True)
-
-    # Create STL if it does not exist (protects against rm -rf constant cleanup)
-    if not stl_file.exists():
-        generate_buildings_stl(stl_file)
+    # Step 3b: blockMesh, surfaceFeatures, snappyHexMesh
+    import os
+    reference_surface = Path(os.environ["FOAM_TUTORIALS"]) / "incompressibleFluid" / "windAroundBuildings" / "constant" / "geometry" / "buildings.obj.gz"
     snappy = SnappyMesher(
         parent=solver._solver,
-        stl_file=str(stl_file),
         castellatedMesh=True,
         snap=True,
         addLayers=False,
     )
+    surface_file = snappy.import_reference_surface(reference_surface)
     snappy.locationInMesh = (10, 50, 5)  # point inside fluid domain
     snappy.castellatedMeshControls["maxLocalCells"] = 200000
     snappy.castellatedMeshControls["maxGlobalCells"] = 4000000
 
     # Write surfaceFeaturesDict and snappyHexMeshDict
     snappy.write_surface_features_dict(
-        stl_list_for_emesh=["buildings.eMesh"],
+        stl_list_for_emesh=[surface_file.name],
         included_angle=60,
     )
     snappy.write_snappyHexMeshDict()

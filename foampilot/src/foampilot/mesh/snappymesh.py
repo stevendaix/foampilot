@@ -134,8 +134,25 @@ class SnappyMesher:
             "level": level
         })
 
+    def import_reference_surface(self, source_surface, target_name=None):
+        """Import a reference OBJ/STL surface through the Foampilot API."""
+        source = Path(source_surface)
+        if not source.exists():
+            raise FileNotFoundError(f"Reference surface not found: {source}")
+        target_name = target_name or source.name
+        target = self.case_path / "constant" / "triSurface" / target_name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+        self.stl_file = target
+        self.geometry = {}
+        self.add_geometry(target.stem, target)
+        self.castellatedMeshControls["refinementSurfaces"] = {
+            target.stem: {"level": (2, 3)}
+        }
+        return target
+
     def add_geometry(self, name, stl_path, geo_type="triSurfaceMesh"):
-        """Add an STL geometry to the snappyHexMesh configuration."""
+        """Add an STL/OBJ geometry to the snappyHexMesh configuration."""
         stl_file = Path(stl_path)
         self.geometry[name] = {
             "type": geo_type,
