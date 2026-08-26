@@ -56,6 +56,7 @@ __pycache__/
 !third_party/openfoam13/
 !third_party/openfoam13/ported/
 !third_party/openfoam13/ported/**
+!third_party/openfoam13/build_ports.sh
 !validation/
 !validation/yade-openfoam13/
 !validation/yade-openfoam13/**

@@ -24,11 +24,11 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    calculateNut
+    calculateRperp
 
 Description
-    Calculates the eddy-viscosity using the mean strain-rate tensor S and the
-    Reynolds stress tensor R.
+    Calculates Rperp, the part of the Reynolds stress tensor that is
+    perpendicular to S.
 
     You can find more details in:
 
@@ -56,9 +56,12 @@ using namespace Foam;
 
 int main(int argc, char *argv[])
 {
+    // OF headers
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     // return set of times based on arglist
     const instantList& timeDirs = timeSelector::select0(runTime, args);
@@ -97,21 +100,28 @@ int main(int argc, char *argv[])
             mesh
         );
 
+        Info<< "Reading the eddy-viscosity nut\n" << endl;
+        volScalarField nut
+        (
+            IOobject
+            (
+                "nut",
+                runTime.userTimeName(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh
+        );
+
         Info<< "Calculating the strain-rate tensor S"<< endl;
         volTensorField gradU("gradU", fvc::grad(U));
         volSymmTensorField S("S", symm(gradU));
 
-        Info<< "Calculating the eddy-viscosity nut\n"<< endl;
-        volScalarField A1 ("A1", R && S);
-        volScalarField A2 ("A2", S && S);
-        const dimensionedScalar A2Small
-        (
-            "A2Small",
-            A2.dimensions(),
-            SMALL
-        );
-        volScalarField nut("nut", 0.5*mag(A1)/(mag(A2) + A2Small));
-        nut.write();
+        Info<< "Calculating Rperp\n"<< endl;
+        volSymmTensorField Rperp("Rperp", R + 2*nut*S);
+        Rperp.write();
+
     }
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

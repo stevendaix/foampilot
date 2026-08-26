@@ -24,17 +24,12 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    calculateNut
+    calculateRFVperp
 
 Description
-    Calculates the eddy-viscosity using the mean strain-rate tensor S and the
-    Reynolds stress tensor R.
+    Calculates the nonlinear part of the Reynolds force vector tStar.
 
     You can find more details in:
-
-    Wu et al. (2018) - Physics-informed machine learning approach for augmenting 
-    turbulence models: A comprehensive framework.
-    DOI: 10.1103/PhysRevFluids.3.074602
 
     Brener et al. (2021) - Conditioning and accurate solutions of Reynolds 
     average Navier–Stokes equations with data-driven turbulence closures.
@@ -48,17 +43,40 @@ Description
 
 #include "argList.H"
 #include "timeSelector.H"
+#include "IOdictionary.H"
 #include "volFields.H"
+#include "fvcDiv.H"
 #include "fvcGrad.H"
+#include "fvcLaplacian.H"
+#include "fvcFlux.H"
 using namespace Foam;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
+    // OF headers
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
+
+    Info<< "Reading Transport Properties\n" << endl;
+    IOdictionary transportProperties
+    (
+        IOobject
+        (
+            "transportProperties",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
+    );
+
+    Info<< "Reading kinematic viscosity nu\n" << endl;
+    dimensionedScalar nu("nu", dimKinematicViscosity, transportProperties);
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     // return set of times based on arglist
     const instantList& timeDirs = timeSelector::select0(runTime, args);
@@ -69,7 +87,7 @@ int main(int argc, char *argv[])
         runTime.setTime(timeDirs[timeI], timeI);
         Info<< "Time = " << runTime.userTimeName() << endl;
 
-        Info<< "Reading the velocity field U\n" << endl;
+        Info<< "Reading field U\n" << endl;
         volVectorField U
         (
             IOobject
@@ -83,12 +101,12 @@ int main(int argc, char *argv[])
             mesh
         );
 
-        Info<< "Reading the Reynolds stress tensor R\n" << endl;
-        volSymmTensorField R
+        Info<< "Reading the eddy-viscosity nut\n" << endl;
+        volScalarField nut
         (
             IOobject
             (
-                "R",
+                "nut",
                 runTime.userTimeName(),
                 mesh,
                 IOobject::MUST_READ,
@@ -97,21 +115,33 @@ int main(int argc, char *argv[])
             mesh
         );
 
+        #include "createPhi.H"
+
+        Info<< "Reading/calculating the modified Reynolds force vector t"<< endl;
+        volVectorField t
+        (
+            IOobject
+            (
+                "t",
+                runTime.userTimeName(),
+                mesh,
+                IOobject::READ_IF_PRESENT,
+                IOobject::AUTO_WRITE
+            ),
+            - fvc::div(phi,U) + fvc::laplacian(nu,U)
+            // non-continuity correction
+            + fvc::div(U)*U + (1/3)*nu*fvc::div(T(fvc::grad(U)))
+        );
+
         Info<< "Calculating the strain-rate tensor S"<< endl;
         volTensorField gradU("gradU", fvc::grad(U));
-        volSymmTensorField S("S", symm(gradU));
+        volSymmTensorField S("S",symm(gradU));
 
-        Info<< "Calculating the eddy-viscosity nut\n"<< endl;
-        volScalarField A1 ("A1", R && S);
-        volScalarField A2 ("A2", S && S);
-        const dimensionedScalar A2Small
-        (
-            "A2Small",
-            A2.dimensions(),
-            SMALL
+        volVectorField tStar
+        (   "tStar",
+            t + 2*fvc::div(nut*S)
         );
-        volScalarField nut("nut", 0.5*mag(A1)/(mag(A2) + A2Small));
-        nut.write();
+        tStar.write();
     }
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -53,6 +53,21 @@ PORTED_COMPONENTS = {
         "path": "third_party/openfoam13/ported/MachineLearningTurbulenceModels/calculateGamma",
         "status": "compiled-foundation13",
     },
+    "calculateRFV": {
+        "source": "MachineLearningTurbulenceModels",
+        "path": "third_party/openfoam13/ported/MachineLearningTurbulenceModels/calculateRFV",
+        "status": "compiled-foundation13",
+    },
+    "calculateRFVperp": {
+        "source": "MachineLearningTurbulenceModels",
+        "path": "third_party/openfoam13/ported/MachineLearningTurbulenceModels/calculateRFVperp",
+        "status": "compiled-foundation13",
+    },
+    "calculateRperp": {
+        "source": "MachineLearningTurbulenceModels",
+        "path": "third_party/openfoam13/ported/MachineLearningTurbulenceModels/calculateRperp",
+        "status": "compiled-foundation13",
+    },
 }
 
 

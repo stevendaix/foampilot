@@ -46,7 +46,15 @@ def test_writes_non_destructive_support_files(tmp_path: Path):
 def test_ported_components_use_foundation13_api():
     root = Path(__file__).parents[3]
     manifest = PhysicsConfig().manifest()["portedComponents"]
-    assert {"ZYturbulentInlet", "turbulentInletTable", "calculateNut", "calculateGamma"} <= set(manifest)
+    assert {
+        "ZYturbulentInlet",
+        "turbulentInletTable",
+        "calculateNut",
+        "calculateGamma",
+        "calculateRFV",
+        "calculateRFVperp",
+        "calculateRperp",
+    } <= set(manifest)
     for name, spec in manifest.items():
         source_root = root / spec["path"]
         assert source_root.exists()
@@ -57,6 +65,8 @@ def test_ported_components_use_foundation13_api():
             assert "timeOutputValue" not in text
             assert ".autoMap(" not in text
             assert ".rmap(" not in text
+        assert not list(source_root.rglob("*.o"))
+        assert not list(source_root.rglob("*.dep"))
 
 
 def test_preflight_catches_missing_nu(tmp_path: Path):
