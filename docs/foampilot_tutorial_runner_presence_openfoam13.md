@@ -95,9 +95,10 @@ La vérification effectuée le 26 août 2026 confirme que les **60 runners actue
 | `83_incompressibleFluid_offsetCylinder` | Présent | Présent | Conforme | Validé OF13 — `End=2 s`, CrossPowerLaw reproduit |
 | `84_incompressibleFluid_oscillatingInlet` | Présent | Présent | Conforme | Validé OF13 — `End=5 s`, mouvement oscillant et patchFlowRate reproduits |
 | `85_incompressibleFluid_pipeCyclic` | Présent | Présent | Conforme | Accepté avec réserve — convergence à `Time=251 s` avant `End=1000 s` |
+| `86_incompressibleFluid_pitzDaily` | Présent | Présent | Conforme | Validé OF13 — `End=0.3 s`, maillage partagé, RAS `kEpsilon` et `patchAverage` reproduits |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `80_incompressibleFluid_moodyChart` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `86_incompressibleFluid_pitzDaily` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
