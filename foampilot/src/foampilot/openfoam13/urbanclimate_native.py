@@ -73,7 +73,27 @@ class UrbanClimateNativeCaseBuilder:
         path.write_text(content if content.endswith("\n") else content + "\n", encoding="utf-8")
 
     def _write_control(self) -> None:
-        self._write("system/controlDict", self._foam_header("dictionary", "controlDict", "system") + "application     urbanMicroclimateFoam;\nstartFrom       startTime;\nstartTime       0;\nstopAt          endTime;\nendTime         1;\ndeltaT          1;\nwriteControl    timeStep;\nwriteInterval   1;\nlibs            ();\n")
+        fluids = [r.name for r in self.regions if r.kind == "fluid"]
+        solids = [r.name for r in self.regions if r.kind == "solid"]
+        vegetation = [r.name for r in self.regions if r.kind == "vegetation"]
+        def names(values: list[str]) -> str:
+            return "(" + " ".join(values) + ")"
+        regions = (
+            "regions\n{\n"
+            f"    fluid {names(fluids)};\n"
+            f"    solid {names(solids)};\n"
+            f"    vegetation {names(vegetation)};\n"
+            "}\n"
+        )
+        content = self._foam_header("dictionary", "controlDict", "system") + (
+            "application     urbanMicroclimateFoam;\n"
+            "startFrom       startTime;\nstartTime       0;\n"
+            "stopAt          endTime;\nendTime         1;\ndeltaT          1;\n"
+            "writeControl    timeStep;\nwriteInterval   1;\n"
+            "maxFluidIteration 10000;\nminFluidIteration 1;\n"
+            "libs            ();\n" + regions
+        )
+        self._write("system/controlDict", content)
 
     def _write_allrun(self) -> None:
         self._write("Allrun", '''#!/bin/sh
@@ -122,8 +142,19 @@ exec urbanMicroclimateFoam
             self._write(f"{base}/g", self._foam_header("uniformDimensionedVectorField", "g", base) + "dimensions [0 1 -2 0 0 0 0];\nvalue (0 0 -9.81);\n")
             if region.kind == "fluid":
                 self._write(f"{base}/transportProperties", self._foam_header("dictionary", "transportProperties", base) + "transportModel Newtonian;\nnu [0 2 -1 0 0 0 0] 1e-05;\n")
-            else:
+                self._write(f"{base}/thermophysicalProperties", self._foam_header("dictionary", "thermophysicalProperties", base) + "thermoType { type heRhoThermo; mixture pureMixture; transport const; thermo hConst; equationOfState perfectGas; specie specie; energy sensibleEnthalpy; }\n")
+                self._write(f"{base}/momentumTransport", self._foam_header("dictionary", "momentumTransport", base) + "simulationType RAS;\nRAS { RASModel realizableKE; turbulence on; printCoeffs on; }\n")
+            elif region.kind == "solid":
                 self._write(f"{base}/transportProperties", self._foam_header("dictionary", "transportProperties", base) + "rho [1 -3 0 0 0 0 0] 1800;\nCp [0 2 -2 -1 0 0 0] 900;\nkappa [1 1 -3 -1 0 0 0] 1.4;\n")
+                self._write(f"{base}/buildingMaterials", self._foam_header("dictionary", "buildingMaterials", base) + "materials (\n    { name default; buildingMaterialModel solid; rho 1800; cap 900; lambda1 1.4; lambda2 1.4; }\n);\n")
+            elif region.kind == "vegetation":
+                self._write(f"{base}/vegetationProperties", self._foam_header("dictionary", "vegetationProperties", base) + "vegetationModel simple;\nleafAreaIndex 2.0;\ncanopyHeight 8.0;\n")
+                self._write(f"{base}/radiationProperties", self._foam_header("dictionary", "radiationProperties", base) + "absorptionEmissionModel constant;\n")
+                self._write(f"{base}/solarLoadProperties", self._foam_header("dictionary", "solarLoadProperties", base) + "solarLoadModel fvDOM;\n")
+        if self.radiation:
+            self._write("constant/sunPosVector", self._foam_header("uniformDimensionedVectorField", "sunPosVector", "constant") + "dimensions [0 0 0 0 0 0 0];\nvalue (1 1 1);\n")
+            self._write("constant/IDN", self._foam_header("uniformDimensionedScalarField", "IDN", "constant") + "dimensions [0 0 0 0 0 0 0];\nvalue 800;\n")
+            self._write("constant/Idif", self._foam_header("uniformDimensionedScalarField", "Idif", "constant") + "dimensions [0 0 0 0 0 0 0];\nvalue 100;\n")
 
     def _write_initial_fields(self) -> None:
         region_objects: list[Any] = []
