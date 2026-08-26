@@ -11,12 +11,18 @@ pip install -e foampilot
 # Exemple : source /opt/openfoam13/etc/bashrc
 cd examples/dlfoam_hydrogen_planar
 python run.py
-python run.py --run --solver reactingFoam --np 1
+python run.py --run --np 1
+# Smoke test borné : maillage et une seule itération
+python run.py --run --nx 2 --ny 2 --end-time 1.1e-6 --write-interval 1
+# Calcul de référence : 2000 x 2000 cellules et 100 temps de flamme
+python run.py --run --np 1
 ```
 
 Le premier appel crée un dossier `case/` propre. Le runner ré-écrit chaque fichier texte de `case_template/` avec `OpenFOAMDictAddFile`, normalise les en-têtes en version 13 et conserve les données initiales publiées, les fichiers `.dat`, le mécanisme et les includes `codeStream`. Le second appel exécute `blockMesh`, le solveur choisi et, pour un calcul MPI, `decomposePar` puis `reconstructPar` via l’API de commande de FoamPilot.
 
-Le solveur par défaut est `reactingFoam`, comme dans le tutoriel source. Si la compilation DLBFoam fournit un exécutable distinct, il peut être sélectionné avec `--solver` ou la variable `DLFOAM_SOLVER`. Le runner ne prétend pas remplacer la compilation de la bibliothèque : il arrête explicitement la reproduction lorsque `blockMesh` ou le solveur demandé ne sont pas disponibles.
+Sous OpenFOAM 13, le solveur recommandé est `foamRun -solver multicomponentFluid`, car `reactingFoam` est désormais un wrapper obsolète. Le runner conserve `reactingFoam` comme option explicite, mais utilise `foamRun` par défaut. Le runner compile automatiquement le mécanisme PyJac local (`constant/mech/Allwmake`) avant le maillage et arrête explicitement la reproduction lorsque `blockMesh` ou le solveur demandé ne sont pas disponibles.
+
+Les options `--nx`, `--ny`, `--end-time` et `--write-interval` sont uniquement destinées aux smoke tests bornés. Sans ces options, le maillage et le temps de calcul restent ceux de la référence publiée.
 
 ## Validation
 

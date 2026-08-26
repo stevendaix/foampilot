@@ -29,9 +29,12 @@ divSchemes
 {
     default         none;
     div(phi,U)      Gauss limitedCubicV 0;
-    div(phi,Yi_h)   Gauss limitedCubic  0;
-    div(phi,K)      Gauss limitedCubic  0;
-    div(phi,h)      Gauss limitedCubic  0;
+    div(phi,Yi_h)    Gauss limitedCubic  0;
+    div(phic,Yi_h)   Gauss limitedCubic  0;
+    div(phi,K)       Gauss limitedCubic  0;
+    div(phic,K)      Gauss limitedCubic  0;
+    div(phi,h)       Gauss limitedCubic  0;
+    div(phic,h)      Gauss limitedCubic  0;
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss cubic;
 
 }

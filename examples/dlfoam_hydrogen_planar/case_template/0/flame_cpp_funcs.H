@@ -1,15 +1,17 @@
 #ifndef flame_cpp_funcs_H
 #define flame_cpp_funcs_H
 
+#include <algorithm>
 #include <fstream>
+#include <string>
 #include <vector>
 
-void read_2_column_data_file(const string& filename, std::vector<float>& xc, std::vector<float>& Yc) {
+void read_2_column_data_file(const std::string& filename, std::vector<float>& xc, std::vector<float>& Yc) {
     // Reading cantera data file
     // ifstream dataFile(dict.name() + ".dat");
-    ifstream dataFile(filename);
+    std::ifstream dataFile(filename);
     if (! dataFile.is_open()){
-        Info << "WARNING: Data file " + filename + " is not open!" << endl;
+        Foam::Info << "WARNING: Data file " + filename + " is not open!" << Foam::endl;
     }
     // std::vector<float> xc, Yc;
     float a, b;
@@ -22,13 +24,13 @@ void read_2_column_data_file(const string& filename, std::vector<float>& xc, std
         dataFile >> b;
         // Info << a << ": " << b << endl;
         if (xc.size() > 0 && xc.back() >= a) {
-            Info << "WARNING: x coordinates are not in ascending order: "
-                   << xc.back() << ", " << a << " in file " + filename << endl;
+            Foam::Info << "WARNING: x coordinates are not in ascending order: "
+                   << xc.back() << ", " << a << " in file " + filename << Foam::endl;
         }
         if (b < .0) {
-            Info << "WARNING: Negative value encounetered: "
-                   << b << " in file " + filename << endl;
-            Info << "    setting to 0" << endl;
+            Foam::Info << "WARNING: Negative value encounetered: "
+                   << b << " in file " + filename << Foam::endl;
+            Foam::Info << "    setting to 0" << Foam::endl;
             b = .0;
         }
         xc.push_back(a);
