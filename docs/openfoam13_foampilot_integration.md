@@ -178,7 +178,7 @@
 | 171 | `multiRegion` | `templates` | `/opt/openfoam13/tutorials/multiRegion/CHT/coolingSphere/templates` | — | À traiter | — | — |
 | 172 | `multiRegion` | `engine2Valve2D` | `/opt/openfoam13/tutorials/multiRegion/CHT/engine2Valve2D` | — | À traiter | — | — |
 | 173 | `multiRegion` | `heatExchanger` | `/opt/openfoam13/tutorials/multiRegion/CHT/heatExchanger` | — | À traiter | — | — |
-| 174 | `multiRegion` | `heatedDuct` | `/opt/openfoam13/tutorials/multiRegion/CHT/heatedDuct` | — | À traiter | — | — |
+| 174 | `multiRegion` | `heatedDuct` | `/opt/openfoam13/tutorials/multiRegion/CHT/heatedDuct` | `09_CHT_heatedDuct` | Validé — `foamMultiRun` jusqu’à `End=20 s`, VTK et post-traitement sans erreur | `ChtSolver.set_region_boundary_conditions`, `set_region_internal_field`, `set_region_gravity`, `set_region_momentum_transport`, `write_region_system_files`; support OF13 multi-région dans `SolidRegion` | Référence OF13 alignée sur trois régions `fluid/heater/metal`; génération régionale de `g`, `momentumTransport`, `physicalProperties`, `fvSchemes`, `fvSolution`, conditions limites et solveurs compressibles/solides. Le post-traitement charge désormais les VTK multi-régions. |
 | 175 | `multiRegion` | `misalignedDuct` | `/opt/openfoam13/tutorials/multiRegion/CHT/misalignedDuct` | — | À traiter | — | — |
 | 176 | `multiRegion` | `multiphaseCoolingCylinder2D` | `/opt/openfoam13/tutorials/multiRegion/CHT/multiphaseCoolingCylinder2D` | — | À traiter | — | — |
 | 177 | `multiRegion` | `notchedRoller` | `/opt/openfoam13/tutorials/multiRegion/CHT/notchedRoller` | — | À traiter | — | — |
