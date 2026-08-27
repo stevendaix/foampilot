@@ -14,6 +14,7 @@ sed -i \
     's/solver          compressibleVoF;/solver          compressibleVoF;\nlibs            ("libcompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
     system/controlDict
 sed -i 's/endTime         1;/endTime         0.01;/' system/controlDict
+sed -i 's/writeInterval   0.05;/writeInterval   0.005;/' system/controlDict
 sed -i 's/momentumPredictor[[:space:]]*no;/momentumPredictor   yes;\n    models              yes;/' system/fvSolution
 
 cat > constant/fvModels <<'EOF'
@@ -29,10 +30,14 @@ compressibleVoFClouds
 {
     type            compressibleVoFClouds;
     clouds          (cloud);
+    liquidPhase     water;
+    consumeAlpha    true;
 }
 EOF
 
 cp "$FOAM_TUTORIALS/incompressibleFluid/mixerVesselHorizontal2DParticles/constant/cloudProperties" constant/cloudProperties
+sed -i 's/type            manualInjection;/type            vofFragmentInjection;/' constant/cloudProperties
+sed -i '/type            vofFragmentInjection;/a\            alpha           alpha.water;\n            rhoLiquid       2526;' constant/cloudProperties
 cat > constant/cloudPositions <<'EOF'
 /* OpenFOAM vector field */
 FoamFile
@@ -48,11 +53,20 @@ FoamFile
 EOF
 
 blockMesh > log.blockMesh 2>&1
+setFields > log.setFields 2>&1
 foamRun -solver compressibleVoF > log.foamRun 2>&1
+foamPostProcess -func 'volIntegrate(alpha.water)' -time 0.01 > log.alphaBalance 2>&1
 
 grep -q "Selecting solver compressibleVoF" log.foamRun
 grep -q "Selecting finite volume model type compressibleVoFClouds" log.foamRun
 grep -q "Selecting parcelCloud collidingCloud" log.foamRun
 grep -q "Current number of parcels" log.foamRun
+grep -Eq "VOF fragments detected: [1-9]" log.foamRun
+grep -q "Compressible alphaRho transfer armed" log.foamRun
+grep -q "Applied compressible alphaRho transfer" log.foamRun
+grep -q "Added 1 new parcels" log.foamRun
+grep -q "mass introduced             = 1.63205" log.foamRun
+grep -q "volIntegrate(all) of alpha.water = 0" log.alphaBalance
+test -f 0.01/vofFragmentMask
 
 echo "PASS: compressibleVoF + compressibleVoFClouds + collidingCloud"

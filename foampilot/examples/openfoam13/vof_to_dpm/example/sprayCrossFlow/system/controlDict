@@ -1,0 +1,76 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solver          incompressibleVoF;
+libs            ("libincompressibleVoFClouds.so" "liblagrangianParcel.so");
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.01;
+
+deltaT          0.001;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.001;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  12;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           1;
+
+maxAlphaCo      1;
+
+maxDeltaT       1;
+
+DebugSwitches
+{
+    MULES           1;
+}
+
+// ************************************************************************* //
+
+functions
+{
+    liquidVolume
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    timeStep;
+        writeInterval   1;
+        writeFields     false;
+        cellZone        all;
+        operation       volIntegrate;
+        fields          (alpha.water);
+    }
+}

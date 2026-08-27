@@ -1,0 +1,238 @@
+--- parcelCloud/parcelCloud.H
++++ parcelCloud/parcelCloud.H
+@@ -158,6 +158,41 @@
+             }
+ 
+ 
++        // Direct local parcel commit
++
++            struct directParcelData
++            {
++                vector position;
++                label celli;
++                scalar diameter;
++                scalar density;
++                vector velocity;
++                scalar nParticle;
++                scalar temperature;
++                scalar Cp;
++
++                directParcelData()
++                :
++                    position(Zero),
++                    celli(-1),
++                    diameter(0),
++                    density(0),
++                    velocity(Zero),
++                    nParticle(1),
++                    temperature(-GREAT),
++                    Cp(-GREAT)
++                {}
++            };
++
++            //- Create and transfer one fully initialised parcel locally.
++            //  This method is local and must not perform MPI communication.
++            virtual bool commitDirect
++            (
++                const directParcelData& data,
++                const label injectorIndex = -1
++            ) = 0;
++
++
+         // Evolution
+ 
+             //- Evolve the cloud
+--- parcelCloud/parcelCloudList.H
++++ parcelCloud/parcelCloudList.H
+@@ -196,6 +196,18 @@
+             void info();
+ 
+ 
++        // Direct local parcel commit
++
++            //- Commit one parcel to the named concrete cloud.
++            //  No MPI communication is performed.
++            bool commitDirect
++            (
++                const word& cloudName,
++                const parcelCloud::directParcelData& data,
++                const label injectorIndex = -1
++            );
++
++
+         // Evolution
+ 
+             //- Evolve the cloud
+--- parcelCloud/parcelCloudList.C
++++ parcelCloud/parcelCloudList.C
+@@ -393,6 +393,27 @@
+ }
+ 
+ 
++bool Foam::parcelCloudList::commitDirect
++(
++    const word& cloudName,
++    const parcelCloud::directParcelData& data,
++    const label injectorIndex
++)
++{
++    if (size() == 1 && cloudName == defaultCloudName)
++    {
++        return operator[](0).commitDirect(data, injectorIndex);
++    }
++
++    FatalErrorInFunction
++        << "Direct commit requires the default single parcel cloud; "
++        << "requested " << cloudName << " with " << size()
++        << " clouds" << exit(FatalError);
++
++    return false;
++}
++
++
+ void Foam::parcelCloudList::evolve()
+ {
+     forAll(*this, i)
+--- parcelCloud/ParcelCloud.H
++++ parcelCloud/ParcelCloud.H
+@@ -34,6 +34,10 @@
+ #define ParcelCloud_H
+ 
+ #include "parcelCloud.H"
++#include "meshSearch.H"
++#include "autoPtr.H"
++#include "Pstream.H"
++#include <cmath>
+ 
+ // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+ 
+@@ -86,6 +90,129 @@
+             }
+ 
+ 
++        // Direct local parcel commit
++
++private:
++
++            template<class C>
++            static auto setThermoProperties
++            (
++                C& cloud,
++                typename C::parcelType& parcel,
++                int
++            ) -> decltype(cloud.setParcelThermoProperties(parcel), void())
++            {
++                cloud.setParcelThermoProperties(parcel);
++            }
++
++            template<class C>
++            static void setThermoProperties
++            (
++                C&,
++                typename C::parcelType&,
++                long
++            )
++            {}
++
++            template<class C>
++            static auto checkProperties
++            (
++                C& cloud,
++                typename C::parcelType& parcel,
++                const label injectorIndex,
++                int
++            ) -> decltype(cloud.checkParcelProperties(parcel, injectorIndex), void())
++            {
++                cloud.checkParcelProperties(parcel, injectorIndex);
++            }
++
++            template<class C>
++            static void checkProperties
++            (
++                C&,
++                typename C::parcelType&,
++                const label,
++                long
++            )
++            {}
++
++            template<class P>
++            static auto setTemperature
++            (P& parcel, const scalar value, int)
++                -> decltype(parcel.T() = value, void())
++            {
++                if (value > -GREAT/2) parcel.T() = value;
++            }
++
++            template<class P>
++            static void setTemperature(P&, const scalar, long)
++            {}
++
++            template<class P>
++            static auto setCp
++            (P& parcel, const scalar value, int)
++                -> decltype(parcel.Cp() = value, void())
++            {
++                if (value > -GREAT/2) parcel.Cp() = value;
++            }
++
++            template<class P>
++            static void setCp(P&, const scalar, long)
++            {}
++
++public:
++
++            virtual bool commitDirect
++            (
++                const typename parcelCloud::directParcelData& data,
++                const label injectorIndex = -1
++            )
++            {
++                if
++                (
++                    data.celli < 0
++                 || data.celli >= this->mesh().nCells()
++                 || data.diameter <= SMALL
++                 || data.density <= SMALL
++                 || data.nParticle <= SMALL
++                )
++                {
++                    return false;
++                }
++
++                const meshSearch& searchEngine = meshSearch::New(this->mesh());
++                label nLocateBoundaryHits = 0;
++
++                autoPtr<typename CloudType::parcelType> parcelPtr
++                (
++                    new typename CloudType::parcelType
++                    (
++                        searchEngine,
++                        data.position,
++                        data.celli,
++                        nLocateBoundaryHits
++                    )
++                );
++
++                typename CloudType::parcelType& parcel = parcelPtr();
++                parcel.d() = data.diameter;
++                parcel.rho() = data.density;
++                parcel.U() = data.velocity;
++                parcel.nParticle() = data.nParticle;
++                parcel.stepFraction() = 0;
++                parcel.origProc() = Pstream::myProcNo();
++                parcel.origId() = parcel.getNewParticleIndex();
++
++                setThermoProperties(*this, parcel, 0);
++                setTemperature(parcel, data.temperature, 0);
++                setCp(parcel, data.Cp, 0);
++                checkProperties(*this, parcel, injectorIndex, 0);
++
++                this->addParticle(parcelPtr.ptr());
++                return true;
++            }
++
++
+         // Evolution
+ 
+             //- Evolve the cloud

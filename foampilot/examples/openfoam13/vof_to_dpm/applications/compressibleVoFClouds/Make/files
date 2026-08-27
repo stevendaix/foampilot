@@ -1,2 +1,4 @@
 compressibleVoFClouds.C
+vofFragmentInjectionModels.C
+../common/vofFragmentTransitionManager.C
 LIB = $(FOAM_USER_LIBBIN)/libcompressibleVoFClouds

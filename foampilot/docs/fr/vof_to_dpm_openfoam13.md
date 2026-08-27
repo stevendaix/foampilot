@@ -2,7 +2,7 @@
 
 Cette page décrit l’ensemble du projet VOF–DPM intégré à foampilot : convertisseur Python, sources C/C++ natifs OpenFOAM 13, modèles `fvModel` incompressible et compressible, cas de validation et génération de la note technique PDF.
 
-> L’implémentation actuelle distingue l’extraction offline et le couplage solver–cloud. Elle ne doit pas être présentée comme une transition temps réel conservative tant que le volume VOF converti n’est pas retiré et que le parcel n’est pas inséré de manière transactionnelle.
+> L’implémentation distingue l’extraction offline et le couplage solver–cloud. La transition runtime est maintenant transactionnelle : le volume VOF et les sources d’énergie ne sont engagés qu’après confirmation de création effective du parcel dans `postInject()`. La qualification reste limitée aux cas séquentiels nominaux OpenFOAM 13 documentés.
 
 ## 1. Prérequis et installation
 
@@ -40,6 +40,8 @@ Le projet complet VOF–DPM OpenFOAM 13 se trouve dans `foampilot/examples/openf
 | `examples/openfoam13/vof_to_dpm/applications/incompressibleVoFClouds` | Pont `fvModel` incompressible |
 | `examples/openfoam13/vof_to_dpm/applications/compressibleVoFClouds` | Pont `fvModel` compressible |
 | `examples/openfoam13/vof_to_dpm/test/openfoam13` | Cas OpenFOAM 13 et scripts `Allrun` |
+| `examples/openfoam13/vof_to_dpm/example/sprayCrossFlow` | Exemple autonome de spray VOF-to-DPM avec post-traitement masse-volume |
+| `examples/openfoam13/vof_to_dpm/test/openfoam13/compressibleVoFCloudsThermoDamBreak` | Régression compressible `thermoCloud` avec source d’enthalpie |
 | `docs/fr/vof_to_dpm_technical_note.pdf` | Note technique générée |
 
 Les sources historiques complètes de `statisticalDPMFoam`, notamment les fichiers `.C`, `.H`, `Make/files` et `Make/options`, sont sous `examples/openfoam13/vof_to_dpm/statisticalDPMFoam/`.
@@ -108,7 +110,7 @@ cd foampilot/examples/openfoam13/vof_to_dpm/test/openfoam13/incompressibleVoFClo
 ./Allrun
 ```
 
-Le script prépare le cas, active `fvModels` et le prédicteur de quantité de mouvement, charge `incompressibleVoFClouds` et vérifie l’activité du cloud. L’injection actuelle est manuelle : elle valide le chemin solver–cloud, mais pas encore la conversion automatique d’un fragment VOF.
+Le script prépare le cas, active `fvModels` et le prédicteur de quantité de mouvement, charge `incompressibleVoFClouds` et vérifie le chemin de conversion fragment→parcel. La confirmation est réalisée après création effective du parcel ; les fragments déjà confirmés ne sont pas réinjectés.
 
 ## 7. Lancer le cas compressible
 
@@ -117,9 +119,20 @@ cd foampilot/examples/openfoam13/vof_to_dpm/test/openfoam13/compressibleVoFCloud
 ./Allrun
 ```
 
-Ce smoke test valide la sélection runtime de `compressibleVoFClouds`, l’évolution mécanique du cloud et le retour de quantité de mouvement. Il ne constitue pas encore une transition thermodynamiquement conservative : la masse, l’enthalpie et la pression nécessitent un transfert dédié.
+Ce smoke test valide la sélection runtime de `compressibleVoFClouds`, le couplage mécanique, le transfert alpha-rho et la fin normale du solveur. Pour le chemin thermodynamique, lancer également le cas dédié ci-dessous.
 
-## 8. Générer la note technique PDF
+## 8. Valider le chemin thermoCloud compressible
+
+Le cas dédié active un `thermoCloud`, déclare les composants liquides H2O requis par `parcelThermo` et vérifie l’application de la source d’enthalpie après confirmation du parcel :
+
+```bash
+cd foampilot/examples/openfoam13/vof_to_dpm/test/openfoam13/compressibleVoFCloudsThermoDamBreak
+./Allrun
+```
+
+Le post-traitement attend un batch confirmé, une application de la source d’enthalpie à `e.water`, deux applications de la source alpha-rho, une fin normale et aucune exception flottante. Pour le détail des métriques et limites, consulter [`vof_to_dpm_implementation_status.md`](vof_to_dpm_implementation_status.md).
+
+## 9. Générer la note technique PDF
 
 Le générateur utilise les classes `ScientificDocument` et `TypstRenderer` de foampilot :
 
@@ -138,16 +151,16 @@ report/vof_to_dpm.bib
 
 La note détaille les critères de transition, les équations de conservation, l’audit des simplifications et l’architecture recommandée pour une version temps réel.
 
-## 9. Portée scientifique actuelle
+## 10. Portée scientifique actuelle
 
 Le convertisseur Python et l’utilitaire C++ calculent correctement le volume d’une composante, son centroïde, sa vitesse moyenne pondérée et son diamètre sphérique équivalent. Les deux `fvModel` font évoluer un `parcelCloudList` et renvoient son terme mécanique dans l’équation de quantité de mouvement.
 
-Une transition automatique de production nécessite encore une consommation bornée de `alpha`, une insertion dynamique des parcels, des identifiants stables de fragments, une réconciliation MPI, une prévention des doubles conversions et, en compressible, un transfert cohérent de masse et d’énergie.
+La transition automatique nominale dispose maintenant d’une consommation bornée de `alpha`, d’une insertion dynamique, d’identifiants déterministes, d’une prévention des doubles conversions et d’un transfert compressible de masse et d’énergie confirmé. La réconciliation MPI, les cas multi-composants et les géométries pathologiques restent hors couverture.
 
-## 10. Documentation multilingue
+## 11. Documentation multilingue
 
 | Langue | Guide installation/exécution | Supports détaillés |
 |---|---|---|
 | English | `docs/en/vof_to_dpm_openfoam13.md` | `docs/en/vof_to_dpm.md` |
-| Français | `docs/fr/vof_to_dpm_openfoam13.md` | `docs/fr/cours_vof_to_dpm.md`, `docs/fr/audit_implementation_vof_to_dpm.md` |
+| Français | `docs/fr/vof_to_dpm_openfoam13.md` | `docs/fr/vof_to_dpm_implementation_status.md`, `docs/fr/cours_vof_to_dpm.md`, `docs/fr/audit_implementation_vof_to_dpm.md` |
 | 中文 | `docs/zh/vof_to_dpm_openfoam13.md` | `docs/zh/vof_to_dpm.md` |

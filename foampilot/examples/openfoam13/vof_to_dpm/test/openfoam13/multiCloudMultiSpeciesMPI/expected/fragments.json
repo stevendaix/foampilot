@@ -1,0 +1,19 @@
+{
+  "species": ["H2O", "C2H5OH"],
+  "fragments": {
+    "waterCloud:0": {
+      "alphaField": "alpha.water",
+      "mass": 0.646099,
+      "speciesMass": {"H2O": 0.4522693, "C2H5OH": 0.1938297}
+    },
+    "fuelCloud:8": {
+      "alphaField": "alpha.air",
+      "mass": 4.3165,
+      "speciesMass": {"H2O": 0.8633, "C2H5OH": 3.4532}
+    }
+  },
+  "totals": {
+    "waterCloud": {"mass": 0.646099, "speciesMass": {"H2O": 0.4522693, "C2H5OH": 0.1938297}},
+    "fuelCloud": {"mass": 4.3165, "speciesMass": {"H2O": 0.8633, "C2H5OH": 3.4532}}
+  }
+}

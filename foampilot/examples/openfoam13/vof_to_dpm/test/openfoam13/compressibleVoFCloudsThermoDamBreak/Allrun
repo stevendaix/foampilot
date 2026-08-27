@@ -1,0 +1,175 @@
+#!/bin/sh
+workDir=${TMPDIR:-/tmp}/foampilot-compressibleVoFCloudsThermoDamBreak-$$
+trap 'status=$?; if [ "$status" -eq 0 ] && [ "${KEEP_CASE:-0}" -ne 1 ]; then rm -rf "$workDir"; else echo "CASE_DIR=$workDir" >&2; fi; exit "$status"' EXIT
+. /opt/openfoam13/etc/bashrc || true
+set -e
+mkdir -p "$workDir"
+cd "$workDir"
+foamMergeCase "$FOAM_TUTORIALS/compressibleVoF/damBreak"
+cat >> constant/physicalProperties.water <<'EOF'
+
+liquids
+{
+    H2O;
+}
+
+solids
+{}
+EOF
+sed -i \
+    's/solver          compressibleVoF;/solver          compressibleVoF;\nlibs            ("libcompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
+    system/controlDict
+sed -i 's/endTime         1;/endTime         0.003;/' system/controlDict
+sed -i 's/writeInterval   0.05;/writeInterval   0.001;/' system/controlDict
+sed -i 's/momentumPredictor[[:space:]]*no;/momentumPredictor   yes;\n    models              yes;/' system/fvSolution
+cat > constant/fvModels <<'EOF'
+/* OpenFOAM dictionary */
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+compressibleVoFClouds
+{
+    type            compressibleVoFClouds;
+    clouds          (cloud);
+    liquidPhase     water;
+    thermoCloud     true;
+    consumeAlpha    true;
+}
+EOF
+cat > constant/cloudProperties <<'EOF'
+/* OpenFOAM dictionary */
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      cloudProperties;
+}
+type            thermoCloud;
+solution
+{
+    coupled         yes;
+    transient       yes;
+    cellValueSourceCorrection no;
+    maxCo           0.2;
+    sourceTerms
+    {
+        schemes
+        {
+            rho             explicit 1;
+            U               explicit 1;
+            h               explicit 1;
+        }
+    }
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+    interpolationSchemes
+    {
+        rho             cell;
+        rho.water       cell;
+        U               cellPoint;
+        mu.water        cell;
+        T.water         cell;
+        Cp.water        cell;
+        kappa.water     cell;
+        p               cell;
+    }
+}
+constantProperties
+{
+    rho0            1000;
+    T0              350;
+    Cp0             4187;
+    constantVolume  false;
+}
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+        gravity;
+    }
+    injectionModels
+    {
+        model1
+        {
+            type            vofFragmentInjection;
+            alpha           alpha.water;
+            rhoLiquid       1000;
+            uniformParcelSize volume;
+            SOI             0;
+            duration        1;
+            parcelsPerSecond 1;
+            massTotal       1;
+            sizeDistribution
+            {
+                type            fixedValue;
+                fixedValueDistribution
+                {
+                    value 1e-3;
+                }
+            }
+        }
+    }
+    dispersionModel none;
+    patchInteractionModel standardWallInteraction;
+    heatTransferModel none;
+    compositionModel singlePhaseMixture;
+    phaseChangeModel none;
+    stochasticCollisionModel none;
+    surfaceFilmModel none;
+    radiation off;
+    standardWallInteractionCoeffs
+    {
+        type rebound;
+    }
+    singlePhaseMixtureCoeffs
+    {
+        phases
+        (
+            liquid
+            {
+                H2O 1;
+            }
+        );
+    }
+}
+cloudFunctions
+{}
+EOF
+cat > constant/cloudPositions <<'EOF'
+/* OpenFOAM vectorField */
+FoamFile
+{
+    format      ascii;
+    class       vectorField;
+    location    "constant";
+    object      cloudPositions;
+}
+(
+(0.05 0.05 0.005)
+)
+EOF
+blockMesh > log.blockMesh 2>&1
+setFields > log.setFields 2>&1
+foamRun -solver compressibleVoF > log.foamRun 2>&1
+python3 "$OLDPWD/postprocess.py" "$workDir" > postprocess.log 2>&1
+# Structural and physics checks.
+grep -q "Selecting solver compressibleVoF" log.foamRun
+grep -q "Selecting finite volume model type compressibleVoFClouds" log.foamRun
+grep -q "Selecting parcelCloud thermoCloud" log.foamRun
+grep -q "Added 1 new parcels" log.foamRun
+grep -q "Applied compressible enthalpy transfer" log.foamRun
+grep -q "Applied compressible alphaRho transfer" log.foamRun
+grep -q '^End$' log.foamRun
+! grep -q -E 'FOAM FATAL|Floating point exception' log.foamRun
+grep -q '"thermoCloud_energy_transfer_pass": true' postprocess.log
+grep -q '"solver_end_pass": true' postprocess.log
+echo "PASS: compressibleVoF + thermoCloud + confirmed enthalpy transfer"

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+# Le lanceur utilise un répertoire temporaire nommé avec son PID.
+# Supprimez explicitement un répertoire conservé avec :
+#   rm -rf /tmp/foampilot-multiCloudMultiSpeciesMPI-<pid>
+find "${TMPDIR:-/tmp}" -maxdepth 1 -type d \
+    -name 'foampilot-multiCloudMultiSpeciesMPI-*' \
+    -user "$(id -un)" -print -exec rm -rf {} +
+
+rm -f "$ROOT_DIR"/validation.json
+rm -f "$ROOT_DIR"/log.*
+
+echo "Nettoyage du cas multiCloudMultiSpeciesMPI terminé."
+# ************************************************************************* //
