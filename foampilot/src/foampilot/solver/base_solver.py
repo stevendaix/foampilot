@@ -325,8 +325,13 @@ class BaseSolver:
         if not foam_modules:
             logger.warning("$FOAM_MODULES environment variable is not set.")
             return False
-        module_path = Path(foam_modules) / self.foamrun_module
-        if not module_path.exists():
+        module_dir = Path(foam_modules)
+        module_candidates = (
+            module_dir / self.foamrun_module,
+            module_dir / f"lib{self.foamrun_module}.so",
+            module_dir / f"lib{self.foamrun_module}.dylib",
+        )
+        if not any(candidate.exists() for candidate in module_candidates):
             logger.warning("Solver module '%s' not found in %s", self.foamrun_module, foam_modules)
             return False
         return True
