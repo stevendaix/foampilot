@@ -248,6 +248,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `238_shockFluid_biconic25-55Run35` | Présent | Présent | Conforme OF13 | Accepté avec réserves — `datToFoam`, fusion FoamPilot de `points.tmp`, `collapseEdges`, conversion `wedge1/wedge2` et calcul `shockFluid` terminés; progression jusqu’à `Time≈4,90e-4 s` sur `1e-3 s` sans `FOAM FATAL`, avec réserve de temps et avertissement de planéité possible de `wedge2` |
 | `239_shockFluid_diffuserIntake` | Présent | Présent | Conforme OF13 | Accepté avec réserve — cas compressible `shockFluid`, `blockMesh`, `foamRun`, fonctions `MachNo` et `wallShearStress` actives, progression jusqu’à `Time≈1,34e-3 s` sur `2e-3 s`, Courant maximal proche de 0,254 et aucun `FOAM FATAL`; `graphFace` hors budget |
 | `240_shockFluid_forwardStep` | Présent | Présent | Conforme OF13 | Validé — cas compressible `shockFluid` sans Allrun racine, import des champs `T/U/p`, `blockMesh` et `foamRun` jusqu’à `End=4 s` en environ 31 s, Courant maximal proche de 0,20, sans `FOAM FATAL`, NaN ni divergence |
+| `241_shockFluid_movingCone` | Présent | Présent | Conforme OF13 | Validé — maillage mobile `shockFluid`, deux maillages temporels `1e-05/2e-05`, décomposition `-cellProc` à 4 domaines, `foamRun -parallel` et reconstruction jusqu’à `End=2,25e-5 s`; avertissements wedge non bloquants, aucun `FOAM FATAL` ni NaN |
 
 ## Conclusion
 
