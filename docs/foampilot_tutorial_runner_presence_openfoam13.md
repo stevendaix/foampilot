@@ -253,6 +253,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `243_shockFluid_shockTube` | Présent | Présent | Conforme OF13 | Validé — tube à choc compressible, `blockMesh`, `setFields`, `foamRun` et `foamPostProcess -func sample` jusqu’à `End=0,007 s`; profils `T/mag(U)/p` produits de `0` à `0,007 s`, avertissement de groupe `empty` non bloquant, aucun `FOAM FATAL` ni NaN |
 | `244_shockFluid_wedge15Ma5` | Présent | Présent | Conforme OF13 | Validé — calcul compressible wedge, import des champs `T/U/p`, `blockMesh` et `foamRun` jusqu’à `End=0,2 s` en environ 3 s, Courant maximal inférieur à 0,19, sans `FOAM FATAL`, NaN ni divergence |
 | `245_solidDisplacement_beamEndLoad` | Présent | Présent | Conforme OF13 | Validé — poutre solide avec champ `D`, température `T`, traction `10000 Pa` sur `tractionEnd`, propriétés `planeStress`, `blockMesh` et `foamRun` jusqu’à `End=10000` en environ 2 s; résidus GAMG faibles, aucun `FOAM FATAL`, NaN ni divergence |
+| `246_solidDisplacement_plateHole` | Présent | Présent | Conforme OF13 | Validé — plaque trouée sous traction, champ `D`, `components(sigma)` et `graphUniform` produits après `foamRun` jusqu’à `End=100`; `Max sigmaEq≈28845,6`, résidus GAMG décroissants, avertissement initial non bloquant, aucun `FOAM FATAL` ni NaN |
 
 ## Conclusion
 
