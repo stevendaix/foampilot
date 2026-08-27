@@ -1,4 +1,6 @@
-# Revue du plan de modification — FoamPilot PR #23
+# Revue finale du plan de modification — FoamPilot PR #23
+
+**Statut : validé sous réserves, avec corrections intégrées dans ce document.**
 
 ## 1. Conclusion générale
 
@@ -182,7 +184,7 @@ L’overset custom doit être décrit comme une implémentation expérimentale F
 
 ## 10. Verdict sur le plan proposé
 
-Le plan est **validable après révision**, mais il ne doit pas être exécuté tel quel. Les corrections indispensables sont :
+Le plan est **validable après révision**, mais il ne doit pas être exécuté tel quel. La présente version constitue la référence de travail pour la suite de la PR. Les corrections indispensables sont :
 
 1. remplacer `PR #231` par `PR #23` ;
 2. remplacer le commit de tête annoncé `2c022bd` par `c4b5f33` ;
