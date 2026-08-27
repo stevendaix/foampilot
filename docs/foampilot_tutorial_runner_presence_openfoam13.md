@@ -207,6 +207,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `197_multicomponentFluid_counterFlowFlame2D_GRI_TDAC` | Présent | Présent | Conforme OF13 | Validé — décomposition hiérarchique `2×2×1`, chimie GRI sous TDAC, calcul parallèle jusqu’à `Time=0,5 s`, reconstruction des temps 0,05–0,5 et aucun `FOAM FATAL` |
 | `198_multicomponentFluid_filter` | Présent | Présent | Conforme OF13 | Validé — `blockMesh`, zone `filter`, `createBaffles`, calcul jusqu’à `Time=5 s`, Courant maximal ≈0,995 et aucun `FOAM FATAL` |
 | `199_multicomponentFluid_lockExchange` | Présent | Présent | Conforme OF13 | Validé — espèces `water/sludge`, zone sludge initialisée par `setFields`, calcul jusqu’à `Time=100 s`, Courant maximal inférieur à 0,47 et aucun `FOAM FATAL` |
+| `200_multicomponentFluid_membrane` | Présent | Présent | Conforme OF13 | Validé — STL `membrane.stl`, `snappyHexMesh` à 18 632 cellules, 960 baffles, patches mappés `membranePipe/membraneSleeve`, calcul jusqu’à `Time=10 s` et aucun `FOAM FATAL` |
 
 ## Conclusion
 
