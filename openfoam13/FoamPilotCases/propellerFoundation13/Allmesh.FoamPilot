@@ -2,7 +2,7 @@
 set -eu
 cd "${0%/*}" || exit 1
 # shellcheck disable=SC1091
-. ../../marine_env.sh
+. "${FOAMPILOT_MARINE_ENV:-../../marine_env.sh}"
 : "${FOAM_TUTORIALS:?Foundation 13 tutorials are required for propeller geometry}"
 . "$WM_PROJECT_DIR/bin/tools/RunFunctions"
 marine_require_command blockMesh

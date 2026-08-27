@@ -2,7 +2,7 @@
 set -eu
 cd "${0%/*}"
 # shellcheck disable=SC1091
-. ../../marine_env.sh
+. "${FOAMPILOT_MARINE_ENV:-../../marine_env.sh}"
 . "$WM_PROJECT_DIR/bin/tools/RunFunctions"
 marine_require_command blockMesh
 marine_require_command snappyHexMesh

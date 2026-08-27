@@ -2,7 +2,7 @@
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 set +u
 # shellcheck disable=SC1091
-source "$ROOT/../marine_env.sh"
+source "${FOAMPILOT_MARINE_ENV:-$ROOT/../marine_env.sh}"
 set -euo pipefail
 BACKGROUND="$ROOT/background"
 HULL="$ROOT/hull"
