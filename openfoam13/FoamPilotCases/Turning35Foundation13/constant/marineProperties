@@ -1,0 +1,13 @@
+FoamFile
+{
+    format ascii;
+    class dictionary;
+    object marineProperties;
+}
+mode turning35;
+solver incompressibleVoF;
+meshBackend snappyHexMesh;
+fluid waterAir;
+referenceSpeed 1.3381;
+turningAngle 35;
+turningStartTime 0.05;

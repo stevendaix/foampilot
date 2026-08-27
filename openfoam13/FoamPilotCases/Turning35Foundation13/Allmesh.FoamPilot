@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+cd "${0%/*}"
+: "${WM_PROJECT_DIR:?source OpenFOAM Foundation 13 first}"
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+runApplication blockMesh
+runApplication surfaceFeatures 2>/dev/null || true
+runApplication snappyHexMesh -overwrite
+runApplication topoSet
+runApplication checkMesh

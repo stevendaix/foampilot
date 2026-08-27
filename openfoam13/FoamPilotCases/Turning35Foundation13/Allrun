@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+cd "${0%/*}"
+: "${WM_PROJECT_DIR:?source OpenFOAM Foundation 13 first}"
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+if [ ! -d constant/polyMesh ]; then ./Allmesh.FoamPilot; fi
+runApplication setFields
+runApplication marineFoam -solver incompressibleVoF
+runApplication postProcess -func rigidBodyForces
