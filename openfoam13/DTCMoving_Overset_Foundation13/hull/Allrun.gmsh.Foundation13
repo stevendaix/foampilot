@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CASE_DIR="$(cd "$(dirname "$0")" && pwd)"
+GEO_FILE="${CASE_DIR}/gmsh_dtc_test.geo"
+MSH_FILE="${CASE_DIR}/gmsh_dtc_test.msh"
+
+# shellcheck disable=SC1091
+source "${FOAMPILOT_MARINE_ENV:-${CASE_DIR}/../../marine_env.sh}"
+
+command -v gmsh >/dev/null || { echo "gmsh is required" >&2; exit 1; }
+command -v gmshToFoam >/dev/null || { echo "gmshToFoam from Foundation 13 is required" >&2; exit 1; }
+
+cd "${CASE_DIR}"
+rm -f "${MSH_FILE}"
+rm -rf constant/polyMesh
+
+gmsh "${GEO_FILE}" -3 -o "${MSH_FILE}" 2>&1 | tee log.gmsh
+if grep -q '^Error' log.gmsh; then
+    echo "Gmsh reported errors; refusing to import the mesh" >&2
+    exit 1
+fi
+
+gmshToFoam "${MSH_FILE}" 2>&1 | tee log.gmshToFoam
+checkMesh -constant 2>&1 | tee log.checkMesh

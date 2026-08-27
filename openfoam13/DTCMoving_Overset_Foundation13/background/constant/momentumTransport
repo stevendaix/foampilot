@@ -1,0 +1,12 @@
+FoamFile
+{
+    format ascii;
+    class dictionary;
+    object momentumTransport;
+}
+simulationType RAS;
+RAS
+{
+    model kOmegaSST;
+    turbulence on;
+}

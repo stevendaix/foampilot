@@ -63,6 +63,23 @@ class OpenFOAMDictAddFile:
         except IOError as e:
             print(f"Error writing file {filepath}: {e}")
 
+    def write_raw(self, name_dict, base_path, content, folder=None):
+        """Write an already-rendered OpenFOAM dictionary without rewriting it.
+
+        This is used when importing a Foundation tutorial dictionary whose
+        header, comments, includes, or native syntax must be preserved exactly.
+        If ``base_path/system`` already exists it is used by default; otherwise
+        the file is written directly below ``base_path`` for legacy callers.
+        """
+        base = Path(base_path)
+        target_dir = base / folder if folder else (
+            base / "system" if (base / "system").is_dir() else base
+        )
+        target_dir.mkdir(parents=True, exist_ok=True)
+        path = target_dir / name_dict
+        path.write_text(content, encoding="utf-8")
+        return path
+
 class dict_tools:
 
     @staticmethod

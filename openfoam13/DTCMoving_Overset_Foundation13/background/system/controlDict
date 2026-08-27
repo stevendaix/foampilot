@@ -1,0 +1,27 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object controlDict;
+}
+libs ("libmarineOversetProbe.so");
+application marineFoam;
+solver incompressibleVoF;
+startFrom startTime;
+startTime 0;
+stopAt endTime;
+endTime 0.01;
+deltaT 1e-5;
+writeControl adjustableRunTime;
+writeInterval 0.001;
+writeFormat ascii;
+writePrecision 8;
+writeCompression off;
+timeFormat general;
+timePrecision 8;
+runTimeModifiable yes;
+adjustTimeStep yes;
+maxCo 0.5;
+maxAlphaCo 0.5;
+maxDeltaT 1e-3;

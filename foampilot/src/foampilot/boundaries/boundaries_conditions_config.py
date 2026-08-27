@@ -22,6 +22,7 @@ WALL_FUNCTIONS = {
         },
         "nut": {
             "default": {"type": "nutkWallFunction", "value": "uniform 0", **CONSTANTS},
+            "roughWall": {"type": "nutkRoughWallFunction", "value": "uniform 0", **CONSTANTS},
         },
     },
     "kOmegaSST": {
@@ -34,6 +35,7 @@ WALL_FUNCTIONS = {
         },
         "nut": {
             "default": {"type": "nutkWallFunction", "value": "uniform 0", **CONSTANTS},
+            "roughWall": {"type": "nutkRoughWallFunction", "value": "uniform 0", **CONSTANTS},
         },
     },
 }
@@ -150,6 +152,38 @@ BOUNDARY_CONDITIONS_CONFIG = {
             "k": {"type": "zeroGradient"},
             "epsilon": {"type": "zeroGradient"},
             "nut": {"type": "zeroGradient"},
+        },
+        "movingWall": {
+            "U": {"type": "movingWallVelocity", "value": "uniform (0 0 0)"},
+            "p": {"type": "zeroGradient"},
+            "pointDisplacement": {"type": "calculated"},
+            "k": {"type": "wallFunction", "function": "k"},
+            "epsilon": {"type": "wallFunction", "function": "epsilon"},
+            "nut": {"type": "wallFunction", "function": "nut"},
+        },
+        "outletPhaseMean": {
+            "U": {"type": "outletPhaseMeanVelocity", "alpha": "alpha.water", "UnMean": 1.668, "value": "$internalField"},
+            "p": {"type": "fixedValue", "value": "uniform 0"},
+            "alpha.water": {"type": "variableHeightFlowRate", "lowerBound": 0, "upperBound": 1, "value": "$internalField"},
+            "k": {"type": "inletOutlet", "inletValue": "$internalField", "value": "$internalField"},
+            "epsilon": {"type": "inletOutlet", "inletValue": "$internalField", "value": "$internalField"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
+        },
+        "inlet": {
+            "U": {"type": "fixedValue", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
+            "p": {"type": "fixedFluxPressure", "value": "$internalField"},
+            "alpha.water": {"type": "fixedValue", "value": "uniform 1"},
+            "k": {"type": "fixedValue", "value": "uniform {k_value}"},
+            "epsilon": {"type": "fixedValue", "value": "uniform {epsilon_value}"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
+        },
+        "atmosphere": {
+            "U": {"type": "pressureInletOutletVelocity", "value": "uniform (0 0 0)"},
+            "p": {"type": "prghTotalPressure", "p0": "uniform 0", "gamma": 1.3, "value": "uniform 0"},
+            "alpha.water": {"type": "inletOutlet", "inletValue": "uniform 0", "value": "uniform 0"},
+            "k": {"type": "inletOutlet", "inletValue": "$internalField", "value": "$internalField"},
+            "epsilon": {"type": "inletOutlet", "inletValue": "$internalField", "value": "$internalField"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
         },
         "uniformNormalFixedValue": {
             "U": {"type": "uniformNormalFixedValue", "value": "uniform {ref_value}"},
@@ -274,6 +308,38 @@ BOUNDARY_CONDITIONS_CONFIG = {
             "k": {"type": "zeroGradient"},
             "omega": {"type": "zeroGradient"},
             "nut": {"type": "wallFunction", "function": "nut"},
+        },
+        "movingWall": {
+            "U": {"type": "movingWallVelocity", "value": "uniform (0 0 0)"},
+            "p": {"type": "zeroGradient"},
+            "pointDisplacement": {"type": "calculated"},
+            "k": {"type": "wallFunction", "function": "k"},
+            "omega": {"type": "wallFunction", "function": "omega"},
+            "nut": {"type": "wallFunction", "function": "nut"},
+        },
+        "outletPhaseMean": {
+            "U": {"type": "outletPhaseMeanVelocity", "alpha": "alpha.water", "UnMean": 1.668, "value": "$internalField"},
+            "p": {"type": "fixedValue", "value": "uniform 0"},
+            "alpha.water": {"type": "variableHeightFlowRate", "lowerBound": 0, "upperBound": 1, "value": "$internalField"},
+            "k": {"type": "inletOutlet", "inletValue": "$internalField", "value": "$internalField"},
+            "omega": {"type": "inletOutlet", "inletValue": "$internalField", "value": "$internalField"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
+        },
+        "inlet": {
+            "U": {"type": "fixedValue", "value": "uniform ({u_ms} {v_ms} {w_ms})"},
+            "p": {"type": "fixedFluxPressure", "value": "$internalField"},
+            "alpha.water": {"type": "fixedValue", "value": "uniform 1"},
+            "k": {"type": "fixedValue", "value": "uniform {k_value}"},
+            "omega": {"type": "fixedValue", "value": "uniform {omega_value}"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
+        },
+        "atmosphere": {
+            "U": {"type": "pressureInletOutletVelocity", "value": "uniform (0 0 0)"},
+            "p": {"type": "prghTotalPressure", "p0": "uniform 0", "gamma": 1.3, "value": "uniform 0"},
+            "alpha.water": {"type": "inletOutlet", "inletValue": "uniform 0", "value": "uniform 0"},
+            "k": {"type": "inletOutlet", "inletValue": "$internalField", "value": "$internalField"},
+            "omega": {"type": "inletOutlet", "inletValue": "$internalField", "value": "$internalField"},
+            "nut": {"type": "calculated", "value": "uniform 0"},
         },
         "uniformNormalFixedValue": {
             "U": {"type": "uniformNormalFixedValue", "value": "uniform {ref_value}"},

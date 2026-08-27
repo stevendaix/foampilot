@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -eu
+cd "${0%/*}"
+# shellcheck disable=SC1091
+. "${FOAMPILOT_MARINE_ENV:-../../marine_env.sh}"
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+marine_require_command blockMesh
+marine_require_command snappyHexMesh
+runApplication blockMesh
+runApplication surfaceFeatures 2>/dev/null || true
+runApplication snappyHexMesh -overwrite
+runApplication topoSet
+runApplication checkMesh

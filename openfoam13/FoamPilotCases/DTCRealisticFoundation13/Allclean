@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -eu
+cd "${0%/*}" || exit 1
+# shellcheck disable=SC1091
+. "${FOAMPILOT_MARINE_ENV:-../../marine_env.sh}"
+# Source Foundation 13 clean functions
+. "$WM_PROJECT_DIR/bin/tools/CleanFunctions"
+
+# Remove surface
+rm -f constant/geometry/DTC-scaled.stl.gz
+
+cleanCase
+cleanExplicitFeatures
+
+#------------------------------------------------------------------------------

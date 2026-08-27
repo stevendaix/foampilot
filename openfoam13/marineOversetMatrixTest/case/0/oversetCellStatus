@@ -1,0 +1,25 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class volScalarField;
+    object oversetCellStatus;
+}
+dimensions [0 0 0 0 0 0 0];
+internalField nonuniform List<scalar>
+4
+(
+    0
+    0
+    1
+    2
+);
+boundaryField
+{
+    xmin { type zeroGradient; }
+    xmax { type zeroGradient; }
+    ymin { type zeroGradient; }
+    ymax { type zeroGradient; }
+    zmin { type zeroGradient; }
+    zmax { type zeroGradient; }
+}

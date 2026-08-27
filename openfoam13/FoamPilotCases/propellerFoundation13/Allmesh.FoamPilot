@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -eu
+cd "${0%/*}" || exit 1
+# shellcheck disable=SC1091
+. "${FOAMPILOT_MARINE_ENV:-../../marine_env.sh}"
+: "${FOAM_TUTORIALS:?Foundation 13 tutorials are required for propeller geometry}"
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+marine_require_command blockMesh
+marine_require_command snappyHexMesh
+marine_require_command createNonConformalCouples
+mkdir -p constant/geometry
+set -- "$FOAM_TUTORIALS"/resources/geometry/propeller*.obj.gz
+if [ ! -e "$1" ]; then
+    echo "Missing Foundation 13 propeller geometry under $FOAM_TUTORIALS/resources/geometry" >&2
+    exit 1
+fi
+cp "$@" constant/geometry/
+runApplication blockMesh
+runApplication surfaceFeatures
+runApplication snappyHexMesh -overwrite
+runApplication createBaffles -overwrite
+runApplication splitBaffles -overwrite
+runApplication renumberMesh -noFields
+runApplication createNonConformalCouples nonCouple1 nonCouple2
+runApplication checkMesh

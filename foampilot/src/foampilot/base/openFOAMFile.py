@@ -48,6 +48,7 @@ class OpenFOAMFile:
         "alpha.water": "[]",
         "alpha.air": "[]",
         "alpha": "[]",
+        "pointDisplacement": "[0 1 0 0 0 0 0]",
     }
 
     def __init__(self, object_name: str, **attributes: Any):
@@ -199,7 +200,7 @@ class OpenFOAMFile:
         Returns:
             A string containing the formatted OpenFOAM header.
         """
-        class_field = "volVectorField" if field == "U" else "volScalarField"
+        class_field = "volVectorField" if field == "U" else "pointVectorField" if field == "pointDisplacement" else "volScalarField"
         return (
             f"FoamFile\n"
             f"{{\n"
@@ -248,6 +249,7 @@ class OpenFOAMFile:
             "alpha.air": "uniform 1",
             "alpha": "uniform 0",
             "T": "uniform 293" if compressible else "uniform 0",
+            "pointDisplacement": "uniform (0 0 0)",
         }
         internal_field = internal_field or default_fields.get(field, "uniform 0")
 

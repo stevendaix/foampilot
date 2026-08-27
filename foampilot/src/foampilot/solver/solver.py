@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 class Solver:
     """Generic solver manager with automatic solver selection."""
 
-    def __init__(self, case_path: str | Path):
+    def __init__(self, case_path: str | Path, solver_name: str | None = None):
         self.case_path = Path(case_path)
+        self._requested_solver = solver_name
         self._solver: Optional[BaseSolver] = None
 
         # Flags
@@ -21,6 +22,7 @@ class Solver:
         self._energy_user: Optional[bool] = None
         self._transient = False
         self._turbulence_model = "kEpsilon"
+        self._with_moving_mesh = False
 
         # Handlers
         self._error_handlers: List[Callable[[str], None]] = []
@@ -120,9 +122,21 @@ class Solver:
             self.boundary.turbulence_model = value
         self._update_solver()
 
+    @property
+    def with_moving_mesh(self) -> bool:
+        return self._with_moving_mesh
+
+    @with_moving_mesh.setter
+    def with_moving_mesh(self, value: bool):
+        self._with_moving_mesh = value
+        self._update_solver()
+
     # ---------- Solver selection ----------
     def _update_solver(self):
-        if self._is_solid:
+        if self._requested_solver:
+            solver_name = self._requested_solver
+            self._sub_solver = None
+        elif self._is_solid:
             solver_name = "solidDisplacement"
             self._sub_solver = None
         elif self._is_vof:
@@ -151,6 +165,7 @@ class Solver:
             energy_activated=self.energy_activated,
             transient=self._transient,
             turbulence_model=self._turbulence_model,
+            with_moving_mesh=self._with_moving_mesh,
         )
 
         self._solver._sub_solver = self._sub_solver

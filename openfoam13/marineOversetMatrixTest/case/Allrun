@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -eu
+cd "${0%/*}" || exit 1
+# shellcheck disable=SC1091
+. "${FOAMPILOT_MARINE_ENV:-../../marine_env.sh}"
+marine_require_command blockMesh
+marine_require_command marineOversetMatrixTest
+marine_require_command marineInterMeshStencilTest
+marine_require_command marineInterMeshCouplingTest
+
+rm -rf constant/region0 constant/background system/background
+mkdir -p system/background
+cp system/blockMeshDict system/background/blockMeshDict
+blockMesh -region region0
+blockMesh -region background
+marineOversetMatrixTest
+marineInterMeshStencilTest
+marineInterMeshCouplingTest

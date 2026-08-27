@@ -1,0 +1,9 @@
+marineOversetProbe.C
+MarineOversetCellState.C
+MarineOversetInterpolation.C
+MarineOversetMatrix.C
+MarineOversetConstraint.C
+MarineInterMeshStencilState.C
+MarineInterMeshMatrix.C
+
+LIB = $(FOAM_USER_LIBBIN)/libmarineOversetProbe

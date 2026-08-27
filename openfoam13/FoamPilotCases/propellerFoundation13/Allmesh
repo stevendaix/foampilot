@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -eu
+cd "${0%/*}" || exit 1
+exec ./Allmesh.FoamPilot "$@"

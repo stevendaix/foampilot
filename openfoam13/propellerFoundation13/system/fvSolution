@@ -1,0 +1,113 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "pcorr.*"
+    {
+        solver          GAMG;
+        tolerance       1e-2;
+        relTol          0;
+        smoother        DICGaussSeidel;
+        cacheAgglomeration no;
+        maxIter         50;
+    }
+
+    p
+    {
+        $pcorr;
+        tolerance       1e-5;
+        relTol          0.01;
+    }
+
+    pFinal
+    {
+        $p;
+        tolerance       1e-6;
+        relTol          0;
+    }
+
+    "(U|k|epsilon|e|nuTilda)"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-6;
+        relTol          0.1;
+    }
+
+    "(U|k|epsilon|e|nuTilda)Final"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-6;
+        relTol          0;
+    }
+	
+	R
+	{
+		solver PBiCG;
+		preconditioner DILU;
+		tolerance 1e-20;
+		relTol 0;
+	}
+}
+
+SIMPLE
+{
+    //correctPhi          no;
+    //nOuterCorrectors    2;
+    //nCorrectors         1;
+    nNonOrthogonalCorrectors 1;
+	
+	// Set up residual controls. Simulation stops when residual target is reached
+	residualControl
+	{
+		p					1e-6;
+		//U					1e-4;
+		//"(k|epsilon)"		1e-4;
+	}
+}
+
+potentialFlow
+{
+    nNonOrthogonalCorrectors 1;
+}
+
+relaxationFactors
+{
+	fields
+	{
+		p 0.3 ;
+		rho 0.01 ;
+	}
+	equations
+	{
+		U 0.7 ;
+		e 0.7 ;
+		k 0.7 ;
+		omega 0.7 ;
+		nuTilda 0.7 ;
+		R 0.7;
+	}
+}
+
+cache
+{
+    grad(U);
+}
+
+
+// ************************************************************************* //

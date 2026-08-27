@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -eu
+cd "${0%/*}" || exit 1
+# shellcheck disable=SC1091
+. "${FOAMPILOT_MARINE_ENV:-../../marine_env.sh}"
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+marine_require_command marineFoam
+
+if [ ! -d constant/polyMesh ]; then
+    ./Allmesh.FoamPilot
+fi
+runApplication setWaves
+runApplication marineFoam -solver incompressibleVoF
+
+#------------------------------------------------------------------------------

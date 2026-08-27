@@ -40,13 +40,31 @@ if not hasattr(np, 'str0'):
 # project/__init__.py
 
 # Importer tous les modules nécessaires
-from foampilot.base import  Meshing
+from foampilot.base import  Meshing, CaseBuilder, create_case_structure
 from foampilot.solver import  Solver
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.commons.read_polymesh import BoundaryFileHandler
 from foampilot.commons import STLAnalyzer
+from foampilot.mesh import (
+    BlockMesher,
+    GmshMesher,
+    SnappyMesher,
+    DirectOpenFOAMExporter,
+    GmshQualityAnalyzer,
+    QualityThresholds,
+    QualityReport,
+    ElementQuality,
+    CheckMeshParser,
+    QualityGate,
+    OpenFOAMQualityAnalyzer,
+    AdaptiveMeshImprover,
+    write_rotating_zone,
+    write_mesh_motion,
+    restore_initial_fields,
+    create_case_structure,
+)
 
 from foampilot.report import latex_pdf,ScientificDocument, TypstRenderer
 from foampilot.utilities import ValueWithUnit, FluidMechanics, Functions, ResidualsPost, HumanGeometry, OpenFOAMDictAddFile, CSVFoamIntegrator,WeatherFileEPW, AortaSurfaceCleaner,AortaCapMethod, create_closed_aorta_mesh

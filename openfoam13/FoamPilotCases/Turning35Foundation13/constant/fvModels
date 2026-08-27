@@ -1,0 +1,25 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website: https://openfoam.org
+    \\  /    A nd           | Version: 13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format ascii;
+    class dictionary;
+    location "constant";
+    object fvModels;
+}
+disk1
+{
+    type actuationDisk;
+    cellZone rotor;
+    diskArea 0.0068;
+    diskDir (-1 0 0);
+    Cp 0.18;
+    Ct 0.32;
+    upstreamPoint (2.65275 0 -0.078651);
+    downstreamPoint (2.67172 0 -0.078651);
+}
