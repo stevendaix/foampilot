@@ -29,7 +29,7 @@ class Boundary:
             turbulence_model: The turbulence model to use (default: "kEpsilon").
         """
         self.parent = parent
-        self.turbulence_model = turbulence_model
+        self.turbulence_model = turbulence_model or "laminar"
         self.fields_manager = fields_manager
         self.config = BOUNDARY_CONDITIONS_CONFIG.get(self.turbulence_model)
         if not self.config and self.turbulence_model in {"realizableKE", "RNGkEpsilon"}:

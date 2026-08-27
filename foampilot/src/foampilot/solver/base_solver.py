@@ -1,17 +1,17 @@
-from pathlib import Path
 import gzip
 import logging
+import os
 import re
-import subprocess
 import shutil
-from typing import Dict, List, Optional
+import subprocess
+from pathlib import Path
+from typing import Dict, List, Optional, Sequence
 
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.base.cases_variables import CaseFieldsManager
 from foampilot.solver.marine_case import MarineCaseConfig
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -273,44 +273,51 @@ class BaseSolver:
     # ---------- Running simulation ----------
     def run_command(
         self,
-        cmd: List[str],
+        cmd: Sequence[str],
         log_filename: str,
+        cwd: str | Path | None = None,
+        env: Dict[str, str] | None = None,
         environment: Optional[Dict[str, str]] = None,
-    ) -> None:
-        """Run a case command with an optional FoamPilot-managed environment.
+    ) -> subprocess.CompletedProcess:
+        """Run a command and persist its combined log.
 
-        ``environment`` is merged over the parent process environment.  This
-        lets OF13 runners provide ``PATH``, ``LD_LIBRARY_PATH`` and related
-        OpenFOAM variables explicitly, without relying on an interactive shell
-        having sourced a particular ``bashrc``.
+        ``cwd`` defaults to the case directory. Both ``env`` and the legacy
+        ``environment`` keyword are merged over the parent environment.
         """
+        workdir = Path(cwd) if cwd is not None else self.case_path
         log_path = self.case_path / log_filename
+        log_path.parent.mkdir(parents=True, exist_ok=True)
         logger.info("Running command: %s -> log: %s", " ".join(cmd), log_path)
         process_environment = os.environ.copy()
+        if env:
+            process_environment.update(env)
         if environment:
             process_environment.update(environment)
-        with open(log_path, "w", encoding="utf-8") as log_file:
-            subprocess.run(
-                cmd,
-                cwd=self.case_path,
-                env=process_environment,
-                text=True,
-                stdout=log_file,
-                stderr=subprocess.STDOUT,
-                check=True,
+        with log_path.open("w", encoding="utf-8") as log_file:
+            return subprocess.run(
+                list(cmd), cwd=workdir, env=process_environment, text=True,
+                stdout=log_file, stderr=subprocess.STDOUT, check=True,
             )
 
-    def run_command_async(self, cmd: List[str], log_filename: str):
+    def run_external(
+        self,
+        cmd: Sequence[str],
+        log_filename: str,
+        cwd: str | Path | None = None,
+        env: Dict[str, str] | None = None,
+    ) -> subprocess.CompletedProcess:
+        """Run an external build or preprocessing command with FoamPilot logging."""
+        return self.run_command(cmd, log_filename, cwd=cwd, env=env)
+
+    def run_command_async(self, cmd: Sequence[str], log_filename: str):
         """Start a FoamPilot-managed command and return its process handle."""
         log_path = self.case_path / log_filename
+        log_path.parent.mkdir(parents=True, exist_ok=True)
         logger.info("Starting async command: %s -> log: %s", " ".join(cmd), log_path)
-        log_file = open(log_path, "w", encoding="utf-8")
+        log_file = log_path.open("w", encoding="utf-8")
         process = subprocess.Popen(
-            cmd,
-            cwd=self.case_path,
-            text=True,
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
+            list(cmd), cwd=self.case_path, text=True,
+            stdout=log_file, stderr=subprocess.STDOUT,
         )
         process._foampilot_log_file = log_file
         return process
@@ -325,11 +332,54 @@ class BaseSolver:
             raise subprocess.CalledProcessError(returncode, process.args)
         return returncode
 
+    @staticmethod
+    def openfoam_version() -> str | None:
+        """Return the sourced OpenFOAM major version, if discoverable."""
+        version = os.environ.get("WM_PROJECT_VERSION")
+        if version:
+            return version
+        foam_version = shutil.which("foamVersion")
+        if not foam_version:
+            return None
+        result = subprocess.run([foam_version], capture_output=True, text=True, check=False)
+        output = (result.stdout or result.stderr).strip()
+        return output.removeprefix("OpenFOAM-") or None
+
+    def require_openfoam(self, major: str | int | None = None) -> str:
+        """Require a sourced OpenFOAM environment and optionally a major version."""
+        version = self.openfoam_version()
+        if not version:
+            raise RuntimeError("OpenFOAM is not sourced or foamVersion is unavailable")
+        if major is not None and str(version) != str(major):
+            raise RuntimeError(f"OpenFOAM {major} is required, found {version}")
+        return version
+
+    def validate_results(self, log_filename: str | None = None) -> Path:
+        """Validate that a solver log ended and produced a numeric time directory."""
+        log_path = self.case_path / (log_filename or f"log.{self.solver_name}")
+        if not log_path.is_file():
+            raise RuntimeError(f"Solver log was not produced: {log_path}")
+        if "End" not in log_path.read_text(encoding="utf-8", errors="replace"):
+            raise RuntimeError(f"Solver did not finish successfully: {log_path}")
+        times = []
+        for path in self.case_path.iterdir():
+            if not path.is_dir():
+                continue
+            try:
+                float(path.name)
+            except ValueError:
+                continue
+            times.append(path)
+        if not times:
+            raise RuntimeError("The solver produced no numeric time directory")
+        return max(times, key=lambda p: float(p.name))
+
     def check_solver_module_exists(self) -> bool:
         foam_modules = os.getenv("FOAM_MODULES", "")
         if not foam_modules:
-            logger.warning("$FOAM_MODULES environment variable is not set.")
-            return False
+            # OpenFOAM 13 commonly exposes modules through foamRun rather than
+            # a standalone path; use the executable as the fallback check.
+            return shutil.which("foamRun") is not None
         module_dir = Path(foam_modules)
         module_candidates = (
             module_dir / self.foamrun_module,
@@ -380,7 +430,7 @@ class BaseSolver:
 
         # --- parallel execution ---
         if nb_proc >= 2:
-            return self.run_parallel(nb_proc)
+            return self.run_parallel(nb_proc, log_filename)
 
         # --- serial execution ---
         if log_filename is None:
@@ -460,8 +510,12 @@ class BaseSolver:
         logger.info("Running mpirun simulation ...")
         with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write("\n=== mpirun foamRun ===\n")
+            mpi_command = ["mpirun"]
+            if os.getenv("FOAMPILOT_MPI_OVERSUBSCRIBE", "1").lower() not in {"0", "false", "no"}:
+                mpi_command.append("--oversubscribe")
+            mpi_command += ["-np", str(nb_proc), "foamRun", "-solver", self.foamrun_module, "-parallel"]
             subprocess.run(
-                ["mpirun", "--oversubscribe", "-np", str(nb_proc), "foamRun", "-solver", self.foamrun_module, "-parallel"],
+                mpi_command,
                 cwd=self.case_path,
                 stdout=log_file,
                 stderr=subprocess.STDOUT,

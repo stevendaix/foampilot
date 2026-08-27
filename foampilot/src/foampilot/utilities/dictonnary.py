@@ -47,6 +47,17 @@ class OpenFOAMDictAddFile:
                 file.write(f"{indent}{key} {str(value)};\n")
 
 
+    def write_raw(self, name_dict, base_path, content, folder='system'):
+        """Write a complete OpenFOAM file without adding or parsing a header.
+
+        This is intended for advanced dictionaries and fields containing
+        ``#include``/``#codeStream`` directives that cannot be represented
+        safely by the attribute serializer.
+        """
+        path = Path(base_path) / folder / name_dict
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+
     def write(self, name_dict, base_path, folder='system'):
         """
         Writes the OpenFOAM file to the specified filepath.
