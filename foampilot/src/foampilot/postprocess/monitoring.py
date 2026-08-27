@@ -170,3 +170,85 @@ class CFDMonitor:
 
 
 __all__ = ["CFDMonitor", "MonitorPoint"]
+
+
+def integrate_surface_forces(
+    normals: np.ndarray,
+    areas: np.ndarray,
+    pressure: np.ndarray,
+    wall_shear: Optional[np.ndarray] = None,
+    *,
+    rho: float,
+    reference_velocity: float,
+    reference_area: float,
+    drag_direction: Sequence[float] = (1.0, 0.0, 0.0),
+    lift_direction: Sequence[float] = (0.0, 1.0, 0.0),
+    pressure_reference: float = 0.0,
+) -> dict[str, float]:
+    """Integrate pressure and viscous forces over a surface.
+
+    ``normals`` are outward unit normals and ``wall_shear`` is the viscous
+    traction vector in Pa. The pressure traction convention is ``-p*n``.
+    ``lift_direction`` and ``drag_direction`` are normalized internally and
+    must be orthogonal for unambiguous coefficients.
+    """
+    n = np.asarray(normals, dtype=float)
+    a = np.asarray(areas, dtype=float).reshape(-1)
+    p = np.asarray(pressure, dtype=float).reshape(-1) - pressure_reference
+    if n.ndim != 2 or n.shape[1] != 3 or len(n) != len(a) or len(p) != len(a):
+        raise ValueError("normals, areas and pressure must describe the same surface cells")
+    if np.any(a < 0) or rho <= 0 or reference_velocity <= 0 or reference_area <= 0:
+        raise ValueError("areas must be non-negative and reference quantities positive")
+    shear = np.zeros_like(n) if wall_shear is None else np.asarray(wall_shear, dtype=float)
+    if shear.shape != n.shape:
+        raise ValueError("wall_shear must have shape (n_cells, 3)")
+    drag = np.asarray(drag_direction, dtype=float)
+    lift = np.asarray(lift_direction, dtype=float)
+    drag_norm = np.linalg.norm(drag)
+    lift_norm = np.linalg.norm(lift)
+    if drag_norm == 0 or lift_norm == 0:
+        raise ValueError("force directions must be non-zero")
+    drag = drag / drag_norm
+    lift = lift / lift_norm
+    if abs(float(np.dot(drag, lift))) > 1e-8:
+        raise ValueError("drag_direction and lift_direction must be orthogonal")
+    pressure_force = np.sum((-p[:, None] * n) * a[:, None], axis=0)
+    viscous_force = np.sum(shear * a[:, None], axis=0)
+    total_force = pressure_force + viscous_force
+    dynamic_pressure = 0.5 * rho * reference_velocity**2
+    return {
+        "pressure_force_x": float(pressure_force[0]),
+        "pressure_force_y": float(pressure_force[1]),
+        "pressure_force_z": float(pressure_force[2]),
+        "viscous_force_x": float(viscous_force[0]),
+        "viscous_force_y": float(viscous_force[1]),
+        "viscous_force_z": float(viscous_force[2]),
+        "force_x": float(total_force[0]),
+        "force_y": float(total_force[1]),
+        "force_z": float(total_force[2]),
+        "drag": float(np.dot(total_force, drag)),
+        "lift": float(np.dot(total_force, lift)),
+        "Cd": float(np.dot(total_force, drag) / (dynamic_pressure * reference_area)),
+        "Cl": float(np.dot(total_force, lift) / (dynamic_pressure * reference_area)),
+    }
+
+
+def compute_y_plus(
+    wall_distance: np.ndarray,
+    wall_shear_magnitude: np.ndarray,
+    *,
+    rho: float,
+    kinematic_viscosity: float,
+) -> np.ndarray:
+    """Compute ``y+ = y*u_tau/nu`` from wall distance and shear stress."""
+    y = np.asarray(wall_distance, dtype=float)
+    tau = np.asarray(wall_shear_magnitude, dtype=float)
+    if y.shape != tau.shape:
+        raise ValueError("wall_distance and wall_shear_magnitude must have the same shape")
+    if rho <= 0 or kinematic_viscosity <= 0 or np.any(y < 0) or np.any(tau < 0):
+        raise ValueError("rho, viscosity, distance and shear stress must be non-negative/positive")
+    friction_velocity = np.sqrt(tau / rho)
+    return y * friction_velocity / kinematic_viscosity
+
+
+__all__.extend(["integrate_surface_forces", "compute_y_plus"])

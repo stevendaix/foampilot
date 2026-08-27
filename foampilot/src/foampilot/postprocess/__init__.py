@@ -43,4 +43,7 @@ __all__ = [
     "plotly_pressure_contour",
     "CFDMonitor",
     "MonitorPoint",
+    "compute_y_plus",
+    "integrate_surface_forces",
 ]
+from foampilot.postprocess.monitoring import compute_y_plus, integrate_surface_forces

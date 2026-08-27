@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from foampilot.postprocess.monitoring import CFDMonitor
+from foampilot.postprocess.monitoring import CFDMonitor, compute_y_plus, integrate_surface_forces
 
 
 class FakeMesh:
@@ -46,3 +46,22 @@ def test_track_region_supports_vector_magnitude():
 def test_track_point_returns_values_over_time():
     frame = CFDMonitor(FakePostprocessor()).track_point((0.0, 0.0, 0.0), "p")
     assert list(frame["value"]) == [100.0, 95.0]
+
+
+def test_compute_y_plus_uses_friction_velocity():
+    result = compute_y_plus(np.array([0.001]), np.array([4.0]), rho=1.0, kinematic_viscosity=1e-3)
+    assert result[0] == 2.0
+
+
+def test_integrate_surface_forces_returns_lift_and_drag_coefficients():
+    result = integrate_surface_forces(
+        normals=np.array([[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]]),
+        areas=np.array([1.0, 1.0]),
+        pressure=np.array([0.0, 10.0]),
+        rho=1.0,
+        reference_velocity=2.0,
+        reference_area=1.0,
+    )
+    assert result["force_x"] == 10.0
+    assert result["Cd"] == 5.0
+    assert result["Cl"] == 0.0

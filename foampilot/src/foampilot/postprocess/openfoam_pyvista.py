@@ -90,38 +90,45 @@ class FoamPostProcessing:
                 reader.set_active_scalars(field)
         return reader.read()
 
-    def calc_y_plus(self, mesh: pv.DataSet, wall_patch_name: str = "walls", velocity_field: str = "U", viscosity: float = 1e-5) -> pv.DataSet:
-        """Calculate y+ wall distance for a mesh.
+    def calc_y_plus(
+        self,
+        mesh: pv.DataSet,
+        wall_patch_name: str = "walls",
+        velocity_field: str = "U",
+        viscosity: float = 1e-5,
+        density: float = 1.0,
+        wall_mesh: Optional[pv.DataSet] = None,
+        wall_distance_field: str = "wallDistance",
+        wall_shear_field: str = "wallShearStress",
+    ) -> pv.DataSet:
+        """Calculate ``y+`` from wall distance and wall shear stress.
 
-        Args:
-            mesh: The PyVista mesh object.
-            wall_patch_name: Name of the wall patch.
-            velocity_field: Velocity field name.
-            viscosity: Kinematic viscosity (nu).
-
-        Returns:
-            Mesh with y_plus point data added.
+        The preferred path uses solver-provided ``wallDistance`` and
+        ``wallShearStress`` fields. If they are absent, ``wall_mesh`` is used
+        to compute the distance and the velocity gradient provides a clearly
+        documented engineering estimate of the shear stress.
         """
-        if velocity_field not in mesh.point_data:
-            raise ValueError(f"Velocity field '{velocity_field}' not found in mesh point data.")
-
-        # Compute the magnitude of velocity
-        vel = mesh.point_data[velocity_field]
-        if vel.ndim == 1:
-            u_mag = np.abs(vel)
+        if viscosity <= 0 or density <= 0:
+            raise ValueError("viscosity and density must be positive")
+        if wall_distance_field in mesh.point_data:
+            distance = np.asarray(mesh.point_data[wall_distance_field], dtype=float)
+        elif wall_mesh is not None:
+            distance = np.abs(np.asarray(mesh.compute_implicit_distance(wall_mesh)["implicit_distance"], dtype=float))
         else:
-            u_mag = np.linalg.norm(vel, axis=1)
-
-        # Simplified y+ estimation using first cell center distance
-        # In practice, this requires wall-normal distance computation
-        y_plus = np.zeros(mesh.n_points)
-        points = mesh.points
-        if len(points) > 0:
-            distances = np.linalg.norm(points - mesh.bounds[:3], axis=1)
-            u_tau = np.sqrt(0.5 * viscosity * u_mag / (distances + 1e-10))
-            y_plus = u_mag * distances / (u_tau + 1e-10)
-
-        mesh.point_data["y_plus"] = y_plus
+            raise ValueError("Provide a wallDistance field or wall_mesh to calculate y+")
+        if wall_shear_field in mesh.point_data:
+            shear = np.asarray(mesh.point_data[wall_shear_field], dtype=float)
+            if shear.ndim > 1:
+                shear = np.linalg.norm(shear, axis=1)
+        else:
+            if velocity_field not in mesh.point_data:
+                raise ValueError(f"Velocity field '{velocity_field}' not found in mesh point data.")
+            gradient = mesh.compute_derivative(scalars=velocity_field).point_data["gradient"]
+            shear = density * viscosity * np.linalg.norm(gradient.reshape(-1, 3, 3), axis=(1, 2))
+        from foampilot.postprocess.monitoring import compute_y_plus
+        mesh.point_data["y_plus"] = compute_y_plus(
+            distance, shear, rho=density, kinematic_viscosity=viscosity
+        )
         return mesh
 
     def calc_strain_rate(self, mesh: pv.DataSet, velocity_field: str = "U") -> pv.DataSet:
@@ -919,6 +926,51 @@ class FoamPostProcessing:
                     wall_pts[:, np.newaxis] - edge_pts[np.newaxis, :]
                 )
             )
+        )
+
+
+    def calc_force_coefficients(
+        self,
+        surface: pv.DataSet,
+        pressure_field: str = "p",
+        wall_shear_field: Optional[str] = "wallShearStress",
+        density: float = 1.225,
+        reference_velocity: float = 1.0,
+        reference_area: float = 1.0,
+        drag_direction: tuple = (1.0, 0.0, 0.0),
+        lift_direction: tuple = (0.0, 1.0, 0.0),
+        pressure_reference: float = 0.0,
+    ) -> dict:
+        """Integrate surface forces and return ``Cd``/``Cl``.
+
+        The surface must contain pressure and, optionally, a vector viscous
+        traction field. Outward cell normals are used with the convention
+        ``F_pressure = -integral(p*n*dA)``. Point fields are converted to cell
+        values before integration.
+        """
+        if pressure_field not in surface.point_data and pressure_field not in surface.cell_data:
+            raise ValueError(f"Pressure field '{pressure_field}' not found on surface")
+        work = surface.compute_cell_sizes(length=False, area=True)
+        work = work.compute_normals(cell_normals=True, point_normals=False, auto_orient_normals=True)
+        pressure = work.cell_data[pressure_field] if pressure_field in work.cell_data else work.point_data_to_cell_data()[pressure_field]
+        shear = None
+        if wall_shear_field:
+            if wall_shear_field in work.cell_data:
+                shear = work.cell_data[wall_shear_field]
+            elif wall_shear_field in work.point_data:
+                shear = work.point_data_to_cell_data()[wall_shear_field]
+        from foampilot.postprocess.monitoring import integrate_surface_forces
+        return integrate_surface_forces(
+            work.cell_data["Normals"],
+            work.cell_data["Area"],
+            pressure,
+            shear,
+            rho=density,
+            reference_velocity=reference_velocity,
+            reference_area=reference_area,
+            drag_direction=drag_direction,
+            lift_direction=lift_direction,
+            pressure_reference=pressure_reference,
         )
 
 

@@ -38,3 +38,38 @@ Les sorties restent volontairement descriptives : elles ne remplacent pas un bil
 ## Recommandations d’intégration
 
 Les suivis devraient être exécutés après chaque campagne de calcul et archivés avec le nom du cas, le solveur, la version OpenFOAM, le pas de temps et les paramètres physiques. Les CSV sont adaptés à l’analyse exploratoire et les JSON aux rapports automatisés. En production, il est préférable de figer la liste des champs, l’association point/cellule et les unités attendues dans la configuration du cas.
+
+## Calcul automatique de y+
+
+Pour un calcul fiable, le maillage doit fournir `wallDistance` et `wallShearStress` en `point_data`, ou bien une surface de paroi doit être passée à `calc_y_plus`. La formule utilisée est `y+ = y*u_tau/nu`, avec `u_tau = sqrt(tau_w/rho)`. Les grandeurs attendues sont la distance en mètres, `tau_w` en Pa, `rho` en kg/m³ et `nu` en m²/s.
+
+```python
+mesh = post.load_time_step(10)["cell"]
+mesh = post.calc_y_plus(
+    mesh,
+    density=1.225,
+    viscosity=1.5e-5,
+    wall_distance_field="wallDistance",
+    wall_shear_field="wallShearStress",
+)
+```
+
+## Coefficients de force
+
+`calc_force_coefficients` intègre la traction de pression `-p n` et la traction visqueuse sur les cellules d’une surface. Les normales sont orientées vers l’extérieur par PyVista. Les coefficients sont calculés avec `q_ref = 0.5*rho*U_ref²` et `C = F/(q_ref*A_ref)`.
+
+```python
+wall = post.load_time_step(10)["boundaries"]["airfoil"]
+forces = post.calc_force_coefficients(
+    wall,
+    density=1.225,
+    reference_velocity=30.0,
+    reference_area=1.0,
+    drag_direction=(1.0, 0.0, 0.0),
+    lift_direction=(0.0, 1.0, 0.0),
+    pressure_reference=101325.0,
+)
+print(forces["Cd"], forces["Cl"])
+```
+
+Le champ de cisaillement doit être une traction vectorielle en Pa. En son absence, seule la contribution de pression est intégrée. Pour une surface ouverte, l’orientation des normales doit être contrôlée avant d’interpréter le signe de `Cl` et `Cd`.
