@@ -229,6 +229,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `219_multiphaseEuler_bubbleColumnLES` | Présent | Présent | Conforme OF13 | Accepté avec réserve — turbulence LES air/eau, `nSubCycles=2`, fractions bornées et normalisées, Courant maximal proche de 1,00, calcul stable jusqu’à `Time≈79,39 s` sur `100 s` au plafond, sans `FOAM FATAL` |
 | `220_multiphaseEuler_bubbleColumnLaminar` | Présent | Présent | Conforme OF13 | Validé — colonne air/eau laminaire, `nSubCycles=2`, fractions bornées, Courant maximal proche de 0,74, calcul jusqu’à `End` vers `Time≈84,38 s` et aucun `FOAM FATAL` |
 | `221_multiphaseEuler_bubblePipe` | Présent | Présent | Conforme OF13 | Accepté avec réserve — phases `water/air1/air2/bubbles`, population balance, groupes de taille, forces interfaciales et décomposition à 4 domaines validés; calcul stable jusqu’à `Time≈3,366 s` sur `4 s`, fractions normalisées, Courant proche de 0,80, sans `FOAM FATAL`, mais reconstruction hors budget |
+| `222_multiphaseEuler_damBreak4phase` | Présent | Présent | Conforme OF13 | Validé — rupture de barrage avec phases `water/oil/mercury/air`, initialisation par zones, corrections MULES, calcul standard jusqu’à `Time=6 s` et `End`, Courant proche de 0,48 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
