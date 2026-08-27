@@ -142,6 +142,23 @@ marineFoam -solver incompressibleVoF
 
 Les forces sont extraites avec `rigidBodyForces` sur le patch `hull`, en utilisant `p_rgh`. Le cas a atteint environ `2,6×10⁻⁴ s` dans un calcul court avec une fraction d’eau moyenne de `0,812159`, des erreurs globales de continuité de l’ordre de `10⁻¹²` et des forces/moments non nuls.
 
+## Cas Turning35 Foundation 13
+
+Le cas `openfoam13/FoamPilotCases/Turning35Foundation13` est le portage FoamPilot du cas de manœuvre `Turning35`. Il contient les géométries `hull.stl` et `rudder.stl`, les champs eau/air de départ, un mouvement rigide 6-DoF Foundation 13, une zone rotor `rotor`, le modèle de propulsion `actuationDisk`, ainsi que les sorties de forces et de moments.
+
+Le pipeline documenté est :
+
+```text
+blockMesh
+    → snappyHexMesh
+    → topoSet (zone rotor)
+    → setFields
+    → marineFoam -solver incompressibleVoF
+    → rigidBodyForces
+```
+
+Le cas est actuellement une validation mono-région du mouvement, de la surface libre et de la propulsion. Le couplage overset/inter-mailles n’est pas présenté comme validé sur Turning35 ; il reste couvert par les harnesses `marineInterMesh*` et le cas DTC multi-région. La stabilité numérique et les valeurs hydrodynamiques finales nécessitent encore une exécution Foundation 13 complète et une étude de convergence.
+
 ## Cas propeller Foundation 13
 
 Le cas `openfoam13/FoamPilotCases/propellerFoundation13` reprend la structure du tutoriel Foundation 13 `incompressibleVoF/propeller`. Il contient notamment :
