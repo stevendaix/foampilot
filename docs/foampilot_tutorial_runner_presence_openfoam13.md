@@ -192,6 +192,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `182_multiRegion_film_VoFToFilm` | Présent | Présent | Conforme OF13 | Validé — maillage VoF, extrusion film de 1 mm, initialisation `alpha.liquid`, solveurs VoF/film couplés jusqu’à `Time=5 s` et aucun `FOAM FATAL` |
 | `183_multiRegion_film_cylinder` | Présent | Présent | Conforme OF13 | Validé — Allrun parallèle, maillage fluid/film dans les quatre processeurs, particules absorbées par le film, espèces `N2/O2/H2O`, `foamMultiRun` jusqu’à `Time=20 s`, reconstruction des deux régions et aucun `FOAM FATAL` |
 | `184_multiRegion_film_cylinderDripping` | Présent | Présent | Conforme OF13 | Validé — extrusion film de 1 mm, couplage multicomposant fluid/film, `New film detached parcels=1105`, calcul jusqu’à `Time=1 s` et aucun `FOAM FATAL` |
+| `185_multiRegion_film_cylinderVoF` | Présent | Présent | Conforme OF13 | Validé — Allrun parallèle, maillage VoF/film dans quatre processeurs, phase `alpha.liquid`, injection/absorption de parcelles, calcul jusqu’à `Time=20 s`, reconstruction des régions et aucun `FOAM FATAL` |
 
 ## Conclusion
 
