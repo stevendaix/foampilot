@@ -242,6 +242,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `232_multiphaseEuler_wallBoilingIATE` | Présent | Présent | Conforme OF13 | Validé — ébullition pariétale IATE eau/gaz, maillage extrudé, 4 domaines MPI, reconstruction, `graphCell` et `patchSurface` terminés jusqu’à `End=4 s`, propriétés de départ de bulles et mouillage produites sans `FOAM FATAL` |
 | `233_multiphaseEuler_wallBoilingPolydisperse` | Présent | Présent | Conforme OF13 | Accepté avec réserve — ébullition pariétale polydisperse à quatre groupes, 4 domaines MPI, fractions normalisées, températures `341–362 K`, progression jusqu’à `Time≈2,74 s` sur `4 s`, aucun `FOAM FATAL`; reconstruction hors budget |
 | `234_multiphaseEuler_wallBoilingPolydisperseTwoGroups` | Présent | Présent | Conforme OF13 | Accepté avec réserve — ébullition pariétale avec populations `gas/gas2`, 4 domaines MPI, fractions presque normalisées, températures `341–362 K`, progression jusqu’à `Time≈2,14 s` sur `4 s`, aucun `FOAM FATAL`; reconstruction hors budget |
+| `235_potentialFoam_cylinder` | Présent | Présent | Conforme OF13 | Validé — écoulement potentiel autour d’un cylindre, import `U.orig/p.orig`, `potentialFoam` avec `phi/p`, puis `streamFunction` produit sans avertissement fonctionnel ni `FOAM FATAL` |
 
 ## Conclusion
 
