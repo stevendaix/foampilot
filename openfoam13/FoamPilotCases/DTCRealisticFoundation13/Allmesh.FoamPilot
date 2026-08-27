@@ -1,20 +1,16 @@
 #!/bin/sh
-cd ${0%/*} || exit 1    # Run from this directory
+set -eu
+cd "${0%/*}" || exit 1
+: "${WM_PROJECT_DIR:?source OpenFOAM Foundation 13 first}"
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
 
-# Source tutorial run functions
-. $WM_PROJECT_DIR/bin/tools/RunFunctions
-
-# Copy DTC hull surface from resources folder
-cp $FOAM_TUTORIALS/resources/geometry/DTC-scaled.stl.gz constant/geometry/
-
+# The scaled DTC STL is versioned with this case; no external tutorial path is needed.
+test -f constant/geometry/DTC-scaled.stl.gz
 runApplication surfaceFeatures
-
 runApplication blockMesh
-
 runApplication refineMesh
-
-runApplication snappyHexMesh
-
+runApplication snappyHexMesh -overwrite
 runApplication renumberMesh -noFields
+runApplication checkMesh
 
 #------------------------------------------------------------------------------
