@@ -5,9 +5,10 @@ import subprocess
 import sys
 import shutil
 
-root = Path('/home/ubuntu/foam-integration')
+root = Path(__file__).resolve().parents[1]
 foampilot = root / 'foampilot'
 report = root / 'deep-validation-report.md'
+foam_env = r'''if [ -n "${FOAM_BASHRC:-}" ] && [ -f "$FOAM_BASHRC" ]; then source "$FOAM_BASHRC"; elif [ -n "${WM_PROJECT_DIR:-}" ] && [ -f "$WM_PROJECT_DIR/etc/bashrc" ]; then source "$WM_PROJECT_DIR/etc/bashrc"; else echo "FOAM_BASHRC or WM_PROJECT_DIR is required" >&2; exit 2; fi'''
 lines = ['# Validation approfondie Foampilot / OpenFOAM 13', '', '| Test | Résultat | Détail |', '|---|---:|---|']
 
 def add(name, ok, detail):
@@ -34,20 +35,21 @@ add('Chemins vendorisés', all(Path(item['source']).exists() for item in plan), 
 
 manifest_data = json.loads(manifest.read_text(encoding='utf-8'))
 add('Validation JSON manifeste', manifest_data['openfoam'] == {'distribution': 'Foundation', 'version': '13'}, 'JSON valide et version Foundation 13')
-rr = subprocess.run(['bash', '-lc', f'. /opt/openfoam13/etc/bashrc && foamDictionary -entry openfoamVersion {dictionary}'], text=True, capture_output=True)
+rr = subprocess.run(['bash', '-lc', f'{foam_env} && foamDictionary -entry openfoamVersion {dictionary}'], text=True, capture_output=True)
 add('Parsing dictionnaire OpenFOAM', rr.returncode == 0 and '13' in (rr.stdout + rr.stderr), (rr.stdout + rr.stderr).strip()[-300:])
 
-rr = subprocess.run(['bash', '-lc', '. /opt/openfoam13/etc/bashrc && foamVersion'], text=True, capture_output=True)
+rr = subprocess.run(['bash', '-lc', f'{foam_env} && foamVersion'], text=True, capture_output=True)
 foam_version_output = (rr.stdout + rr.stderr).strip()
 add('Version OpenFOAM', rr.returncode == 0 and foam_version_output == 'OpenFOAM-13', foam_version_output)
 
-lib = Path('/home/ubuntu/OpenFOAM/root-13/platforms/linux64GccDPInt32Opt/lib/libHFDIBDEM.so')
+foam_user_libbin = subprocess.check_output(['bash', '-lc', f'{foam_env} && printf "%s" "$FOAM_USER_LIBBIN"'], text=True).strip()
+lib = Path(foam_user_libbin) / 'libHFDIBDEM.so'
 for exe in ['HFDIBDEMFoam', 'pimpleHFDIBFoam']:
-    rr = subprocess.run(['bash', '-lc', f'. /opt/openfoam13/etc/bashrc && {exe} -help'], text=True, capture_output=True)
+    rr = subprocess.run(['bash', '-lc', f'{foam_env} && {exe} -help'], text=True, capture_output=True)
     add(f'{exe} -help', rr.returncode == 0, (rr.stdout + rr.stderr).strip()[-200:])
 add('Bibliothèque HFDIBDEM', lib.exists(), str(lib))
-acoustic_lib = Path('/home/ubuntu/OpenFOAM/root-13/platforms/linux64GccDPInt32Opt/lib/libAcoustics.so')
-sediment_lib = Path('/home/ubuntu/OpenFOAM/root-13/platforms/linux64GccDPInt32Opt/lib/libLagrangianInterfacialModels.so')
+acoustic_lib = Path(foam_user_libbin) / 'libAcoustics.so'
+sediment_lib = Path(foam_user_libbin) / 'libLagrangianInterfacialModels.so'
 add('Bibliothèque libAcoustics OF13', acoustic_lib.exists(), str(acoustic_lib))
 add('Bibliothèque dragModels sediFoam OF13', sediment_lib.exists(), str(sediment_lib))
 for label, library, symbols in [
@@ -72,13 +74,13 @@ text = re.sub(r'^startFrom\s+\S+;', 'startFrom       startTime;', text, flags=re
 text = re.sub(r'^endTime\s+\S+;', 'endTime         0.005;', text, flags=re.MULTILINE)
 text = re.sub(r'^deltaT\s+\S+;', 'deltaT          1e-4;', text, flags=re.MULTILINE)
 control.write_text(text)
-rr = subprocess.run(['bash', '-lc', f'. /opt/openfoam13/etc/bashrc && checkMesh -case {case} -latestTime'], text=True, capture_output=True)
+rr = subprocess.run(['bash', '-lc', f'{foam_env} && checkMesh -case {case} -latestTime'], text=True, capture_output=True)
 add('checkMesh cas DEM', rr.returncode == 0, (rr.stdout + rr.stderr).strip()[-500:])
-rr = subprocess.run(['bash', '-lc', f'. /opt/openfoam13/etc/bashrc && foamDictionary -entry dynamicFvMesh {case}/constant/dynamicMeshDict'], text=True, capture_output=True)
+rr = subprocess.run(['bash', '-lc', f'{foam_env} && foamDictionary -entry dynamicFvMesh {case}/constant/dynamicMeshDict'], text=True, capture_output=True)
 add('dynamicMeshDict statique', rr.returncode == 0 and 'staticFvMesh' in (rr.stdout + rr.stderr), (rr.stdout + rr.stderr).strip())
 log = root / 'validation-normalForce-of13-deep.log'
 with log.open('w') as fh:
-    rr = subprocess.run(['bash', '-lc', f'. /opt/openfoam13/etc/bashrc && HFDIBDEMFoam -case {case} -noFunctionObjects'], stdout=fh, stderr=subprocess.STDOUT, text=True)
+    rr = subprocess.run(['bash', '-lc', f'{foam_env} && HFDIBDEMFoam -case {case} -noFunctionObjects'], stdout=fh, stderr=subprocess.STDOUT, text=True)
 log_text = log.read_text(errors='replace')
 steps = log_text.count('Time = ')
 updates = log_text.count('updated HFDIBDEM')

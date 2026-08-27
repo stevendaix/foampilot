@@ -4,17 +4,22 @@ set -eo pipefail
 # Build the Foundation 13 ports shipped with Foampilot.
 # Usage: ./tools/build_ported_physics_of13.sh
 
-if [[ -f /opt/openfoam13/etc/bashrc ]]; then
-    # The official bashrc uses optional shell hooks that are not errexit-safe.
-    # shellcheck disable=SC1091
-    set +e
-    source /opt/openfoam13/etc/bashrc
-    foamrc=$?
-    set -e
-    if [[ "$foamrc" -ne 0 ]]; then
-        echo "Failed to source OpenFOAM 13 bashrc (status ${foamrc})" >&2
-        exit "$foamrc"
-    fi
+foam_bashrc="${FOAM_BASHRC:-}"
+if [[ -z "$foam_bashrc" && -n "${WM_PROJECT_DIR:-}" ]]; then
+    foam_bashrc="$WM_PROJECT_DIR/etc/bashrc"
+fi
+if [[ -z "$foam_bashrc" || ! -f "$foam_bashrc" ]]; then
+    echo "FOAM_BASHRC or WM_PROJECT_DIR must identify an OpenFOAM bashrc" >&2
+    exit 2
+fi
+# The official bashrc may contain optional shell hooks that are not errexit-safe.
+set +e
+source "$foam_bashrc"
+foamrc=$?
+set -e
+if [[ "$foamrc" -ne 0 ]]; then
+    echo "Failed to source OpenFOAM bashrc: $foam_bashrc (status ${foamrc})" >&2
+    exit "$foamrc"
 fi
 
 if [[ "${WM_PROJECT_VERSION:-}" != "13" ]]; then

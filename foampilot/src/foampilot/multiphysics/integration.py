@@ -158,12 +158,20 @@ class MultiphysicsConfiguration:
 def check_openfoam13() -> str:
     """Return the sourced OpenFOAM version, failing clearly when unavailable."""
     env = os.environ.copy()
-    bashrc = Path("/opt/openfoam13/etc/bashrc")
-    if bashrc.exists():
-        command = f". {bashrc} >/dev/null 2>&1 && foamVersion 2>&1"
+    bashrc = env.get("FOAM_BASHRC", "")
+    if not bashrc and env.get("WM_PROJECT_DIR"):
+        bashrc = str(Path(env["WM_PROJECT_DIR"]) / "etc" / "bashrc")
+    if bashrc:
+        bashrc_path = Path(bashrc).expanduser()
+        if not bashrc_path.is_file():
+            raise RuntimeError(f"OpenFOAM bashrc introuvable: {bashrc_path}")
+        command = f". '{bashrc_path}' >/dev/null 2>&1 && foamVersion 2>&1"
         result = subprocess.run(["bash", "-lc", command], text=True, capture_output=True, env=env, check=False)
     else:
-        result = subprocess.run(["foamVersion"], text=True, capture_output=True, env=env, check=False)
+        try:
+            result = subprocess.run(["foamVersion"], text=True, capture_output=True, env=env, check=False)
+        except OSError as exc:
+            raise RuntimeError("OpenFOAM 13 indisponible: commande foamVersion absente") from exc
     version = result.stdout.strip()
     if result.returncode != 0 or version != "OpenFOAM-13":
         raise RuntimeError(f"OpenFOAM 13 indisponible (sortie={version!r}, code={result.returncode}).")
