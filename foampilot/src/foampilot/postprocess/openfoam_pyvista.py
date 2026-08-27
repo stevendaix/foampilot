@@ -1,5 +1,5 @@
-import subprocess
 import logging
+import subprocess
 from pathlib import Path
 from typing import Optional, List
 import pyvista as pv
@@ -442,7 +442,7 @@ class FoamPostProcessing:
 
         return mesh
 
-    def calc_nusselt_number(
+    def add_local_nusselt_field(
         self,
         mesh: pv.DataSet,
         temperature_field: str = 'T',
@@ -477,7 +477,9 @@ class FoamPostProcessing:
         heat_flux_key = (
             'wall_heat_flux' if wall_patch_name in mesh.cell_data else 'wall_heat_flux'
         )
-        q_wall = mesh.cell_data.get(heat_flux_key) or mesh.point_data.get(heat_flux_key)
+        q_wall = mesh.cell_data.get(heat_flux_key)
+        if q_wall is None:
+            q_wall = mesh.point_data.get(heat_flux_key)
         if q_wall is None:
             raise ValueError("Wall heat flux data not found. Run calc_wall_heat_flux() first.")
 
@@ -497,7 +499,7 @@ class FoamPostProcessing:
 
         return mesh
 
-    def calc_thermal_boundary_layer_thickness(
+    def estimate_thermal_boundary_layer_from_mesh(
         self,
         mesh: pv.DataSet,
         temperature_field: str = 'T',

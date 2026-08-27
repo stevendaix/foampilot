@@ -814,6 +814,8 @@ class Experiment:
         with torch.no_grad():
             for data in self.val_dataset:
                 data = data.to(self.device)
+                data.x = self.normalizer.encode_x(data.x)
+                data.edge_attr = self.normalizer.encode_edge(data.edge_attr)
                 pred = self.normalizer.decode_y(self.model(data)).cpu()
                 
                 # Métriques génériques

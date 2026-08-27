@@ -22,3 +22,25 @@ from foampilot.postprocess.web_presentation import (
     plotly_temperature_contour,
     plotly_pressure_contour,
 )
+from foampilot.postprocess.monitoring import CFDMonitor, MonitorPoint
+
+__all__ = [
+    "FoamPostProcessing",
+    "OpenFOAMJOS3Coupler",
+    "NodalThermalExchange",
+    "JOS3_SEGMENT_NAMES",
+    "OpenFOAMExternalCoupledProvider",
+    "OpenFOAM13TemperatureProvider",
+    "OpenFOAMDirectReader",
+    "CHTDirectReader",
+    "read_openfoam",
+    "read_cht_openfoam",
+    "BoundaryViewer",
+    "CFDDashboard",
+    "plotly_contour_from_mesh",
+    "plotly_velocity_magnitude",
+    "plotly_temperature_contour",
+    "plotly_pressure_contour",
+    "CFDMonitor",
+    "MonitorPoint",
+]
