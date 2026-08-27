@@ -145,9 +145,10 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `133_incompressibleVoF_planingHullW3` | Présent | Présent | Conforme OF13 | Accepté avec réserve — maillage `.1` de 1 106 939 cellules, 16 domaines et Newmark démarrés sans `FOAM FATAL`; arrêt préventif pour pression mémoire avant premier temps écrit |
 | `134_incompressibleVoF_propeller` | Présent | Présent | Conforme OF13 | Accepté avec réserve — maillage, baffles et 45 816 couplages NCC terminés; VoF stable jusqu’à `Time≈0,00117 s`, aucun `FOAM FATAL`; endTime très coûteux |
 | `135_incompressibleVoF_rotatingCube` | Présent | Présent | Conforme OF13 | Validé — NCC, rotation `-60 rpm`, raffinement dynamique, `End=2 s` et reconstruction `-cellProc` réussis, aucun `FOAM FATAL` |
+| `136_incompressibleVoF_sloshingCylinder` | Présent | Présent | Conforme OF13 | Validé — maillage snappy de 33 568 cellules, multiMotion oscillant/rotatif, `End=0,5 s`, alpha bornée et aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/rotatingCube` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/sloshingCylinder` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
