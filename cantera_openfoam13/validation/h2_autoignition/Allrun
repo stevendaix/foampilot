@@ -3,13 +3,11 @@ set -eo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "${ROOT}/../../.." && pwd)"
 
-# Select an explicit Foundation environment; the /opt path is only a fallback.
+# Select an explicit OpenFOAM environment supplied by the caller.
 if [ -n "${FOAM_BASHRC:-}" ] && [ -f "${FOAM_BASHRC}" ]; then
     source "${FOAM_BASHRC}"
 elif [ -n "${WM_PROJECT_DIR:-}" ] && [ -f "${WM_PROJECT_DIR}/etc/bashrc" ]; then
     source "${WM_PROJECT_DIR}/etc/bashrc"
-elif [ -f /opt/openfoam13/etc/bashrc ]; then
-    source /opt/openfoam13/etc/bashrc
 else
     echo "OpenFOAM environment unavailable. Set FOAM_BASHRC or WM_PROJECT_DIR." >&2
     exit 2
