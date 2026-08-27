@@ -216,6 +216,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `206_multicomponentFluid_verticalChannel` | Présent | Présent | Conforme OF13 | Accepté avec réserve — `potentialFoam`, suppression de `0/phi` et cloud injecté validés; calcul stable jusqu’à `Time≈0,246 s` sur `0,5 s` au plafond de 300 s, environ 10 150 parcels présents et aucun `FOAM FATAL`; `particleTracks` reste à exécuter |
 | `207_multicomponentFluid_verticalChannelLTS` | Présent | Présent | Conforme OF13 | Validé — `localEuler`, `potentialFoam`, cloud `cloudTracks`, calcul jusqu’à `Time=300 s`, `steadyParticleTracks` et VTK de trajectoires écrits de 0 à 300 s, sans `FOAM FATAL` |
 | `208_multicomponentFluid_verticalChannelSteady` | Présent | Présent | Conforme OF13 | Validé — `steadyState`, `potentialFoam`, cloud multiphasique, calcul jusqu’à `Time=500 s`, `steadyParticleTracks` et VTK de trajectoires jusqu’à 500 s, sans `FOAM FATAL` |
+| `209_multiphaseEuler_Grossetete` | Présent | Présent | Conforme OF13 | Validé — phases gaz/liquide, extrusion wedge, MULES avec fractions bornées, calcul jusqu’à `Time=2 s`, Courant maximal proche de 0,25 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
