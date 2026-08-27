@@ -202,6 +202,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `192_multicomponentFluid_aachenBomb` | Présent | Présent | Conforme OF13 | Accepté avec réserve — Chemkin, maillage et décomposition Zoltan `2×2×3` validés, calcul parallèle stable jusqu’à `Time≈3,84e-4 s` sur `0,01 s` au plafond de 300 s, aucun `FOAM FATAL`; reconstruction finale à poursuivre |
 | `193_multicomponentFluid_counterFlowFlame2D` | Présent | Présent | Conforme OF13 | Validé — maillage 2D `100×40×1`, réaction méthane simplifiée, calcul jusqu’à `Time=0,5 s`, Courant maximal ≈0,398 et aucun `FOAM FATAL` |
 | `194_multicomponentFluid_counterFlowFlame2DLTS` | Présent | Présent | Conforme OF13 | Validé — maillage counter-flow 2D, schéma `localEuler`, calcul LTS jusqu’à `Time=1000 s`, erreurs de continuité de l’ordre de `10^-8` à `10^-10` et aucun `FOAM FATAL` |
+| `195_multicomponentFluid_counterFlowFlame2DLTS_GRI_TDAC` | Présent | Présent | Conforme OF13 | Validé — décomposition hiérarchique `2×2×1`, chimie GRI sous TDAC, calcul LTS parallèle jusqu’à `Time=1500 s`, reconstruction des temps 20–1500 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
