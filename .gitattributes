@@ -1,0 +1,5 @@
+# CFD geometry and compressed OpenFOAM assets are data, not line-oriented source.
+*.stl binary
+*.obj binary
+*.fms binary
+*.gz binary
