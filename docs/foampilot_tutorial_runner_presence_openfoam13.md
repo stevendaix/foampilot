@@ -221,6 +221,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `211_multiphaseEuler_aeratedStirredTankMRF` | Présent | Présent | Conforme OF13 | Accepté avec réserve — `snappyHexMeshConfig`, MRF `rotatingZone` à 500 rpm, décomposition Scotch à 8 domaines et maillage parallèle validés; calcul stable jusqu’à `Time≈1,884 s` sur `15 s`, sans `FOAM FATAL`; reconstructions finale et graphes à poursuivre |
 | `212_multiphaseEuler_bed` | Présent | Présent | Conforme OF13 | Validé — lit triphasique `air/water/solid`, zone `bed` initialisée par `setFields`, calcul jusqu’à `Time=20 s`, fractions bornées, températures physiques et aucun `FOAM FATAL` |
 | `213_multiphaseEuler_boilingBed` | Présent | Présent | Conforme OF13 | Validé — lit bouillant `gas/liquid/solid`, extrusion, zone `bed`, changement de phase, ébullition de surface, calcul parallèle jusqu’à `Time=7 s`, reconstruction finale réussie et aucun `FOAM FATAL` |
+| `214_multiphaseEuler_bubbleColumn` | Présent | Présent | Conforme OF13 | Validé — colonne gaz/eau initialisée par `setFields`, MULES stable avec somme des fractions égale à 1, calcul jusqu’à `End` vers `Time≈80,7 s`, Courant maximal inférieur à 0,74 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
