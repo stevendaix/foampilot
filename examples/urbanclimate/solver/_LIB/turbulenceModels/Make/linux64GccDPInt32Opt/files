@@ -1,3 +1,0 @@
-SOURCE += makeTurbModel.C
-
-LIB = $(FOAM_USER_LIBBIN)/libporousCompressibleRASModels

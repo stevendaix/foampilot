@@ -1,8 +1,0 @@
-SOURCE += vegetationModel/vegetationModel.C
-SOURCE += vegetationModel/vegetationModelNew.C
-SOURCE += noVegetation/noVegetation.C
-SOURCE += simplifiedVegetation/simplifiedVegetation.C
-
-SOURCE += derivedFvPatchFields/mappedLeafTemperature/mappedLeafTempFvPatchScalarField.C
-
-LIB=$(FOAM_USER_LIBBIN)/libvegetationModels
