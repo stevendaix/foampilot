@@ -150,9 +150,10 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `138_incompressibleVoF_sloshingTank2D3DoF` | Présent | Présent | Conforme OF13 | Validé — ressource blockMesh officielle, SDA trois degrés de liberté, `End=40 s`, alpha bornée et aucun `FOAM FATAL` |
 | `139_incompressibleVoF_sloshingTank3D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — maillage 3D de 25 840 cellules, SDA stable jusqu’à `Time≈33,74/40 s`, alpha bornée, aucun `FOAM FATAL`; arrêt pour coût temps/disque |
 | `140_incompressibleVoF_sloshingTank3D3DoF` | Présent | Présent | Conforme OF13 | Validé — maillage 3D adaptatif, SDA trois degrés de liberté, `End=10 s`, alpha bornée et aucun `FOAM FATAL` |
+| `141_incompressibleVoF_sloshingTank3D6DoF` | Présent | Présent | Conforme OF13 | Accepté avec réserve — sixDoFMotion avec `6DoF.dat` officiel, maillage adaptatif stable jusqu’à `Time≈37,47/40 s`, alpha bornée et aucun `FOAM FATAL`; arrêt préventif pour coût temps/disque |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/sloshingTank3D3DoF` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/sloshingTank3D6DoF` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
