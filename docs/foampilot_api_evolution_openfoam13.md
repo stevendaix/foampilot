@@ -77,3 +77,9 @@ Validation: `snappyHexMesh` termine, tous les fichiers principaux et champs sont
 ### Statut de réécriture
 
 Les runners `01_cavity_laminar` et `02_simpleCar_turbulent` sont les premières réécritures complètes validées: ils ne copient pas de dictionnaires ni de champs de référence. Les autres runners restent classés selon la matrice complète jusqu’à leur migration effective.
+
+### API-045 — `BlockMesher.definitions`
+Ajout d’un registre déclaratif de définitions OpenFOAM brutes dans `BlockMesher`, écrit entre `vertices` et `blocks`. Cette capacité permet de représenter les listes nommées et variables de dictionnaire utilisées par `simpleGrading` et `edgeGrading`, sans importer un `blockMeshDict` de référence. L’écriture du dictionnaire a été structurée pour préserver l’ordre et la syntaxe OF13 des sections `vertices`, définitions, `blocks`, `edges`, `defaultPatch`, `boundary` et `mergePatchPairs`.
+Tutoriel concerné: `05_scalarTransport`; validation OF13: maillage pitzDaily généré par FoamPilot, champs `U`, `p`, `T`, `k`, `epsilon`, `nut` générés et conditions turbulence valides, calcul `functions` lancé sans `FOAM FATAL` jusqu’à la fin du cas.
+### Statut de réécriture
+`05_scalarTransport` rejoint les réécritures complètes validées: aucun `import_reference_case`, `import_reference_field`, `copy_reference_fields` ou ressource de maillage de référence n’est utilisé dans son runner.

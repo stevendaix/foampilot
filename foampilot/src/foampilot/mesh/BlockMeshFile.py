@@ -32,7 +32,7 @@ class BlockMesher(OpenFOAMFile):
     """
 
     def __init__(self,parent, scale: float = 1, vertices=None, blocks=None, edges=None,
-                 defaultPatch=None, boundary=None, mergePatchPairs=None):
+                 defaultPatch=None, boundary=None, mergePatchPairs=None, definitions=None):
         """
         Initialize the blockMeshDict file handler.
 
@@ -50,8 +50,11 @@ class BlockMesher(OpenFOAMFile):
             Default patch definition (default is empty dict).
         boundary : dict, optional
             Boundary definitions, e.g. `{"inlet": {"type": "patch", "faces": [...]}}`.
-        mergePatchPairs : list of tuple, optional
+        mergePatchPairs : list of tuple
             List of merge patch pairs (default is empty list).
+        definitions : list of str
+            Raw OpenFOAM dictionary definitions emitted before ``blocks``;
+            useful for reusable grading variables and other declarative entries.
         """
         self.parent = parent                       
         self.case_path = parent.case_path 
@@ -62,6 +65,7 @@ class BlockMesher(OpenFOAMFile):
         self.defaultPatch = defaultPatch if defaultPatch is not None else {}
         self.boundary = boundary if boundary is not None else {}
         self.mergePatchPairs = mergePatchPairs if mergePatchPairs is not None else []
+        self.definitions = definitions if definitions is not None else []
 
         super().__init__(object_name="blockMeshDict")
 
@@ -130,43 +134,38 @@ class BlockMesher(OpenFOAMFile):
         `blocks`, `boundary`, etc.).
         """
         with open(file_path, 'w') as f:
-            # Header
             f.write("FoamFile\n{\n")
             for key, value in self.header.items():
                 f.write(f"    {key}     {value};\n")
             f.write("}\n\n")
-
             f.write(f"scale {self.scale};\n\n")
 
-            # Vertices
             f.write("vertices\n(\n")
             for vertex in self.vertices:
                 f.write(f"    ({' '.join(map(str, vertex))})\n")
             f.write(");\n\n")
 
-            # Blocks
+            if self.definitions:
+                for definition in self.definitions:
+                    f.write(f"{definition}\n")
+                f.write("\n")
+
             f.write("blocks\n(\n")
             for block in self.blocks:
                 f.write(f"    {block}\n")
             f.write(");\n\n")
 
-            # Edges
             f.write("edges\n(\n")
             for edge in self.edges:
                 f.write(f"    {edge}\n")
             f.write(");\n\n")
 
-            # Default patch is optional in OpenFOAM blockMeshDict files.
             if self.defaultPatch:
                 f.write("defaultPatch\n{\n")
                 for key, val in self.defaultPatch.items():
-                    if key in ("type", "name"):
-                        f.write(f"    {key} {val};\n")
-                    else:
-                        f.write(f"    type {val};\n")
+                    f.write(f"    {key if key in ('type', 'name') else 'type'} {val};\n")
                 f.write("}\n\n")
 
-            # Boundary
             f.write("boundary\n(\n")
             for name, conditions in self.boundary.items():
                 f.write(f"    {name}\n    {{\n")
@@ -177,12 +176,11 @@ class BlockMesher(OpenFOAMFile):
                         f.write(f"            ({' '.join(map(str, face))})\n")
                     f.write("        );\n")
                 f.write("    }\n")
-            f.write(")\n\n")
+            f.write(");\n\n")
 
-            # Merge patch pairs
             f.write("mergePatchPairs\n(\n")
             for pair in self.mergePatchPairs:
-                f.write(f"    ({pair[0]} {pair[1]});\n")
+                f.write(f"    ({pair[0]} {pair[1]})\n")
             f.write(");\n")
             
     def copy_mesh(self, source_mesh: str, destination: str = "constant") -> Path:

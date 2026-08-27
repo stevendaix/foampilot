@@ -26,16 +26,18 @@ Usage :
 """
 
 import sys
+import os
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-from foampilot.solver import Solver
+from foampilot.solver import Solver, OpenFOAMEnvironment
 from foampilot import Meshing
 from foampilot.utilities.function import Functions
 
 
 def main():
+    os.environ.update(OpenFOAMEnvironment().environment())
     case_path = Path.cwd()
 
     # --- 1. Initialiser le solveur laminar ---
@@ -69,12 +71,47 @@ def main():
     # Write system files
     solver.system.write()
 
-    # --- 2. Maillage (blockMesh) ---
-    # Use the exact OpenFOAM 13 pitzDaily resource through Foampilot.
-    import os
-    reference_case = Path(os.environ["FOAM_TUTORIALS"]) / "incompressibleFluid" / "pitzDailyScalarTransport"
-    mesh_resource = Path(os.environ["FOAM_TUTORIALS"]) / "resources" / "blockMesh" / "pitzDaily"
-    solver.run_command(["blockMesh", "-dict", str(mesh_resource)], log_filename="log.blockMesh")
+    # --- 2. Maillage pitzDaily multi-blocs, entièrement déclaratif ---
+    mesh = Meshing(case_path, mesher="blockMesh")
+    blockmesh = mesh.mesher
+    blockmesh.scale = 0.001
+    blockmesh.vertices = [
+        [-20.6, 0, -0.5], [-20.6, 25.4, -0.5], [0, -25.4, -0.5],
+        [0, 0, -0.5], [0, 25.4, -0.5], [206, -25.4, -0.5],
+        [206, 0, -0.5], [206, 25.4, -0.5], [290, -16.6, -0.5],
+        [290, 0, -0.5], [290, 16.6, -0.5],
+        [-20.6, 0, 0.5], [-20.6, 25.4, 0.5], [0, -25.4, 0.5],
+        [0, 0, 0.5], [0, 25.4, 0.5], [206, -25.4, 0.5],
+        [206, 0, 0.5], [206, 25.4, 0.5], [290, -16.6, 0.5],
+        [290, 0, 0.5], [290, 16.6, 0.5],
+    ]
+    blockmesh.definitions = [
+        "negY\n(\n    (2 4 1)\n    (1 3 0.3)\n);",
+        "posY\n(\n    (1 4 2)\n    (2 3 4)\n    (2 4 0.25)\n);",
+        "posYR\n(\n    (2 1 1)\n    (1 1 0.25)\n);",
+    ]
+    blockmesh.blocks = [
+        "hex (0 3 4 1 11 14 15 12) (18 30 1) simpleGrading (0.5 $posY 1)",
+        "hex (2 5 6 3 13 16 17 14) (180 27 1) edgeGrading (4 4 4 4 $negY 1 1 $negY 1 1 1 1)",
+        "hex (3 6 7 4 14 17 18 15) (180 30 1) edgeGrading (4 4 4 4 $posY $posYR $posYR $posY 1 1 1 1)",
+        "hex (5 8 9 6 16 19 20 17) (25 27 1) simpleGrading (2.5 1 1)",
+        "hex (6 9 10 7 17 20 21 18) (25 30 1) simpleGrading (2.5 $posYR 1)",
+    ]
+    blockmesh.defaultPatch = {"type": "empty"}
+    blockmesh.boundary = {
+        "inlet": {"type": "patch", "faces": [(0, 1, 12, 11)]},
+        "outlet": {"type": "patch", "faces": [(8, 9, 20, 19), (9, 10, 21, 20)]},
+        "upperWall": {"type": "wall", "faces": [(1, 4, 15, 12), (4, 7, 18, 15), (7, 10, 21, 18)]},
+        "lowerWall": {"type": "wall", "faces": [(0, 3, 14, 11), (3, 2, 13, 14), (2, 5, 16, 13), (5, 8, 19, 16)]},
+        "frontAndBack": {"type": "empty", "faces": [
+            (0, 3, 4, 1), (2, 5, 6, 3), (3, 6, 7, 4),
+            (5, 8, 9, 6), (6, 9, 10, 7), (11, 14, 15, 12),
+            (13, 16, 17, 14), (14, 17, 18, 15), (16, 19, 20, 17),
+            (17, 20, 21, 18),
+        ]},
+    }
+    blockmesh.write(case_path / "system" / "blockMeshDict")
+    blockmesh.run()
 
     # --- 3. Constant files ---
     print("2. Ecriture des proprietes physiques (laminar) ...")
@@ -113,13 +150,22 @@ def main():
         solver.boundary.set_raw_condition(patch, "T", {"type": "zeroGradient"})
     solver.boundary.set_raw_condition("frontAndBack", "T", {"type": "empty"})
 
-    # Write boundary condition files, then reproduce the exact reference fields.
+    # kEpsilon turbulence fields — generated declaratively for every patch.
+    solver.boundary.set_raw_condition("inlet", "k", {"type": "fixedValue", "value": "uniform 0.375"})
+    solver.boundary.set_raw_condition("inlet", "epsilon", {"type": "fixedValue", "value": "uniform 0.1"})
+    solver.boundary.set_raw_condition("inlet", "nut", {"type": "calculated", "value": "uniform 0"})
+    solver.boundary.set_raw_condition("outlet", "k", {"type": "zeroGradient"})
+    solver.boundary.set_raw_condition("outlet", "epsilon", {"type": "zeroGradient"})
+    solver.boundary.set_raw_condition("outlet", "nut", {"type": "calculated", "value": "uniform 0"})
+    for patch in ("upperWall", "lowerWall"):
+        solver.boundary.set_raw_condition(patch, "k", {"type": "kqRWallFunction", "value": "uniform 0.375"})
+        solver.boundary.set_raw_condition(patch, "epsilon", {"type": "epsilonWallFunction", "value": "uniform 0.1"})
+        solver.boundary.set_raw_condition(patch, "nut", {"type": "nutkWallFunction", "value": "uniform 0"})
+    for field in ("k", "epsilon", "nut"):
+        solver.boundary.set_raw_condition("frontAndBack", field, {"type": "empty"})
+
+    # Write all generated boundary condition files.
     solver.boundary.write_boundary_conditions()
-    Functions.copy_reference_fields(
-        reference_case,
-        case_path,
-        fields=("U", "p", "T", "k", "epsilon", "nut", "phi"),
-    )
 
     # --- 6. Scalar transport function object ---
     # Generate the OpenFOAM 13 function object through Foampilot only.
