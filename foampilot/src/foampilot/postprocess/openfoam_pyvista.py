@@ -1,5 +1,5 @@
-import subprocess
 import logging
+import subprocess
 from pathlib import Path
 from typing import Optional, List
 import pyvista as pv
@@ -59,6 +59,10 @@ class FoamPostProcessing:
             else:
                 fields_str = fields
             cmd += ["-fields", fields_str]
+        if no_boundary:
+            cmd.append("-no-boundary")
+        if no_internal:
+            cmd.append("-no-internal")
 
         cmd += ["-case", str(self.case_path)]
 
@@ -90,38 +94,45 @@ class FoamPostProcessing:
                 reader.set_active_scalars(field)
         return reader.read()
 
-    def calc_y_plus(self, mesh: pv.DataSet, wall_patch_name: str = "walls", velocity_field: str = "U", viscosity: float = 1e-5) -> pv.DataSet:
-        """Calculate y+ wall distance for a mesh.
+    def calc_y_plus(
+        self,
+        mesh: pv.DataSet,
+        wall_patch_name: str = "walls",
+        velocity_field: str = "U",
+        viscosity: float = 1e-5,
+        density: float = 1.0,
+        wall_mesh: Optional[pv.DataSet] = None,
+        wall_distance_field: str = "wallDistance",
+        wall_shear_field: str = "wallShearStress",
+    ) -> pv.DataSet:
+        """Calculate ``y+`` from wall distance and wall shear stress.
 
-        Args:
-            mesh: The PyVista mesh object.
-            wall_patch_name: Name of the wall patch.
-            velocity_field: Velocity field name.
-            viscosity: Kinematic viscosity (nu).
-
-        Returns:
-            Mesh with y_plus point data added.
+        The preferred path uses solver-provided ``wallDistance`` and
+        ``wallShearStress`` fields. If they are absent, ``wall_mesh`` is used
+        to compute the distance and the velocity gradient provides a clearly
+        documented engineering estimate of the shear stress.
         """
-        if velocity_field not in mesh.point_data:
-            raise ValueError(f"Velocity field '{velocity_field}' not found in mesh point data.")
-
-        # Compute the magnitude of velocity
-        vel = mesh.point_data[velocity_field]
-        if vel.ndim == 1:
-            u_mag = np.abs(vel)
+        if viscosity <= 0 or density <= 0:
+            raise ValueError("viscosity and density must be positive")
+        if wall_distance_field in mesh.point_data:
+            distance = np.asarray(mesh.point_data[wall_distance_field], dtype=float)
+        elif wall_mesh is not None:
+            distance = np.abs(np.asarray(mesh.compute_implicit_distance(wall_mesh)["implicit_distance"], dtype=float))
         else:
-            u_mag = np.linalg.norm(vel, axis=1)
-
-        # Simplified y+ estimation using first cell center distance
-        # In practice, this requires wall-normal distance computation
-        y_plus = np.zeros(mesh.n_points)
-        points = mesh.points
-        if len(points) > 0:
-            distances = np.linalg.norm(points - mesh.bounds[:3], axis=1)
-            u_tau = np.sqrt(0.5 * viscosity * u_mag / (distances + 1e-10))
-            y_plus = u_mag * distances / (u_tau + 1e-10)
-
-        mesh.point_data["y_plus"] = y_plus
+            raise ValueError("Provide a wallDistance field or wall_mesh to calculate y+")
+        if wall_shear_field in mesh.point_data:
+            shear = np.asarray(mesh.point_data[wall_shear_field], dtype=float)
+            if shear.ndim > 1:
+                shear = np.linalg.norm(shear, axis=1)
+        else:
+            if velocity_field not in mesh.point_data:
+                raise ValueError(f"Velocity field '{velocity_field}' not found in mesh point data.")
+            gradient = mesh.compute_derivative(scalars=velocity_field).point_data["gradient"]
+            shear = density * viscosity * np.linalg.norm(gradient.reshape(-1, 3, 3), axis=(1, 2))
+        from foampilot.postprocess.monitoring import compute_y_plus
+        mesh.point_data["y_plus"] = compute_y_plus(
+            distance, shear, rho=density, kinematic_viscosity=viscosity
+        )
         return mesh
 
     def calc_strain_rate(self, mesh: pv.DataSet, velocity_field: str = "U") -> pv.DataSet:
@@ -180,8 +191,17 @@ class FoamPostProcessing:
         Returns a sorted list of available time steps based on VTK files in the main directory.
         """
         vtk_files = list(self.vtk_dir.glob(f"{self.case_path.name}_*.vtk"))
-        time_steps = sorted([int(f.stem.split("_")[-1]) for f in vtk_files])
-        return time_steps
+        parsed = []
+        for file_path in vtk_files:
+            token = file_path.stem.rsplit("_", 1)[-1]
+            try:
+                value = int(token) if token.isdigit() else float(token)
+            except ValueError:
+                logger.warning("Ignoring VTK file with invalid time token: %s", file_path)
+                continue
+            parsed.append((value, token))
+        # Keep numeric ordering while retaining an addressable value for loading.
+        return [value for value, _ in sorted(parsed, key=lambda item: item[0])]
 
     def get_structure(self, time_step=None):
         """
@@ -420,13 +440,16 @@ class FoamPostProcessing:
             raise ValueError(f"Wall patch '{wall_patch_name}' not found in mesh data.")
 
         self.calc_temperature_gradient(mesh, temperature_field=temperature_field)
-        gradient = mesh.point_data['temperature_gradient']
 
         if wall_patch_name in mesh.cell_data:
             wall_mask = mesh.cell_data[wall_patch_name].astype(bool)
+            # Convert the point-associated gradient to cells before using cell normals.
+            cell_mesh = mesh.point_data_to_cell_data(pass_point_data=False)
+            gradient = cell_mesh.cell_data['temperature_gradient']
             normals = mesh.cell_normals
         else:
             wall_mask = mesh.point_data[wall_patch_name].astype(bool)
+            gradient = mesh.point_data['temperature_gradient']
             normals = mesh.point_normals
 
         if normals is None:
@@ -434,6 +457,7 @@ class FoamPostProcessing:
 
         dTdn = np.einsum('ij,ij->i', gradient, normals)
         wall_heat_flux = -thermal_conductivity * dTdn
+        wall_heat_flux = np.where(wall_mask, wall_heat_flux, np.nan)
 
         if wall_patch_name in mesh.cell_data:
             mesh.cell_data['wall_heat_flux'] = wall_heat_flux
@@ -442,7 +466,7 @@ class FoamPostProcessing:
 
         return mesh
 
-    def calc_nusselt_number(
+    def add_local_nusselt_field(
         self,
         mesh: pv.DataSet,
         temperature_field: str = 'T',
@@ -477,13 +501,18 @@ class FoamPostProcessing:
         heat_flux_key = (
             'wall_heat_flux' if wall_patch_name in mesh.cell_data else 'wall_heat_flux'
         )
-        q_wall = mesh.cell_data.get(heat_flux_key) or mesh.point_data.get(heat_flux_key)
+        q_wall = mesh.cell_data.get(heat_flux_key)
+        if q_wall is None:
+            q_wall = mesh.point_data.get(heat_flux_key)
         if q_wall is None:
             raise ValueError("Wall heat flux data not found. Run calc_wall_heat_flux() first.")
 
-        T_wall = mesh.point_data.get(temperature_field)
+        if wall_patch_name in mesh.cell_data:
+            T_wall = mesh.point_data_to_cell_data(pass_point_data=False).cell_data.get(temperature_field)
+        else:
+            T_wall = mesh.point_data.get(temperature_field)
         if T_wall is None:
-            raise ValueError(f"Temperature field '{temperature_field}' not found in mesh point data.")
+            raise ValueError(f"Temperature field '{temperature_field}' not found in mesh data.")
 
         delta_T = T_wall - reference_temperature
         delta_T_safe = np.where(np.abs(delta_T) < 1e-10, 1e-10, delta_T)
@@ -497,7 +526,7 @@ class FoamPostProcessing:
 
         return mesh
 
-    def calc_thermal_boundary_layer_thickness(
+    def estimate_thermal_boundary_layer_from_mesh(
         self,
         mesh: pv.DataSet,
         temperature_field: str = 'T',
@@ -805,7 +834,10 @@ class FoamPostProcessing:
         gradient = grad_data.point_data["gradient"]
         heat_flux = -thermal_conductivity * gradient
         q_mag = np.linalg.norm(heat_flux, axis=1)
-        mesh.cell_data["heat_flux_magnitude"] = q_mag
+        # The gradient is point-associated; keep the derived field point-associated
+        # rather than assigning an array with the wrong cardinality to cell_data.
+        mesh.point_data["heat_flux"] = heat_flux
+        mesh.point_data["heat_flux_magnitude"] = q_mag
         return mesh
 
     def calc_interface_heat_flux(
@@ -816,6 +848,8 @@ class FoamPostProcessing:
         T_solid_field: str = "T",
         h: float = 10.0,
         area: float = 1.0,
+        k_fluid: float = 0.026,
+        k_solid: float = 50.0,
     ) -> dict:
         """Calculate heat flux across a fluid-solid interface.
 
@@ -835,27 +869,28 @@ class FoamPostProcessing:
         T_s = np.mean(solid_mesh.point_data[T_solid_field])
         T_interface = (T_f + T_s) / 2.0
 
+        if h < 0 or area <= 0 or k_fluid <= 0 or k_solid <= 0:
+            raise ValueError("h must be non-negative and area/conductivities positive")
         q_conv = h * (T_s - T_f) * area
 
         grad_f = fluid_mesh.compute_derivative(
             scalars=T_fluid_field
         ).point_data["gradient"]
-        q_cond_f = np.mean(
-            -0.026 * np.linalg.norm(grad_f, axis=1)
-        ) * area
+        q_cond_f = np.mean(-k_fluid * np.linalg.norm(grad_f, axis=1)) * area
 
         grad_s = solid_mesh.compute_derivative(
             scalars=T_solid_field
         ).point_data["gradient"]
-        q_cond_s = np.mean(
-            -50.0 * np.linalg.norm(grad_s, axis=1)
-        ) * area
+        q_cond_s = np.mean(-k_solid * np.linalg.norm(grad_s, axis=1)) * area
 
+        # Keep convection and the two conductive-side estimates separate: they
+        # are alternative/interface diagnostics, not additive contributions to a
+        # single physical flux.
         return {
-            "q_total": float(q_conv + q_cond_f + q_cond_s),
             "q_conv": float(q_conv),
             "q_cond_fluid": float(q_cond_f),
             "q_cond_solid": float(q_cond_s),
+            "interface_flux_mismatch": float(q_cond_f - q_cond_s),
             "T_interface": float(T_interface),
         }
 
@@ -917,6 +952,51 @@ class FoamPostProcessing:
                     wall_pts[:, np.newaxis] - edge_pts[np.newaxis, :]
                 )
             )
+        )
+
+
+    def calc_force_coefficients(
+        self,
+        surface: pv.DataSet,
+        pressure_field: str = "p",
+        wall_shear_field: Optional[str] = "wallShearStress",
+        density: float = 1.225,
+        reference_velocity: float = 1.0,
+        reference_area: float = 1.0,
+        drag_direction: tuple = (1.0, 0.0, 0.0),
+        lift_direction: tuple = (0.0, 1.0, 0.0),
+        pressure_reference: float = 0.0,
+    ) -> dict:
+        """Integrate surface forces and return ``Cd``/``Cl``.
+
+        The surface must contain pressure and, optionally, a vector viscous
+        traction field. Outward cell normals are used with the convention
+        ``F_pressure = -integral(p*n*dA)``. Point fields are converted to cell
+        values before integration.
+        """
+        if pressure_field not in surface.point_data and pressure_field not in surface.cell_data:
+            raise ValueError(f"Pressure field '{pressure_field}' not found on surface")
+        work = surface.compute_cell_sizes(length=False, area=True)
+        work = work.compute_normals(cell_normals=True, point_normals=False, auto_orient_normals=True)
+        pressure = work.cell_data[pressure_field] if pressure_field in work.cell_data else work.point_data_to_cell_data()[pressure_field]
+        shear = None
+        if wall_shear_field:
+            if wall_shear_field in work.cell_data:
+                shear = work.cell_data[wall_shear_field]
+            elif wall_shear_field in work.point_data:
+                shear = work.point_data_to_cell_data()[wall_shear_field]
+        from foampilot.postprocess.monitoring import integrate_surface_forces
+        return integrate_surface_forces(
+            work.cell_data["Normals"],
+            work.cell_data["Area"],
+            pressure,
+            shear,
+            rho=density,
+            reference_velocity=reference_velocity,
+            reference_area=reference_area,
+            drag_direction=drag_direction,
+            lift_direction=lift_direction,
+            pressure_reference=pressure_reference,
         )
 
 

@@ -1,41 +1,72 @@
+"""Public Foampilot namespace with lazy optional imports."""
+from __future__ import annotations
+
+import importlib
 import numpy as np
 
-# Compatibility aliases for NumPy 2.x consumers used by optional geometry dependencies.
-for _name, _value in {
-    "bool8": np.bool_, "object0": np.object_, "int0": np.int8, "uint0": np.uint8,
-    "float_": np.float64, "longfloat": np.longdouble, "singlecomplex": np.complex64,
-    "complex_": np.complex128, "cfloat": np.complex128, "clongfloat": np.clongdouble,
-    "longcomplex": np.clongdouble, "void0": np.void, "string_": np.bytes_,
-    "bytes0": np.bytes_, "unicode_": np.str_, "str0": np.str_,
-}.items():
-    if not hasattr(np, _name):
-        setattr(np, _name, _value)
+# Compatibility aliases required by older transitive dependencies such as nptyping.
+_COMPAT_ALIASES = {
+    "bool8": "bool_", "object0": "object_", "int0": "int8", "uint0": "uint8",
+    "float_": "float64", "longfloat": "longdouble", "singlecomplex": "complex64",
+    "complex_": "complex128", "cfloat": "complex128", "clongfloat": "clongdouble",
+    "longcomplex": "clongdouble", "void0": "void", "string_": "bytes_",
+    "bytes0": "bytes_", "unicode_": "str_", "str0": "str_",
+}
+for _alias, _target in _COMPAT_ALIASES.items():
+    if not hasattr(np, _alias) and hasattr(np, _target):
+        setattr(np, _alias, getattr(np, _target))
 
-# Keep the lightweight OpenFOAM 13 integration importable without optional CFD/geometry
-# packages. When the full dependency set is installed, preserve all legacy exports.
-try:
-    from foampilot.base import CaseBuilder, Meshing, create_case_structure
-    from foampilot.solver import Solver
-    from foampilot.constant.constantDirectory import ConstantDirectory
-    from foampilot.system.SystemDirectory import SystemDirectory
-    from foampilot.boundaries.boundaries_dict import Boundary
-    from foampilot.commons.read_polymesh import BoundaryFileHandler
-    from foampilot.commons import STLAnalyzer
-    from foampilot.mesh import (
-        BlockMesher, GmshMesher, SnappyMesher, DirectOpenFOAMExporter,
-        GmshQualityAnalyzer, QualityThresholds, QualityReport, ElementQuality,
-        CheckMeshParser, QualityGate, OpenFOAMQualityAnalyzer,
-        AdaptiveMeshImprover, write_rotating_zone, write_mesh_motion,
-        restore_initial_fields,
-    )
-    from foampilot.report import latex_pdf, ScientificDocument, TypstRenderer
-    from foampilot.utilities import (
-        ValueWithUnit, FluidMechanics, Functions, ResidualsPost, HumanGeometry,
-        OpenFOAMDictAddFile, CSVFoamIntegrator, WeatherFileEPW, AortaSurfaceCleaner,
-        AortaCapMethod, create_closed_aorta_mesh,
-    )
-    from foampilot.model_addon.windkessel import WindkesselModel
-except ModuleNotFoundError as _optional_dependency_error:
-    # The dedicated subpackages remain usable; the original import error is available
-    # for diagnostics rather than being silently swallowed by production code.
-    OPTIONAL_DEPENDENCY_ERROR = _optional_dependency_error
+# Optional packages are imported only when their public symbol is requested.
+_LAZY_ATTRS = {
+    "Meshing": ("foampilot.base", "Meshing"),
+    "CaseBuilder": ("foampilot.base", "CaseBuilder"),
+    "create_case_structure": ("foampilot.base", "create_case_structure"),
+    "Solver": ("foampilot.solver", "Solver"),
+    "ConstantDirectory": ("foampilot.constant.constantDirectory", "ConstantDirectory"),
+    "SystemDirectory": ("foampilot.system.SystemDirectory", "SystemDirectory"),
+    "Boundary": ("foampilot.boundaries.boundaries_dict", "Boundary"),
+    "BoundaryFileHandler": ("foampilot.commons.read_polymesh", "BoundaryFileHandler"),
+    "STLAnalyzer": ("foampilot.commons", "STLAnalyzer"),
+    "BlockMesher": ("foampilot.mesh", "BlockMesher"),
+    "GmshMesher": ("foampilot.mesh", "GmshMesher"),
+    "SnappyMesher": ("foampilot.mesh", "SnappyMesher"),
+    "DirectOpenFOAMExporter": ("foampilot.mesh", "DirectOpenFOAMExporter"),
+    "GmshQualityAnalyzer": ("foampilot.mesh", "GmshQualityAnalyzer"),
+    "QualityThresholds": ("foampilot.mesh", "QualityThresholds"),
+    "QualityReport": ("foampilot.mesh", "QualityReport"),
+    "ElementQuality": ("foampilot.mesh", "ElementQuality"),
+    "CheckMeshParser": ("foampilot.mesh", "CheckMeshParser"),
+    "QualityGate": ("foampilot.mesh", "QualityGate"),
+    "OpenFOAMQualityAnalyzer": ("foampilot.mesh", "OpenFOAMQualityAnalyzer"),
+    "AdaptiveMeshImprover": ("foampilot.mesh", "AdaptiveMeshImprover"),
+    "write_rotating_zone": ("foampilot.mesh", "write_rotating_zone"),
+    "write_mesh_motion": ("foampilot.mesh", "write_mesh_motion"),
+    "restore_initial_fields": ("foampilot.mesh", "restore_initial_fields"),
+    "latex_pdf": ("foampilot.report", "latex_pdf"),
+    "ScientificDocument": ("foampilot.report", "ScientificDocument"),
+    "TypstRenderer": ("foampilot.report", "TypstRenderer"),
+    "ValueWithUnit": ("foampilot.utilities", "ValueWithUnit"),
+    "FluidMechanics": ("foampilot.utilities", "FluidMechanics"),
+    "Functions": ("foampilot.utilities", "Functions"),
+    "ResidualsPost": ("foampilot.utilities", "ResidualsPost"),
+    "HumanGeometry": ("foampilot.utilities", "HumanGeometry"),
+    "OpenFOAMDictAddFile": ("foampilot.utilities", "OpenFOAMDictAddFile"),
+    "CSVFoamIntegrator": ("foampilot.utilities", "CSVFoamIntegrator"),
+    "WeatherFileEPW": ("foampilot.utilities", "WeatherFileEPW"),
+    "AortaSurfaceCleaner": ("foampilot.utilities", "AortaSurfaceCleaner"),
+    "AortaCapMethod": ("foampilot.utilities", "AortaCapMethod"),
+    "create_closed_aorta_mesh": ("foampilot.utilities", "create_closed_aorta_mesh"),
+    "WindkesselModel": ("foampilot.model_addon.windkessel", "WindkesselModel"),
+}
+
+__all__ = sorted(_LAZY_ATTRS)
+
+
+def __getattr__(name: str):
+    try:
+        module_name, attribute = _LAZY_ATTRS[name]
+    except KeyError as exc:
+        raise AttributeError(f"module 'foampilot' has no attribute {name!r}") from exc
+    value = getattr(importlib.import_module(module_name), attribute)
+    globals()[name] = value
+    return value
