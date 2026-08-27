@@ -200,6 +200,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `190_multicomponentFluid_DLR_A_LTS` | Présent | Présent | Conforme OF13 | Validé — conversion Chemkin GRI30, maillage et `setFields`, décomposition forcée à 6 domaines, calcul `foamRun` LTS jusqu’à `Time=10000 s`, reconstruction des temps 1000–10000 et aucun `FOAM FATAL` |
 | `191_multicomponentFluid_SandiaD_LTS` | Présent | Présent | Conforme OF13 | Accepté avec réserve — préparation et phase sans chimie jusqu’à `Time=1500 s` validées, phase chimique stable jusqu’à `Time≈2869 s` sur `5000 s` au plafond de 300 s, aucun `FOAM FATAL`; reconstruction finale à poursuivre |
 | `192_multicomponentFluid_aachenBomb` | Présent | Présent | Conforme OF13 | Accepté avec réserve — Chemkin, maillage et décomposition Zoltan `2×2×3` validés, calcul parallèle stable jusqu’à `Time≈3,84e-4 s` sur `0,01 s` au plafond de 300 s, aucun `FOAM FATAL`; reconstruction finale à poursuivre |
+| `193_multicomponentFluid_counterFlowFlame2D` | Présent | Présent | Conforme OF13 | Validé — maillage 2D `100×40×1`, réaction méthane simplifiée, calcul jusqu’à `Time=0,5 s`, Courant maximal ≈0,398 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
