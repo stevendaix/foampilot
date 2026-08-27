@@ -148,9 +148,10 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `136_incompressibleVoF_sloshingCylinder` | Présent | Présent | Conforme OF13 | Validé — maillage snappy de 33 568 cellules, multiMotion oscillant/rotatif, `End=0,5 s`, alpha bornée et aucun `FOAM FATAL` |
 | `137_incompressibleVoF_sloshingTank2D` | Présent | Présent | Conforme OF13 | Validé — ressource blockMesh officielle, 1 360 cellules, mouvement SDA, `End=40 s`, alpha bornée et aucun `FOAM FATAL` |
 | `138_incompressibleVoF_sloshingTank2D3DoF` | Présent | Présent | Conforme OF13 | Validé — ressource blockMesh officielle, SDA trois degrés de liberté, `End=40 s`, alpha bornée et aucun `FOAM FATAL` |
+| `139_incompressibleVoF_sloshingTank3D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — maillage 3D de 25 840 cellules, SDA stable jusqu’à `Time≈33,74/40 s`, alpha bornée, aucun `FOAM FATAL`; arrêt pour coût temps/disque |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/sloshingTank2D3DoF` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/sloshingTank3D` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
