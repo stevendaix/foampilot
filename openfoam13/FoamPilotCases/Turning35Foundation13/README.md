@@ -3,7 +3,7 @@
 Cas de manœuvre marine construit pour **OpenFOAM Foundation 13** et `marineFoam`.
 
 Le cas regroupe une géométrie hull/rudder, un mouvement rigide 6-DoF du navire,
-un modèle de propulsion `actuationDiskSource`, une surface libre eau/air et les
+un modèle de propulsion Foundation 13 `actuationDisk`, une surface libre eau/air et les
 sorties de forces et moments. Il s’agit d’abord d’un cas de validation courte et
 reproductible ; les valeurs hydrodynamiques finales nécessitent une étude de
 convergence en temps et en maillage.
