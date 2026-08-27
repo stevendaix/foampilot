@@ -238,6 +238,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `228_multiphaseEuler_pipeBend` | Présent | Présent | Conforme OF13 | Accepté avec réserve — population balance à 30 groupes, décomposition MPI à 6 domaines, fractions normalisées, Courant proche de 0,973, progression jusqu’à `Time≈1,55 s` sur `2 s` et aucun `FOAM FATAL`; reconstruction hors budget |
 | `229_multiphaseEuler_steamInjection` | Présent | Présent | Conforme OF13 | Validé — cas vapeur/eau sans Allrun source, chaîne `blockMesh → foamRun`, changement de phase actif, températures bornées, calcul jusqu’à `End=10 s` et aucun `FOAM FATAL` |
 | `230_multiphaseEuler_titaniaSynthesis` | Présent | Présent | Conforme OF13 | Accepté avec réserve — chimie TiO2 et population balance à 4 domaines MPI, import des tables `validation/exptData`, fractions normalisées, Courant proche de 0,278, progression jusqu’à `Time≈9,583 s` sur `10 s` et aucun `FOAM FATAL`; reconstruction hors budget |
+| `231_multiphaseEuler_titaniaSynthesisSurface` | Présent | Présent | Conforme OF13 | Accepté avec réserve — chimie TiO2 volumique et croissance de surface TiO2_s avec population balance à 4 domaines MPI, fractions normalisées, températures physiques, progression jusqu’à environ `Time=7,5 s` sur `10 s`; singularités N2 signalées sans `FOAM FATAL`, reconstruction hors budget |
 
 ## Conclusion
 
