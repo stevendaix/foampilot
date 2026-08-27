@@ -20,10 +20,11 @@ et `foamSetupCHT` pour le setup automatisé. Le solveur
 `chtMultiRegionSimpleFoam` n'est pas disponible dans OF-13.
 """
 
-import subprocess
+import os
 from pathlib import Path
 
 from foampilot import Meshing
+from foampilot.solver import OpenFOAMEnvironment
 from foampilot.utilities import OpenFOAMDictAddFile
 from foampilot.cht import (
     ChtSolver,
@@ -55,6 +56,7 @@ def write_create_zones_dict(case_path: Path):
 
 
 def main():
+    os.environ.update(OpenFOAMEnvironment().environment())
     case_path = Path.cwd()
 
     # --- 1. Configurer les régions CHT ------------------------------------
@@ -126,12 +128,22 @@ def main():
     solver.set_region_gravity("fluid", "(0 0 0)")
     solver.set_region_momentum_transport("fluid", "laminar")
 
-    # --- 5. Maillage (blockMesh via JSON config) -------------------------
+    # --- 5. Maillage blockMesh entièrement déclaratif --------------------
     print("1. Generating mesh (blockMesh) ...")
-    data_path = case_path / "block_mesh.json"
     mesh = Meshing(case_path, mesher="blockMesh")
-    mesh.mesher.load_from_json(data_path)
-    mesh.mesher.write(file_path=case_path / "system" / "blockMeshDict")
+    blockmesh = mesh.mesher
+    blockmesh.scale = 1.0
+    blockmesh.vertices = [[0, 0, 0], [0.1, 0, 0], [0.1, 0.02, 0], [0, 0.02, 0], [0, 0, 0.15], [0.1, 0, 0.15], [0.1, 0.02, 0.15], [0, 0.02, 0.15]]
+    blockmesh.blocks = ["hex (0 1 2 3 4 5 6 7) (50 10 60) simpleGrading (1 1 1)"]
+    blockmesh.defaultPatch = {"name": "frontAndBack", "type": "empty"}
+    blockmesh.boundary = {
+        "fluidInlet": {"type": "patch", "faces": [[0, 4, 7, 3]]},
+        "fluidOutlet": {"type": "patch", "faces": [[1, 2, 6, 5]]},
+        "bottomWall": {"type": "wall", "faces": [[0, 1, 5, 4]]},
+        "topWall": {"type": "wall", "faces": [[3, 2, 6, 7]]},
+        "frontAndBack": {"type": "empty", "faces": [[0, 3, 2, 1], [4, 7, 6, 5]]},
+    }
+    blockmesh.write(case_path / "system" / "blockMeshDict")
     solver.run_command(["blockMesh"], log_filename="log.blockMesh")
 
     # --- 6. Zones de cellules et découpage en régions -------------------
@@ -205,11 +217,7 @@ def main():
         )
 
     # --- 11. Post-traitement ---------------------------------------------
-    print("8. Post-processing ...")
-    solver.run_command(
-        ["python", "run_post.py"],
-        log_filename="log.run_post",
-    )
+    print("8. Post-processing handled by FoamPilot/OpenFOAM outputs ...")
 
     # --- 12. Validation --------------------------------------------------
     print("\n" + "=" * 60)

@@ -8,7 +8,7 @@ TUTORIALS = ROOT / "foampilot" / "tutorials"
 INTEGRATION = ROOT / "docs" / "openfoam13_foampilot_integration.md"
 OUTPUT = ROOT / "docs" / "openfoam13_foampilot_rewrite_matrix_full.md"
 VERIFIED_REWRITTEN = {"01_cavity_laminar", "02_simpleCar_turbulent", "04_damBreak_multiphase", "05_scalarTransport", "06_buildingAero", "08_thermalBuoyancy"}
-REWRITTEN_PARTIAL = {"03_pitzDaily_step", "07_motorBike"}
+REWRITTEN_PARTIAL = {"03_pitzDaily_step", "07_motorBike", "09_CHT_heatedDuct"}
 
 
 def count(text: str, pattern: str) -> int:
