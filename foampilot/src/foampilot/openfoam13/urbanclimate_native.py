@@ -166,6 +166,11 @@ done
                 mesh.boundary = dict(original_boundary)
                 mesh.boundary["air_to_vegetation"] = mesh.boundary.pop("side1")
             mesh.write(region_system / "blockMeshDict")
+            # Keep the standard root mesh for the fluid region as a portable
+            # preflight/inspection entry point; region-scoped dictionaries remain
+            # authoritative for multi-region execution.
+            if region.kind == "fluid":
+                mesh.write(self.case_path / "system" / "blockMeshDict")
             mesh.boundary = original_boundary
         if self.vegetation:
             mapped = self._foam_header("dictionary", "changeDictionaryDict", "system/vegetation") + "boundary\n{\n    air_to_vegetation\n    {\n        type mapped;\n        neighbourRegion air;\n        neighbourPatch side1;\n        offsetMode uniform;\n        offset (0 0 0);\n    }\n}\n"
