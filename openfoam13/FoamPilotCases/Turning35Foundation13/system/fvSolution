@@ -33,7 +33,7 @@ solvers
         cAlpha          1;
         icAlpha         0;
 
-        
+
         nLimiterIter    15;
         alphaApplyPrevCorr  yes;
 
@@ -87,7 +87,7 @@ solvers
         tolerance       1e-7; // 1e-5
         relTol          0.0;
     }
-    
+
     "(U|h)"
     {
         solver          smoothSolver;
@@ -135,12 +135,12 @@ PIMPLE
 
 relaxationFactors
 {
-    
+
     fields
     {
         ".*"        1;
     }
-        
+
     equations
     {
         ".*"        1;

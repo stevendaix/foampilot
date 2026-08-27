@@ -27,23 +27,23 @@ boundaryField
         type            fixedFluxPressure;
         value           $internalField;
     }
-    
-    
+
+
     "(atmosphere|outlet)"
     {
         type            totalPressure;
         p0              $internalField;
     }
-    
 
-    
+
+
     "(hull*.*|rudder)"
     {
         type            fixedFluxPressure;
         value           $internalField;
     }
 
-    
+
     "(overset-1|overset-2)"
     {
         type            overset;

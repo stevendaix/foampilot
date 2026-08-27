@@ -48,7 +48,7 @@ boundaryField
     //    Umean           -2.196;
     //    value           $internalField;
     //}
-    
+
     "(atmosphere)"
     {
         type            pressureInletOutletVelocity;

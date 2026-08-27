@@ -40,12 +40,12 @@ boundaryField
         patchType       overset;
         type            zeroGradient;
     }
-    
+
     overset-2
     {
         patchType       overset;
         type            zeroGradient;
-    }    
+    }
 }
 
 
