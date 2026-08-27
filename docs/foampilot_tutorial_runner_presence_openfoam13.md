@@ -237,6 +237,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `227_multiphaseEuler_mixerVessel2DMRF` | Présent | Présent | Conforme OF13 | Validé — mélangeur quatre phases avec MRF `60 rpm`, calcul sériel jusqu’à `End=5 s`, fractions bornées, Courant proche de 0,376 et aucun `FOAM FATAL` |
 | `228_multiphaseEuler_pipeBend` | Présent | Présent | Conforme OF13 | Accepté avec réserve — population balance à 30 groupes, décomposition MPI à 6 domaines, fractions normalisées, Courant proche de 0,973, progression jusqu’à `Time≈1,55 s` sur `2 s` et aucun `FOAM FATAL`; reconstruction hors budget |
 | `229_multiphaseEuler_steamInjection` | Présent | Présent | Conforme OF13 | Validé — cas vapeur/eau sans Allrun source, chaîne `blockMesh → foamRun`, changement de phase actif, températures bornées, calcul jusqu’à `End=10 s` et aucun `FOAM FATAL` |
+| `230_multiphaseEuler_titaniaSynthesis` | Présent | Présent | Conforme OF13 | Accepté avec réserve — chimie TiO2 et population balance à 4 domaines MPI, import des tables `validation/exptData`, fractions normalisées, Courant proche de 0,278, progression jusqu’à `Time≈9,583 s` sur `10 s` et aucun `FOAM FATAL`; reconstruction hors budget |
 
 ## Conclusion
 
