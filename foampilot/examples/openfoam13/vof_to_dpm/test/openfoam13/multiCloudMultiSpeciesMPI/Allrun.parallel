@@ -6,7 +6,14 @@ ROOT_DIR=$(cd "$(dirname "$0")" && pwd)
 WORK_DIR=${TMPDIR:-/tmp}/foampilot-multiCloudMultiSpeciesMPI-$$
 trap 'status=$?; if [ "$status" -eq 0 ] && [ "${KEEP_CASE:-0}" -ne 1 ]; then rm -rf "$WORK_DIR"; else echo "CASE_DIR=$WORK_DIR" >&2; fi; exit "$status"' EXIT
 
-. /opt/openfoam13/etc/bashrc || true
+if [ -n "${WM_PROJECT_DIR:-}" ] && [ -f "$WM_PROJECT_DIR/etc/bashrc" ]; then
+    . "$WM_PROJECT_DIR/etc/bashrc" || true
+elif [ -f /opt/openfoam13/etc/bashrc ]; then
+    . /opt/openfoam13/etc/bashrc || true
+else
+    echo "ERROR: sourcez OpenFOAM 13 ou définissez WM_PROJECT_DIR" >&2
+    exit 2
+fi
 set -u
 mkdir -p "$WORK_DIR"
 cp -a "$FOAM_TUTORIALS/compressibleVoF/damBreak/." "$WORK_DIR/"
