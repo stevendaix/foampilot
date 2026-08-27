@@ -173,9 +173,10 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `161_legacy_dsmcFoam_freeSpacePeriodic` | Présent | Présent | Conforme OF13 | Validé — maillage à périodicité X/Y/Z, `dsmcInitialise`, environ 64 009 particules DSMC, `dsmcFoam`, `End=1e-3 s` et aucun `FOAM FATAL` |
 | `162_legacy_dsmcFoam_freeSpaceStream` | Présent | Présent | Conforme OF13 | Accepté avec réserve — modèle `FreeStream` N2/O2, injection et collisions stables jusqu’à `Time≈0,005494/0,02 s`, avertissements non fatals et aucun `FOAM FATAL` |
 | `163_legacy_dsmcFoam_supersonicCorner` | Présent | Présent | Conforme OF13 | Accepté avec réserve — décomposition DSMC à 4 domaines, argon FreeStream supersonique et collisions stables jusqu’à `Time≈0,000132/0,01 s`, avertissements non fatals et aucun `FOAM FATAL` |
+| `164_legacy_dsmcFoam_wedge15Ma5` | Présent | Présent | Conforme OF13 | Validé — wedge DSMC à 4 domaines, FreeStream N2/O2 à vitesse supersonique, `dsmcFoam` jusqu’à `End=0,02 s`, reconstruction et aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `legacy/lagrangian/dsmcFoam/supersonicCorner` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `legacy/lagrangian/dsmcFoam/wedge15Ma5` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
