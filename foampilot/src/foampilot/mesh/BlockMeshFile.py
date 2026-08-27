@@ -32,7 +32,8 @@ class BlockMesher(OpenFOAMFile):
     """
 
     def __init__(self,parent, scale: float = 1, vertices=None, blocks=None, edges=None,
-                 defaultPatch=None, boundary=None, mergePatchPairs=None, definitions=None):
+                 defaultPatch=None, boundary=None, mergePatchPairs=None, definitions=None,
+                 geometry=None):
         """
         Initialize the blockMeshDict file handler.
 
@@ -66,6 +67,7 @@ class BlockMesher(OpenFOAMFile):
         self.boundary = boundary if boundary is not None else {}
         self.mergePatchPairs = mergePatchPairs if mergePatchPairs is not None else []
         self.definitions = definitions if definitions is not None else []
+        self.geometry = geometry if geometry is not None else []
 
         super().__init__(object_name="blockMeshDict")
 
@@ -140,15 +142,28 @@ class BlockMesher(OpenFOAMFile):
             f.write("}\n\n")
             f.write(f"scale {self.scale};\n\n")
 
-            f.write("vertices\n(\n")
-            for vertex in self.vertices:
-                f.write(f"    ({' '.join(map(str, vertex))})\n")
-            f.write(");\n\n")
-
             if self.definitions:
                 for definition in self.definitions:
                     f.write(f"{definition}\n")
                 f.write("\n")
+
+            if self.geometry:
+                f.write("geometry\n{\n")
+                for item in self.geometry:
+                    if isinstance(item, str):
+                        f.write(f"    {item}\n")
+                    else:
+                        name, content = item
+                        f.write(f"    {name}\n    {{\n{content}\n    }}\n")
+                f.write("}\n\n")
+
+            f.write("vertices\n(\n")
+            for vertex in self.vertices:
+                if isinstance(vertex, str):
+                    f.write(f"    {vertex}\n")
+                else:
+                    f.write(f"    ({' '.join(map(str, vertex))})\n")
+            f.write(");\n\n")
 
             f.write("blocks\n(\n")
             for block in self.blocks:
@@ -173,7 +188,10 @@ class BlockMesher(OpenFOAMFile):
                 if 'faces' in conditions:
                     f.write("        faces\n        (\n")
                     for face in conditions['faces']:
-                        f.write(f"            ({' '.join(map(str, face))})\n")
+                        if isinstance(face, str):
+                            f.write(f"            {face}\n")
+                        else:
+                            f.write(f"            ({' '.join(map(str, face))})\n")
                     f.write("        );\n")
                 f.write("    }\n")
             f.write(");\n\n")

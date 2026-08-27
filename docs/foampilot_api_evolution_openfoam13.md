@@ -87,3 +87,6 @@ Tutoriel concerné: `05_scalarTransport`; validation OF13: maillage pitzDaily g�
 ### API-046 — `SnappyMesher.add_searchable_box` et raffinement volumique scalaire
 Ajout d’une primitive générique `add_searchable_box(name, minimum, maximum)` pour déclarer une géométrie `searchableBox` directement dans `snappyHexMeshDict`. Extension de `add_refinement_region` et de son writer pour accepter soit une paire `levels (min max)`, soit un niveau scalaire `level n`, conformément aux deux syntaxes OF13. Cette évolution remplace l’import d’un `snappyHexMeshDict` complet dans les cas d’aérodynamique urbaine.
 Tutoriel concerné: `06_buildingAero`; validation OF13: background mesh, extraction de features, `snappyHexMesh`, propriétés, champs `U/p/k/epsilon/nut` et calcul incompressible jusqu’à `Time=500 s` puis `End`, sans `FOAM FATAL`.
+
+### API-047 — géométrie et sommets avancés déclaratifs dans `BlockMesher`
+`BlockMesher` accepte désormais `geometry` pour écrire des objets de géométrie nommés (`sphere`, `triSurface`, etc.), des sommets représentés par des fragments OpenFOAM bruts (`name ...`, `project ...`) et des faces de patch brutes. Les coordonnées numériques restent supportées. Cette capacité est destinée aux topologies avancées comme ballValve, avec arcs et projections, sans importer un `blockMeshDict` de référence.
