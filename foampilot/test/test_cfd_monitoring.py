@@ -65,3 +65,48 @@ def test_integrate_surface_forces_returns_lift_and_drag_coefficients():
     assert result["force_x"] == 10.0
     assert result["Cd"] == 5.0
     assert result["Cl"] == 0.0
+
+
+def test_integrate_mass_flux_tracks_inflow_and_outflow():
+    from foampilot.postprocess.monitoring import integrate_mass_flux
+
+    result = integrate_mass_flux(
+        normals=np.array([[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]]),
+        areas=np.array([2.0, 3.0]),
+        velocity=np.array([[2.0, 0.0, 0.0], [1.0, 0.0, 0.0]]),
+        density=2.0,
+    )
+    assert result["outflow_mass"] == 8.0
+    assert result["inflow_mass"] == 6.0
+    assert result["mass_flux"] == 2.0
+
+
+def test_mass_balance_aggregates_named_patches():
+    from foampilot.postprocess.monitoring import mass_balance
+
+    result = mass_balance({
+        "inlet": {
+            "normals": np.array([[-1.0, 0.0, 0.0]]),
+            "areas": np.array([1.0]),
+            "velocity": np.array([[2.0, 0.0, 0.0]]),
+        },
+        "outlet": {
+            "normals": np.array([[1.0, 0.0, 0.0]]),
+            "areas": np.array([1.0]),
+            "velocity": np.array([[2.0, 0.0, 0.0]]),
+        },
+    })
+    assert result["net_mass_flux"] == 0.0
+    assert set(result["patches"]) == {"inlet", "outlet"}
+
+
+def test_engineering_result_is_json_ready():
+    from foampilot.postprocess.results import EngineeringResult, ResultMetadata
+
+    result = EngineeringResult(
+        metadata=ResultMetadata(field="U", units="m/s", method="volume_mean"),
+        values={"mean": np.float64(3.5), "samples": np.array([1, 2])},
+    )
+    payload = result.to_dict()
+    assert payload["metadata"]["units"] == "m/s"
+    assert payload["values"] == {"mean": 3.5, "samples": [1, 2]}

@@ -111,16 +111,22 @@ class CFDMonitor:
         association: str = "point",
         magnitude: bool = False,
     ) -> pd.DataFrame:
-        """Track the nearest point value over time."""
-        if association != "point":
-            raise ValueError("Point probes currently require point association")
+        """Track a spatially stable point- or cell-associated value over time."""
+        if association not in {"point", "cell"}:
+            raise ValueError("Probe association must be 'point' or 'cell'")
         steps = list(self.postprocessor.get_all_time_steps() if time_steps is None else time_steps)
         records = []
         target = np.asarray(point, dtype=float)
         for step in steps:
             mesh = self._mesh(step)
             values = self._values(mesh, field, association, magnitude)
-            index = mesh.find_closest_point(target)
+            if association == "point":
+                index = mesh.find_closest_point(target)
+            else:
+                index = mesh.find_containing_cell(target)
+                if index < 0:
+                    centers = mesh.cell_centers().points
+                    index = int(np.argmin(np.sum((centers - target) ** 2, axis=1)))
             value = values[index]
             if np.ndim(value) > 0:
                 value = float(np.linalg.norm(value)) if magnitude else value.tolist()
@@ -252,3 +258,58 @@ def compute_y_plus(
 
 
 __all__.extend(["integrate_surface_forces", "compute_y_plus"])
+
+
+
+def integrate_mass_flux(
+    normals: np.ndarray,
+    areas: np.ndarray,
+    velocity: np.ndarray,
+    *,
+    density: float | np.ndarray = 1.0,
+) -> dict[str, float]:
+    """Integrate outward mass and volumetric flux over a patch.
+
+    Normals must be outward unit normals and ``velocity`` is in m/s. A scalar
+    density or one density value per face may be supplied. The sign follows
+    ``rho * U dot n * dA``: positive is outward, negative is inward.
+    """
+    n = np.asarray(normals, dtype=float)
+    a = np.asarray(areas, dtype=float).reshape(-1)
+    u = np.asarray(velocity, dtype=float)
+    if n.ndim != 2 or n.shape[1] != 3 or u.shape != n.shape or len(a) != len(n):
+        raise ValueError("normals, areas and velocity must describe the same faces")
+    if np.any(a < 0):
+        raise ValueError("areas must be non-negative")
+    rho = np.asarray(density, dtype=float)
+    if rho.ndim == 0:
+        if float(rho) <= 0:
+            raise ValueError("density must be positive")
+    elif rho.shape != (len(a),) or np.any(rho <= 0):
+        raise ValueError("density must be a positive scalar or one value per face")
+    normal_velocity = np.einsum("ij,ij->i", u, n)
+    volumetric_flux = float(np.sum(normal_velocity * a))
+    mass_flux = float(np.sum(rho * normal_velocity * a))
+    return {
+        "volumetric_flux": volumetric_flux,
+        "mass_flux": mass_flux,
+        "inflow_mass": float(np.sum(np.maximum(-rho * normal_velocity, 0.0) * a)),
+        "outflow_mass": float(np.sum(np.maximum(rho * normal_velocity, 0.0) * a)),
+    }
+
+
+def mass_balance(patches: dict[str, dict[str, np.ndarray]], *, density: float | np.ndarray = 1.0) -> dict[str, Any]:
+    """Aggregate signed mass fluxes from several named boundary patches."""
+    per_patch = {}
+    total = 0.0
+    for name, values in patches.items():
+        result = integrate_mass_flux(
+            values["normals"], values["areas"], values["velocity"],
+            density=values.get("density", density),
+        )
+        per_patch[name] = result
+        total += result["mass_flux"]
+    return {"net_mass_flux": float(total), "patches": per_patch}
+
+
+__all__.extend(["integrate_mass_flux", "mass_balance"])

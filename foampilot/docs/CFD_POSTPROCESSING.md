@@ -73,3 +73,36 @@ print(forces["Cd"], forces["Cl"])
 ```
 
 Le champ de cisaillement doit être une traction vectorielle en Pa. En son absence, seule la contribution de pression est intégrée. Pour une surface ouverte, l’orientation des normales doit être contrôlée avant d’interpréter le signe de `Cl` et `Cd`.
+
+
+## Résultats CFD structurés et bilan de masse
+
+Les résultats destinés aux rapports peuvent être encapsulés dans `ResultMetadata` et `EngineeringResult`. Les métadonnées précisent le cas, le temps, la région ou le patch, le champ, l’association point/cellule, les unités, la méthode et la source.
+
+```python
+from foampilot.postprocess import EngineeringResult, ResultMetadata
+
+result = EngineeringResult(
+    metadata=ResultMetadata(
+        case="motorBike", time=100.0, region="cell", field="U",
+        association="cell", units="m/s", method="volume_mean",
+        source="OpenFOAMDirectReader",
+    ),
+    values={"mean": 12.4, "p95": 18.1},
+)
+result.to_dict()
+```
+
+Le bilan de masse suit la convention de normales sortantes : le flux signé est `rho U·n dA`, positif en sortie et négatif en entrée. Les contributions sont regroupées par patch.
+
+```python
+from foampilot.postprocess import mass_balance
+
+balance = mass_balance({
+    "inlet": {"normals": n_in, "areas": a_in, "velocity": U_in},
+    "outlet": {"normals": n_out, "areas": a_out, "velocity": U_out},
+}, density=1.225)
+print(balance["net_mass_flux"])
+```
+
+Un bilan proche de zéro est nécessaire mais ne suffit pas à démontrer la convergence. Il doit être suivi avec les résidus, les grandeurs intégrées (`Cd`, `Cl`, `Cm`) et une fenêtre temporelle statistiquement stationnaire.
