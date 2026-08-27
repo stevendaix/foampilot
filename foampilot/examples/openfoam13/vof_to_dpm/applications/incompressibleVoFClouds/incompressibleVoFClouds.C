@@ -145,6 +145,35 @@ Foam::fv::incompressibleVoFClouds::incompressibleVoFClouds
     ),
     transitionBatch_()
 {
+    if (cloudNames_.empty())
+    {
+        FatalErrorInFunction
+            << "clouds must contain at least one cloud name"
+            << exit(FatalError);
+    }
+
+    scalar speciesSum = 0;
+    forAll(speciesFractions_, speciesI)
+    {
+        if (speciesFractions_[speciesI] < 0)
+        {
+            FatalErrorInFunction
+                << "speciesMassFractions must be non-negative"
+                << exit(FatalError);
+        }
+        speciesSum += speciesFractions_[speciesI];
+    }
+    if
+    (
+        !speciesFractions_.empty()
+     && mag(speciesSum - scalar(1)) > scalar(1e-10)
+    )
+    {
+        FatalErrorInFunction
+            << "speciesMassFractions must sum to 1; got "
+            << speciesSum << exit(FatalError);
+    }
+
     mu_ = mixture_.rho()*mixture_.nu();
 }
 

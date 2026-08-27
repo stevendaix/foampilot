@@ -406,7 +406,24 @@ vofFragmentBatch vofFragmentTransitionManager::reconcileMPI
             }
         }
 
+        // The component ID must be derived from the complete global cell set,
+        // not from the first rank-local record encountered by the gather.
+        // This keeps IDs invariant under MPI rank count and decomposition.
         typedef HashTable<vofGlobalFragment, label> fragmentTable;
+        forAllConstIter(fragmentTable, byComponent, iter)
+        {
+            vofGlobalFragment& global = byComponent[iter.key()];
+            global.id = std::numeric_limits<std::uint64_t>::max();
+            forAll(global.globalCells, cellI)
+            {
+                global.id = min
+                (
+                    global.id,
+                    static_cast<std::uint64_t>(global.globalCells[cellI])
+                );
+            }
+        }
+
         forAllConstIter(fragmentTable, byComponent, iter)
         {
             globalFragments.append(iter());

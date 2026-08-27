@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-set -eo pipefail
+# OpenFOAM 13's bashrc contains optional probes that are not errexit-safe.
+# Keep pipefail during environment loading, then enable fail-fast for the case.
+set -o pipefail
 
+# OpenFOAM derives WM_PROJECT_USER_DIR from USER; minimal CI shells may omit it.
+: "${USER:=$(id -un)}"
+export USER
 NP=${NP:-2}
 ROOT_DIR=$(cd "$(dirname "$0")" && pwd)
 WORK_DIR=${TMPDIR:-/tmp}/foampilot-multiCloudMultiSpeciesMPI-$$
@@ -14,7 +19,18 @@ else
     echo "ERROR: define FOAM_BASHRC or WM_PROJECT_DIR for OpenFOAM 13" >&2
     exit 2
 fi
-set -u
+env_rc=$?
+if [ "$env_rc" -ne 0 ]; then
+    echo "ERROR: failed to load OpenFOAM 13 environment (status $env_rc)" >&2
+    exit "$env_rc"
+fi
+set -e -u
+# Make the user-built fvModel libraries visible to foamRun and every MPI rank.
+if [ -z "${FOAM_USER_LIBBIN:-}" ] || [ ! -d "$FOAM_USER_LIBBIN" ]; then
+    echo "ERROR: FOAM_USER_LIBBIN is not a valid OpenFOAM 13 library directory" >&2
+    exit 2
+fi
+export LD_LIBRARY_PATH="$FOAM_USER_LIBBIN:${LD_LIBRARY_PATH:-}"
 mkdir -p "$WORK_DIR"
 cp -a "$FOAM_TUTORIALS/compressibleVoF/damBreak/." "$WORK_DIR/"
 cd "$WORK_DIR"
@@ -148,12 +164,30 @@ done
 
 blockMesh > log.blockMesh 2>&1
 setFields > log.setFields 2>&1
+DECOMP_METHOD=${DECOMP_METHOD:-simple}
+case "$DECOMP_METHOD" in
+    simple)
+        DECOMP_COEFFS="simpleCoeffs { n ($NP 1 1); delta 0; }"
+        ;;
+    hierarchical)
+        DECOMP_COEFFS="hierarchicalCoeffs { n (2 2 1); order xyz; }"
+        ;;
+    scotch)
+        DECOMP_COEFFS="scotchCoeffs { processorWeights (); }"
+        ;;
+    *)
+        echo "ERROR: unsupported DECOMP_METHOD '$DECOMP_METHOD'" >&2
+        exit 2
+        ;;
+esac
 cat > system/decomposeParDict <<EOF
 FoamFile { format ascii; class dictionary; object decomposeParDict; }
 numberOfSubdomains $NP;
-method simple;
-simpleCoeffs { n ($NP 1 1); delta 0; }
+method $DECOMP_METHOD;
+$DECOMP_COEFFS
 EOF
 decomposePar -force > log.decomposePar 2>&1
-mpirun --allow-run-as-root -np "$NP" foamRun -parallel -solver compressibleVoF > log.foamRun.mpi 2>&1
+MPI_EXTRA_ARGS=${MPI_EXTRA_ARGS:-}
+read -r -a MPI_ARGS <<< "$MPI_EXTRA_ARGS"
+mpirun --allow-run-as-root "${MPI_ARGS[@]}" -np "$NP" foamRun -parallel -solver compressibleVoF > log.foamRun.mpi 2>&1
 python3 "$ROOT_DIR/analyze_multi_cloud_species.py" --log log.foamRun.mpi --expected "$ROOT_DIR/expected/fragments.json" --json | tee validation.json

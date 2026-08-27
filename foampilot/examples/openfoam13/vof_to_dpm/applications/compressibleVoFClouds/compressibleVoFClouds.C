@@ -180,6 +180,35 @@ Foam::fv::compressible::compressibleVoFClouds::compressibleVoFClouds
     ),
     transitionBatch_()
 {
+    if (cloudNames_.empty())
+    {
+        FatalErrorInFunction
+            << "clouds must contain at least one cloud name"
+            << exit(FatalError);
+    }
+
+    scalar speciesSum = 0;
+    forAll(speciesFractions_, speciesI)
+    {
+        if (speciesFractions_[speciesI] < 0)
+        {
+            FatalErrorInFunction
+                << "speciesMassFractions must be non-negative"
+                << exit(FatalError);
+        }
+        speciesSum += speciesFractions_[speciesI];
+    }
+    if
+    (
+        !speciesFractions_.empty()
+     && mag(speciesSum - scalar(1)) > scalar(1e-10)
+    )
+    {
+        FatalErrorInFunction
+            << "speciesMassFractions must sum to 1; got "
+            << speciesSum << exit(FatalError);
+    }
+
     if
     (
         liquidPhase_ != mixture_.alpha1().group()
