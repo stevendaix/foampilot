@@ -54,9 +54,8 @@ def pmv(ta, tr, va, rh, met, clo, wmet=0):
 
         hcn = 2.38 * abs(tcl - ta)**0.25  # natural convective heat transfer coefficience
 
-        # select forced or natural convection
-        if  hcn > hcf: hc = hcf
-        else: hc = hcf
+        # Select the larger coefficient, as prescribed by the PMV procedure.
+        hc = max(hcf, hcn)
 
         # terminate iterative calculation
         if abs(tcliter - tcl) < 0.0001:

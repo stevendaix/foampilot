@@ -136,7 +136,7 @@ $$
 \frac{1}{h_{e,i}}=\frac{1}{LR\,i_{cl,i}}+\frac{0.155Icl_i}{f_{cl,i}LRh_{c,i}}.
 $$
 
-Le code utilise `LR=16.5 K/kPa`, l’équation d’Antoine pour la pression de vapeur saturante de la peau et de l’air, puis limite la mouillabilité à `w<=1`.
+Le code utilise `LR=16.5 K/kPa`, l’équation d’Antoine pour la pression de vapeur saturante de la peau et de l’air, puis limite la mouillabilité à `w<=1`. Lorsque la capacité évaporative est nulle ou négative, la version durcie conserve une valeur de base et évite les divisions non définies.
 
 La respiration est appliquée au core thoracique :
 
@@ -269,7 +269,7 @@ Le pas par défaut est de 60 s. La stabilité numérique est améliorée par la 
 | Pertes sèches | Éq. (9)–(10) | `heat_resistances`, `dry_r`, `_run` | Reproduit en mode `native` | Le mode `external_surface` désactive volontairement ce terme interne |
 | Évaporation | Éq. (11)–(12) | `wet_r`, `evaporation` | Reproduit | Aucun écart identifié |
 | Respiration | Éq. (13) | `resp_heatloss` | Reproduit | Le terme est appliqué au thorax comme dans l’article |
-| Rayonnement solaire | Éq. (14)–(16) | Calculé dans `_run` et paramètres environnementaux | Reproduit | À vérifier séparément avec un cas solaire non nul |
+| Rayonnement solaire | Éq. (14)–(16) | Injection externe générique via `ex_q` | Partiel | Aucun calcul dédié `SW_dir`/`SW_dif` n’est assemblé dans `_run`; documenter ou implémenter explicitement |
 | BSA | Éq. (17)–(20) | `construction.py` | Reproduit | FoamPilot doit conserver la même équation choisie |
 | Capacités | Éq. (21) | `capacity` | Reproduit | Attention aux unités Wh/K puis J/K |
 | Conduction | Éq. (22)–(23) | `conductance` et matrice | Reproduit | Les conductances restent segmentaires |
