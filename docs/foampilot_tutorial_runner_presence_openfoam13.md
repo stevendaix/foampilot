@@ -141,9 +141,10 @@ La vérification effectuée le 26 août 2026 confirme que les **61 runners actue
 | `129_incompressibleVoF_mixerVessel2DMRF` | Présent | Présent | Conforme OF13 | Validé — zone `rotor`, MRF `60 rpm`, `End=4 s`, alpha bornée, aucun `FOAM FATAL` |
 | `130_incompressibleVoF_mixerVesselHorizontal2D` | Présent | Présent | Conforme OF13 | Validé — zones `rotor/stator` à `±60 rpm`, NCC flux nul, `End=2 s`, aucun `FOAM FATAL` |
 | `131_incompressibleVoF_nozzleFlow2D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — `blockMesh`, `refineMesh` et VoF démarrés; progression à `Time≈3,19643e-05 s`, alpha bornée, aucun `FOAM FATAL` |
+| `132_incompressibleVoF_parshallFlume` | Présent | Présent | Conforme OF13 | Validé — débit `1,0`, quatre domaines MPI, `End=250 s`, reconstruction réussie, aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/nozzleFlow2D` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/parshallFlume` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
