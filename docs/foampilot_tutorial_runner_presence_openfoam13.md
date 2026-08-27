@@ -197,6 +197,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `187_multiRegion_film_rivuletBox` | Présent | Présent | Conforme OF13 | Accepté avec réserve — régions `box/panel/film`, extrusions `0,002/0,01`, frontières mappées créées par `foamDictionary`, calcul parallèle stable jusqu’à `Time≈0,665 s` sur `5 s` au plafond de 300 s, aucun `FOAM FATAL` |
 | `188_multiRegion_film_rivuletPanel` | Présent | Présent | Conforme OF13 | Validé — panel de 43 200 cellules, décomposition Scotch sur 4 domaines, extrusion film de `0,01`, calcul `foamMultiRun` jusqu’à `Time=5 s`, temps reconstruits `0,1` à `5`, reconstruction finale film/panel et aucun `FOAM FATAL` |
 | `189_multiRegion_film_splashPanel` | Présent | Présent | Conforme OF13 | Validé — maillage fluid de 4 000 cellules, extrusion film intrudée de `0,002`, couplages `mappedExtrudedWall`/`filmWall`/`mappedFilmSurface`, calcul sériel jusqu’à `Time=1 s`, 1 000 splash parcels, 1 819 absorptions et aucun `FOAM FATAL` |
+| `190_multicomponentFluid_DLR_A_LTS` | Présent | Présent | Conforme OF13 | Validé — conversion Chemkin GRI30, maillage et `setFields`, décomposition forcée à 6 domaines, calcul `foamRun` LTS jusqu’à `Time=10000 s`, reconstruction des temps 1000–10000 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
