@@ -21,6 +21,7 @@ class PhysicsModule:
     name: str
     source_url: str
     source_ref: str
+    vendor_path: str
     upstream_openfoam: str
     role: str
     build_command: Tuple[str, ...]
@@ -34,6 +35,7 @@ MODULES: Mapping[str, PhysicsModule] = {
         name="sediFoam",
         source_url="https://github.com/xiaoh/sediFoam.git",
         source_ref="master",
+        vendor_path="third_party/sediFoam/lammpsFoam/dragModels",
         upstream_openfoam="legacy OpenFOAM releases; not OF13",
         role="Eulerian–DEM sediment transport through LAMMPS",
         build_command=("./Allwmake.sh",),
@@ -45,6 +47,7 @@ MODULES: Mapping[str, PhysicsModule] = {
         name="openHFDIB-DEM",
         source_url="https://github.com/techMathGroup/openHFDIB-DEM.git",
         source_ref="master",
+        vendor_path="third_party/openHFDIB-DEM",
         upstream_openfoam="OpenFOAM v8",
         role="immersed-boundary CFD–DEM for arbitrary particle shapes",
         build_command=("./compileAll.sh",),
@@ -55,8 +58,9 @@ MODULES: Mapping[str, PhysicsModule] = {
     "libacoustics": PhysicsModule(
         name="libAcoustics",
         source_url="https://github.com/unicfdlab/libAcoustics.git",
-        source_ref="v2512",
-        upstream_openfoam="OpenFOAM+ v2512; no Foundation OF13 branch upstream",
+        source_ref="v2412",
+        vendor_path="third_party/libAcoustics/Sources/lib",
+        upstream_openfoam="OpenFOAM+ v2412; no Foundation OF13 branch upstream",
         role="acoustic source extraction and FW-H post-processing",
         build_command=("wmake", "libso"),
         required_fields=("U", "p", "phi"),
@@ -172,7 +176,7 @@ def build_plan(config: MultiphysicsConfiguration, source_root: os.PathLike[str] 
     return [
         {
             "module": name,
-            "source": str(root / name),
+            "source": str(root / MODULES[name].vendor_path),
             "sourceRef": MODULES[name].source_ref,
             "command": list(MODULES[name].build_command),
             "openfoam": "13",

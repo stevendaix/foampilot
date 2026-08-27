@@ -26,7 +26,11 @@ assets = root / 'validation' / 'generated-sedifoam-acoustics'
 assets.mkdir(parents=True, exist_ok=True)
 manifest, dictionary = config.write_case_assets(assets)
 add('Génération manifeste Foampilot', manifest.exists() and dictionary.exists(), str(manifest))
-add('Profil sediFoam/libAcoustics', config.modules == ('openhfdib_dem', 'libacoustics'), 'combinaison autorisée avec openHFDIB-DEM + acoustique')
+add('Profil openHFDIB-DEM/libAcoustics', config.modules == ('openhfdib_dem', 'libacoustics'), 'combinaison autorisée avec openHFDIB-DEM + acoustique')
+config_sedi = mod.MultiphysicsConfiguration(('sedifoam', 'libacoustics'))
+plan = config_sedi.build_plan if hasattr(config_sedi, 'build_plan') else mod.build_plan(config_sedi, foampilot)
+add('Profil sediFoam/libAcoustics', config_sedi.modules == ('sedifoam', 'libacoustics'), 'combinaison autorisée avec sediFoam + acoustique')
+add('Chemins vendorisés', all(Path(item['source']).exists() for item in plan), json.dumps(plan))
 
 manifest_data = json.loads(manifest.read_text(encoding='utf-8'))
 add('Validation JSON manifeste', manifest_data['openfoam'] == {'distribution': 'Foundation', 'version': '13'}, 'JSON valide et version Foundation 13')
@@ -42,6 +46,19 @@ for exe in ['HFDIBDEMFoam', 'pimpleHFDIBFoam']:
     rr = subprocess.run(['bash', '-lc', f'. /opt/openfoam13/etc/bashrc && {exe} -help'], text=True, capture_output=True)
     add(f'{exe} -help', rr.returncode == 0, (rr.stdout + rr.stderr).strip()[-200:])
 add('Bibliothèque HFDIBDEM', lib.exists(), str(lib))
+acoustic_lib = Path('/home/ubuntu/OpenFOAM/root-13/platforms/linux64GccDPInt32Opt/lib/libAcoustics.so')
+sediment_lib = Path('/home/ubuntu/OpenFOAM/root-13/platforms/linux64GccDPInt32Opt/lib/libLagrangianInterfacialModels.so')
+add('Bibliothèque libAcoustics OF13', acoustic_lib.exists(), str(acoustic_lib))
+add('Bibliothèque dragModels sediFoam OF13', sediment_lib.exists(), str(sediment_lib))
+for label, library, symbols in [
+    ('Symboles Curle/FW-H', acoustic_lib, ['CurleAnalogy', 'FfowcsWilliamsHawkings']),
+    ('Symboles dragModels', sediment_lib, ['ErgunWenYu', 'SyamlalOBrien']),
+]:
+    if library.exists():
+        symbol_text = subprocess.run(['nm', '-D', '--defined-only', str(library)], text=True, capture_output=True).stdout
+        add(label, all(symbol in symbol_text for symbol in symbols), ', '.join(symbols))
+    else:
+        add(label, False, f'artefact absent: {library}')
 
 case_src = root / 'validation' / 'normalForce_OF13'
 case = root / 'validation' / 'normalForce_OF13_deep'
