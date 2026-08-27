@@ -22,6 +22,10 @@ class OpenFOAMDictAddFile:
         indent = "    " * indent_level
 
         for key, value in attributes.items():
+            if key == "includes":
+                for include in value:
+                    file.write(f'#include "{include}"\n')
+                continue
             if key == "box" and isinstance(value, list) and len(value) == 2 and all(
                 isinstance(p, (list, tuple)) and len(p) == 3 for p in value
             ):

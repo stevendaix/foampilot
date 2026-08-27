@@ -45,6 +45,7 @@ class OpenFOAMFile:
         "muTilda": "[1 -1 -1 0 0 0 0]",
         "omega": "[0 0 -1 0 0 0 0]",
         "T": "[0 0 0 1 0 0 0]",
+        "Tu": "[0 0 0 1 0 0 0]",
         "alphat": "[1 -1 -1 0 0 0 0]",
         "alpha.water": "[]",
         "alpha.air": "[]",
