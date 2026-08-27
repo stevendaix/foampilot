@@ -209,6 +209,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `199_multicomponentFluid_lockExchange` | Présent | Présent | Conforme OF13 | Validé — espèces `water/sludge`, zone sludge initialisée par `setFields`, calcul jusqu’à `Time=100 s`, Courant maximal inférieur à 0,47 et aucun `FOAM FATAL` |
 | `200_multicomponentFluid_membrane` | Présent | Présent | Conforme OF13 | Validé — STL `membrane.stl`, `snappyHexMesh` à 18 632 cellules, 960 baffles, patches mappés `membranePipe/membraneSleeve`, calcul jusqu’à `Time=10 s` et aucun `FOAM FATAL` |
 | `201_multicomponentFluid_nc7h16` | Présent | Présent | Conforme OF13 | Validé — `zeroDimensionalMesh`, conversion Chemkin NC7H16, `massFractions`, calcul jusqu’à `Time=0,001 s`, erreurs de continuité de l’ordre de `10^-15` et aucun `FOAM FATAL` |
+| `202_multicomponentFluid_parcelInBox` | Présent | Présent | Conforme OF13 | Validé — nuage 3D `cloud` avec un parcel, transport de `H2O`, calcul jusqu’à `Time=0,5 s`, erreurs de continuité faibles et aucun `FOAM FATAL` |
 
 ## Conclusion
 
