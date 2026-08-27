@@ -224,6 +224,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `214_multiphaseEuler_bubbleColumn` | Présent | Présent | Conforme OF13 | Validé — colonne gaz/eau initialisée par `setFields`, MULES stable avec somme des fractions égale à 1, calcul jusqu’à `End` vers `Time≈80,7 s`, Courant maximal inférieur à 0,74 et aucun `FOAM FATAL` |
 | `215_multiphaseEuler_bubbleColumnEvaporating` | Présent | Présent | Conforme OF13 | Validé — colonne gaz/eau, transfert diffusif `massDiffusionLimitedPhaseChange`, bilans massiques, fractions bornées, calcul jusqu’à `End` vers `Time≈15,33 s`, Courant maximal proche de 0,33 et aucun `FOAM FATAL` |
 | `216_multiphaseEuler_bubbleColumnEvaporatingDissolving` | Présent | Présent | Conforme OF13 | Validé — colonne gaz/eau avec espèces `water.gas/water.liquid`, transferts chaleur-masse, évaporation/dissolution, fractions bornées, calcul jusqu’à `End` vers `Time≈15,09 s`, Courant maximal proche de 0,31 et aucun `FOAM FATAL` |
+| `217_multiphaseEuler_bubbleColumnEvaporatingReacting` | Présent | Présent | Conforme OF13 | Validé — colonne gaz/eau réactive avec champs `CO/CO2/H2O/air/Ydefault`, évaporation, `Qdot.gas`, résidus d’espèces convergents, fractions normalisées, calcul jusqu’à `End` vers `Time≈5,03 s`, Courant maximal inférieur à environ 0,31 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
