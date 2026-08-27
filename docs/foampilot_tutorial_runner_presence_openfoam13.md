@@ -218,6 +218,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `208_multicomponentFluid_verticalChannelSteady` | Présent | Présent | Conforme OF13 | Validé — `steadyState`, `potentialFoam`, cloud multiphasique, calcul jusqu’à `Time=500 s`, `steadyParticleTracks` et VTK de trajectoires jusqu’à 500 s, sans `FOAM FATAL` |
 | `209_multiphaseEuler_Grossetete` | Présent | Présent | Conforme OF13 | Validé — phases gaz/liquide, extrusion wedge, MULES avec fractions bornées, calcul jusqu’à `Time=2 s`, Courant maximal proche de 0,25 et aucun `FOAM FATAL` |
 | `210_multiphaseEuler_LBend` | Présent | Présent | Conforme OF13 | Accepté avec réserve — géométrie directe du coude, phases `solids/gas`, MULES stable avec somme des fractions égale à 1, calcul poursuivi sous le plafond de 300 s sans `FOAM FATAL`; `End=1,9 s` reste hors budget |
+| `211_multiphaseEuler_aeratedStirredTankMRF` | Présent | Présent | Conforme OF13 | Accepté avec réserve — `snappyHexMeshConfig`, MRF `rotatingZone` à 500 rpm, décomposition Scotch à 8 domaines et maillage parallèle validés; calcul stable jusqu’à `Time≈1,884 s` sur `15 s`, sans `FOAM FATAL`; reconstructions finale et graphes à poursuivre |
 
 ## Conclusion
 
