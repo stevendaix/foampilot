@@ -1,20 +1,48 @@
 #!/usr/bin/env python3
+import argparse
 import os
 import sys
 import subprocess
+from pathlib import Path
+
 import numpy as np
 
-# Source OpenFOAM environment
-source_env = "/opt/openfoam13/etc/bashrc"
-env = os.environ.copy()
-result = subprocess.run(
-    ["bash", "-c", f"source {source_env} && env"],
-    capture_output=True, text=True
+
+def load_openfoam_environment() -> dict[str, str]:
+    """Use the current shell environment or source the path requested by the caller."""
+    env = os.environ.copy()
+    source_env = env.get("FOAM_BASHRC")
+    if not source_env:
+        project_dir = env.get("WM_PROJECT_DIR")
+        source_env = str(Path(project_dir) / "etc/bashrc") if project_dir else ""
+    if source_env and Path(source_env).is_file():
+        result = subprocess.run(
+            ["bash", "-c", f"source {source_env} && env"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        for line in result.stdout.splitlines():
+            if "=" in line:
+                key, _, value = line.partition("=")
+                env[key] = value
+    elif "WM_PROJECT_DIR" not in env:
+        raise RuntimeError(
+            "OpenFOAM is not loaded; source its etc/bashrc or set FOAM_BASHRC"
+        )
+    return env
+
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument(
+    "--case",
+    type=Path,
+    default=Path(__file__).resolve().parent / "planarPoiseuille",
+    help="OpenFOAM case to inspect",
 )
-for line in result.stdout.splitlines():
-    if "=" in line:
-        key, _, value = line.partition("=")
-        env[key] = value
+args = parser.parse_args()
+env = load_openfoam_environment()
+os.environ.update(env)
 
 # Monkey-patch pyvista's BaseReader to handle VTK's OpenFOAM readers
 from pyvista.core.utilities.reader import BaseReader
@@ -34,8 +62,10 @@ BaseReader._set_directory = _patched_set_directory
 from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
 import pyvista as pv
 
-case_path = "/home/steven/foampilot/planarPoiseuille"
-fp = FoamPostProcessing(case_path)
+case_path = args.case.expanduser().resolve()
+if not case_path.is_dir():
+    raise FileNotFoundError(f"case directory does not exist: {case_path}")
+fp = FoamPostProcessing(str(case_path))
 
 print("=" * 60)
 print("TEST 1: read_direct with POpenFOAMReader")
