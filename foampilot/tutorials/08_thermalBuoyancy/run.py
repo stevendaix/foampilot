@@ -46,6 +46,9 @@ def main():
     solver.with_gravity = True      # Gravité pour couplage thermo-fluid
     solver.turbulence_model = "kOmegaSST"
     solver.transient = False       # Stationnaire (SIMPLE)
+    solver.fields_manager.register_field("k", 3.75e-4, "m^2/s^2")
+    solver.fields_manager.register_field("omega", 0.12, "1/s")
+    solver.fields_manager.register_field("nut", 0.0, "m^2/s")
 
     # Configure physicalProperties for Boussinesq
     solver.constant.physicalProperties.boussinesq = True
@@ -88,54 +91,25 @@ def main():
     solver.system.write()
 
     # --- 3. Maillage (blockMesh) ---
-    # Pièce : 5 x 4 x 3 m (x = long, y = large, z = hauteur)
-    # hotWall: x=5 (mur chaud)
-    # coldWall: x=0 (mur froid)
-    # floor/roof/sides: adiabatiques
+    # Référence OpenFOAM 13 : cavité 76 x 2180 x 520 mm.
     mesh = Meshing(case_path, mesher="blockMesh")
     blockmesh = mesh.mesher
 
-    blockmesh.scale = 1.0
+    blockmesh.scale = 0.001
     blockmesh.vertices = [
-        [0, 0, 0],    # 0: front-bottom-left
-        [5, 0, 0],    # 1: front-bottom-right
-        [5, 4, 0],    # 2: front-top-right
-        [0, 4, 0],    # 3: front-top-left
-        [0, 0, 3],    # 4: back-bottom-left
-        [5, 0, 3],    # 5: back-bottom-right
-        [5, 4, 3],    # 6: back-top-right
-        [0, 4, 3],    # 7: back-top-left
+        [0, 0, -260], [76, 0, -260], [76, 2180, -260], [0, 2180, -260],
+        [0, 0, 260], [76, 0, 260], [76, 2180, 260], [0, 2180, 260],
     ]
     blockmesh.blocks = [
-        "hex (0 1 2 3 4 5 6 7) (25 20 15) simpleGrading (1 1 1)",
+        "hex (0 1 2 3 4 5 6 7) (35 150 15) simpleGrading (1 1 1)",
     ]
     blockmesh.edges = []
-    blockmesh.defaultPatch = {"type": "empty"}
+    blockmesh.defaultPatch = {}
     blockmesh.boundary = {
-        "hotWall": {
-            "type": "wall",
-            "faces": [[1, 2, 6, 5]],  # x=5 face
-        },
-        "coldWall": {
-            "type": "wall",
-            "faces": [[0, 3, 7, 4]],  # x=0 face
-        },
-        "floor": {
-            "type": "wall",
-            "faces": [[0, 1, 2, 3]],  # z=0 face
-        },
-        "roof": {
-            "type": "wall",
-            "faces": [[4, 5, 6, 7]],  # z=3 face
-        },
-        "leftWall": {
-            "type": "wall",
-            "faces": [[0, 1, 5, 4]],  # y=0 face
-        },
-        "rightWall": {
-            "type": "wall",
-            "faces": [[2, 3, 7, 6]],  # y=4 face
-        },
+        "topAndBottom": {"type": "wall", "faces": [[0, 1, 5, 4], [2, 3, 7, 6]]},
+        "frontAndBack": {"type": "wall", "faces": [[4, 5, 6, 7], [3, 2, 1, 0]]},
+        "hot": {"type": "wall", "faces": [[6, 5, 1, 2]]},
+        "cold": {"type": "wall", "faces": [[4, 7, 3, 0]]},
     }
     blockmesh.mergePatchPairs = []
 
@@ -154,7 +128,7 @@ def main():
     solver.boundary.initialize_boundary()
 
     # Get all wall-type patches
-    wall_patches = ["hotWall", "coldWall", "floor", "roof", "leftWall", "rightWall"]
+    wall_patches = ["topAndBottom", "frontAndBack", "hot", "cold"]
 
     # U — no-slip on all walls (natural convection, no inlet)
     for patch in wall_patches:
@@ -163,15 +137,15 @@ def main():
         })
 
     # T — hot wall 307.75K (34.6°C), cold wall 288.15K (15°C), others adiabatic
-    solver.boundary.set_raw_condition("hotWall", "T", {
+    solver.boundary.set_raw_condition("hot", "T", {
         "type": "fixedValue",
         "value": "uniform 307.75",
     })
-    solver.boundary.set_raw_condition("coldWall", "T", {
+    solver.boundary.set_raw_condition("cold", "T", {
         "type": "fixedValue",
         "value": "uniform 288.15",
     })
-    for patch in ("floor", "roof", "leftWall", "rightWall"):
+    for patch in ("topAndBottom", "frontAndBack"):
         solver.boundary.set_raw_condition(patch, "T", {
             "type": "zeroGradient",
         })

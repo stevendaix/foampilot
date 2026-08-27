@@ -259,6 +259,12 @@ class PhysicalPropertiesFile(OpenFOAMFile):
         self._pRef = self._to_ValueWithUnit(value, "pRef")
         self._configure_attributes()
 
+    def configure_reference(self, *, thermo_type: Dict[str, Any], mixture: Dict[str, Any]) -> "PhysicalPropertiesFile":
+        """Configure an OpenFOAM 13 physicalProperties reference package."""
+        self.attributes["thermoType"] = dict(thermo_type)
+        self.attributes["mixture"] = dict(mixture)
+        return self
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert the configuration to a dictionary for OpenFOAM file writing.

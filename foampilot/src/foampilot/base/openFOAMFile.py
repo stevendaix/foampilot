@@ -26,7 +26,7 @@ class OpenFOAMFile:
     DEFAULT_UNITS = {
         "nu": "m^2/s", "mu": "Pa.s", "rho": "kg/m^3",
         "k": "m^2/s^2", "epsilon": "m^2/s^3", "omega": "1/s",
-        "nut": "m^2/s", "mut": "Pa.s",
+        "nut": "m^2/s", "mut": "Pa.s", "muTilda": "Pa.s",
         "U": "m/s", "p": "Pa", "T": "K",
         "alpha": "m^2/s", "phi": "m^3/s",
         "g": "m/s^2",
@@ -42,6 +42,7 @@ class OpenFOAMFile:
         "epsilon": "[0 2 -3 0 0 0 0]",
         "nut": "[0 2 -1 0 0 0 0]",
         "nuTilda": "[0 2 -1 0 0 0 0]",
+        "muTilda": "[1 -1 -1 0 0 0 0]",
         "omega": "[0 0 -1 0 0 0 0]",
         "T": "[0 0 0 1 0 0 0]",
         "alphat": "[1 -1 -1 0 0 0 0]",

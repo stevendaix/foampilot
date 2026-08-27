@@ -1,6 +1,7 @@
 import os
 import logging
 from pathlib import Path
+import re
 from foampilot.system.controlDictFile import ControlDictFile
 from foampilot.system.fvSchemesFile import FvSchemesFile
 from foampilot.system.fvSolutionFile import FvSolutionFile
@@ -46,6 +47,17 @@ class SystemDirectory:
 
 
 
+
+    def import_reference_file(self, source_path: str | Path, filename: str | None = None) -> Path:
+        """Import a complete OpenFOAM system dictionary without lossy parsing."""
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        target_name = filename or source.name
+        target = Path(self.parent.case_path) / "system" / target_name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        return target
 
     def write(self):
         """
@@ -417,6 +429,183 @@ class SystemDirectory:
         logger.info("Wrote meshQualityDict: %s", quality_path)
 
 
+
+    def rename_dictionary_entries(self, dictionary: str | Path, renames: dict[str, str]) -> Path:
+        """Rename dictionary entries through the OpenFOAM ``foamDictionary`` utility."""
+        dictionary_path = Path(dictionary)
+        if not dictionary_path.is_absolute():
+            dictionary_path = Path(self.parent.case_path) / dictionary_path
+        if not dictionary_path.is_file():
+            raise FileNotFoundError(dictionary_path)
+        mapping = ", ".join(f"{old}={new}" for old, new in renames.items())
+        self.run_utility(
+            "foamDictionary",
+            [str(dictionary_path), "-rename", mapping],
+            log_filename=f"log.foamDictionary.rename.{dictionary_path.name}",
+        )
+        return dictionary_path
+
+    def remove_dictionary_entries(self, dictionary: str | Path, entries: list[str]) -> Path:
+        """Remove entries from an OpenFOAM dictionary through ``foamDictionary``."""
+        dictionary_path = Path(dictionary)
+        if not dictionary_path.is_absolute():
+            dictionary_path = Path(self.parent.case_path) / dictionary_path
+        if not dictionary_path.is_file():
+            raise FileNotFoundError(dictionary_path)
+        for entry in entries:
+            self.run_utility(
+                "foamDictionary",
+                [str(dictionary_path), "-remove", "-entry", entry],
+                log_filename=f"log.foamDictionary.remove.{dictionary_path.name}.{entry.replace('/', '_')}",
+            )
+        return dictionary_path
+
+    def update_dictionary_entries(self, dictionary: str | Path, entries: dict[str, str]) -> Path:
+        """Update OpenFOAM dictionary entries through ``foamDictionary``."""
+        dictionary_path = Path(dictionary)
+        if not dictionary_path.is_absolute():
+            dictionary_path = Path(self.parent.case_path) / dictionary_path
+        if not dictionary_path.is_file():
+            raise FileNotFoundError(dictionary_path)
+        for entry, value in entries.items():
+            self.run_utility(
+                "foamDictionary",
+                [str(dictionary_path), "-entry", entry, "-set", str(value)],
+                log_filename=f"log.foamDictionary.{dictionary_path.name}.{entry.replace('/', '_')}",
+            )
+        return dictionary_path
+
+    def merge_reference_dictionary(
+        self,
+        target: str | Path,
+        source: str | Path,
+        *,
+        blocks: list[str] | None = None,
+    ) -> Path:
+        """Merge top-level blocks from a reference dictionary into a case file.
+
+        This reproduces the dictionary-overlay part of OpenFOAM's
+        ``foamMergeCase`` while keeping the operation under FoamPilot control.
+        Existing top-level blocks are replaced by matching reference blocks;
+        new blocks are appended to the target dictionary.
+        """
+        target_path = Path(target)
+        source_path = Path(source)
+        if not target_path.is_absolute():
+            target_path = Path(self.parent.case_path) / target_path
+        if not source_path.is_absolute():
+            source_path = Path(self.parent.case_path) / source_path
+        if not target_path.is_file():
+            raise FileNotFoundError(target_path)
+        if not source_path.is_file():
+            raise FileNotFoundError(source_path)
+        target_text = target_path.read_text(encoding="utf-8")
+        source_text = source_path.read_text(encoding="utf-8")
+        wanted = set(blocks or [])
+
+        def extract(text: str) -> dict[str, str]:
+            result: dict[str, str] = {}
+            pattern = re.compile(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)\s*\{")
+            for match in pattern.finditer(text):
+                name = match.group(1)
+                if wanted and name not in wanted:
+                    continue
+                depth = 0
+                end = None
+                for index in range(match.end() - 1, len(text)):
+                    if text[index] == "{":
+                        depth += 1
+                    elif text[index] == "}":
+                        depth -= 1
+                        if depth == 0:
+                            end = index + 1
+                            while end < len(text) and text[end].isspace():
+                                end += 1
+                            if end < len(text) and text[end] == ";":
+                                end += 1
+                            break
+                if end is not None:
+                    result[name] = text[match.start():end]
+            return result
+
+        overlays = extract(source_text)
+        for name, block in overlays.items():
+            target_match = re.search(rf"(?m)^{re.escape(name)}\s*\{{", target_text)
+            if not target_match:
+                target_text = target_text.rstrip() + "\n\n" + block + "\n"
+                continue
+            depth = 0
+            end = None
+            for index in range(target_match.end() - 1, len(target_text)):
+                if target_text[index] == "{":
+                    depth += 1
+                elif target_text[index] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        end = index + 1
+                        while end < len(target_text) and target_text[end].isspace():
+                            end += 1
+                        if end < len(target_text) and target_text[end] == ";":
+                            end += 1
+                        break
+            if end is None:
+                continue
+            target_block = target_text[target_match.start():end]
+            target_open = target_block.find("{")
+            target_close = target_block.rfind("}")
+            source_open = block.find("{")
+            source_close = block.rfind("}")
+            if target_open >= 0 and target_close > target_open and source_open >= 0 and source_close > source_open:
+                merged = (
+                    target_block[:target_open + 1]
+                    + target_block[target_open + 1:target_close].rstrip()
+                    + "\n"
+                    + block[source_open + 1:source_close].strip()
+                    + "\n"
+                    + target_block[target_close:]
+                )
+                target_text = target_text[:target_match.start()] + merged + target_text[end:]
+        target_path.write_text(target_text, encoding="utf-8")
+        return target_path
+
+    def replace_file_text(self, file: str | Path, old: str, new: str, count: int = -1) -> Path:
+        """Replace text in a case file through a FoamPilot-managed API.
+
+        This is intended for deterministic post-processing of files generated
+        by OpenFOAM utilities when a reference tutorial applies a small text
+        transformation that is not safely expressible through a dictionary
+        parser.
+        """
+        path = Path(file)
+        if not path.is_absolute():
+            path = Path(self.parent.case_path) / path
+        if not path.is_file():
+            raise FileNotFoundError(path)
+        content = path.read_text(encoding="utf-8")
+        if old not in content:
+            raise ValueError(f"Text not found in {path}: {old!r}")
+        path.write_text(content.replace(old, new, count), encoding="utf-8")
+        return path
+
+    def run_utility(self, utility: str, args=None, log_filename=None) -> Path:
+        """Run an OpenFOAM utility in the case directory through FoamPilot.
+
+        ``args`` contains only utility arguments; the case directory is selected
+        automatically and stdout/stderr are persisted in a deterministic log.
+        """
+        base_path = Path(self.parent.case_path)
+        if not base_path.is_dir():
+            raise NotADirectoryError(f"The case path '{base_path}' is not a directory.")
+        cmd = [utility, *(str(arg) for arg in (args or []))]
+        log_path = base_path / (log_filename or f"log.{utility}")
+        try:
+            result = subprocess.run(cmd, cwd=base_path, text=True,
+                                    capture_output=True, check=True)
+        except subprocess.CalledProcessError as exc:
+            log_path.write_text((exc.stdout or "") + "\n" + (exc.stderr or ""))
+            raise RuntimeError(f"{utility} failed: {exc.stderr}") from exc
+        log_path.write_text(result.stdout + "\n" + result.stderr)
+        return log_path
 
     def run_topoSet(self):
         """

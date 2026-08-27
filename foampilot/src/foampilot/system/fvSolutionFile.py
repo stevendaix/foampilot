@@ -108,6 +108,27 @@ class FvSolutionFile(OpenFOAMFile):
                 "relTol": "0",
             }
 
+        # Modular OpenFOAM 13 fluid solver also assembles rho and h.
+        if getattr(self.parent, "solver_name", "") == "fluid":
+            self.solvers.setdefault("rho", {
+                "solver": "PCG", "preconditioner": "DIC",
+                "tolerance": "1e-6", "relTol": "0.01",
+            })
+            self.solvers.setdefault("rhoFinal", {"$rho": "", "relTol": "0"})
+            self.solvers.setdefault("e", {
+                "solver": "smoothSolver", "smoother": "symGaussSeidel",
+                "tolerance": "1e-6", "relTol": "0.01",
+            })
+            self.solvers.setdefault("eFinal", {"$e": "", "relTol": "0"})
+            self.solvers["p"] = {
+                "solver": "PCG", "preconditioner": "DIC",
+                "tolerance": "1e-6", "relTol": "0.01",
+            }
+            self.solvers["rho"] = {
+                "solver": "PCG", "preconditioner": "DIC",
+                "tolerance": "1e-6", "relTol": "0.01",
+            }
+
         # VoF : alpha.water, alpha.air, etc.
         for field in field_names:
             if field.startswith("alpha.") and field not in self.solvers:

@@ -1,7 +1,10 @@
 from pathlib import Path
+import gzip
 import logging
+import re
 import subprocess
-from typing import List, Optional
+import shutil
+from typing import Dict, List, Optional
 
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
@@ -152,27 +155,188 @@ class BaseSolver:
         except Exception:
             pass
 
+    # ---------- Reference assets ----------
+    def import_reference_asset(self, source_path: str | Path, destination: str | Path) -> Path:
+        """Copy a non-dictionary reference asset into the case.
+
+        The destination is relative to the case unless an absolute path is
+        provided. Executable assets retain their executable permission.
+        """
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(f"Reference asset not found: {source}")
+        target = Path(destination)
+        if not target.is_absolute():
+            target = self.case_path / target
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if source.suffix == ".gz" and target.suffix != ".gz":
+            with gzip.open(source, "rb") as source_stream, target.open("wb") as target_stream:
+                shutil.copyfileobj(source_stream, target_stream)
+        else:
+            shutil.copy2(source, target)
+        if source.stat().st_mode & 0o111:
+            target.chmod(target.stat().st_mode | 0o111)
+        return target
+
+    def copy_case_tree(
+        self,
+        source_case: str | Path,
+        source_relative: str | Path,
+        destination_relative: str | Path,
+        *,
+        overwrite: bool = True,
+    ) -> Path:
+        """Copy a file or directory between FoamPilot-managed case trees."""
+        source = Path(source_case) / source_relative
+        target = self.case_path / destination_relative
+        if not source.exists():
+            raise FileNotFoundError(source)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if source.is_dir():
+            if target.exists() and not overwrite:
+                raise FileExistsError(target)
+            shutil.copytree(source, target, dirs_exist_ok=overwrite)
+        else:
+            if target.exists() and not overwrite:
+                raise FileExistsError(target)
+            shutil.copy2(source, target)
+        return target
+
+    def write_text_asset(self, destination: str | Path, content: str) -> Path:
+        """Write a FoamPilot-managed generated text asset into the case."""
+        target = Path(destination)
+        if not target.is_absolute():
+            target = self.case_path / target
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        return target
+
+    def remove_case_asset(self, destination: str | Path) -> None:
+        """Remove a FoamPilot-managed file or directory inside the case."""
+        target = Path(destination)
+        if not target.is_absolute():
+            target = self.case_path / target
+        try:
+            target.relative_to(self.case_path)
+        except ValueError as exc:
+            raise ValueError("Case asset must be inside the FoamPilot case") from exc
+        if target.is_dir():
+            shutil.rmtree(target)
+        elif target.exists():
+            target.unlink()
+
+    def merge_mesh_points(self, points_tmp: str | Path, *, header_lines: int = 17) -> Path:
+        """Merge a FoamPilot-managed temporary points list into mesh points.
+
+        ``datToFoam`` can emit an auxiliary ``points.tmp`` list for meshes
+        whose generated points file must retain its OpenFOAM header.  This
+        helper preserves the requested header and appends the temporary list,
+        without invoking shell text-processing commands.
+        """
+        points_path = self.case_path / "constant" / "polyMesh" / "points"
+        tmp_path = Path(points_tmp)
+        if not tmp_path.is_absolute():
+            tmp_path = self.case_path / tmp_path
+        if not points_path.is_file():
+            raise FileNotFoundError(f"Mesh points file not found: {points_path}")
+        if not tmp_path.is_file():
+            raise FileNotFoundError(f"Temporary mesh points file not found: {tmp_path}")
+        points_text = points_path.read_text(encoding="utf-8", errors="replace")
+        tmp_text = tmp_path.read_text(encoding="utf-8", errors="replace")
+        lines = points_text.splitlines(keepends=True)
+        header = "".join(lines[:header_lines]).replace("format      binary;", "format      ascii;")
+        points_path.write_text(header + tmp_text, encoding="utf-8")
+        tmp_path.unlink()
+        return points_path
+
+    def update_mesh_patch_types(self, patch_types: Dict[str, str]) -> Path:
+        """Update patch types in ``constant/polyMesh/boundary``.
+
+        This is intended for mesh workflows where a generator creates generic
+        ``patch`` entries and a solver-specific stage must convert selected
+        entries (for example to ``wedge``).  The operation is performed by
+        FoamPilot on the generated boundary file and preserves all unrelated
+        patch content.
+        """
+        boundary_path = self.case_path / "constant" / "polyMesh" / "boundary"
+        if not boundary_path.is_file():
+            raise FileNotFoundError(f"Mesh boundary file not found: {boundary_path}")
+        content = boundary_path.read_text(encoding="utf-8")
+        for patch_name, patch_type in patch_types.items():
+            pattern = (r"(" + re.escape(patch_name) + r"\s*\{\s*type\s+)\w+(\s*;)")
+            content, count = re.subn(pattern, r"\g<1>" + patch_type + r"\g<2>", content, count=1)
+            if count != 1:
+                raise ValueError(f"Patch '{patch_name}' not found in {boundary_path}")
+        boundary_path.write_text(content, encoding="utf-8")
+        return boundary_path
+
     # ---------- Running simulation ----------
-    def run_command(self, cmd: List[str], log_filename: str) -> None:
+    def run_command(
+        self,
+        cmd: List[str],
+        log_filename: str,
+        environment: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """Run a case command with an optional FoamPilot-managed environment.
+
+        ``environment`` is merged over the parent process environment.  This
+        lets OF13 runners provide ``PATH``, ``LD_LIBRARY_PATH`` and related
+        OpenFOAM variables explicitly, without relying on an interactive shell
+        having sourced a particular ``bashrc``.
+        """
         log_path = self.case_path / log_filename
         logger.info("Running command: %s -> log: %s", " ".join(cmd), log_path)
+        process_environment = os.environ.copy()
+        if environment:
+            process_environment.update(environment)
         with open(log_path, "w", encoding="utf-8") as log_file:
             subprocess.run(
                 cmd,
                 cwd=self.case_path,
+                env=process_environment,
                 text=True,
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
                 check=True,
             )
 
+    def run_command_async(self, cmd: List[str], log_filename: str):
+        """Start a FoamPilot-managed command and return its process handle."""
+        log_path = self.case_path / log_filename
+        logger.info("Starting async command: %s -> log: %s", " ".join(cmd), log_path)
+        log_file = open(log_path, "w", encoding="utf-8")
+        process = subprocess.Popen(
+            cmd,
+            cwd=self.case_path,
+            text=True,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+        )
+        process._foampilot_log_file = log_file
+        return process
+
+    def wait_command(self, process, check: bool = True) -> int:
+        """Wait for a process returned by :meth:`run_command_async`."""
+        returncode = process.wait()
+        log_file = getattr(process, "_foampilot_log_file", None)
+        if log_file is not None:
+            log_file.close()
+        if check and returncode != 0:
+            raise subprocess.CalledProcessError(returncode, process.args)
+        return returncode
+
     def check_solver_module_exists(self) -> bool:
         foam_modules = os.getenv("FOAM_MODULES", "")
         if not foam_modules:
             logger.warning("$FOAM_MODULES environment variable is not set.")
             return False
-        module_path = Path(foam_modules) / self.foamrun_module
-        if not module_path.exists():
+        module_dir = Path(foam_modules)
+        module_candidates = (
+            module_dir / self.foamrun_module,
+            module_dir / f"lib{self.foamrun_module}.so",
+            module_dir / f"lib{self.foamrun_module}.dylib",
+        )
+        if not any(candidate.exists() for candidate in module_candidates):
             logger.warning("Solver module '%s' not found in %s", self.foamrun_module, foam_modules)
             return False
         return True
@@ -264,7 +428,7 @@ class BaseSolver:
             logger.info("Serial legacy solver run")
             self.run_command([self.solver_name], log_filename)
 
-    def run_parallel(self, nb_proc: int, log_filename: str | None = None):
+    def run_parallel(self, nb_proc: int, log_filename: str | None = None, force_decompose: bool = False):
 
         if log_filename is None:
             log_filename = f"log.{self.solver_name}"
@@ -286,7 +450,7 @@ class BaseSolver:
         with open(log_path, "w", encoding="utf-8") as log_file:
             log_file.write("=== decomposePar ===\n")
             subprocess.run(
-                ["decomposePar", "-case", str(self.case_path)],
+                ["decomposePar", "-force", "-case", str(self.case_path)] if force_decompose else ["decomposePar", "-case", str(self.case_path)],
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
                 check=True

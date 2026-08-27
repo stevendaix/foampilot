@@ -77,6 +77,7 @@ class CaseFieldsManager:
         self.fields: Dict[str, Dict[str, Any]] = {}
         self.physical_properties: Dict[str, ValueWithUnit] = {}
         self.turbulence_properties: Dict[str, Any] = {}
+        self.custom_initial_values: Dict[str, Any] = {}
 
         self._generate_fields()
 
@@ -136,7 +137,10 @@ class CaseFieldsManager:
         if model == "laminar":
             return
 
-        if "kepsilon" in model:
+        if model.startswith("les:") and "keqn" in model:
+            self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
+            self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
+        elif "kepsilon" in model:
             self.fields["k"] = {"value": ValueWithUnit(0.1, "m^2/s^2")}
             self.fields["epsilon"] = {"value": ValueWithUnit(0.1, "m^2/s^3")}
             self.fields["nut"] = {"value": ValueWithUnit(1e-5, "m^2/s")}
@@ -299,13 +303,54 @@ class CaseFieldsManager:
     # Public API (backward-compatible)
     # ------------------------------------------------------------------
 
-    def get_field_names(self) -> list[str]:
-        """Returns the names of all generated fields.
+    def import_reference_field(self, source_path: Union[str, Path], case_path: Union[str, Path], field_name: Optional[str] = None) -> Path:
+        """Import a complete OpenFOAM initial field without lossy parsing."""
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        target_dir = Path(case_path) / "0"
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / (field_name or source.name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if source.suffix == ".gz":
+            import gzip
+            target.write_bytes(gzip.decompress(source.read_bytes()))
+        else:
+            target.write_bytes(source.read_bytes())
+        return target
 
-        Returns:
-            list[str]: A list of strings representing the field filenames (e.g., ['U', 'p', 'k']).
-        """
+    def get_field_names(self) -> list[str]:
+        """Returns the names of all generated fields."""
         return list(self.fields.keys())
+
+    def set_vof_primary_phase(self, phase: str) -> None:
+        """Select the primary VoF phase field, e.g. ``alpha.vapour``.
+
+        This replaces the historical ``alpha.water``/``alpha.air`` defaults
+        while preserving the generic VoF field-generation workflow.
+        """
+        if not self.is_vof:
+            raise ValueError("set_vof_primary_phase requires a VoF case")
+        if not phase or any(ch.isspace() for ch in phase):
+            raise ValueError("phase must be a non-empty OpenFOAM word")
+        for field_name in list(self.fields):
+            if field_name.startswith("alpha."):
+                self.fields.pop(field_name)
+        self.fields[f"alpha.{phase}"] = {"value": ValueWithUnit(0.0, "")}
+
+    def register_field(self, name: str, value: Any, unit: str = "") -> None:
+        """Register an additional OpenFOAM field required by a reference case.
+
+        The field is handled by the normal system, constant and boundary writers;
+        no direct file manipulation is needed in a tutorial runner.
+        """
+        if not name or not isinstance(name, str):
+            raise ValueError("Field name must be a non-empty string")
+        if isinstance(value, str) and (value.startswith("uniform ") or value.startswith("nonuniform ")):
+            self.fields[name] = {"value": value}
+        else:
+            self.fields[name] = {"value": ValueWithUnit(value, unit)}
+        self.custom_initial_values[name] = value
 
     def to_dict(self) -> Dict[str, Any]:
         """Exports the field configurations to a simplified dictionary format.

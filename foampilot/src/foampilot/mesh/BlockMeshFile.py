@@ -1,6 +1,7 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
 import json
 import os
+import gzip
 from pathlib import Path
 import subprocess
 
@@ -86,6 +87,33 @@ class BlockMesher(OpenFOAMFile):
         print("blocks:", len(self.blocks))
 
 
+    def import_reference_dict(self, source_path: str | Path, destination: str | Path | None = None) -> Path:
+        """Import a complete OpenFOAM ``blockMeshDict`` without lossy parsing.
+
+        This preserves advanced entries such as ``arc`` and ``project`` edges
+        that are not representable by the JSON convenience format.
+        """
+        source = Path(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        target = Path(destination) if destination is not None else self.case_path / "system" / "blockMeshDict"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        return target
+
+    def import_reference_asset(self, source_path: str | Path, destination: str | Path) -> Path:
+        """Import a mesh asset, transparently decompressing a ``.gz`` source."""
+        source = Path(source_path)
+        target = Path(destination)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if source.suffix == ".gz":
+            target.write_bytes(gzip.decompress(source.read_bytes()))
+        else:
+            target.write_bytes(source.read_bytes())
+        return target
+
     def write(self, file_path: Path):
         """
         Write the blockMeshDict content to a file.
@@ -128,14 +156,15 @@ class BlockMesher(OpenFOAMFile):
                 f.write(f"    {edge}\n")
             f.write(");\n\n")
 
-            # Default patch
-            f.write("defaultPatch\n{\n")
-            for key, val in self.defaultPatch.items():
-                if key in ("type", "name"):
-                    f.write(f"    {key} {val};\n")
-                else:
-                    f.write(f"    type {val};\n")
-            f.write("}\n\n")
+            # Default patch is optional in OpenFOAM blockMeshDict files.
+            if self.defaultPatch:
+                f.write("defaultPatch\n{\n")
+                for key, val in self.defaultPatch.items():
+                    if key in ("type", "name"):
+                        f.write(f"    {key} {val};\n")
+                    else:
+                        f.write(f"    type {val};\n")
+                f.write("}\n\n")
 
             # Boundary
             f.write("boundary\n(\n")
@@ -156,6 +185,42 @@ class BlockMesher(OpenFOAMFile):
                 f.write(f"    ({pair[0]} {pair[1]});\n")
             f.write(");\n")
             
+    def copy_mesh(self, source_mesh: str, destination: str = "constant") -> Path:
+        """Copy a named mesh ``polyMesh`` into the case constant mesh."""
+        import shutil
+        source = self.case_path / "constant" / "meshes" / source_mesh / "polyMesh"
+        target = self.case_path / destination / "polyMesh"
+        if not source.is_dir():
+            raise FileNotFoundError(source)
+        if target.exists():
+            shutil.rmtree(target)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source, target)
+        return target
+
+    def write_mesh_times(self, times, destination: str = "constant/meshTimes") -> Path:
+        """Write the ordered list of temporal mesh names."""
+        target = self.case_path / destination
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("\n".join(str(t) for t in times) + "\n")
+        return target
+
+    def create_non_conformal_couples(self) -> None:
+        """Create non-conformal couples required by OF13 multi-patch meshes."""
+        log_path = self.case_path / "log.createNonConformalCouples"
+        try:
+            result = subprocess.run(
+                ["createNonConformalCouples", "-case", str(self.case_path)],
+                cwd=self.case_path,
+                text=True,
+                capture_output=True,
+                check=True,
+            )
+            log_path.write_text(result.stdout + "\n" + result.stderr)
+        except subprocess.CalledProcessError as exc:
+            log_path.write_text((exc.stdout or "") + "\n" + (exc.stderr or ""))
+            raise RuntimeError(f"createNonConformalCouples failed: {exc.stderr}") from exc
+
     def run(self):
         """
         Executes blockMesh for the case, logging output to a file.
