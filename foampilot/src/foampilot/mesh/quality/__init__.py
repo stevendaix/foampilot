@@ -14,10 +14,14 @@ from foampilot.mesh.quality.openfoam_quality import (
     write_csv,
     OpenFOAMQualityAnalyzer,
 )
-from foampilot.mesh.quality.mesh_experiment import (
-    run_mesh_experiment,
-    MESH_CONFIGS,
-)
+try:
+    from foampilot.mesh.quality.mesh_experiment import (
+        run_mesh_experiment,
+        MESH_CONFIGS,
+    )
+except ImportError:  # Optional report-generation dependencies
+    run_mesh_experiment = None
+    MESH_CONFIGS = {}
 from foampilot.mesh.quality.stl_ops import (
     decimate_stl,
     remesh_stl_with_vtk,
