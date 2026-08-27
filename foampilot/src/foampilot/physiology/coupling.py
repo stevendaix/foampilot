@@ -10,6 +10,9 @@ import csv
 import numpy as np
 
 from .jos3 import BODY_NAMES
+from .units import as_magnitude, scalar
+
+N_ZONES = len(BODY_NAMES)
 
 
 class CallbackFieldProvider:
@@ -44,19 +47,23 @@ class SurfaceMapping:
 
     def __post_init__(self) -> None:
         zone_ids = np.asarray(self.zone_ids, dtype=int).reshape(-1)
-        areas = np.asarray(self.areas, dtype=float).reshape(-1)
+        areas = as_magnitude(self.areas, "m^2", name="areas").reshape(-1)
+        if zone_ids.size == 0:
+            raise ValueError("Le mapping doit contenir au moins un nœud")
         if zone_ids.size != areas.size:
             raise ValueError("zone_ids et areas doivent avoir la même longueur")
-        if np.any((zone_ids < 0) | (zone_ids >= 17)):
-            raise ValueError("zone_ids doit être compris entre 0 et 16")
-        if np.any(areas <= 0):
-            raise ValueError("Les aires nodales doivent être positives")
+        if np.any((zone_ids < 0) | (zone_ids >= N_ZONES)):
+            raise ValueError(f"zone_ids doit être compris entre 0 et {N_ZONES - 1}")
+        if not np.all(np.isfinite(areas)) or np.any(areas <= 0):
+            raise ValueError("Les aires nodales doivent être finies et positives")
         object.__setattr__(self, "zone_ids", zone_ids)
         object.__setattr__(self, "areas", areas)
         if self.points is not None:
-            points = np.asarray(self.points, dtype=float)
+            points = as_magnitude(self.points, "m", name="points")
             if points.shape != (zone_ids.size, 3):
                 raise ValueError("points doit être de forme (nombre_de_noeuds, 3)")
+            if not np.all(np.isfinite(points)):
+                raise ValueError("points contient une valeur non finie")
             object.__setattr__(self, "points", points)
 
     @classmethod
@@ -66,25 +73,38 @@ class SurfaceMapping:
         Le CSV doit contenir ``zone_id`` et ``area_m2``. Les colonnes de nom
         et d’unités sont contrôlées lorsqu’elles sont présentes.
         """
-        rows = list(csv.DictReader(Path(path).open(newline="", encoding="utf-8")))
+        with Path(path).open(newline="", encoding="utf-8") as stream:
+            reader = csv.DictReader(stream)
+            rows = list(reader)
         if not rows:
             raise ValueError("Le fichier de mapping est vide")
         required = {"zone_id", "area_m2"}
-        if not required.issubset(rows[0]):
+        if not required.issubset(reader.fieldnames or set()):
             raise ValueError("Le mapping doit contenir zone_id et area_m2")
-        if "temperature_unit" in rows[0] and any(r["temperature_unit"] != "K" for r in rows):
+        for index, row in enumerate(rows, start=2):
+            if any(row.get(column, "").strip() == "" for column in required):
+                raise ValueError(f"Ligne CSV {index} incomplète")
+        if "temperature_unit" in (reader.fieldnames or []) and any(r["temperature_unit"] != "K" for r in rows):
             raise ValueError("Le mapping CFD doit déclarer temperature_unit=K")
-        if "h_unit" in rows[0] and any(r["h_unit"] != "W/m2/K" for r in rows):
+        if "h_unit" in (reader.fieldnames or []) and any(r["h_unit"] != "W/m2/K" for r in rows):
             raise ValueError("Unité h inattendue dans le mapping")
-        return cls(
-            zone_ids=np.array([int(r["zone_id"]) for r in rows]),
-            areas=np.array([float(r["area_m2"]) for r in rows]),
-            points=points,
-        )
+        try:
+            zone_ids = np.array([int(r["zone_id"]) for r in rows])
+            areas = np.array([float(r["area_m2"]) for r in rows])
+        except (TypeError, ValueError) as error:
+            raise ValueError("zone_id et area_m2 doivent être numériques") from error
+        return cls(zone_ids=zone_ids, areas=areas, points=points)
+
+    def validate_areas(self, areas, *, rtol=1e-8, atol=1e-12) -> None:
+        values = as_magnitude(areas, "m^2", name="areas").reshape(-1)
+        if values.size != self.areas.size:
+            raise ValueError("Le champ areas ne correspond pas au mapping")
+        if not np.allclose(values, self.areas, rtol=rtol, atol=atol):
+            raise ValueError("Les aires du provider diffèrent du mapping")
 
     @property
     def zone_areas(self) -> np.ndarray:
-        result = np.zeros(17)
+        result = np.zeros(N_ZONES)
         np.add.at(result, self.zone_ids, self.areas)
         return result
 
@@ -126,9 +146,9 @@ class JOS3NodeCoupler:
 
     @staticmethod
     def nodal_flux(h, surface_temperature, air_temperature, *, outward_positive=True):
-        h = np.asarray(h, dtype=float).reshape(-1)
-        ts = np.asarray(surface_temperature, dtype=float).reshape(-1)
-        ta = np.asarray(air_temperature, dtype=float).reshape(-1)
+        h = as_magnitude(h, "W/m^2/K", name="h").reshape(-1)
+        ts = as_magnitude(surface_temperature, "degC", name="surface_temperature").reshape(-1)
+        ta = as_magnitude(air_temperature, "degC", name="air_temperature").reshape(-1)
         if not (h.size == ts.size == ta.size):
             raise ValueError("Les trois champs nodaux doivent avoir la même longueur")
         outward = h * (ts - ta)
@@ -136,6 +156,9 @@ class JOS3NodeCoupler:
         return outward, body
 
     def exchange(self, h, surface_temperature, air_temperature) -> ThermalExchange:
+        h = as_magnitude(h, "W/m^2/K", name="h").reshape(-1)
+        surface_temperature = as_magnitude(surface_temperature, "degC", name="surface_temperature").reshape(-1)
+        air_temperature = as_magnitude(air_temperature, "degC", name="air_temperature").reshape(-1)
         outward, body = self.nodal_flux(
             h, surface_temperature, air_temperature,
             outward_positive=self.outward_positive,
@@ -143,18 +166,18 @@ class JOS3NodeCoupler:
         if body.size != self.mapping.zone_ids.size:
             raise ValueError("Les champs nodaux ne correspondent pas au mapping")
         zone_area = self.mapping.zone_areas
-        zone_power = np.zeros(17)
-        zone_h = np.zeros(17)
-        zone_ta = np.zeros(17)
+        zone_power = np.zeros(N_ZONES)
+        zone_h = np.zeros(N_ZONES)
+        zone_ta = np.zeros(N_ZONES)
         np.add.at(zone_power, self.mapping.zone_ids, body * self.mapping.areas)
         np.add.at(zone_h, self.mapping.zone_ids, np.asarray(h) * self.mapping.areas)
         np.add.at(zone_ta, self.mapping.zone_ids, np.asarray(air_temperature) * self.mapping.areas)
         zone_flux_mean = np.divide(
-            zone_power, zone_area, out=np.zeros(17), where=zone_area > 0
+            zone_power, zone_area, out=np.zeros(N_ZONES), where=zone_area > 0
         )
-        zone_h_mean = np.divide(zone_h, zone_area, out=np.zeros(17), where=zone_area > 0)
+        zone_h_mean = np.divide(zone_h, zone_area, out=np.zeros(N_ZONES), where=zone_area > 0)
         zone_air_temperature = np.divide(
-            zone_ta, zone_area, out=np.zeros(17), where=zone_area > 0
+            zone_ta, zone_area, out=np.zeros(N_ZONES), where=zone_area > 0
         )
         result = ThermalExchange(
             np.asarray(h, float).copy(),
@@ -241,14 +264,18 @@ class DistributedSurfaceNetwork:
         self.zone_area = mapping.zone_areas
         area_fraction = mapping.areas / self.zone_area[mapping.zone_ids]
         self.capacity = self.skin_capacity[mapping.zone_ids] * area_fraction
+        if not np.all(np.isfinite(self.capacity)) or np.any(self.capacity <= 0):
+            raise ValueError("Les capacités surfaciques doivent être finies et positives")
         if anchor_conductance is None:
             # Conductance from each JOS-3 skin node to its inner tissues.
             conductance = np.sum(model._cdt[skin_indices, :], axis=1)
         else:
-            conductance = np.asarray(anchor_conductance, dtype=float).reshape(17)
+            conductance = np.asarray(anchor_conductance, dtype=float).reshape(N_ZONES)
         if np.any(conductance <= 0):
             raise ValueError("Les conductances d’ancrage doivent être positives")
         self.anchor_conductance = conductance[mapping.zone_ids] * area_fraction
+        if not np.all(np.isfinite(self.anchor_conductance)):
+            raise ValueError("Les conductances d’ancrage doivent être finies")
         if surface_temperature is None:
             self.surface_temperature = model.Tsk[mapping.zone_ids].copy()
         else:
@@ -267,18 +294,23 @@ class DistributedSurfaceNetwork:
         et ``radiative_temperature`` sont en °C. Les puissances internes sont
         stockées en W ; le provider OpenFOAM reçoit ensuite un flux en W/m².
         """
-        h = np.asarray(h, dtype=float).reshape(-1)
-        ta = np.asarray(air_temperature, dtype=float).reshape(-1)
-        tr = ta if radiative_temperature is None else np.asarray(
-            radiative_temperature, dtype=float
+        dtime = scalar(dtime, "s", name="dtime")
+        if dtime <= 0:
+            raise ValueError("dtime doit être strictement positif et fini")
+        h = as_magnitude(h, "W/m^2/K", name="h").reshape(-1)
+        ta = as_magnitude(air_temperature, "degC", name="air_temperature").reshape(-1)
+        tr = ta if radiative_temperature is None else as_magnitude(
+            radiative_temperature, "degC", name="radiative_temperature"
         ).reshape(-1)
         if h.size != self.mapping.zone_ids.size or ta.size != h.size or tr.size != h.size:
             raise ValueError("h, air_temperature et radiative_temperature doivent correspondre au mapping")
-        if np.any(h < 0) or hr < 0:
-            raise ValueError("Les coefficients d’échange doivent être positifs")
-        zone_ta = np.zeros(17)
+        if not np.all(np.isfinite(h)) or not np.all(np.isfinite(ta)) or not np.all(np.isfinite(tr)):
+            raise ValueError("Les champs thermiques doivent être finis")
+        if np.any(h < 0) or hr < 0 or not np.isfinite(hr):
+            raise ValueError("Les coefficients d’échange doivent être positifs et finis")
+        zone_ta = np.zeros(N_ZONES)
         np.add.at(zone_ta, self.mapping.zone_ids, ta * self.mapping.areas)
-        zone_ta = np.divide(zone_ta, self.zone_area, out=np.zeros(17), where=self.zone_area > 0)
+        zone_ta = np.divide(zone_ta, self.zone_area, out=np.zeros(N_ZONES), where=self.zone_area > 0)
         self.model.Ta = zone_ta
         skin_temperature = self.model.Tsk[self.mapping.zone_ids]
         body_power = self.anchor_conductance * (self.surface_temperature - skin_temperature)

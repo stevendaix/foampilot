@@ -1,0 +1,7 @@
+signal,max_abs_C,mean_abs_C,rmse_C,final_abs_C
+TskMean,0.0,0.0,0.0,0.0
+TskHead,0.0,0.0,0.0,0.0
+TskChest,0.0,0.0,0.0,0.0
+TskLFoot,0.0,0.0,0.0,0.0
+TcrChest,0.0,0.0,0.0,0.0
+coupled_zero_flux_TskMean,0.0,0.0,0.0,0.0

@@ -23,6 +23,8 @@ class OpenFOAMExternalCoupledProvider:
         self.comms_dir = Path(comms_dir)
         self.timeout = float(timeout)
         self.poll_interval = float(poll_interval)
+        if self.timeout <= 0 or self.poll_interval <= 0:
+            raise ValueError("timeout et poll_interval doivent être positifs")
         self.fields = tuple(fields)
         self.output_field = output_field
         if temperature_unit not in ("K", "C"):
@@ -87,6 +89,9 @@ class OpenFOAMExternalCoupledProvider:
         )
 
     def write_nodal_flux(self, flux: np.ndarray) -> None:
+        flux = np.asarray(flux, dtype=float).reshape(-1)
+        if not np.all(np.isfinite(flux)):
+            raise ValueError("Le flux nodal doit contenir uniquement des valeurs finies")
         self._write_scalar_file(self.comms_dir / f"{self.output_field}.in", flux)
         # Le verrou est le signal de fin d’écriture pour externalCoupled.
         self.lock_path.touch()
@@ -113,6 +118,8 @@ class OpenFOAM13TemperatureProvider:
         self.file = file
         self.timeout = float(timeout)
         self.poll_interval = float(poll_interval)
+        if self.timeout <= 0 or self.poll_interval <= 0:
+            raise ValueError("timeout et poll_interval doivent être positifs")
         self.air_temperature = air_temperature
         self.radiative_temperature = radiative_temperature
         if temperature_unit not in ("K", "C"):
@@ -175,11 +182,15 @@ class OpenFOAM13TemperatureProvider:
                 break
             self._wait_for_data()
         area = table[:, 0]
+        if not np.all(np.isfinite(area)) or np.any(area <= 0):
+            raise ValueError("Les aires OpenFOAM doivent être finies et positives")
         temperature = table[:, 1].copy()
         if self.temperature_unit == "K":
             temperature_c = temperature - 273.15
         else:
             temperature_c = temperature
+        if not np.all(np.isfinite(table[:, 3])) or np.any(table[:, 3] < 0):
+            raise ValueError("Les coefficients h OpenFOAM doivent être finis et positifs")
         n = area.size
         air = np.asarray(self.air_temperature, dtype=float)
         if air.ndim == 0:
@@ -207,6 +218,8 @@ class OpenFOAM13TemperatureProvider:
 
     def write_surface_temperature(self, temperature_c: np.ndarray) -> None:
         temperature_c = np.asarray(temperature_c, dtype=float).reshape(-1)
+        if not np.all(np.isfinite(temperature_c)):
+            raise ValueError("La température de surface doit être finie")
         temperature = temperature_c + 273.15 if self.temperature_unit == "K" else temperature_c
         values = np.column_stack((temperature, np.zeros_like(temperature), np.ones_like(temperature)))
         self.data_in_path.write_text(

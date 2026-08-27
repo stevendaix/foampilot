@@ -1,0 +1,60 @@
+{
+  "source": "examples/thermoregulation/openfoam_jos3_coupling/comparison_results/official_example_comparison.csv",
+  "samples": 121,
+  "time_min": {
+    "start": 0.0,
+    "end": 120.0
+  },
+  "jos3_metrics": {
+    "TskMean": {
+      "max_abs_C": 0.0,
+      "mean_abs_C": 0.0,
+      "rmse_C": 0.0,
+      "final_abs_C": 0.0
+    },
+    "TskHead": {
+      "max_abs_C": 0.0,
+      "mean_abs_C": 0.0,
+      "rmse_C": 0.0,
+      "final_abs_C": 0.0
+    },
+    "TskChest": {
+      "max_abs_C": 0.0,
+      "mean_abs_C": 0.0,
+      "rmse_C": 0.0,
+      "final_abs_C": 0.0
+    },
+    "TskLFoot": {
+      "max_abs_C": 0.0,
+      "mean_abs_C": 0.0,
+      "rmse_C": 0.0,
+      "final_abs_C": 0.0
+    },
+    "TcrChest": {
+      "max_abs_C": 0.0,
+      "mean_abs_C": 0.0,
+      "rmse_C": 0.0,
+      "final_abs_C": 0.0
+    },
+    "coupled_zero_flux_TskMean": {
+      "max_abs_C": 0.0,
+      "mean_abs_C": 0.0,
+      "rmse_C": 0.0,
+      "final_abs_C": 0.0
+    }
+  },
+  "openfoam": {
+    "buoyantCavity_validation": {
+      "exists": true,
+      "time_directories": 4,
+      "final_time": 1000.0,
+      "has_log": true
+    },
+    "coolingSphere_validation": {
+      "exists": true,
+      "time_directories": 21,
+      "final_time": 1.0,
+      "has_log": true
+    }
+  }
+}
