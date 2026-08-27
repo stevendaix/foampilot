@@ -89,3 +89,13 @@ wmake -j1
 Le cas `examples/01_LIGGGHTSVerificationTests/test01_normalForceTest/openHFDIB-DEM/RestituionCoeff-0.06` a été copié dans `validation/normalForce_OF13`. Après génération du maillage par `blockMesh`, le solveur `HFDIBDEMFoam` a initialisé les champs, lu les propriétés de fluide, créé les deux corps sphériques et exécuté dix pas temporels de `0.0001` à `0.001` s sans erreur fatale. Le journal contient les séquences `Time = ...`, `updated HFDIBDEM` et `ExecutionTime = ...` pour chaque pas.
 
 Le portage de `pimpleHFDIBFoam` compile également après migration de `viscosityModel`, `incompressibleMomentumTransportModels`, `fvModels`, `fvConstraints`, `constrainHbyA`, `constrainPressure`, `findRefCell` et des interfaces MRF Foundation 13. La variante livrée est statique : les mécanismes de mouvement et de raffinement topologique ne sont pas activés. Une implémentation dynamique devra être validée séparément avec `fvMeshMovers` ou `fvMeshTopoChangers` avant d’être exposée comme fonctionnalité par défaut.
+
+## Suite de validation approfondie
+
+Une suite reproductible est fournie par `run_deep_validation.py`. Elle vérifie les tests unitaires Foampilot, la génération du manifeste pour la combinaison openHFDIB-DEM/libAcoustics, la validité JSON, le parsing du dictionnaire Foundation 13, la présence de la bibliothèque HFDIBDEM, `-help` pour les deux solveurs, `checkMesh`, la configuration `staticFvMesh` et l’exécution d’un cas DEM prolongé.
+
+Le résultat final est de **14 contrôles réussis sur 14 contrôles applicables**, avec 150 marqueurs `Time =` et 50 mises à jour `updated HFDIBDEM` dans le cas DEM prolongé. Le cas comprend deux corps sphériques, un maillage régulier de 7875 cellules et une exécution de `0.0001` à `0.005` s.
+
+La combinaison de profils `openhfdib_dem` et `libacoustics` est acceptée par Foampilot et son manifeste est valide. Cette validation est une validation de contrat et de génération, pas une validation de la bibliothèque acoustique elle-même : le clone `libAcoustics` fourni contient la documentation et les figures mais aucun fichier source `.C`/`.H`, `Allwmake` ou `Makefile` compilable. Il ne peut donc pas produire de bibliothèque acoustique dans cet environnement.
+
+De même, la tentative de build direct de `sediFoam/lammpsFoam` échoue avant compilation, car le répertoire racine ne contient pas `Make/options`. Le module nécessite son orchestration de build dédiée ainsi que l’interface LAMMPS ; cette suite ne prétend donc pas valider un backend sediFoam compilé. Le résultat est classé comme **limitation d’artefact upstream**, et non comme échec du solveur openHFDIB-DEM.
