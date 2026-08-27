@@ -7,12 +7,13 @@ réglages MULES/PIMPLE de la référence OF13.
 """
 
 from pathlib import Path
+import os
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot import Meshing
-from foampilot.solver import Solver
+from foampilot.solver import Solver, OpenFOAMEnvironment
 
 
 REFERENCE = Path("/opt/openfoam13/tutorials/compressibleVoF/ballValve")
@@ -20,6 +21,7 @@ RESOURCE_BLOCK_MESH = Path("/opt/openfoam13/tutorials/resources/blockMesh/ballVa
 
 
 def main() -> None:
+    os.environ.update(OpenFOAMEnvironment().environment())
     case_path = Path.cwd()
     solver = Solver(case_path)
     solver.compressible = True
