@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot import Meshing
 from foampilot.solver import Solver, OpenFOAMEnvironment
+from foampilot.utilities import OpenFOAMDictAddFile
 
 
 REFERENCE = Path("/opt/openfoam13/tutorials/compressibleVoF/ballValve")
@@ -73,14 +74,37 @@ def main() -> None:
 
     solver.system.controlDict.application = "compressibleVoF"
     solver.system.controlDict.startTime = 0
-    solver.system.controlDict.endTime = 0.01
-    solver.system.controlDict.deltaT = 0.001
+    solver.system.controlDict.endTime = 0.1
+    solver.system.controlDict.deltaT = 1e-5
     solver.system.controlDict.writeControl = "adjustableRunTime"
-    solver.system.controlDict.writeInterval = 0.1
-    solver.system.controlDict.adjustTimeStep = True
-    solver.system.controlDict.maxCo = 1
-    solver.system.controlDict.maxAlphaCo = 1
-    solver.system.controlDict.maxDeltaT = 1
+    solver.system.controlDict.writeInterval = 1e-3
+    solver.system.controlDict.purgeWrite = 0
+    solver.system.controlDict.set_adaptive_time_step(
+        adjustTimeStep=True, maxCo=0.25, maxAlphaCo=0.25,
+        maxDeltaT=1e-5, minDeltaT=1e-9,
+    )
+    solver.system.fvSolution.potentialFlow = {"nNonOrthogonalCorrectors": 10}
+    solver.system.fvSolution.solvers["Phi"] = {
+        "solver": "GAMG", "smoother": "GaussSeidel",
+        "tolerance": "1e-7", "relTol": "0",
+    }
+    for obsolete in ("alpha.water", "alpha.air"):
+        solver.system.fvSolution.solvers.pop(obsolete, None)
+        solver.system.fvSolution.solvers.pop(f"{obsolete}Final", None)
+    solver.system.fvSolution.solvers["alpha.vapour.*"] = {
+        "nCorrectors": "2", "nSubCycles": "1", "MULESCorr": "true",
+        "solver": "smoothSolver", "smoother": "symGaussSeidel",
+        "tolerance": "1e-8", "relTol": "0", "minIter": "1", "maxIter": "5",
+    }
+    solver.system.fvSchemes.divSchemes["div(phi,alpha)"] = "Gauss interfaceCompression vanLeer 1"
+    solver.system.fvSchemes.divSchemes["div(rhoPhi,U)"] = "Gauss limitedLinear 1"
+    solver.system.fvSchemes.divSchemes["div(rhoPhi,K)"] = "Gauss limitedLinear 1"
+    solver.system.fvSchemes.divSchemes["div(phi,p)"] = "Gauss upwind"
+    solver.system.fvSchemes.divSchemes["div(alphaRhoPhi,e)"] = "Gauss limitedLinear 1"
+    solver.system.fvSchemes.divSchemes["div(alphaRhoPhi,T)"] = "Gauss upwind"
+    solver.system.fvSchemes.divSchemes["div(rhoPhi,k)"] = "Gauss upwind"
+    solver.system.fvSchemes.divSchemes["div(rhoPhi,epsilon)"] = "Gauss upwind"
+    solver.system.fvSchemes.divSchemes["div(((rho*nuEff)*dev2(T(grad(U)))))"] = "Gauss linear"
 
     solver.setup_case()
     solver.system.write()
@@ -90,19 +114,131 @@ def main() -> None:
     # be supplied by dedicated declarative builders.
 
     mesh = Meshing(case_path, mesher="blockMesh")
-    mesh.mesher.import_reference_dict(RESOURCE_BLOCK_MESH)
-    mesh.mesher.import_reference_asset(
+    blockmesh = mesh.mesher
+    blockmesh.scale = 0.01
+    blockmesh.definitions = [
+        "rCore 6;", "rPipe 10;", "rBall 18;", "lPipe 50;",
+        "nCore 10;", "nPipe 7;", "nLength 20;",
+        'rBend #calc "sqrt(scalar($rBall*$rBall - $rPipe*$rPipe))";',
+    ]
+    blockmesh.geometry = [
+        ("sphere", "        type sphere;\n        centre (0 0 0);\n        radius $rBall;"),
+        ("torus", "        type triSurface;\n        file \"ballValve-torus.obj\";"),
+    ]
+    blockmesh.vertices = [
+        "name vx0 (#neg $lPipe #neg $rCore 0)", "name vx1 (#neg $lPipe 0 #neg $rCore)",
+        "name vx2 (#neg $lPipe $rCore 0)", "name vx3 (#neg $lPipe 0 $rCore)",
+        "name vx4 (#neg $lPipe #neg $rPipe 0)", "name vx5 (#neg $lPipe 0 #neg $rPipe)",
+        "name vx6 (#neg $lPipe $rPipe 0)", "name vx7 (#neg $lPipe 0 $rPipe)",
+        "name vx8 project (#neg $rBend #neg $rCore 0) (sphere)", "name vx9 project (#neg $rBend 0 #neg $rCore) (sphere)",
+        "name vx10 project (#neg $rBend $rCore 0) (sphere)", "name vx11 project (#neg $rBend 0 $rCore) (sphere)",
+        "name vx12 (#neg $rBend #neg $rPipe 0)", "name vx13 (#neg $rBend 0 #neg $rPipe)",
+        "name vx14 (#neg $rBend $rPipe 0)", "name vx15 (#neg $rBend 0 $rPipe)",
+        "name vl0 ($rCore #neg $lPipe 0)", "name vl1 (0 #neg $lPipe #neg $rCore)",
+        "name vl2 (#neg $rCore #neg $lPipe 0)", "name vl3 (0 #neg $lPipe $rCore)",
+        "name vl4 ($rPipe #neg $lPipe 0)", "name vl5 (0 #neg $lPipe #neg $rPipe)",
+        "name vl6 (#neg $rPipe #neg $lPipe 0)", "name vl7 (0 #neg $lPipe $rPipe)",
+        "name vl8 project ($rCore #neg $rBend 0) (sphere)", "name vl9 project (0 #neg $rBend #neg $rCore) (sphere)",
+        "name vl10 project (#neg $rCore #neg $rBend 0) (sphere)", "name vl11 project (0 #neg $rBend $rCore) (sphere)",
+        "name vl12 ($rPipe #neg $rBend 0)", "name vl13 (0 #neg $rBend #neg $rPipe)",
+        "name vl14 (#neg $rPipe #neg $rBend 0)", "name vl15 (0 #neg $rBend $rPipe)",
+        "name vu0 (#neg $rCore $lPipe 0)", "name vu1 (0 $lPipe #neg $rCore)",
+        "name vu2 ($rCore $lPipe 0)", "name vu3 (0 $lPipe $rCore)",
+        "name vu4 (#neg $rPipe $lPipe 0)", "name vu5 (0 $lPipe #neg $rPipe)",
+        "name vu6 ($rPipe $lPipe 0)", "name vu7 (0 $lPipe $rPipe)",
+        "name vu8 project (#neg $rCore $rBend 0) (sphere)", "name vu9 project (0 $rBend #neg $rCore) (sphere)",
+        "name vu10 project ($rCore $rBend 0) (sphere)", "name vu11 project (0 $rBend $rCore) (sphere)",
+        "name vu12 (#neg $rPipe $rBend 0)", "name vu13 (0 $rBend #neg $rPipe)",
+        "name vu14 ($rPipe $rBend 0)", "name vu15 (0 $rBend $rPipe)",
+        "name vb0 project (#neg $rBend #neg $rCore 0) (sphere)", "name vb1 project (#neg $rBend 0 #neg $rCore) (sphere)",
+        "name vb2 project (#neg $rBend $rCore 0) (sphere)", "name vb3 project (#neg $rBend 0 $rCore) (sphere)",
+        "name vb4 (#neg $rBend #neg $rPipe 0)", "name vb5 (#neg $rBend 0 #neg $rPipe)",
+        "name vb6 (#neg $rBend $rPipe 0)", "name vb7 (#neg $rBend 0 $rPipe)",
+        "name vb8 project (#neg $rCore #neg $rBend 0) (sphere)", "name vb9 project (0 #neg $rBend #neg $rCore) (sphere)",
+        "name vb10 project ($rCore #neg $rBend 0) (sphere)", "name vb11 project (0 #neg $rBend $rCore) (sphere)",
+        "name vb12 (#neg $rPipe #neg $rBend 0)", "name vb13 (0 #neg $rBend #neg $rPipe)",
+        "name vb14 ($rPipe #neg $rBend 0)", "name vb15 (0 #neg $rBend $rPipe)",
+    ]
+    groups = [("vx", "pipes"), ("vl", "pipes"), ("vu", "pipes"), ("vb", "ball")]
+    blockmesh.blocks = []
+    for prefix, zone in groups:
+        blockmesh.blocks += [
+            f"hex ({prefix}0 {prefix}1 {prefix}2 {prefix}3 {prefix}8 {prefix}9 {prefix}10 {prefix}11) {zone} ($nCore $nCore $nLength) simpleGrading (1 1 1)",
+            f"hex ({prefix}1 {prefix}0 {prefix}4 {prefix}5 {prefix}9 {prefix}8 {prefix}12 {prefix}13) {zone} ($nCore $nPipe $nLength) simpleGrading (1 1 1)",
+            f"hex ({prefix}2 {prefix}1 {prefix}5 {prefix}6 {prefix}10 {prefix}9 {prefix}13 {prefix}14) {zone} ($nCore $nPipe $nLength) simpleGrading (1 1 1)",
+            f"hex ({prefix}3 {prefix}2 {prefix}6 {prefix}7 {prefix}11 {prefix}10 {prefix}14 {prefix}15) {zone} ($nCore $nPipe $nLength) simpleGrading (1 1 1)",
+            f"hex ({prefix}0 {prefix}3 {prefix}7 {prefix}4 {prefix}8 {prefix}11 {prefix}15 {prefix}12) {zone} ($nCore $nPipe $nLength) simpleGrading (1 1 1)",
+        ]
+    blockmesh.edges = []
+    for prefix, axis in (("vx", "1 0 0"), ("vl", "0 1 0"), ("vu", "0 -1 0")):
+        for a, b in ((4,5),(5,6),(6,7),(7,4),(12,13),(13,14),(14,15),(15,12)):
+            blockmesh.edges.append(f"arc {prefix}{a} {prefix}{b} 90 ({axis})")
+        for a, b in ((8,9),(9,10),(10,11),(11,8),(8,12),(9,13),(10,14),(11,15)):
+            blockmesh.edges.append(f"project {prefix}{a} {prefix}{b} (sphere)")
+    blockmesh.edges.extend([
+        "arc vb4 vb5 90 (1 0 0)", "arc vb5 vb6 90 (1 0 0)",
+        "arc vb6 vb7 90 (1 0 0)", "arc vb7 vb4 90 (1 0 0)",
+        "arc vb12 vb13 90 (0 -1 0)", "arc vb13 vb14 90 (0 -1 0)",
+        "arc vb14 vb15 90 (0 -1 0)", "arc vb15 vb12 90 (0 -1 0)",
+        "arc vb0 vb8 105 (0 0 -1)", "arc vb1 vb9 100 (0 0 -1)",
+        "arc vb2 vb10 95 (0 0 -1)", "arc vb3 vb11 100 (0 0 -1)",
+        "arc vb4 vb12 90 (0 0 -1)", "arc vb5 vb13 90 (0 0 -1)",
+        "arc vb6 vb14 90 (0 0 -1)", "arc vb7 vb15 90 (0 0 -1)",
+        "project vb0 vb1 (sphere)", "project vb1 vb2 (sphere)",
+        "project vb2 vb3 (sphere)", "project vb3 vb0 (sphere)",
+        "project vb0 vb4 (sphere)", "project vb1 vb5 (sphere)",
+        "project vb2 vb6 (sphere)", "project vb3 vb7 (sphere)",
+        "project vb8 vb9 (sphere)", "project vb9 vb10 (sphere)",
+        "project vb10 vb11 (sphere)", "project vb11 vb8 (sphere)",
+        "project vb8 vb12 (sphere)", "project vb9 vb13 (sphere)",
+        "project vb10 vb14 (sphere)", "project vb11 vb15 (sphere)",
+    ])
+    blockmesh.faces = [
+        *(f"project ({p}{a} {p}{b} {p}{c} {p}{d}) sphere" for p, a, b, c, d in [
+            ("vx",8,9,10,11), ("vx",9,8,12,13), ("vx",10,9,13,14), ("vx",11,10,14,15), ("vx",8,11,15,12),
+            ("vl",8,9,10,11), ("vl",9,8,12,13), ("vl",10,9,13,14), ("vl",11,10,14,15), ("vl",8,11,15,12),
+            ("vu",8,9,10,11), ("vu",9,8,12,13), ("vu",10,9,13,14), ("vu",11,10,14,15), ("vu",8,11,15,12),
+            ("vb",0,1,2,3), ("vb",1,0,4,5), ("vb",2,1,5,6), ("vb",3,2,6,7), ("vb",0,3,7,4),
+            ("vb",8,9,10,11), ("vb",9,8,12,13), ("vb",10,9,13,14), ("vb",11,10,14,15), ("vb",8,11,15,12),
+        ]),
+        "project (vb4 vb5 vb13 vb12) torus", "project (vb5 vb6 vb14 vb13) torus",
+        "project (vb6 vb7 vb15 vb14) torus", "project (vb7 vb4 vb12 vb15) torus",
+    ]
+    blockmesh.boundary = {
+        "inlet": {"type": "patch", "faces": ["(vx0 vx1 vx2 vx3)", "(vx1 vx0 vx4 vx5)", "(vx2 vx1 vx5 vx6)", "(vx3 vx2 vx6 vx7)", "(vx0 vx3 vx7 vx4)"]},
+        "lowerOutlet": {"type": "patch", "faces": ["(vl0 vl1 vl2 vl3)", "(vl1 vl0 vl4 vl5)", "(vl2 vl1 vl5 vl6)", "(vl3 vl2 vl6 vl7)", "(vl0 vl3 vl7 vl4)"]},
+        "upperOutlet": {"type": "patch", "faces": ["(vu0 vu1 vu2 vu3)", "(vu1 vu0 vu4 vu5)", "(vu2 vu1 vu5 vu6)", "(vu3 vu2 vu6 vu7)", "(vu0 vu3 vu7 vu4)"]},
+        "pipeNonCouple": {"type": "wall", "faces": ["(vx8 vx9 vx10 vx11)", "(vx9 vx8 vx12 vx13)", "(vx10 vx9 vx13 vx14)", "(vx11 vx10 vx14 vx15)", "(vx8 vx11 vx15 vx12)", "(vl8 vl9 vl10 vl11)", "(vl9 vl8 vl12 vl13)", "(vl10 vl9 vl13 vl14)", "(vl11 vl10 vl14 vl15)", "(vl8 vl11 vl15 vl12)", "(vu8 vu9 vu10 vu11)", "(vu9 vu8 vu12 vu13)", "(vu10 vu9 vu13 vu14)", "(vu11 vu10 vu14 vu15)", "(vu8 vu11 vu15 vu12)"]},
+        "ballWalls": {"type": "wall", "faces": ["(vb4 vb5 vb13 vb12)", "(vb5 vb6 vb14 vb13)", "(vb6 vb7 vb15 vb14)", "(vb7 vb4 vb12 vb15)"]},
+        "ballNonCouple": {"type": "wall", "faces": ["(vb0 vb1 vb2 vb3)", "(vb1 vb0 vb4 vb5)", "(vb2 vb1 vb5 vb6)", "(vb3 vb2 vb6 vb7)", "(vb0 vb3 vb7 vb4)", "(vb8 vb9 vb10 vb11)", "(vb9 vb8 vb12 vb13)", "(vb10 vb9 vb13 vb14)", "(vb11 vb10 vb14 vb15)", "(vb8 vb11 vb15 vb12)"]},
+    }
+    blockmesh.defaultPatch = {"name": "pipeWalls", "type": "wall"}
+    blockmesh.write(case_path / "system" / "blockMeshDict")
+    blockmesh.import_reference_asset(
         Path("/opt/openfoam13/tutorials/resources/geometry/ballValve-torus.obj.gz"),
         case_path / "constant" / "geometry" / "ballValve-torus.obj",
     )
-    mesh.mesher.run()
-    mesh.mesher.create_non_conformal_couples()
+    couples = OpenFOAMDictAddFile(
+        object_name="createNonConformalCouplesDict",
+        nonConformalCouples={
+            "nonConformal": {
+                "patches": "(pipeNonCouple ballNonCouple)",
+                "moveUpdate": "detect",
+            }
+        },
+    )
+    couples.write("createNonConformalCouplesDict", case_path)
+    blockmesh.run()
+    blockmesh.create_non_conformal_couples()
 
     solver.boundary.initialize_boundary()
     boundary = solver.boundary
     for obsolete in ("alpha.water", "alpha.air"):
         boundary.fields.pop(obsolete, None)
         solver.fields_manager.fields.pop(obsolete, None)
+    # Regenerate fvSchemes/fvSolution after phase cleanup so only alpha.vapour
+    # is emitted for this compressible VoF case.
+    solver.system.write()
     wall_patches = ("pipeNonCouple", "ballWalls", "ballNonCouple", "pipeWalls")
     for field in ("alpha.vapour", "T", "U", "p", "p_rgh", "k", "epsilon", "nut"):
         boundary.fields.setdefault(field, {})
@@ -126,6 +262,7 @@ def main() -> None:
         boundary.set_raw_condition(patch, "epsilon", {"type": "epsilonWallFunction", "value": "$internalField"})
         boundary.set_raw_condition(patch, "nut", {"type": "nutkWallFunction", "value": "$internalField"})
     boundary.write_boundary_conditions({
+        "U": "uniform (0 0 0)",
         "p": "uniform 1e5",
         "p_rgh": "uniform 1e5",
         "T": "uniform 300",

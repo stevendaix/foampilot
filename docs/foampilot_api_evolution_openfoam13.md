@@ -90,3 +90,9 @@ Tutoriel concerné: `06_buildingAero`; validation OF13: background mesh, extract
 
 ### API-047 — géométrie et sommets avancés déclaratifs dans `BlockMesher`
 `BlockMesher` accepte désormais `geometry` pour écrire des objets de géométrie nommés (`sphere`, `triSurface`, etc.), des sommets représentés par des fragments OpenFOAM bruts (`name ...`, `project ...`) et des faces de patch brutes. Les coordonnées numériques restent supportées. Cette capacité est destinée aux topologies avancées comme ballValve, avec arcs et projections, sans importer un `blockMeshDict` de référence.
+
+### API-048 — faces top-level avancées dans `BlockMesher`
+`BlockMesher` accepte désormais `faces`, une liste de faces OpenFOAM brutes écrites dans la section top-level `faces`. Cela permet de séparer correctement les faces `project` de la topologie des patches `boundary`, conformément à la grammaire OF13 des maillages non conformes.
+
+### API-049 — sous-dictionnaire `potentialFlow` dans `FvSolutionFile`
+`FvSolutionFile` expose désormais `potentialFlow` dans son constructeur, sa sérialisation et `from_dict`. Les cas utilisant `potentialFoam` peuvent déclarer `nNonOrthogonalCorrectors` sans importer `fvSolution`.

@@ -21,6 +21,7 @@ class FvSolutionFile(OpenFOAMFile):
         SIMPLE: Optional[Dict[str, Any]] = None,
         PIMPLE: Optional[Dict[str, Any]] = None,
         relaxationFactors: Optional[Dict[str, Dict[str, str]]] = None,
+        potentialFlow: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.parent = parent
         self.fields_manager = fields_manager
@@ -37,6 +38,7 @@ class FvSolutionFile(OpenFOAMFile):
             self.PIMPLE = None
 
         self.relaxationFactors = self._init_relaxation_factors(relaxationFactors)
+        self.potentialFlow = potentialFlow or {}
 
         # Configure solvers and relaxation based on available fields
         if self.fields_manager:
@@ -48,6 +50,7 @@ class FvSolutionFile(OpenFOAMFile):
             SIMPLE=self.SIMPLE,
             PIMPLE=self.PIMPLE,
             relaxationFactors=self.relaxationFactors,
+            potentialFlow=self.potentialFlow,
         )
 
     def _configure_from_fields(self) -> None:
@@ -415,4 +418,5 @@ class FvSolutionFile(OpenFOAMFile):
             SIMPLE=config.get("SIMPLE"),
             PIMPLE=config.get("PIMPLE"),
             relaxationFactors=config.get("relaxationFactors"),
+            potentialFlow=config.get("potentialFlow"),
         )

@@ -33,7 +33,7 @@ class BlockMesher(OpenFOAMFile):
 
     def __init__(self,parent, scale: float = 1, vertices=None, blocks=None, edges=None,
                  defaultPatch=None, boundary=None, mergePatchPairs=None, definitions=None,
-                 geometry=None):
+                 geometry=None, faces=None):
         """
         Initialize the blockMeshDict file handler.
 
@@ -68,6 +68,7 @@ class BlockMesher(OpenFOAMFile):
         self.mergePatchPairs = mergePatchPairs if mergePatchPairs is not None else []
         self.definitions = definitions if definitions is not None else []
         self.geometry = geometry if geometry is not None else []
+        self.faces = faces if faces is not None else []
 
         super().__init__(object_name="blockMeshDict")
 
@@ -174,6 +175,12 @@ class BlockMesher(OpenFOAMFile):
             for edge in self.edges:
                 f.write(f"    {edge}\n")
             f.write(");\n\n")
+
+            if self.faces:
+                f.write("faces\n(\n")
+                for face in self.faces:
+                    f.write(f"    {face}\n")
+                f.write(");\n\n")
 
             if self.defaultPatch:
                 f.write("defaultPatch\n{\n")
