@@ -222,6 +222,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `212_multiphaseEuler_bed` | Présent | Présent | Conforme OF13 | Validé — lit triphasique `air/water/solid`, zone `bed` initialisée par `setFields`, calcul jusqu’à `Time=20 s`, fractions bornées, températures physiques et aucun `FOAM FATAL` |
 | `213_multiphaseEuler_boilingBed` | Présent | Présent | Conforme OF13 | Validé — lit bouillant `gas/liquid/solid`, extrusion, zone `bed`, changement de phase, ébullition de surface, calcul parallèle jusqu’à `Time=7 s`, reconstruction finale réussie et aucun `FOAM FATAL` |
 | `214_multiphaseEuler_bubbleColumn` | Présent | Présent | Conforme OF13 | Validé — colonne gaz/eau initialisée par `setFields`, MULES stable avec somme des fractions égale à 1, calcul jusqu’à `End` vers `Time≈80,7 s`, Courant maximal inférieur à 0,74 et aucun `FOAM FATAL` |
+| `215_multiphaseEuler_bubbleColumnEvaporating` | Présent | Présent | Conforme OF13 | Validé — colonne gaz/eau, transfert diffusif `massDiffusionLimitedPhaseChange`, bilans massiques, fractions bornées, calcul jusqu’à `End` vers `Time≈15,33 s`, Courant maximal proche de 0,33 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
