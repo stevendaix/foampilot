@@ -273,3 +273,4 @@ Pour les prochains tutoriels, le contrôle doit être relancé après chaque cr�
 | `257_mesh_blockMesh_sphere` | Présent | Présent | Conforme OF13 | Validé — arcs sphériques paramétrés reproduits, blockMesh réussi, 1000 cellules, aucun `FOAM FATAL` |
 | `258_mesh_blockMesh_sphere7` | Présent | Présent | Conforme OF13 | Validé — deux blocs concentriques et arcs paramétrés reproduits, blockMesh réussi, 7000 cellules, aucun `FOAM FATAL` |
 | `259_mesh_blockMesh_sphere7ProjectedEdges` | Présent | Présent | Conforme OF13 | Validé — projections analytiques des arêtes et faces reproduites, blockMesh réussi, 7000 cellules, aucun `FOAM FATAL` |
+| `260_mesh_refineMesh_sector` | Présent | Présent | Conforme OF13 | Validé — blockMesh, 12 fonctions/post-traitements et raffinements exécutés; 21 passes terminées, 1880→44800 cellules, aucun `FOAM FATAL` |
