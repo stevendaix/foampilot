@@ -233,6 +233,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `223_multiphaseEuler_fluidisedBedLaminar` | Présent | Présent | Conforme OF13 | Accepté avec réserve — variante sérielle air/particules avec lit `bed`, `dragCorrection no`, fractions bornées et somme égale à 1, Courant proche de 0,289, calcul stable jusqu’à `Time≈1,1944 s` sur `2 s` au plafond, sans `FOAM FATAL` |
 | `224_multiphaseEuler_hydrofoil` | Présent | Présent | Conforme OF13 | Accepté avec réserve — profil air/eau à STL projetés, fractions bornées, températures proches de 293 K, Courant proche de 0,80, calcul stable jusqu’à `Time≈0,1005 s` sur `0,2 s` au plafond, sans `FOAM FATAL` |
 | `225_multiphaseEuler_injection` | Présent | Présent | Conforme OF13 | Validé — injection air/eau avec zone `water`, fractions bornées et normalisées, Courant proche de 0,249, calcul jusqu’à `End=10 s` en environ 103 s et aucun `FOAM FATAL` |
+| `226_multiphaseEuler_mixerVessel2D` | Présent | Présent | Conforme OF13 | Validé — mélangeur quatre phases avec rotor, `createBaffles`, `splitBaffles`, deux couples non conformes, calcul jusqu’à `End=5 s`, conservation de volume à la précision machine et aucun `FOAM FATAL` |
 
 ## Conclusion
 
