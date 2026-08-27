@@ -1,4 +1,5 @@
 from pathlib import Path
+import gzip
 import logging
 import re
 import subprocess
@@ -168,7 +169,11 @@ class BaseSolver:
         if not target.is_absolute():
             target = self.case_path / target
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
+        if source.suffix == ".gz" and target.suffix != ".gz":
+            with gzip.open(source, "rb") as source_stream, target.open("wb") as target_stream:
+                shutil.copyfileobj(source_stream, target_stream)
+        else:
+            shutil.copy2(source, target)
         if source.stat().st_mode & 0o111:
             target.chmod(target.stat().st_mode | 0o111)
         return target

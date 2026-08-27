@@ -276,3 +276,4 @@ Pour les prochains tutoriels, le contrôle doit être relancé après chaque cr�
 | `260_mesh_refineMesh_sector` | Présent | Présent | Conforme OF13 | Validé — blockMesh, 12 fonctions/post-traitements et raffinements exécutés; 21 passes terminées, 1880→44800 cellules, aucun `FOAM FATAL` |
 | `261_mesh_snappyHexMesh_flange` | Présent | Présent | Conforme OF13 | Validé — `flange.stl.gz` importé, blockMesh/surfaceFeatures/snappyHexMesh terminés, 3840 cellules de fond, eMesh produit, aucun `FOAM FATAL` |
 | `262_mesh_snappyHexMesh_pipe` | Présent | Présent | Conforme OF13 | Validé — deux OBJ compressés importés, surfaceFeatures/blockMesh/snappyHexMesh terminés, 5880 cellules de fond, eMesh produits, aucun `FOAM FATAL` |
+| `263_mesh_spiralPipe` | Présent | Présent | Conforme OF13 | Validé — API-041 décompresse `curve.obj.gz` vers `curve.obj`, blockMesh/extrudeMesh terminés, 448 cellules initiales et 930 points, aucun `FOAM FATAL` |
