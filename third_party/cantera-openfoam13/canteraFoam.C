@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     auto thermo = solution->thermo();
     auto transport = solution->transport();
     OFstream output(runTime.path()/"canteraThermo.csv");
-    output << "cell,T_eq,p_eq,rho,cp_mass,thermal_conductivity\n";
+    output << "cell,T_eq,p_eq,rho,cp_mass,thermal_conductivity,OH_mass_fraction\n";
 
     forAll(T, celli)
     {
@@ -63,7 +63,8 @@ int main(int argc, char *argv[])
         thermo->equilibrate("HP");
         output << celli << ',' << thermo->temperature() << ','
                << thermo->pressure() << ',' << thermo->density() << ','
-               << thermo->cp_mass() << ',' << transport->thermalConductivity() << '\n';
+               << thermo->cp_mass() << ',' << transport->thermalConductivity() << ','
+               << thermo->massFraction("OH") << '\n';
     }
     Info<< "Wrote " << T.size() << " Cantera cell states to "
         << runTime.path()/"canteraThermo.csv" << nl;
