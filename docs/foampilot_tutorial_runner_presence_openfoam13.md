@@ -245,6 +245,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `235_potentialFoam_cylinder` | Présent | Présent | Conforme OF13 | Validé — écoulement potentiel autour d’un cylindre, import `U.orig/p.orig`, `potentialFoam` avec `phi/p`, puis `streamFunction` produit sans avertissement fonctionnel ni `FOAM FATAL` |
 | `236_potentialFoam_pitzDaily` | Présent | Présent | Conforme OF13 | Validé — maillage partagé `pitzDaily`, import `U.orig/p.orig`, `potentialFoam -writePhi -writep`, puis `streamFunction` produit; erreurs de continuité/vitesse faibles et aucun `FOAM FATAL` |
 | `237_shockFluid_LadenburgJet60psi` | Présent | Présent | Conforme OF13 | Validé — cas compressible `shockFluid`, champs `T/U/p`, 8 domaines MPI, pas adaptatif avec `maxCo=0,5`, calcul jusqu’à `End=2e-5 s` et reconstruction terminée sans `FOAM FATAL` |
+| `238_shockFluid_biconic25-55Run35` | Présent | Présent | Conforme OF13 | Accepté avec réserves — `datToFoam`, fusion FoamPilot de `points.tmp`, `collapseEdges`, conversion `wedge1/wedge2` et calcul `shockFluid` terminés; progression jusqu’à `Time≈4,90e-4 s` sur `1e-3 s` sans `FOAM FATAL`, avec réserve de temps et avertissement de planéité possible de `wedge2` |
 
 ## Conclusion
 

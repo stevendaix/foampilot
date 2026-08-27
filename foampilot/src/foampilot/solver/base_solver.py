@@ -1,5 +1,6 @@
 from pathlib import Path
 import logging
+import re
 import subprocess
 import shutil
 from typing import Dict, List, Optional
@@ -218,6 +219,51 @@ class BaseSolver:
             shutil.rmtree(target)
         elif target.exists():
             target.unlink()
+
+    def merge_mesh_points(self, points_tmp: str | Path, *, header_lines: int = 17) -> Path:
+        """Merge a FoamPilot-managed temporary points list into mesh points.
+
+        ``datToFoam`` can emit an auxiliary ``points.tmp`` list for meshes
+        whose generated points file must retain its OpenFOAM header.  This
+        helper preserves the requested header and appends the temporary list,
+        without invoking shell text-processing commands.
+        """
+        points_path = self.case_path / "constant" / "polyMesh" / "points"
+        tmp_path = Path(points_tmp)
+        if not tmp_path.is_absolute():
+            tmp_path = self.case_path / tmp_path
+        if not points_path.is_file():
+            raise FileNotFoundError(f"Mesh points file not found: {points_path}")
+        if not tmp_path.is_file():
+            raise FileNotFoundError(f"Temporary mesh points file not found: {tmp_path}")
+        points_text = points_path.read_text(encoding="utf-8", errors="replace")
+        tmp_text = tmp_path.read_text(encoding="utf-8", errors="replace")
+        lines = points_text.splitlines(keepends=True)
+        header = "".join(lines[:header_lines]).replace("format      binary;", "format      ascii;")
+        points_path.write_text(header + tmp_text, encoding="utf-8")
+        tmp_path.unlink()
+        return points_path
+
+    def update_mesh_patch_types(self, patch_types: Dict[str, str]) -> Path:
+        """Update patch types in ``constant/polyMesh/boundary``.
+
+        This is intended for mesh workflows where a generator creates generic
+        ``patch`` entries and a solver-specific stage must convert selected
+        entries (for example to ``wedge``).  The operation is performed by
+        FoamPilot on the generated boundary file and preserves all unrelated
+        patch content.
+        """
+        boundary_path = self.case_path / "constant" / "polyMesh" / "boundary"
+        if not boundary_path.is_file():
+            raise FileNotFoundError(f"Mesh boundary file not found: {boundary_path}")
+        content = boundary_path.read_text(encoding="utf-8")
+        for patch_name, patch_type in patch_types.items():
+            pattern = (r"(" + re.escape(patch_name) + r"\s*\{\s*type\s+)\w+(\s*;)")
+            content, count = re.subn(pattern, r"\g<1>" + patch_type + r"\g<2>", content, count=1)
+            if count != 1:
+                raise ValueError(f"Patch '{patch_name}' not found in {boundary_path}")
+        boundary_path.write_text(content, encoding="utf-8")
+        return boundary_path
 
     # ---------- Running simulation ----------
     def run_command(
