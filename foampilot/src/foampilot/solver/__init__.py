@@ -7,7 +7,7 @@ from foampilot.solver.base_solver import BaseSolver
 
 # Importer la classe Solver générique (interface principale pour l'utilisateur)
 from foampilot.solver.solver import Solver
-from foampilot.solver.workflows import OpenFOAMEnvironment, RunWorkflow
+from foampilot.solver.environment import OpenFOAMEnvironment
 from foampilot.solver.marine_case import MarineCaseConfig
 from foampilot.solver.marine_controls import PropellerCommand, RudderCommand, write_marine_controls
 from foampilot.solver.marine_forces import PropellerForceModel, RudderForceModel, write_force_model
@@ -20,7 +20,6 @@ from foampilot.solver.marine_actuation_disk import ActuationDiskSource, actuatio
 __all__ = [
     "Solver",
     "OpenFOAMEnvironment",
-    "RunWorkflow",
     "BaseSolver",
     "MarineCaseConfig",
     "PropellerCommand",
