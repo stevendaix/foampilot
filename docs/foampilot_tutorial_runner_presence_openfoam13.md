@@ -240,6 +240,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `230_multiphaseEuler_titaniaSynthesis` | Présent | Présent | Conforme OF13 | Accepté avec réserve — chimie TiO2 et population balance à 4 domaines MPI, import des tables `validation/exptData`, fractions normalisées, Courant proche de 0,278, progression jusqu’à `Time≈9,583 s` sur `10 s` et aucun `FOAM FATAL`; reconstruction hors budget |
 | `231_multiphaseEuler_titaniaSynthesisSurface` | Présent | Présent | Conforme OF13 | Accepté avec réserve — chimie TiO2 volumique et croissance de surface TiO2_s avec population balance à 4 domaines MPI, fractions normalisées, températures physiques, progression jusqu’à environ `Time=7,5 s` sur `10 s`; singularités N2 signalées sans `FOAM FATAL`, reconstruction hors budget |
 | `232_multiphaseEuler_wallBoilingIATE` | Présent | Présent | Conforme OF13 | Validé — ébullition pariétale IATE eau/gaz, maillage extrudé, 4 domaines MPI, reconstruction, `graphCell` et `patchSurface` terminés jusqu’à `End=4 s`, propriétés de départ de bulles et mouillage produites sans `FOAM FATAL` |
+| `233_multiphaseEuler_wallBoilingPolydisperse` | Présent | Présent | Conforme OF13 | Accepté avec réserve — ébullition pariétale polydisperse à quatre groupes, 4 domaines MPI, fractions normalisées, températures `341–362 K`, progression jusqu’à `Time≈2,74 s` sur `4 s`, aucun `FOAM FATAL`; reconstruction hors budget |
 
 ## Conclusion
 
