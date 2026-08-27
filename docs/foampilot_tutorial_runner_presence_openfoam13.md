@@ -170,9 +170,10 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `158_legacy_porousSimpleFoam_angledDuctExplicit` | Présent | Présent | Conforme OF13 | Validé — ressource `blockMesh/angledDuct`, 22 000 cellules, zone Darcy–Forchheimer, `porousSimpleFoam`, `End=200 s` et aucun `FOAM FATAL` |
 | `159_legacy_porousSimpleFoam_angledDuctImplicit` | Présent | Présent | Conforme OF13 | Validé — même maillage et zone Darcy–Forchheimer, formulation implicite conservée, `porousSimpleFoam`, `End=100 s` et aucun `FOAM FATAL` |
 | `160_legacy_shallowWaterFoam_squareBump` | Présent | Présent | Conforme OF13 | Validé — maillage 2D de 400 cellules, topographie `bump` initialisée par `setFields`, `shallowWaterFoam`, `End=100 s` et aucun `FOAM FATAL` |
+| `161_legacy_dsmcFoam_freeSpacePeriodic` | Présent | Présent | Conforme OF13 | Validé — maillage à périodicité X/Y/Z, `dsmcInitialise`, environ 64 009 particules DSMC, `dsmcFoam`, `End=1e-3 s` et aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `legacy/incompressible/shallowWaterFoam/squareBump` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `legacy/lagrangian/dsmcFoam/freeSpacePeriodic` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
