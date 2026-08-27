@@ -4,7 +4,7 @@
 
 | # | Runner | Réécriture | Validation OF13 suivie | API / opérations détectées | Justification automatique |
 |---:|---|---|---|---|---|
-| 1 | `01_cavity_laminar` | Réécrit FoamPilot à vérifier | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Pas d’import de référence détecté |
+| 1 | `01_cavity_laminar` | Réécrit et validé OF13 | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Aucun import de référence; fichiers et calcul vérifiés sous OF13 |
 | 2 | `02_simpleCar_turbulent` | Réécrit FoamPilot à vérifier | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Pas d’import de référence détecté |
 | 3 | `03_pitzDaily_step` | Réécrit FoamPilot à vérifier | Mentionné dans le suivi | `run_simulation, register_field, set_raw_condition, write, Meshing, Boundary` | Pas d’import de référence détecté |
 | 4 | `04_damBreak_multiphase` | Réécrit FoamPilot à vérifier | Validé fonctionnellement | `run_command, run_simulation, set_raw_condition, write, Meshing` | Pas d’import de référence détecté |

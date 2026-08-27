@@ -7,8 +7,9 @@ Foampilot uniquement.
 """
 
 from pathlib import Path
+import os
 
-from foampilot import Meshing
+from foampilot import Meshing, OpenFOAMEnvironment
 from foampilot.solver import Solver
 
 
@@ -43,6 +44,8 @@ def build_cavity_mesh(case_path: Path) -> None:
 
 
 def main() -> None:
+    environment = OpenFOAMEnvironment().environment()
+    os.environ.update(environment)
     case_path = Path.cwd()
     solver = Solver(case_path)
     solver.compressible = False
@@ -50,6 +53,7 @@ def main() -> None:
     solver.turbulence_model = "laminar"
     solver.transient = True
 
+    solver.setup_case()
     solver.system.controlDict.use_solver_keyword = True
     solver.system.controlDict.startTime = 0.0
     solver.system.controlDict.stopAt = "endTime"
@@ -61,7 +65,6 @@ def main() -> None:
 
     build_cavity_mesh(case_path)
     solver.constant.write()
-    solver.setup_case()
 
     solver.boundary.initialize_boundary()
     solver.boundary.set_raw_condition(

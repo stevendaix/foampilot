@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TUTORIALS = ROOT / "foampilot" / "tutorials"
 INTEGRATION = ROOT / "docs" / "openfoam13_foampilot_integration.md"
 OUTPUT = ROOT / "docs" / "openfoam13_foampilot_rewrite_matrix_full.md"
+VERIFIED_REWRITTEN = {"01_cavity_laminar"}
 
 
 def count(text: str, pattern: str) -> int:
@@ -83,6 +84,9 @@ def main() -> None:
         rel = runner.parent.relative_to(TUTORIALS).as_posix()
         text = runner.read_text(encoding="utf-8", errors="replace")
         status, reason = status_for(text)
+        if runner.parent.name in VERIFIED_REWRITTEN and status == "Réécrit FoamPilot à vérifier":
+            status = "Réécrit et validé OF13"
+            reason = "Aucun import de référence; fichiers et calcul vérifiés sous OF13"
         rows.append((index, rel, status, validation_status(rel, integration), api_names(text), reason))
 
     lines = [
