@@ -369,16 +369,18 @@ class DirectOpenFOAMExporter:
                 for _, stag in surf_groups:
                     name = gmsh.model.getPhysicalName(2, stag) or "patch"
                     entities = gmsh.model.getEntitiesForPhysicalGroup(2, stag)
-                    etypes, _, enodes = gmsh.model.mesh.getElements(2, stag)
-                    for etype, node_list in zip(etypes, enodes):
-                        npp = _NODES_PER_ELEM.get(etype, 3)
-                        count = len(node_list) // npp
-                        for idx in range(count):
-                            start = idx * npp
-                            raw_nodes = [int(n) for n in node_list[start : start + npp]]
-                            of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
-                            key = _face_key(of_nodes)
-                            patch_map.setdefault(key, name)
+                    for entity_tag in entities:
+                        entity_dim = 2
+                        etypes, _, enodes = gmsh.model.mesh.getElements(entity_dim, entity_tag)
+                        for etype, node_list in zip(etypes, enodes):
+                            npp = _NODES_PER_ELEM.get(etype, 3)
+                            count = len(node_list) // npp
+                            for idx in range(count):
+                                start = idx * npp
+                                raw_nodes = [int(n) for n in node_list[start : start + npp]]
+                                of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
+                                key = _face_key(of_nodes)
+                                patch_map.setdefault(key, name)
                 return patch_map
 
         vol_groups = gmsh.model.getPhysicalGroups(dim=3)
@@ -471,16 +473,18 @@ class DirectOpenFOAMExporter:
                 for _, stag in surf_groups:
                     name = gmsh.model.getPhysicalName(2, stag) or "patch"
                     entities = gmsh.model.getEntitiesForPhysicalGroup(2, stag)
-                    etypes, _, enodes = gmsh.model.mesh.getElements(2, stag)
-                    for etype, node_list in zip(etypes, enodes):
-                        npp = _NODES_PER_ELEM.get(etype, 3)
-                        count = len(node_list) // npp
-                        for idx in range(count):
-                            start = idx * npp
-                            raw_nodes = [int(n) for n in node_list[start : start + npp]]
-                            of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
-                            key = _face_key(of_nodes)
-                            patch_map.setdefault(key, name)
+                    for entity_tag in entities:
+                        entity_dim = 2
+                        etypes, _, enodes = gmsh.model.mesh.getElements(entity_dim, entity_tag)
+                        for etype, node_list in zip(etypes, enodes):
+                            npp = _NODES_PER_ELEM.get(etype, 3)
+                            count = len(node_list) // npp
+                            for idx in range(count):
+                                start = idx * npp
+                                raw_nodes = [int(n) for n in node_list[start : start + npp]]
+                                of_nodes = [tag_to_index.get(n, n) for n in raw_nodes]
+                                key = _face_key(of_nodes)
+                                patch_map.setdefault(key, name)
                 return patch_map
 
         vol_groups = gmsh.model.getPhysicalGroups(dim=3)

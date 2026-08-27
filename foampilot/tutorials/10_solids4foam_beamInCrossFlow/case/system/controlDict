@@ -1,0 +1,27 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+application     solids4Foam;
+regionSolvers
+{
+    fluid           solids4Foam;
+    solid           solids4Foam;
+}
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         0.001;
+deltaT          0.001;
+writeControl    timeStep;
+writeInterval   1;
+purgeWrite      0;
+writeFormat     ascii;
+writePrecision  8;
+writeCompression off;
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable yes;
