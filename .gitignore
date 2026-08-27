@@ -100,3 +100,6 @@ openfoam13/**/constant/polyMesh/**
 
 # === UrbGEN generated CFD validation output ===
 /foampilot/examples/building_geo/urbgen_cfd_validation/
+
+# Generated OpenFOAM turbine outputs
+validation/openfoam13/**/postProcessing/

@@ -7,8 +7,11 @@ Le dictionnaire `constant/fvModels` charge trois pales, un moyeu et une tour. La
 ## Exécution
 
 ```bash
-. /opt/openfoam13/etc/bashrc
-export FOAM_USER_LIBBIN="$HOME/OpenFOAM/$USER-$WM_PROJECT_VERSION/platforms/$WM_OPTIONS/lib"
+# Définir FOAM_BASHRC vers le bashrc OpenFOAM Foundation 13 de votre installation.
+# Exemple : export FOAM_BASHRC="$HOME/OpenFOAM/OpenFOAM-13/etc/bashrc"
+: "${FOAM_BASHRC:?Définissez FOAM_BASHRC vers OpenFOAM Foundation 13}"
+. "$FOAM_BASHRC"
+export FOAM_USER_LIBBIN="${FOAM_USER_LIBBIN:-$HOME/OpenFOAM/$USER-$WM_PROJECT_VERSION/platforms/$WM_OPTIONS/lib}"
 ./Allrun
 ```
 
