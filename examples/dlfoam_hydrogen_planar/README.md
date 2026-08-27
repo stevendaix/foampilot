@@ -4,11 +4,12 @@ Cet exemple porte dans **FoamPilot** le tutoriel [DLBFoam-Hydrogen-Tutorials](ht
 
 ## Reproduction
 
-Depuis la racine du dépôt Foampilot, installer le paquet en mode editable puis sourcer une installation **OpenFOAM 13** qui contient les bibliothèques DLBFoam, FickianTransportFoam et le mécanisme PyJac compilé :
+Depuis la racine du dépôt FoamPilot, installer le paquet en mode editable puis sourcer une installation **OpenFOAM Foundation 13** qui contient les bibliothèques DLBFoam, FickianTransportFoam et le mécanisme PyJac compilé. Le chemin est volontairement fourni par l’utilisateur :
 
 ```bash
 pip install -e foampilot
-# Exemple : source /opt/openfoam13/etc/bashrc
+export FOAM_BASHRC=/chemin/vers/OpenFOAM-13/etc/bashrc
+source "$FOAM_BASHRC"
 cd examples/dlfoam_hydrogen_planar
 python run.py
 python run.py --run --np 1
@@ -28,9 +29,12 @@ Les options `--nx`, `--ny`, `--end-time` et `--write-interval` sont uniquement d
 
 Le script `benchmark_mpi.py` exécute le même cas borné avec 1, 2 et 3 rangs MPI, puis `analyze_benchmark.py` calcule le speedup, l’efficacité et produit `benchmark_results/mpi_speedup.png` ainsi qu’un rapport Markdown. Les sorties sont ignorées par Git. Le benchmark de 2×2 cellules valide le chemin MPI, mais il est trop petit pour caractériser le scaling physique du cas 2000×2000 ; pour une mesure exploitable, augmenter `NX`, `NY` et le nombre d’itérations dans le script, puis répéter chaque configuration.
 
+Le benchmark n’impose aucune option OpenMPI spécifique. Sur une machine où OpenMPI interdit l’exécution par `root` ou exige une option d’oversubscription, transmettre explicitement les options nécessaires, par exemple `FOAMPILOT_MPI_EXTRA_ARGS="--oversubscribe" python benchmark_mpi.py`. Cette variable est interprétée avec une séparation shell contrôlée.
+
 ## Validation
 
-La validation automatisée vérifie que le cas est complet, que le journal du solveur existe et qu’un répertoire de temps numérique est produit. La comparaison quantitative des profils de température, vitesse et espèces doit être réalisée avec les bibliothèques DLBFoam/FickianTransportFoam effectivement compilées et avec le même nombre de processeurs que la référence. Le dépôt source indique qu’au-delà d’environ 150 temps de flamme, le champ doit être remappé pour maintenir la flamme dans le domaine ; cette opération reste une étape physique manuelle du tutoriel original [1].
+La validation automatisée vérifie que le cas est complet, que le journal du solveur existe et qu’un répertoire de temps numérique est produit. Elle doit être lancée dans un shell où `FOAM_BASHRC` ou `WM_PROJECT_DIR` a déjà été chargé ; le dépôt ne suppose aucun chemin d’installation local.
+La comparaison quantitative des profils de température, vitesse et espèces doit être réalisée avec les bibliothèques DLBFoam/FickianTransportFoam effectivement compilées et avec le même nombre de processeurs que la référence. Le dépôt source indique qu’au-delà d’environ 150 temps de flamme, le champ doit être remappé pour maintenir la flamme dans le domaine ; cette opération reste une étape physique manuelle du tutoriel original [1].
 
 > Les fichiers `case_template/` sont des données d’entrée scientifiques de référence, et non un résultat de calcul. Les sorties générées dans `case/` sont ignorées par Git.
 

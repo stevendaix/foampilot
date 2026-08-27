@@ -5,8 +5,10 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -43,7 +45,7 @@ def main() -> None:
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT.parents[1] / "foampilot" / "src")
     run(
-        ["python3", str(RUNNER), "--case-dir", str(BASE), "--nx", str(NX), "--ny", str(NY),
+        [sys.executable, str(RUNNER), "--case-dir", str(BASE), "--nx", str(NX), "--ny", str(NY),
          "--end-time", str(END_TIME), "--write-interval", str(WRITE_INTERVAL)],
         ROOT, OUT / "prepare.log", env,
     )
@@ -65,7 +67,8 @@ def main() -> None:
             subprocess.run(["decomposePar", "-force"], cwd=case, env=env, check=True,
                            stdout=(OUT / f"np{nproc}.decompose.log").open("w"),
                            stderr=subprocess.STDOUT)
-            command = ["mpirun", "--allow-run-as-root", "-np", str(nproc), *solver, "-parallel"]
+            mpi_extra_args = shlex.split(os.environ.get("FOAMPILOT_MPI_EXTRA_ARGS", ""))
+            command = ["mpirun", *mpi_extra_args, "-np", str(nproc), *solver, "-parallel"]
         solver_time = run(command, case, solver_log, env)
         if nproc > 1:
             run(["reconstructPar", "-latestTime"], case, OUT / f"np{nproc}.reconstruct.log", env)
