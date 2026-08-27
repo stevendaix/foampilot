@@ -178,6 +178,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `166_legacy_mdFoam_nanoNozzle` | Présent | Présent | Conforme OF13 | Accepté avec réserve — nano-nozzle de 27 136 cellules, décomposition corrigée à 4 domaines, 110 197 molécules initialisées, `mdFoam` stable jusqu’à `Time=7e-15/2e-13 s`, arrêt pour coût et aucun `FOAM FATAL` |
 | `168_movingMesh_SnakeRiverCanyon` | Présent | Présent | Conforme OF13 | Validé — maillage movingMesh `20x60x60`, surface `AcrossRiver`, calcul parallèle à 2 domaines jusqu’à `Time=25 s`, reconstruction des temps 5 à 25 et aucun `FOAM FATAL` |
 | `169_multiRegion_CHT_VoFcoolingCylinder2D` | Présent | Présent | Conforme OF13 | Validé — régions `fluid/solid`, champs régionaux correctement placés sous `0/fluid` et `0/solid`, `foamMultiRun` jusqu’à `Time=5 s`, interfaces couplées et aucun `FOAM FATAL` |
+| `170_multiRegion_CHT_circuitBoardCooling` | Présent | Présent | Conforme OF13 | Validé — pipeline `blockMesh/createZones/extrudeToRegionMesh/createBaffles` avec `wallPatchFields`, régions `fluid/baffle3D`, `foamMultiRun` jusqu’à `Time=5000 s` et aucun `FOAM FATAL` |
 
 ## Conclusion
 
