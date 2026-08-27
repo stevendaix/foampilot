@@ -107,3 +107,23 @@ openfoam13/**/constant/polyMesh/**
 
 # Generated OpenFOAM turbine outputs
 validation/openfoam13/**/postProcessing/
+
+# === medical_build : sorties de campagnes reproductibles mais non versionnées ===
+examples/medical_build/outputs/**
+examples/medical_build/**/outputs/**
+examples/medical_build/**/__pycache__/
+examples/medical_build/**/*.pyc
+examples/medical_build/**/*.log
+examples/medical_build/**/*.png
+examples/medical_build/**/*.jpg
+examples/medical_build/**/*.csv
+# Les sources et petits contrats médicaux restent versionnables.
+!examples/medical_build/*.py
+!examples/medical_build/*.md
+!examples/medical_build/*.json
+!examples/medical_build/**/README*.md
+!examples/medical_build/**/VALIDATION*.md
+!examples/medical_build/**/expected/**
+!examples/medical_build/**/manifest*.json
+!foampilot/tests/geometry/medical_build/*.py
+!foampilot/test/vmtk_test_data/**

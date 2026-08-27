@@ -1,0 +1,63 @@
+FoamFile
+{ version 2.0; format ascii; class dictionary; object surfaceFeatureExtractDict; }
+
+inlet.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+outlet_0.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+outlet_1.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+outlet_2.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+outlet_3.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+outlet_5.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+outlet_6.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+outlet_7.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+outlet_8.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}
+wall.stl
+{
+    extractionMethod extractFromSurface;
+    includedAngle 150;
+    writeObj yes;
+}

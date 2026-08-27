@@ -1,0 +1,30 @@
+#!/bin/sh
+set -eu
+
+case_dir=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+cd "$case_dir"
+
+if [ -n "${FOAM_BASHRC:-}" ] && [ -f "$FOAM_BASHRC" ]; then
+    # shellcheck disable=SC1090
+    . "$FOAM_BASHRC"
+elif [ -n "${WM_PROJECT_DIR:-}" ] && [ -f "$WM_PROJECT_DIR/etc/bashrc" ]; then
+    # shellcheck disable=SC1091
+    . "$WM_PROJECT_DIR/etc/bashrc"
+else
+    echo "ERROR: set FOAM_BASHRC or WM_PROJECT_DIR for OpenFOAM 13" >&2
+    exit 2
+fi
+
+if [ ! -f constant/triSurface/aorta_multiregion.stl ]; then
+    if [ -z "${MEDICAL_SURFACE_VTP:-}" ] || [ ! -f "$MEDICAL_SURFACE_VTP" ]; then
+        echo "ERROR: provide MEDICAL_SURFACE_VTP to generate the missing multiregion STL" >&2
+        exit 2
+    fi
+    python3 create_snappy_case.py --input "$MEDICAL_SURFACE_VTP"
+fi
+
+surfaceCheck constant/triSurface/aorta_multiregion.stl
+rm -rf constant/polyMesh
+blockMesh
+snappyHexMesh -overwrite
+checkMesh

@@ -1,11 +1,16 @@
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from pathlib import Path
-from foampilot.mesh.BlockMeshFile import BlockMesher
-from foampilot.mesh.ops import create_case_structure
 
 import json
 import subprocess
 from typing import Union, Dict, Any
+
+
+def create_case_structure(case_path: Union[str, Path], extra_dirs=()):
+    """Lazily forward to the mesh case-layout helper."""
+    from foampilot.mesh.ops import create_case_structure as _create_case_structure
+
+    return _create_case_structure(case_path, extra_dirs=extra_dirs)
 
 
 class CaseBuilder:
@@ -21,6 +26,8 @@ class CaseBuilder:
         self.case_path = Path(case_path).expanduser().resolve()
 
     def ensure_dirs(self, extra_dirs=()) -> "CaseBuilder":
+        from foampilot.mesh.ops import create_case_structure
+
         create_case_structure(self.case_path, extra_dirs=extra_dirs)
         return self
 
@@ -63,6 +70,8 @@ class Meshing:
             ValueError: If the provided `mesher` string does not match a 
                 supported meshing backend.
         """
+        from foampilot.mesh.BlockMeshFile import BlockMesher
+
         self.case_path = Path(case_path)
         self.mesher_name = mesher
 
