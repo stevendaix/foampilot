@@ -110,3 +110,46 @@ def test_engineering_result_is_json_ready():
     payload = result.to_dict()
     assert payload["metadata"]["units"] == "m/s"
     assert payload["values"] == {"mean": 3.5, "samples": [1, 2]}
+
+
+def test_integrate_energy_flux_uses_outward_sign():
+    from foampilot.postprocess.monitoring import integrate_energy_flux
+
+    result = integrate_energy_flux(
+        normals=np.array([[1.0, 0.0, 0.0]]),
+        areas=np.array([2.0]),
+        velocity=np.array([[3.0, 0.0, 0.0]]),
+        temperature=np.array([300.0]),
+        density=1.0,
+        heat_capacity=2.0,
+    )
+    assert result["energy_flux"] == 3600.0
+
+
+def test_integrate_momentum_flux_returns_vector_components():
+    from foampilot.postprocess.monitoring import integrate_momentum_flux
+
+    result = integrate_momentum_flux(
+        normals=np.array([[1.0, 0.0, 0.0]]),
+        areas=np.array([2.0]),
+        velocity=np.array([[3.0, 4.0, 0.0]]),
+        density=1.0,
+    )
+    assert result["momentum_flux_x"] == 18.0
+    assert result["momentum_flux_y"] == 24.0
+
+
+def test_engineering_report_exports_named_results(tmp_path):
+    from foampilot.postprocess.engineering_report import EngineeringReport
+    from foampilot.postprocess.results import EngineeringResult, ResultMetadata
+
+    report = EngineeringReport(case="testCase", solver="simpleFoam")
+    report.add("pressure", EngineeringResult(
+        metadata=ResultMetadata(field="p", units="Pa"),
+        values={"mean": 101325.0},
+    ))
+    json_path = report.export_json(tmp_path / "report.json")
+    md_path = report.export_markdown(tmp_path / "report.md")
+    assert json_path.exists() and md_path.exists()
+    assert "pressure" in json_path.read_text()
+    assert "CFD Engineering Report" in md_path.read_text()

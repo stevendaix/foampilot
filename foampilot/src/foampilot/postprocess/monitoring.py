@@ -313,3 +313,61 @@ def mass_balance(patches: dict[str, dict[str, np.ndarray]], *, density: float | 
 
 
 __all__.extend(["integrate_mass_flux", "mass_balance"])
+
+
+
+def integrate_energy_flux(
+    normals: np.ndarray,
+    areas: np.ndarray,
+    velocity: np.ndarray,
+    temperature: np.ndarray,
+    *,
+    density: float | np.ndarray,
+    heat_capacity: float,
+) -> dict[str, float]:
+    """Integrate convective sensible-energy flux through a patch.
+
+    The convention is ``rho * cp * T * (U dot n) dA`` with outward normals.
+    It is intentionally separate from conductive wall heat flux, which must be
+    integrated from ``q = -k grad(T)`` on a surface with a known normal.
+    """
+    n = np.asarray(normals, dtype=float)
+    a = np.asarray(areas, dtype=float).reshape(-1)
+    u = np.asarray(velocity, dtype=float)
+    T = np.asarray(temperature, dtype=float).reshape(-1)
+    rho = np.asarray(density, dtype=float)
+    if n.ndim != 2 or n.shape[1] != 3 or u.shape != n.shape or len(a) != len(T) or len(a) != len(n):
+        raise ValueError("normals, areas, velocity and temperature must describe the same faces")
+    if heat_capacity <= 0 or np.any(a < 0):
+        raise ValueError("heat_capacity must be positive and areas non-negative")
+    if rho.ndim == 0:
+        if float(rho) <= 0:
+            raise ValueError("density must be positive")
+    elif rho.shape != (len(a),) or np.any(rho <= 0):
+        raise ValueError("density must be a positive scalar or one value per face")
+    flux = rho * heat_capacity * T * np.einsum("ij,ij->i", u, n)
+    return {"energy_flux": float(np.sum(flux * a)), "heat_capacity": float(heat_capacity)}
+
+
+def integrate_momentum_flux(
+    normals: np.ndarray,
+    areas: np.ndarray,
+    velocity: np.ndarray,
+    *,
+    density: float | np.ndarray,
+) -> dict[str, float]:
+    """Integrate convective momentum flux ``rho U (U dot n) dA``."""
+    n = np.asarray(normals, dtype=float)
+    a = np.asarray(areas, dtype=float).reshape(-1)
+    u = np.asarray(velocity, dtype=float)
+    rho = np.asarray(density, dtype=float)
+    if n.ndim != 2 or n.shape[1] != 3 or u.shape != n.shape or len(a) != len(n):
+        raise ValueError("normals, areas and velocity must describe the same faces")
+    if np.any(a < 0) or np.any(rho <= 0):
+        raise ValueError("density must be positive and areas non-negative")
+    normal_flux = rho * np.einsum("ij,ij->i", u, n)
+    force = np.sum(u * normal_flux[:, None] * a[:, None], axis=0)
+    return {"momentum_flux_x": float(force[0]), "momentum_flux_y": float(force[1]), "momentum_flux_z": float(force[2])}
+
+
+__all__.extend(["integrate_energy_flux", "integrate_momentum_flux"])

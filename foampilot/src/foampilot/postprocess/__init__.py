@@ -22,8 +22,16 @@ from foampilot.postprocess.web_presentation import (
     plotly_temperature_contour,
     plotly_pressure_contour,
 )
-from foampilot.postprocess.monitoring import CFDMonitor, MonitorPoint, integrate_mass_flux, mass_balance
+from foampilot.postprocess.monitoring import (
+    CFDMonitor,
+    MonitorPoint,
+    integrate_mass_flux,
+    mass_balance,
+    integrate_energy_flux,
+    integrate_momentum_flux,
+)
 from foampilot.postprocess.results import EngineeringResult, MassBalanceResult, ResultMetadata, TimeSeriesResult
+from foampilot.postprocess.engineering_report import EngineeringReport
 
 __all__ = [
     "FoamPostProcessing",
@@ -52,5 +60,8 @@ __all__ = [
     "MassBalanceResult",
     "ResultMetadata",
     "TimeSeriesResult",
+    "integrate_energy_flux",
+    "integrate_momentum_flux",
+    "EngineeringReport",
 ]
 from foampilot.postprocess.monitoring import compute_y_plus, integrate_surface_forces
