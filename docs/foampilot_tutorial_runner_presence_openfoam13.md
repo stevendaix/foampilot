@@ -227,6 +227,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `217_multiphaseEuler_bubbleColumnEvaporatingReacting` | Présent | Présent | Conforme OF13 | Validé — colonne gaz/eau réactive avec champs `CO/CO2/H2O/air/Ydefault`, évaporation, `Qdot.gas`, résidus d’espèces convergents, fractions normalisées, calcul jusqu’à `End` vers `Time≈5,03 s`, Courant maximal inférieur à environ 0,31 et aucun `FOAM FATAL` |
 | `218_multiphaseEuler_bubbleColumnIATE` | Présent | Présent | Conforme OF13 | Accepté avec réserve — champ `kappai.air`, coalescence/cassure IATE, fractions air/eau bornées, Courant maximal inférieur à 0,95 et calcul stable jusqu’à `Time≈75,75 s` sur `100 s` au plafond, sans `FOAM FATAL` |
 | `219_multiphaseEuler_bubbleColumnLES` | Présent | Présent | Conforme OF13 | Accepté avec réserve — turbulence LES air/eau, `nSubCycles=2`, fractions bornées et normalisées, Courant maximal proche de 1,00, calcul stable jusqu’à `Time≈79,39 s` sur `100 s` au plafond, sans `FOAM FATAL` |
+| `220_multiphaseEuler_bubbleColumnLaminar` | Présent | Présent | Conforme OF13 | Validé — colonne air/eau laminaire, `nSubCycles=2`, fractions bornées, Courant maximal proche de 0,74, calcul jusqu’à `End` vers `Time≈84,38 s` et aucun `FOAM FATAL` |
 
 ## Conclusion
 
