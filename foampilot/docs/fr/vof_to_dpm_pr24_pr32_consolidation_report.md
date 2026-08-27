@@ -203,3 +203,9 @@ Enfin, le patch framework doit être vérifié contre une installation propre d�
 La recommandation est de conserver **une seule ligne d’intégration**, basée sur la branche de la PR #32, tout en considérant #24 comme le socle historique et fonctionnel. La PR #32 doit être revue comme la PR de consolidation finale, avec le rapport présent dans ce fichier, sans merger #24 séparément.
 
 Cette décision limite la duplication Git et permet de vérifier les invariants conservatifs de #24 directement sur les extensions Direct Commit et MPI de #32.
+
+## Revue du runner et de l’environnement
+
+Le runner `Allrun.parallel` charge maintenant l’environnement de manière stricte. La priorité est `FOAM_BASHRC`, puis `WM_PROJECT_DIR/etc/bashrc`. Si aucun des deux n’est défini vers un fichier existant, le runner s’arrête avec le code `2` et un message explicite. Aucune erreur de chargement n’est ignorée avec `|| true`.
+
+Le contrôle sans environnement confirme l’échec immédiat attendu. Dans l’environnement de test courant, l’appel direct à `/opt/openfoam13/etc/bashrc` retourne `141` avec le message `pop_var_context`; ce comportement provient du bashrc local et doit être distingué d’un échec du cas ou du solveur. Le runner strict le signale désormais au lieu de poursuivre avec un environnement partiellement initialisé.
