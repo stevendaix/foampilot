@@ -4,7 +4,7 @@ from __future__ import annotations
 import importlib
 import numpy as np
 
-# Compatibility aliases for older transitive dependencies such as nptyping.
+# Compatibility aliases required by older transitive dependencies such as nptyping.
 _COMPAT_ALIASES = {
     "bool8": "bool_", "object0": "object_", "int0": "int8", "uint0": "uint8",
     "float_": "float64", "longfloat": "longdouble", "singlecomplex": "complex64",
@@ -16,6 +16,7 @@ for _alias, _target in _COMPAT_ALIASES.items():
     if not hasattr(np, _alias) and hasattr(np, _target):
         setattr(np, _alias, getattr(np, _target))
 
+# Optional packages are imported only when their public symbol is requested.
 _LAZY_ATTRS = {
     "Meshing": ("foampilot.base", "Meshing"),
     "CaseBuilder": ("foampilot.base", "CaseBuilder"),

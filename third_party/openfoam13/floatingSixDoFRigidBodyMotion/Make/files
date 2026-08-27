@@ -1,0 +1,4 @@
+sixDoFRigidBodyMotion/restraints/mooringLine/mooringLine.C
+sixDoFRigidBodyMotion/restraints/mooringLine/catenaryShape/catenaryShape.C
+sixDoFRigidBodyMotion/restraints/constantLoad/constantLoad.C
+LIB = $(FOAM_USER_LIBBIN)/libfloatingSixDoFRigidBodyMotion
