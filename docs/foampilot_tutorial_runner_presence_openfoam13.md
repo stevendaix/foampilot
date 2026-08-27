@@ -235,6 +235,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `225_multiphaseEuler_injection` | Présent | Présent | Conforme OF13 | Validé — injection air/eau avec zone `water`, fractions bornées et normalisées, Courant proche de 0,249, calcul jusqu’à `End=10 s` en environ 103 s et aucun `FOAM FATAL` |
 | `226_multiphaseEuler_mixerVessel2D` | Présent | Présent | Conforme OF13 | Validé — mélangeur quatre phases avec rotor, `createBaffles`, `splitBaffles`, deux couples non conformes, calcul jusqu’à `End=5 s`, conservation de volume à la précision machine et aucun `FOAM FATAL` |
 | `227_multiphaseEuler_mixerVessel2DMRF` | Présent | Présent | Conforme OF13 | Validé — mélangeur quatre phases avec MRF `60 rpm`, calcul sériel jusqu’à `End=5 s`, fractions bornées, Courant proche de 0,376 et aucun `FOAM FATAL` |
+| `228_multiphaseEuler_pipeBend` | Présent | Présent | Conforme OF13 | Accepté avec réserve — population balance à 30 groupes, décomposition MPI à 6 domaines, fractions normalisées, Courant proche de 0,973, progression jusqu’à `Time≈1,55 s` sur `2 s` et aucun `FOAM FATAL`; reconstruction hors budget |
 
 ## Conclusion
 
