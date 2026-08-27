@@ -270,3 +270,4 @@ Pour les prochains tutoriels, le contrôle doit être relancé après chaque cr�
 | `254_incompressibleVoF_damBreakPorousBaffle` | Présent | Présent | Conforme OF13 | Validé — `blockMesh`, `setFields`, `createBaffles` (13 faces, patches `porous_half0/1`) et `foamRun` jusqu’à `Time=1 s`; Courant max≈0,194, aucun `FOAM FATAL` |
 | `255_isothermalFluid_potentialFreeSurfaceMovingOscillatingBox` | Présent | Présent | Conforme OF13 | Validé — `blockMesh`, `subsetMesh`, `foamRun` mobile jusqu’à `Time=20 s`; champs `pointDisplacement/cellDisplacement` produits, aucun `FOAM FATAL` |
 | `256_mesh_blockMesh_pipe` | Présent | Présent | Conforme OF13 | Validé — assets de courbe importés sous `constant/geometry`, `blockMesh` réussi, 2816 cellules, aucun `FOAM FATAL` |
+| `257_mesh_blockMesh_sphere` | Présent | Présent | Conforme OF13 | Validé — arcs sphériques paramétrés reproduits, blockMesh réussi, 1000 cellules, aucun `FOAM FATAL` |
