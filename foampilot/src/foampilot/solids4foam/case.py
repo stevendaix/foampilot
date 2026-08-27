@@ -562,7 +562,23 @@ pimpleFluidCoeffs
         if parallel:
             commands.extend([
                 ["decomposePar", "-allRegions"],
-                ["solids4Foam", "-parallel"],
+                [
+                    "sh", "-c",
+                    "for p in processor*; do "
+                    "mkdir -p \"$p/constant/fluid\" \"$p/constant/solid\" "
+                    "\"$p/system/fluid\" \"$p/system/solid\"; "
+                    "cp constant/physicsProperties constant/fsiProperties \"$p/constant/\"; "
+                    "cp constant/fluid/fluidProperties constant/fluid/momentumTransport \"$p/constant/fluid/\"; "
+                    "cp constant/solid/solidProperties constant/solid/mechanicalProperties \"$p/constant/solid/\"; "
+                    "cp system/controlDict system/functions \"$p/system/\"; "
+                    "cp system/fluid/fvSchemes system/fluid/fvSolution \"$p/system/fluid/\"; "
+                    "cp system/solid/fvSchemes system/solid/fvSolution \"$p/system/solid/\"; "
+                    "done",
+                ],
+                [
+                    "mpirun", "--allow-run-as-root", "--oversubscribe",
+                    "-np", "2", "solids4Foam", "-parallel",
+                ],
                 ["reconstructPar", "-allRegions"],
             ])
         else:
