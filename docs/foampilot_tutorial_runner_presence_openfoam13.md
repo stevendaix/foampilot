@@ -185,6 +185,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `174_multiRegion_CHT_heatExchanger` | Présent | Présent | Conforme OF13 | Validé — régions `air/porous`, baffles et zones rotor MRF, `foamMultiRun -parallel` à 4 domaines jusqu’à `Time=2000 s`, reconstruction des deux régions et aucun `FOAM FATAL` |
 | `176_multiRegion_CHT_misalignedDuct` | Présent | Présent | Conforme OF13 | Validé — séparation `fluid/solid`, nettoyage FoamPilot des `cellToRegion`, quatre couples non conformes, `foamMultiRun` jusqu’à `Time=20 s` et aucun `FOAM FATAL` |
 | `177_multiRegion_CHT_multiphaseCoolingCylinder2D` | Présent | Présent | Conforme OF13 | Validé — cas sériel exact avec séparation `fluid/solid`, MULES eau/huile, somme des fractions égale à 1, couplage thermique et `foamMultiRun` jusqu’à `Time=5 s` sans `FOAM FATAL` |
+| `178_multiRegion_CHT_notchedRoller` | Présent | Présent | Conforme OF13 | Validé — baffles, régions `fluid/solid/roller`, zone tournante `rotating`, couples non conformes, calcul parallèle à 4 domaines jusqu’à `Time=20 s`, reconstruction et aucun `FOAM FATAL` |
 
 ## Conclusion
 
