@@ -161,9 +161,10 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `149_isothermalFluid_potentialFreeSurfaceOscillatingBox` | Présent | Présent | Conforme OF13 | Validé — `subsetMesh -noFields`, surface libre oscillante à 1 Hz, fonction `poolHeight`, `End=20 s` et aucun `FOAM FATAL` |
 | `150_legacy_financialFoam_europeanCall` | Présent | Présent | Conforme OF13 | Validé — champ financier `V`, paramètres strike/rate/volatilité importés, `End=0,5 s`, résidus de l’ordre de `10^-18` et aucun `FOAM FATAL` |
 | `151_legacy_laplacianFoam_flange` | Présent | Présent | Conforme OF13 | Validé — conversion `flange.ans` à l’échelle 0,001, laplacien thermique jusqu’à `End=3 s`, exports Ensight/VTK et aucun `FOAM FATAL` |
+| `152_legacy_rhoPorousSimpleFoam_angledDuctExplicit` | Présent | Présent | Conforme OF13 | Validé — ressource `blockMesh/angledDuct`, 22 000 cellules, zone Darcy–Forchheimer explicite, `End=1000 s` et aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `legacy/basic/laplacianFoam/flange` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `legacy/compressible/rhoPorousSimpleFoam/angledDuctExplicit` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
