@@ -34,19 +34,16 @@ Les modifications sont conservées dans les sources vendorisées sous `third_par
 
 ## Vérifications réalisées
 
-OpenFOAM Foundation 13 est installé sous `/opt/openfoam13` et `foamVersion` retourne `OpenFOAM-13`. Le build séquentiel suivant produit `libHFDIBDEM.so` sans erreur de compilation ni d’édition de liens :
+La validation doit être exécutée avec une installation OpenFOAM Foundation 13 fournie par l’utilisateur via `FOAM_BASHRC` ou `WM_PROJECT_DIR`. Le script portable suivant construit la bibliothèque portée sans chemin machine codé en dur :
 
 ```bash
-cd third_party/openHFDIB-DEM
-. /opt/openfoam13/etc/bashrc
-rm -rf src/HFDIBDEM/lnInclude
-wmakeLnInclude src/HFDIBDEM
-wmake -j1 libso src/HFDIBDEM
+export FOAM_BASHRC=/chemin/vers/OpenFOAM-13/etc/bashrc
+./tools/build_openhfdib_of13.sh
 ```
 
-La compilation des solveurs a ensuite été lancée séparément. Elle s’arrête dès les includes de création de maillage : Foundation 13 ne fournit plus `dynamicFvMesh.H`, `createDynamicFvMesh.H` et `fvOptions.H` sous les chemins historiques utilisés par les solveurs. Le solveur `pimpleHFDIBFoam` nécessite donc un portage supplémentaire vers les mécanismes OF13 de maillage mobile, de modèles/contraintes et de transport. Le solveur `HFDIBDEMFoam` partage cette dépendance et ne doit pas être déclaré compilable tant que cette étape n’est pas réalisée.
+La bibliothèque `libHFDIBDEM.so` est le composant actuellement porté et compilable. Les solveurs doivent être considérés séparément : le premier essai historique a rencontré des API supprimées (`dynamicFvMesh.H`, `createDynamicFvMesh.H`, `fvOptions.H`). La variante statique de `HFDIBDEMFoam` a ensuite reçu un portage spécifique, tandis que `pimpleHFDIBFoam` conserve des adaptations métier non entièrement qualifiées.
 
-Cette distinction est volontaire : la bibliothèque est réellement portée et compilée, mais le portage complet des solveurs et la validation scientifique d’un cas DEM ne sont pas encore déclarés terminés.
+Cette distinction est volontaire : la bibliothèque est portée et compilable, mais la compatibilité complète des deux solveurs et la validation scientifique d’un cas DEM ne sont pas déclarées terminées sans une relance dans un environnement Foundation 13 propre.
 
 ## Utilisation Foampilot
 
@@ -71,31 +68,31 @@ La commande produit `system/foampilotMultiphysics.json` pour l’audit et `syste
 
 ## État du portage des solveurs après modification directe
 
-La variante `HFDIBDEMFoam` à maillage fixe a été modifiée directement puis compilée avec succès sous OpenFOAM Foundation 13. L’exécutable produit est `HFDIBDEMFoam` dans `$FOAM_USER_APPBIN`. Le portage remplace `dynamicFvMesh` par `fvMesh`, crée `fvModels` et `fvConstraints`, supprime les mises à jour de maillage et conserve un refus explicite de toute configuration `dynamicRefineFvMesh`.
+Lors d’une validation précédente, la variante `HFDIBDEMFoam` à maillage fixe a été modifiée directement puis compilée avec succès sous OpenFOAM Foundation 13. L’exécutable produit était `HFDIBDEMFoam` dans `$FOAM_USER_APPBIN`; cette validation doit être reproduite avec l’environnement portable documenté. Le portage remplace `dynamicFvMesh` par `fvMesh`, crée `fvModels` et `fvConstraints`, supprime les mises à jour de maillage et conserve un refus explicite de toute configuration `dynamicRefineFvMesh`.
 
 Le portage statique de `pimpleHFDIBFoam` est engagé mais n’est pas encore compilable. Les erreurs restantes ne sont plus des includes omnibus : elles concernent notamment la collision de nom entre l’ancien `physicalProperties` DEM et la classe Foundation 13, `setRefCell`, `setFluxRequired`, `moveMeshOuterCorrectors`, les méthodes MRF supprimées (`correctBoundaryVelocity`, `zeroFilter`), `constrainHbyA`, `constrainPressure` et la variable `laminarTransport`. Ces éléments nécessitent une adaptation métier et ne doivent pas être remplacés par des aliases aveugles.
 
-Les journaux de compilation associés doivent être conservés avec la PR. La commande reproductible pour le solveur DEM est :
+Les journaux de compilation associés doivent être conservés avec la PR. La commande reproductible pour le solveur DEM, lorsque l’environnement Foundation 13 et les dépendances du cas sont disponibles, est :
 
 ```bash
+export FOAM_BASHRC=/chemin/vers/OpenFOAM-13/etc/bashrc
 cd third_party/openHFDIB-DEM/applications/solvers/pureDEM/HFDIBDEMFoam
-. /opt/openfoam13/etc/bashrc
 wclean
 wmake -j1
 ```
 
 ## Validation runtime OF13
 
-Le cas `examples/01_LIGGGHTSVerificationTests/test01_normalForceTest/openHFDIB-DEM/RestituionCoeff-0.06` a été copié dans `validation/normalForce_OF13`. Après génération du maillage par `blockMesh`, le solveur `HFDIBDEMFoam` a initialisé les champs, lu les propriétés de fluide, créé les deux corps sphériques et exécuté dix pas temporels de `0.0001` à `0.001` s sans erreur fatale. Le journal contient les séquences `Time = ...`, `updated HFDIBDEM` et `ExecutionTime = ...` pour chaque pas.
+Lors d’une validation précédente, le cas `examples/01_LIGGGHTSVerificationTests/test01_normalForceTest/openHFDIB-DEM/RestituionCoeff-0.06` a été copié dans `validation/normalForce_OF13`. Après génération du maillage par `blockMesh`, le solveur `HFDIBDEMFoam` a initialisé les champs, lu les propriétés de fluide, créé les deux corps sphériques et exécuté cinquante pas temporels de `0.0001` à `0.005` s sans erreur fatale. Le journal contenait les séquences `Time = ...`, `updated HFDIBDEM` et `ExecutionTime = ...`; cette exécution doit être reproduite dans un environnement Foundation 13 disponible.
 
-Le portage de `pimpleHFDIBFoam` compile également après migration de `viscosityModel`, `incompressibleMomentumTransportModels`, `fvModels`, `fvConstraints`, `constrainHbyA`, `constrainPressure`, `findRefCell` et des interfaces MRF Foundation 13. La variante livrée est statique : les mécanismes de mouvement et de raffinement topologique ne sont pas activés. Une implémentation dynamique devra être validée séparément avec `fvMeshMovers` ou `fvMeshTopoChangers` avant d’être exposée comme fonctionnalité par défaut.
+Le portage de `pimpleHFDIBFoam` reste à qualifier après migration de `viscosityModel`, `incompressibleMomentumTransportModels`, `fvModels`, `fvConstraints`, `constrainHbyA`, `constrainPressure`, `findRefCell` et des interfaces MRF Foundation 13. La variante visée est statique : les mécanismes de mouvement et de raffinement topologique ne doivent pas être exposés comme fonctionnels tant qu’une compilation et un cas runtime dédiés ne sont pas reproduits.
 
 ## Suite de validation approfondie
 
 Une suite reproductible est fournie par `run_deep_validation.py`. Elle vérifie les tests unitaires Foampilot, la génération du manifeste pour la combinaison openHFDIB-DEM/libAcoustics, la validité JSON, le parsing du dictionnaire Foundation 13, la présence de la bibliothèque HFDIBDEM, `-help` pour les deux solveurs, `checkMesh`, la configuration `staticFvMesh` et l’exécution d’un cas DEM prolongé.
 
-Le résultat final est de **14 contrôles réussis sur 14 contrôles applicables**, avec 150 marqueurs `Time =` et 50 mises à jour `updated HFDIBDEM` dans le cas DEM prolongé. Le cas comprend deux corps sphériques, un maillage régulier de 7875 cellules et une exécution de `0.0001` à `0.005` s.
+Le rapport historique de validation indiquait **14 contrôles réussis sur 14 contrôles applicables**, avec 150 marqueurs `Time =` et 50 mises à jour `updated HFDIBDEM` dans le cas DEM prolongé. Ce résultat doit être considéré comme une référence à reproduire, et non comme un contrôle exécuté dans le checkout courant tant qu’une installation Foundation 13 n’est pas disponible.
 
-La combinaison de profils `openhfdib_dem` et `libacoustics` est acceptée par Foampilot et son manifeste est valide. Cette validation est une validation de contrat et de génération, pas une validation de la bibliothèque acoustique elle-même : le clone `libAcoustics` fourni contient la documentation et les figures mais aucun fichier source `.C`/`.H`, `Allwmake` ou `Makefile` compilable. Il ne peut donc pas produire de bibliothèque acoustique dans cet environnement.
+La combinaison de profils `openhfdib_dem` et `libacoustics` est acceptée par Foampilot et son manifeste est valide. Cette validation reste une validation de contrat et de génération, pas une validation de la bibliothèque acoustique elle-même : le clone `libAcoustics` contient bien des sources `.C`/`.H` sous ses sous-arbres, mais aucun orchestrateur de build Foundation 13 directement exécutable n’a été identifié dans la PR. La production de `libAcoustics.so` doit donc rester une étape séparée et explicitement qualifiée.
 
 De même, la tentative de build direct de `sediFoam/lammpsFoam` échoue avant compilation, car le répertoire racine ne contient pas `Make/options`. Le module nécessite son orchestration de build dédiée ainsi que l’interface LAMMPS ; cette suite ne prétend donc pas valider un backend sediFoam compilé. Le résultat est classé comme **limitation d’artefact upstream**, et non comme échec du solveur openHFDIB-DEM.
