@@ -2,7 +2,7 @@ from pathlib import Path
 import logging
 import subprocess
 import shutil
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
@@ -220,13 +220,29 @@ class BaseSolver:
             target.unlink()
 
     # ---------- Running simulation ----------
-    def run_command(self, cmd: List[str], log_filename: str) -> None:
+    def run_command(
+        self,
+        cmd: List[str],
+        log_filename: str,
+        environment: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """Run a case command with an optional FoamPilot-managed environment.
+
+        ``environment`` is merged over the parent process environment.  This
+        lets OF13 runners provide ``PATH``, ``LD_LIBRARY_PATH`` and related
+        OpenFOAM variables explicitly, without relying on an interactive shell
+        having sourced a particular ``bashrc``.
+        """
         log_path = self.case_path / log_filename
         logger.info("Running command: %s -> log: %s", " ".join(cmd), log_path)
+        process_environment = os.environ.copy()
+        if environment:
+            process_environment.update(environment)
         with open(log_path, "w", encoding="utf-8") as log_file:
             subprocess.run(
                 cmd,
                 cwd=self.case_path,
+                env=process_environment,
                 text=True,
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
