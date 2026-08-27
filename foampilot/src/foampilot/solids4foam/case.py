@@ -61,11 +61,11 @@ class Solids4FoamCase:
     relaxation_factor: float = 0.1
     outer_corr_tolerance: float = 1.0e-6
     n_outer_corr: int = 50
-    predictor: bool = True
+    predictor: bool = False
     interface_transfer_method: str = "directMap"
     fluid_solver: str = "pimpleFluid"
-    solid_model: str = "nonLinearGeometryTotalLagrangianTotalDisplacement"
-    solution_algorithm: str = "PETScSNES"
+    solid_model: str = "linearGeometryTotalDisplacement"
+    solution_algorithm: str = "implicitSegregated"
     inlet_velocity: tuple[float, float, float] = (0.0, 0.0, 0.0)
     fluid_properties: str | None = None
 
@@ -141,8 +141,216 @@ solidModel     {self.solid_model};
 }}
 """
 
+    def decompose_par_dict(self) -> str:
+        return """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      decomposeParDict;
+}
+numberOfSubdomains 2;
+method          scotch;
+"""
+
+    def control_dict(self) -> str:
+        return """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+application     solids4Foam;
+regionSolvers
+{
+    fluid           solids4Foam;
+    solid           solids4Foam;
+}
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         1;
+deltaT          0.001;
+writeControl    timeStep;
+writeInterval   100;
+purgeWrite      0;
+writeFormat     ascii;
+writePrecision  8;
+writeCompression off;
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable yes;
+"""
+
+    def foundation13_physical_properties(self) -> str:
+        m = self.material
+        plane_stress = "yes" if m.plane_stress else "no"
+        return f"""FoamFile
+{{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      physicalProperties;
+}}
+
+rho
+{{
+    type        uniform;
+    value       {m.density:.16g};
+}}
+nu
+{{
+    type        uniform;
+    value       {m.poisson_ratio:.16g};
+}}
+E
+{{
+    type        uniform;
+    value       {m.young_modulus:.16g};
+}}
+Cv
+{{
+    type        uniform;
+    value       0;
+}}
+kappa
+{{
+    type        uniform;
+    value       0;
+}}
+alphav
+{{
+    type        uniform;
+    value       0;
+}}
+planeStress     {plane_stress};
+thermalStress   no;
+"""
+
+    def gravity(self) -> str:
+        return """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       uniformDimensionedVectorField;
+    object      g;
+}
+dimensions      [0 1 -2 0 0 0 0];
+value           (0 0 0);
+"""
+
+    def fluid_momentum_transport(self) -> str:
+        return """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      momentumTransport;
+}
+simulationType laminar;
+laminar
+{
+    model Stokes;
+}
+"""
+
+    def fluid_fv_schemes(self) -> str:
+        return """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+d2dt2Schemes { default backward; }
+ddtSchemes { default backward; }
+gradSchemes { default leastSquares; }
+    divSchemes { default Gauss linear; }
+laplacianSchemes
+{
+    default Gauss linear corrected;
+    laplacian(interpolate(nuEff),U) Gauss linear corrected;
+}
+snGradSchemes { default corrected; }
+interpolationSchemes { default linear; }
+fluxRequired { default no; p; }
+"""
+    def solid_fv_schemes(self) -> str:
+        return """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+d2dt2Schemes { default Euler; }
+ddtSchemes { default backward; }
+gradSchemes { default leastSquares; }
+divSchemes { default Gauss linear; }
+laplacianSchemes { default Gauss linear corrected; }
+snGradSchemes { default corrected; }
+interpolationSchemes { default linear; }
+"""
+
+    def fluid_fv_solution(self) -> str:
+        return """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+solvers
+{
+    p
+    {
+        solver GAMG;
+        tolerance 1e-8;
+        relTol 0;
+    }
+    U
+    {
+        solver smoothSolver;
+        smoother symGaussSeidel;
+        tolerance 1e-8;
+        relTol 0;
+    }
+}
+PIMPLE
+{
+    momentumPredictor yes;
+    nOuterCorrectors 1;
+    nCorrectors 2;
+    nNonOrthogonalCorrectors 0;
+    pRefCell 0;
+    pRefValue 0;
+}
+"""
+
+    def solid_fv_solution(self) -> str:
+        return """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+solvers
+{
+    D
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-8;
+        relTol          0.01;
+    }
+}
+"""
+
     def mechanical_properties(self) -> str:
         m = self.material
+        plane_stress = "yes" if m.plane_stress else "no"
         return f"""FoamFile
 {{
     version     2.0;
@@ -151,7 +359,7 @@ solidModel     {self.solid_model};
     object      mechanicalProperties;
 }}
 
-planeStress {{'yes' if m.plane_stress else 'no'}};
+planeStress {plane_stress};
 mechanical
 (
     {m.name}
@@ -195,15 +403,43 @@ mechanical
         (constant / "solid").mkdir(parents=True, exist_ok=True)
         (constant / "fluid").mkdir(parents=True, exist_ok=True)
         system.mkdir(parents=True, exist_ok=True)
+        (system / "fluid").mkdir(parents=True, exist_ok=True)
+        (system / "solid").mkdir(parents=True, exist_ok=True)
         files = {
+            system / "controlDict": self.control_dict(),
+            system / "decomposeParDict": self.decompose_par_dict(),
             constant / "physicsProperties": self.physics_properties(),
             constant / "fsiProperties": self.fsi_properties(),
             constant / "solid" / "solidProperties": self.solid_properties(),
             constant / "solid" / "mechanicalProperties": self.mechanical_properties(),
+            constant / "solid" / "physicalProperties": self.foundation13_physical_properties(),
+            constant / "solid" / "g": self.gravity(),
+            constant / "fluid" / "momentumTransport": self.fluid_momentum_transport(),
+            system / "fluid" / "fvSchemes": self.fluid_fv_schemes(),
+            system / "fluid" / "fvSolution": self.fluid_fv_solution(),
+            system / "solid" / "fvSchemes": self.solid_fv_schemes(),
+            system / "solid" / "fvSolution": self.solid_fv_solution(),
             system / "functions": self.functions(),
         }
-        if self.fluid_properties is not None:
-            files[constant / "fluid" / "fluidProperties"] = self.fluid_properties.rstrip() + "\n"
+        fluid_properties = self.fluid_properties
+        if fluid_properties is None:
+            fluid_properties = """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fluidProperties;
+}
+
+rho 1000;
+nu 1e-6;
+fluidModel pimpleFluid;
+pimpleFluidCoeffs
+{
+    ddtCorr true;
+}
+"""
+        files[constant / "fluid" / "fluidProperties"] = fluid_properties.rstrip() + "\n"
         for path, content in files.items():
             path.write_text(content, encoding="utf-8")
         return {str(path.relative_to(self.case_path)): path for path in files}
@@ -325,11 +561,9 @@ mechanical
         ]
         if parallel:
             commands.extend([
-                ["decomposePar", "-region", "fluid"],
-                ["decomposePar", "-region", "solid"],
+                ["decomposePar", "-allRegions"],
                 ["solids4Foam", "-parallel"],
-                ["reconstructPar", "-region", "fluid"],
-                ["reconstructPar", "-region", "solid"],
+                ["reconstructPar", "-allRegions"],
             ])
         else:
             commands.append(["solids4Foam"])

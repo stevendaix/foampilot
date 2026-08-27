@@ -1,0 +1,15 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fluidProperties;
+}
+
+rho 1000;
+nu 1e-6;
+fluidModel pimpleFluid;
+pimpleFluidCoeffs
+{
+    ddtCorr true;
+}
