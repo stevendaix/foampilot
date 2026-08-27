@@ -188,6 +188,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `178_multiRegion_CHT_notchedRoller` | Présent | Présent | Conforme OF13 | Validé — baffles, régions `fluid/solid/roller`, zone tournante `rotating`, couples non conformes, calcul parallèle à 4 domaines jusqu’à `Time=20 s`, reconstruction et aucun `FOAM FATAL` |
 | `179_multiRegion_CHT_reverseBurner` | Présent | Présent | Conforme OF13 | Accepté avec réserve — régions `gas/solid`, initialisation parallèle N2/O2/CH4, chimie multicomposant et produits H2O/CO2 résolus jusqu’à `Time≈0,73 s` sur `6 s` au plafond de 300 s, aucun `FOAM FATAL` observé |
 | `180_multiRegion_CHT_shellAndTubeHeatExchanger` | Présent | Présent | Conforme OF13 | Accepté avec réserve — import des cinq STL, maillage initial snappy sur 8 domaines et lecture des régions prévues; le premier `snappyHexMesh` est interrompu par SIGKILL au plafond de ressources avant les couches et le solveur, aucun `FOAM FATAL` observé |
+| `181_multiRegion_CHT_wallBoiling` | Présent | Présent | Conforme OF13 | Accepté avec réserve — extrusion et séparation `fluid/solid`, phases `gas/liquid`, modèles `heatTransferLimitedPhaseChange` et `wallBoiling` actifs jusqu’à `Time≈1,93 s` sur `8 s` au plafond de 300 s, aucun `FOAM FATAL` observé |
 
 ## Conclusion
 
