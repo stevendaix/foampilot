@@ -196,6 +196,15 @@ class BaseSolver:
             shutil.copy2(source, target)
         return target
 
+    def write_text_asset(self, destination: str | Path, content: str) -> Path:
+        """Write a FoamPilot-managed generated text asset into the case."""
+        target = Path(destination)
+        if not target.is_absolute():
+            target = self.case_path / target
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        return target
+
     # ---------- Running simulation ----------
     def run_command(self, cmd: List[str], log_filename: str) -> None:
         log_path = self.case_path / log_filename

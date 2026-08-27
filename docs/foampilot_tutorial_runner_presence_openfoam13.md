@@ -181,6 +181,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `170_multiRegion_CHT_circuitBoardCooling` | Présent | Présent | Conforme OF13 | Validé — pipeline `blockMesh/createZones/extrudeToRegionMesh/createBaffles` avec `wallPatchFields`, régions `fluid/baffle3D`, `foamMultiRun` jusqu’à `Time=5000 s` et aucun `FOAM FATAL` |
 | `171_multiRegion_CHT_coolingCylinder2D` | Présent | Présent | Conforme OF13 | Validé — régions `fluid/solid`, séparation `splitMeshRegions -cellZones`, `foamMultiRun` jusqu’à `Time=20 s` et aucun `FOAM FATAL` |
 | `172_multiRegion_CHT_coolingSphere` | Présent | Présent | Conforme OF13 | Validé — le chemin #171 `coolingSphere/templates` est traité via son parent exécutable, avec `foamSetupCHT`, quatre domaines, calcul parallèle jusqu’à `Time=1 s`, reconstruction multi-régions et aucun `FOAM FATAL` |
+| `173_multiRegion_CHT_engine2Valve2D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — cinq régions solides, 24 maillages fluides temporels, couples non conformes et `foamMultiRun -parallel`; progression stable jusqu’à `CAD≈279,9` au plafond de 300 s, aucun `FOAM FATAL` observé |
 
 ## Conclusion
 

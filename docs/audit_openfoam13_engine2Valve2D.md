@@ -1,0 +1,11 @@
+# Audit OF13 — multiRegion/CHT/engine2Valve2D
+
+La référence `/opt/openfoam13/tutorials/multiRegion/CHT/engine2Valve2D` est un cas multi-région et multi-maillage particulièrement complexe. Son `Allrun` appelle `Allmesh`, qui génère les régions solides `liner`, `cylinderHead`, `piston`, `exhaustValve` et `intakeValve`, puis une série de maillages fluides aux temps cinématiques `0, 100, 120, 140, 180, 200, 220, 300, 340, 345, 350, 360, 370, 380, 390, 410, 440, 460, 520, 550, 580, 600, 610, 620`. Chaque maillage fluide assemble le cylindre, les valves, les baffles, les transformations et les couples non conformes.
+
+Le runner `173_multiRegion_CHT_engine2Valve2D/run.py` transpose explicitement ces opérations en appels FoamPilot : import des dictionnaires `.orig` vers leurs noms de travail, `foamDictionary`, `blockMesh`, `mirrorMesh`, `transformPoints`, `mergeMeshes`, `createBaffles`, `splitBaffles`, `createNonConformalCouples`, génération de `constant/fluid/meshTimes`, décomposition de toutes les régions et de chaque maillage temporel fluide, `foamMultiRun -parallel` et reconstruction. Aucun script `Allmesh` ou appel shell direct n’est utilisé dans le runner.
+
+Trois points ont été corrigés pendant la validation : l’opération de renommage des patches utilise `foamDictionary -rename` et non `-set`; `meshTimes` doit contenir uniquement les scalaires car `dynamicMeshDict` fournit déjà les parenthèses; enfin le maillage temporel `0` doit être distinct du maillage initial, conformément à la référence, qui crée à la fois le maillage de base et `constant/meshes/0`.
+
+Une extension générique `BaseSolver.write_text_asset(destination, content)` a été ajoutée pour permettre aux runners de créer proprement des petits actifs texte générés, comme `meshTimes`, via l’objet FoamPilot. Cette API est documentée dans la matrice.
+
+La validation OF13 réussit la génération des maillages et des couples non conformes, puis démarre `foamMultiRun` avec `meshToMesh` et les solveurs des régions fluide/solides. Elle progresse jusqu’à environ `CAD=279,9` en 300 secondes, avec résidus et couplages stables, sans `FOAM FATAL`; le calcul n’atteint pas le cycle complet `End=1440` dans le plafond. Statut : accepté avec réserve pour coût de calcul, mais pipeline FoamPilot et démarrage physique validés.
