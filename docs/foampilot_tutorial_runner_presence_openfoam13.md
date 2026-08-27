@@ -183,6 +183,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `172_multiRegion_CHT_coolingSphere` | Présent | Présent | Conforme OF13 | Validé — le chemin #171 `coolingSphere/templates` est traité via son parent exécutable, avec `foamSetupCHT`, quatre domaines, calcul parallèle jusqu’à `Time=1 s`, reconstruction multi-régions et aucun `FOAM FATAL` |
 | `173_multiRegion_CHT_engine2Valve2D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — cinq régions solides, 24 maillages fluides temporels, couples non conformes et `foamMultiRun -parallel`; progression stable jusqu’à `CAD≈279,9` au plafond de 300 s, aucun `FOAM FATAL` observé |
 | `174_multiRegion_CHT_heatExchanger` | Présent | Présent | Conforme OF13 | Validé — régions `air/porous`, baffles et zones rotor MRF, `foamMultiRun -parallel` à 4 domaines jusqu’à `Time=2000 s`, reconstruction des deux régions et aucun `FOAM FATAL` |
+| `176_multiRegion_CHT_misalignedDuct` | Présent | Présent | Conforme OF13 | Validé — séparation `fluid/solid`, nettoyage FoamPilot des `cellToRegion`, quatre couples non conformes, `foamMultiRun` jusqu’à `Time=20 s` et aucun `FOAM FATAL` |
 
 ## Conclusion
 

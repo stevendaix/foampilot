@@ -205,6 +205,20 @@ class BaseSolver:
         target.write_text(content, encoding="utf-8")
         return target
 
+    def remove_case_asset(self, destination: str | Path) -> None:
+        """Remove a FoamPilot-managed file or directory inside the case."""
+        target = Path(destination)
+        if not target.is_absolute():
+            target = self.case_path / target
+        try:
+            target.relative_to(self.case_path)
+        except ValueError as exc:
+            raise ValueError("Case asset must be inside the FoamPilot case") from exc
+        if target.is_dir():
+            shutil.rmtree(target)
+        elif target.exists():
+            target.unlink()
+
     # ---------- Running simulation ----------
     def run_command(self, cmd: List[str], log_filename: str) -> None:
         log_path = self.case_path / log_filename
