@@ -2,6 +2,18 @@
 
 > Règle de traitement : les cas sont traités strictement un par un. Un cas n’est marqué « validé » qu’après reproduction de sa mise en données avec des appels Foampilot uniquement, exécution avec OpenFOAM 13 et vérification des fichiers générés et des résultats.
 
+## Mise à jour au 27 août 2026
+
+La matrice comprend désormais **263 entrées de suivi**, dont **181 statuts « Validé »** selon le comptage des lignes de la matrice, et les intégrations récentes #253 à #263 sont présentes. Le registre d’évolution associé contient **41 modifications API documentées, de API-001 à API-041**. Les derniers cas validés sont `incompressibleVoF/damBreakFine`, `incompressibleVoF/damBreakPorousBaffle`, `isothermalFluid/potentialFreeSurfaceMovingOscillatingBox`, les cas de maillage `blockMesh`, `refineMesh`, `snappyHexMesh` et `spiralPipe`. Les fonctions ajoutées ou étendues sont détaillées dans [`docs/foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md); les lignes de la colonne « Fonctions Foampilot ajoutées » indiquent leur utilisation par tutoriel.
+
+| Élément de contrôle | État |
+|---|---|
+| Branche | `feat/openfoam13-tutorial-integration` |
+| Dernier commit synchronisé | `36aae7c` — `feat: integrate OF13 spiralPipe tutorial and gzip assets` |
+| Pull request | [#31](https://github.com/stevendaix/foampilot/pull/31), ouverte |
+| Registre API | API-001 → API-041 |
+| Rapport de présence des runners | Synchronisé avec la matrice |
+
 | Ordre | Famille | Tutoriel OpenFOAM 13 | Chemin source | Équivalent Foampilot | Statut | Fonctions Foampilot ajoutées | Preuves / remarques |
 |---:|---|---|---|---|---|---|---|
 | 1 | `incompressibleFluid` | `cavity` | `/opt/openfoam13/tutorials/incompressibleFluid/cavity` | `01_cavity_laminar` | Validé | `Meshing`, `BlockMesher.write`, `BlockMesher.run`, `Solver.setup_case`, `Boundary.set_raw_condition`, `Solver.run_simulation` | Maillage 20x20x1, cavité 0,1 m x 0,1 m x 0,01 m, movingWall à 1 m/s, calcul jusqu’à t=1 s sans erreur fatale. |
