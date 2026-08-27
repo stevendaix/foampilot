@@ -1,9 +1,13 @@
 #!/bin/sh
 set -eu
 cd "${0%/*}" || exit 1
-: "${WM_PROJECT_DIR:?source OpenFOAM Foundation 13 first}"
+# shellcheck disable=SC1091
+. ../../marine_env.sh
 : "${FOAM_TUTORIALS:?Foundation 13 tutorials are required for propeller geometry}"
 . "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+marine_require_command blockMesh
+marine_require_command snappyHexMesh
+marine_require_command createNonConformalCouples
 mkdir -p constant/geometry
 set -- "$FOAM_TUTORIALS"/resources/geometry/propeller*.obj.gz
 if [ ! -e "$1" ]; then

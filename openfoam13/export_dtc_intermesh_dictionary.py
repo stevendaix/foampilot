@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-source = Path('/home/ubuntu/foampilot-audit/openfoam13/DTCMoving_Overset_Foundation13/marineInterMeshStencils.json')
+source = Path(__file__).resolve().parent / 'DTCMoving_Overset_Foundation13' / 'marineInterMeshStencils.json'
 output = source.parent / 'background' / 'constant' / 'marineInterMeshStencils'
 data = json.loads(source.read_text(encoding='utf-8'))
 rows = data['stencils']

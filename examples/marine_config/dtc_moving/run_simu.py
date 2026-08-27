@@ -8,6 +8,7 @@ sans le copier, en utilisant les fonctions générales de foampilot.
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -24,8 +25,19 @@ from foampilot.system.controlDictFile import ControlDictFile
 from foampilot.system.decomposeParDictFile import DecomposeParDictFile
 
 CASE_ROOT = Path(__file__).parent.resolve()
-MESH_SOURCE = Path("/home/steven/foampilot/openfoam13-marine-smoke/DTCHull")
-REFERENCE_CASE = Path("/home/steven/foampilot/openfoam13-marine-smoke/DTCHullMoving")
+REPO_ROOT = Path(__file__).resolve().parents[3]
+MESH_SOURCE = Path(
+    os.environ.get(
+        "FOAMPILOT_DTC_MESH_SOURCE",
+        str(REPO_ROOT / "openfoam13" / "DTCMoving_Overset_Foundation13" / "hull"),
+    )
+)
+REFERENCE_CASE = Path(
+    os.environ.get(
+        "FOAMPILOT_DTC_REFERENCE_CASE",
+        str(REPO_ROOT / "openfoam13" / "DTCMoving_Overset_Foundation13" / "hull"),
+    )
+)
 
 
 def parse_arguments() -> argparse.Namespace:

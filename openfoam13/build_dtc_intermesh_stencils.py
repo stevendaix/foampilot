@@ -77,7 +77,7 @@ def build_mapping(background: np.ndarray, hull: np.ndarray, n_donors: int = 4):
 
 
 if __name__ == "__main__":
-    root = Path("/home/ubuntu/foampilot-audit/openfoam13/DTCMoving_Overset_Foundation13")
+    root = Path(__file__).resolve().parent / "DTCMoving_Overset_Foundation13"
     background = read_centres(root / "background")
     hull = read_centres(root / "hull")
     rows = build_mapping(background, hull)

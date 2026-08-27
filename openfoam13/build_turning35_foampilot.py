@@ -386,7 +386,7 @@ convergence en temps et en maillage.
 ## Reproduction
 
 ```sh
-source /opt/openfoam13/etc/bashrc
+source ../../marine_env.sh
 python3 ../../build_turning35_foampilot.py
 ./Allmesh.FoamPilot
 ./Allrun

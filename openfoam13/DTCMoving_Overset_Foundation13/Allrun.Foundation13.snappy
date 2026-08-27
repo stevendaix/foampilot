@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 set +u
-source /opt/openfoam13/etc/bashrc
+# shellcheck disable=SC1091
+source "$ROOT/../marine_env.sh"
 set -euo pipefail
 BACKGROUND="$ROOT/background"
 HULL="$ROOT/hull"

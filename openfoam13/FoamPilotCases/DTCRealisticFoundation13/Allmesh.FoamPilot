@@ -1,8 +1,11 @@
 #!/bin/sh
 set -eu
 cd "${0%/*}" || exit 1
-: "${WM_PROJECT_DIR:?source OpenFOAM Foundation 13 first}"
+# shellcheck disable=SC1091
+. ../../marine_env.sh
 . "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+marine_require_command blockMesh
+marine_require_command snappyHexMesh
 
 # The scaled DTC STL is versioned with this case; no external tutorial path is needed.
 test -f constant/geometry/DTC-scaled.stl.gz

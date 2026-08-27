@@ -1,7 +1,12 @@
 #!/bin/sh
 set -eu
 cd "${0%/*}" || exit 1
-: "${WM_PROJECT_DIR:?source OpenFOAM Foundation 13 first}"
+# shellcheck disable=SC1091
+. ../../marine_env.sh
+marine_require_command blockMesh
+marine_require_command marineOversetMatrixTest
+marine_require_command marineInterMeshStencilTest
+marine_require_command marineInterMeshCouplingTest
 
 rm -rf constant/region0 constant/background system/background
 mkdir -p system/background

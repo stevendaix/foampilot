@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import os
 import re
 import shutil
 from pathlib import Path
@@ -14,7 +15,10 @@ from foampilot.mesh.marine_motion import write_six_dof_dynamic_mesh_dict
 from foampilot.solver.marine_case import MarineCaseConfig
 from foampilot.tutorials.openfoam13 import validate_generated_case
 
-SOURCE = Path("/opt/openfoam13/tutorials/incompressibleVoF/DTCHullWave")
+_foam_tutorials = os.environ.get("FOAM_TUTORIALS")
+if not _foam_tutorials:
+    raise SystemExit("FOAM_TUTORIALS must point to the Foundation 13 tutorials")
+SOURCE = Path(_foam_tutorials) / "incompressibleVoF" / "DTCHullWave"
 TARGET = ROOT / "FoamPilotCases" / "DTCRealisticFoundation13"
 
 if TARGET.exists():
