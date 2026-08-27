@@ -83,3 +83,7 @@ Ajout d’un registre déclaratif de définitions OpenFOAM brutes dans `BlockMes
 Tutoriel concerné: `05_scalarTransport`; validation OF13: maillage pitzDaily généré par FoamPilot, champs `U`, `p`, `T`, `k`, `epsilon`, `nut` générés et conditions turbulence valides, calcul `functions` lancé sans `FOAM FATAL` jusqu’à la fin du cas.
 ### Statut de réécriture
 `05_scalarTransport` rejoint les réécritures complètes validées: aucun `import_reference_case`, `import_reference_field`, `copy_reference_fields` ou ressource de maillage de référence n’est utilisé dans son runner.
+
+### API-046 — `SnappyMesher.add_searchable_box` et raffinement volumique scalaire
+Ajout d’une primitive générique `add_searchable_box(name, minimum, maximum)` pour déclarer une géométrie `searchableBox` directement dans `snappyHexMeshDict`. Extension de `add_refinement_region` et de son writer pour accepter soit une paire `levels (min max)`, soit un niveau scalaire `level n`, conformément aux deux syntaxes OF13. Cette évolution remplace l’import d’un `snappyHexMeshDict` complet dans les cas d’aérodynamique urbaine.
+Tutoriel concerné: `06_buildingAero`; validation OF13: background mesh, extraction de features, `snappyHexMesh`, propriétés, champs `U/p/k/epsilon/nut` et calcul incompressible jusqu’à `Time=500 s` puis `End`, sans `FOAM FATAL`.

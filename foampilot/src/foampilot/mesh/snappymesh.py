@@ -166,6 +166,15 @@ class SnappyMesher:
             "file": stl_file.name,
             "regions": {}
         }
+
+    def add_searchable_box(self, name, minimum, maximum):
+        """Add a declarative ``searchableBox`` geometry to snappyHexMesh."""
+        self.geometry[name] = {
+            "type": "searchableBox",
+            "name": name,
+            "min": tuple(minimum),
+            "max": tuple(maximum),
+        }
     # ----------------------
     # SurfaceFeaturesDict
     # ----------------------
@@ -265,7 +274,7 @@ class SnappyMesher:
         """
         self.castellatedMeshControls["refinementRegions"][name] = {
             "mode": mode,
-            "levels": levels
+            "levels": levels,
         }
 
     def add_layer(self, surface, n_surface_layers):
@@ -418,15 +427,21 @@ class SnappyMesher:
 
         # Geometry
         for name, geo in self.geometry.items():
-            stl_file = geo["file"] if "file" in geo else f"{name}.stl"
-            lines += [
-                f'    "{stl_file}"',
-                "    {",
-                f'        type {geo.get("type", "triSurfaceMesh")};',
-                f'        file "{stl_file}";',
-                f'        name {geo.get("name", name)};',
-                "    }"
-            ]
+            if geo.get("type") == "searchableBox":
+                minimum = " ".join(map(str, geo["min"]))
+                maximum = " ".join(map(str, geo["max"]))
+                lines += [
+                    f"    {name}", "    {", "        type searchableBox;",
+                    f"        min ({minimum});", f"        max ({maximum});", "    }",
+                ]
+            else:
+                stl_file = geo["file"] if "file" in geo else f"{name}.stl"
+                lines += [
+                    f'    "{stl_file}"', "    {",
+                    f'        type {geo.get("type", "triSurfaceMesh")};',
+                    f'        file "{stl_file}";',
+                    f'        name {geo.get("name", name)};', "    }",
+                ]
         lines.append("};\n")
 
         # CastellatedMeshControls
@@ -456,7 +471,12 @@ class SnappyMesher:
         lines.append("    refinementRegions")
         lines.append("    {")
         for reg, val in cm.get("refinementRegions", {}).items():
-            lines.append(f"        {reg} {{ mode {val['mode']}; levels ({val['levels'][0]} {val['levels'][1]}); }}")
+            levels = val["levels"]
+            if isinstance(levels, (tuple, list)):
+                level_entry = f"levels ({levels[0]} {levels[1]});"
+            else:
+                level_entry = f"level {levels};"
+            lines.append(f"        {reg} {{ mode {val['mode']}; {level_entry} }}")
         lines.append("    }")
         # Extra parameters
         lines.append("    allowFreeStandingZoneFaces true;")
