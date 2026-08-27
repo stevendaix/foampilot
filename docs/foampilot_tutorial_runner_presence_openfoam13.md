@@ -243,6 +243,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `233_multiphaseEuler_wallBoilingPolydisperse` | Présent | Présent | Conforme OF13 | Accepté avec réserve — ébullition pariétale polydisperse à quatre groupes, 4 domaines MPI, fractions normalisées, températures `341–362 K`, progression jusqu’à `Time≈2,74 s` sur `4 s`, aucun `FOAM FATAL`; reconstruction hors budget |
 | `234_multiphaseEuler_wallBoilingPolydisperseTwoGroups` | Présent | Présent | Conforme OF13 | Accepté avec réserve — ébullition pariétale avec populations `gas/gas2`, 4 domaines MPI, fractions presque normalisées, températures `341–362 K`, progression jusqu’à `Time≈2,14 s` sur `4 s`, aucun `FOAM FATAL`; reconstruction hors budget |
 | `235_potentialFoam_cylinder` | Présent | Présent | Conforme OF13 | Validé — écoulement potentiel autour d’un cylindre, import `U.orig/p.orig`, `potentialFoam` avec `phi/p`, puis `streamFunction` produit sans avertissement fonctionnel ni `FOAM FATAL` |
+| `236_potentialFoam_pitzDaily` | Présent | Présent | Conforme OF13 | Validé — maillage partagé `pitzDaily`, import `U.orig/p.orig`, `potentialFoam -writePhi -writep`, puis `streamFunction` produit; erreurs de continuité/vitesse faibles et aucun `FOAM FATAL` |
 
 ## Conclusion
 
