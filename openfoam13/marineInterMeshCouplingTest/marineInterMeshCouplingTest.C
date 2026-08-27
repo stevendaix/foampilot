@@ -69,20 +69,19 @@ int main(int argc, char* argv[])
     MarineInterMeshMatrix operator_(state);
     operator_.applyScalar(equation, donor);
 
-    forAll(equation.diag(), celli)
+    const labelList& acceptorIndices = state.acceptorIndices();
+    forAll(acceptorIndices, stencilI)
     {
-        if (mag(equation.diag()[celli]) > SMALL)
+        const label celli = acceptorIndices[stencilI];
+        const scalar expected = 2;
+        const scalar reconstructed = equation.source()[celli]
+            / equation.diag()[celli];
+        if (mag(reconstructed - expected) > 1e-10)
         {
-            const scalar expected = 2;
-            const scalar reconstructed = equation.source()[celli]
-                / equation.diag()[celli];
-            if (mag(reconstructed - expected) > 1e-10)
-            {
-                FatalErrorInFunction
-                    << "Unexpected interpolated value at cell " << celli
-                    << ": " << reconstructed << nl
-                    << exit(FatalError);
-            }
+            FatalErrorInFunction
+                << "Unexpected interpolated value at cell " << celli
+                << ": " << reconstructed << nl
+                << exit(FatalError);
         }
     }
 

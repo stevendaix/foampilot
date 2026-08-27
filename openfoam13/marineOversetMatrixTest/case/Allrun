@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+cd "${0%/*}" || exit 1
+: "${WM_PROJECT_DIR:?source OpenFOAM Foundation 13 first}"
+
+rm -rf constant/region0 constant/background system/background
+mkdir -p system/background
+cp system/blockMeshDict system/background/blockMeshDict
+blockMesh -region region0
+blockMesh -region background
+marineOversetMatrixTest
+marineInterMeshStencilTest
+marineInterMeshCouplingTest

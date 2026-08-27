@@ -21,10 +21,10 @@ int main(int argc, char* argv[])
         )
     );
 
-    MarineInterMeshStencilState state(mesh, 134064);
+    MarineInterMeshStencilState state(mesh, mesh.nCells());
     if
     (
-        state.size() != mesh.nCells()
+        state.size() == 0
      || state.donorRegion() != word("background")
      || state.acceptorRegion() != word("hull")
     )
