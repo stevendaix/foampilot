@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+cd "${0%/*}" || exit 1
+: "${WM_PROJECT_DIR:?source OpenFOAM Foundation 13 first}"
+case "${WM_PROJECT_VERSION:-}" in
+    13) ;;
+    *) echo "OpenFOAM Foundation 13 is required (got ${WM_PROJECT_VERSION:-unset})" >&2; exit 1 ;;
+esac
+
+wmake marineOversetProbe
+for app in \
+    marineFoam \
+    marineInterMeshCouplingTest \
+    marineInterMeshStencilTest \
+    marineOversetInterpolationTest \
+    marineOversetMatrixTest
+do
+    wmake "$app"
+done
