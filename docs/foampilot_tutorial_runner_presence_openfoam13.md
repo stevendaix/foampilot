@@ -176,6 +176,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `164_legacy_dsmcFoam_wedge15Ma5` | Présent | Présent | Conforme OF13 | Validé — wedge DSMC à 4 domaines, FreeStream N2/O2 à vitesse supersonique, `dsmcFoam` jusqu’à `End=0,02 s`, reconstruction et aucun `FOAM FATAL` |
 | `165_legacy_mdEquilibrationFoam_periodicCubeArgon` | Présent | Présent | Conforme OF13 | Accepté avec réserve — cube périodique `12x12x12`, 2 197 molécules d’argon, `mdEquilibrationFoam` stable jusqu’à `Time=4,675e-11/5e-11 s`, arrêt au plafond de 300 s et aucun `FOAM FATAL` |
 | `166_legacy_mdFoam_nanoNozzle` | Présent | Présent | Conforme OF13 | Accepté avec réserve — nano-nozzle de 27 136 cellules, décomposition corrigée à 4 domaines, 110 197 molécules initialisées, `mdFoam` stable jusqu’à `Time=7e-15/2e-13 s`, arrêt pour coût et aucun `FOAM FATAL` |
+| `168_movingMesh_SnakeRiverCanyon` | Présent | Présent | Conforme OF13 | Validé — maillage movingMesh `20x60x60`, surface `AcrossRiver`, calcul parallèle à 2 domaines jusqu’à `Time=25 s`, reconstruction des temps 5 à 25 et aucun `FOAM FATAL` |
 
 ## Conclusion
 
