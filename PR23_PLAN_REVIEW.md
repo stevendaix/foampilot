@@ -21,12 +21,12 @@ Le numéro de PR est **#23**, et non `#231`. La branche et la base indiquées so
 | Branche | `feature/marine-pr` |
 | Base | `main` / `origin/main` |
 | Commit initial fonctionnel | `2c022bd` — `complete Foundation 13 marine runtime and reproducible cases` |
-| Tête actuelle | `c4b5f33` — `docs: document marine Foundation 13 PR layout` |
+| Tête actuelle | `1febd26` — `style: normalize Turning35 OpenFOAM dictionaries` |
 | Compatibilité visée | OpenFOAM Foundation 13 uniquement |
 | Références | `maneuveringLib`, `propeller-OpenFOAM`, `DTCMoving_Overset` |
-| Validation actuelle | Tests Python et smoke tests Foundation 13 réussis ; convergence hydrodynamique encore à établir |
+| Validation actuelle | Checkout propre, syntaxe des runners et 44 tests Python marins réussis ; exécution C++/CFD bloquée dans le sandbox faute de binaires `wmake` Foundation 13 ; convergence hydrodynamique encore à établir |
 
-Le plan doit mentionner explicitement que `c4b5f33` est la tête actuelle de la branche, car le README de la PR a été ajouté après `2c022bd`.
+La branche contient désormais le portage structurel Turning35 et plusieurs commits de durcissement documentaire et opérationnel ; la tête de référence pour la suite est `1febd26`.
 
 ## 3. Périmètre fonctionnel à conserver
 
@@ -109,7 +109,7 @@ Inclure les dictionnaires MRF/AMI ou couples non conformes, la géométrie sourc
 
 ### Commit E — Turning35
 
-Le cas Turning35 n’est pas encore présent sous un chemin Foundation 13 dédié dans la branche actuelle. Il doit constituer un commit séparé, avec les géométries hull/rudder/background, le mouvement de manœuvre, les contrôles et le runner. Critère : calcul court du cas assemblé et sorties de forces/moments/trajectoire. Tant que ce commit n’est pas réalisé, la PR ne peut pas être annoncée comme reproduisant les trois cas de référence.
+Le cas Turning35 est maintenant présent sous `openfoam13/FoamPilotCases/Turning35Foundation13`, avec géométries hull/rudder, champs eau/air, mouvement rigide 6-DoF, propulsion `actuationDisk`, zone rotor et runners. La structure et les scripts sont validés ; le calcul Foundation 13 complet et les sorties de forces/moments/trajectoire restent à exécuter dans un environnement disposant réellement de `wmake`, `marineFoam` et des utilitaires de maillage.
 
 ### Commit F — Documentation et validation
 
@@ -165,14 +165,13 @@ marineFoam -solver incompressibleVoF
 postProcess -func forces
 
 # 6. Turning35 — à activer après livraison du cas Foundation 13
-# Le chemin `openfoam13/Turning35Foundation13` n’est pas encore présent dans la branche actuelle.
-# Une fois le cas ajouté :
-# cd ../../Turning35Foundation13
+# Une fois l’environnement Foundation 13 installé :
+# cd FoamPilotCases/Turning35Foundation13
 # ./Allmesh.FoamPilot
-# marineFoam -solver incompressibleVoF
+# ./Allrun
 ```
 
-Chaque runner doit commencer par vérifier que Foundation 13 est chargé, nettoyer les sorties précédentes et arrêter le pipeline dès qu’une commande échoue. Les commandes exactes doivent être ajustées si le cas Turning35 n’est pas encore présent sous ce chemin.
+Chaque runner doit commencer par vérifier que Foundation 13 est chargé, nettoyer les sorties précédentes et arrêter le pipeline dès qu’une commande échoue. Les commandes CFD doivent être exécutées dans un environnement Foundation 13 complet ; elles n’ont pas pu être exécutées dans le sandbox actuel, où seul le fichier `bashrc` est présent sans `wmake` ni binaires de calcul.
 
 ## 9. Risques et décisions à documenter
 
