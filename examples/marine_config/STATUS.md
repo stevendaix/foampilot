@@ -186,3 +186,11 @@ Bibliothèque pour simulations manœuvrables navires. Utilise `overInterDyMFoam`
 ## 8. Ce qui est bloquant
 
 - Aucun blocage majeur. Les 8 fichiers différents entre `dtc_moving` et la référence ne sont pas critiques et peuvent être acceptés comme fonctionnellement équivalents.
+
+## 9. Nouveau driver Foundation 13 `marineFoam`
+
+Un premier driver C++ Foundation 13 a été ajouté sous `openfoam13/marineFoam/`. Il reprend la boucle PIMPLE de `foamRun`, sélectionne par défaut le module `incompressibleVoF`, accepte `-solver`, et permet d’exécuter les cas Foundation 13 à mouvement de maillage avec les dictionnaires natifs (`dynamicMeshDict`, `fvModels`, `fvConstraints`, `momentumTransport`, `phaseProperties`).
+
+L’API Python `Solver` accepte désormais `solver_name=` afin de sélectionner explicitement un exécutable ou un module, ce qui corrige notamment l’appel utilisé par l’exemple `propeller_mrf`.
+
+Ce driver est une première couche d’exécution Foundation 13. Il ne fournit pas encore les fonctionnalités runtime des trois références externes : `maneuveringLib` nécessite les contrôleurs et sources C++ de manœuvrabilité, `propeller-OpenFOAM` nécessite la chaîne rotor/stator et AMI, et `DTCMoving_Overset` nécessite un backend overset. Ces limites sont documentées dans `openfoam13/marineFoam/README.md` et dans l’audit comparatif.

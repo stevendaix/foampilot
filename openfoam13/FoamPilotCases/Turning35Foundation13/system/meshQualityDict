@@ -16,3 +16,5 @@ minDeterminant 1e-6;
 minFaceWeight 0.02;
 minVolRatio 0.01;
 minTriangleTwist -1;
+nSmoothScale 4;
+errorReduction 0.75;

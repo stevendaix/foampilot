@@ -9,25 +9,9 @@ FoamFile
 {
     format ascii;
     class dictionary;
-    location "system";
-    object functions;
+    location "constant";
+    object physicalProperties.air;
 }
-rigidBodyForces
-{
-    type rigidBodyForces;
-    libs ("librigidBodyForces.so");
-    body hull;
-    patches (hull);
-    log on;
-    writeControl timeStep;
-    writeInterval 1;
-}
-forces
-{
-    type forces;
-    libs ("libforces.so");
-    patches (hull);
-    CofR (0 0 0);
-    writeControl timeStep;
-    writeInterval 1;
-}
+viscosityModel constant;
+nu 1.48e-05;
+rho 1;

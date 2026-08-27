@@ -17,8 +17,24 @@ snap true;
 addLayers false;
 geometry
 {
-    hull.stl { type triSurfaceMesh; name hull; }
-    rudder.stl { type triSurfaceMesh; name rudder; }
+    hull
+    {
+        type triSurface;
+        file "hull.stl";
+        regions
+        {
+            hull_deck { name hull; }
+            hull_hull { name hull; }
+            hull_shaft { name hull; }
+            hull_stern { name hull; }
+        }
+    }
+    rudder
+    {
+        type triSurface;
+        file "rudder.stl";
+        regions { rudder { name rudder; } }
+    }
     BoxRefinement { type searchableBox; min (-0.85 -0.45 -0.3); max (3.25 0.45 0.3); }
 }
 castellatedMeshControls
@@ -27,6 +43,7 @@ castellatedMeshControls
     maxGlobalCells 4000000;
     minRefinementCells 10;
     nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
     features ();
     refinementSurfaces
     {

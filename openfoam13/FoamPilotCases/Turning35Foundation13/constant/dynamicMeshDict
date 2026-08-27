@@ -42,7 +42,7 @@ mover
                     { type Rz; }
                 );
             }
-            patches (hull rudder);
+            patches (hull);
             innerDistance 0.3;
             outerDistance 1.0;
         }

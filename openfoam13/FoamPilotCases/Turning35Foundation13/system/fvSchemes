@@ -32,7 +32,7 @@ divSchemes
     default        none;
     //div(rhoPhi,U)       Gauss linearUpwindV default;
     div(rhoPhi,U)       Gauss linearUpwind grad(U); //When you use linearUpwind and LUST for div(phi,U), you need to tell OpenFOAM how to compute the velocity gradient or grad(U)
-    div(phi,alpha)      Gauss vanLeer;
+    div(phi,alpha)      Gauss interfaceCompression vanLeer 1;
     div(phirb,alpha)    Gauss linear;
 
     //turbulence          Gauss linearUpwind limitedGrad;

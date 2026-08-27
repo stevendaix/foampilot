@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
 cd "${0%/*}"
-rm -rf constant/polyMesh [0-9]* processor* postProcessing log.*
+rm -rf constant/polyMesh processor* postProcessing log.* [1-9]*

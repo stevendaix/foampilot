@@ -114,7 +114,7 @@ mover
                     { type Rz; }
                 );
             }
-            patches (hull rudder);
+            patches (hull);
             innerDistance 0.3;
             outerDistance 1.0;
         }
@@ -209,7 +209,7 @@ rigidBodyForces
     type rigidBodyForces;
     libs ("librigidBodyForces.so");
     body hull;
-    patches (hull rudder);
+    patches (hull);
     log on;
     writeControl timeStep;
     writeInterval 1;
@@ -218,8 +218,7 @@ forces
 {
     type forces;
     libs ("libforces.so");
-    patches (hull rudder);
-    rho rho.water;
+    patches (hull);
     CofR (0 0 0);
     writeControl timeStep;
     writeInterval 1;
@@ -238,8 +237,24 @@ snap true;
 addLayers false;
 geometry
 {
-    hull.stl { type triSurfaceMesh; name hull; }
-    rudder.stl { type triSurfaceMesh; name rudder; }
+    hull
+    {
+        type triSurface;
+        file "hull.stl";
+        regions
+        {
+            hull_deck { name hull; }
+            hull_hull { name hull; }
+            hull_shaft { name hull; }
+            hull_stern { name hull; }
+        }
+    }
+    rudder
+    {
+        type triSurface;
+        file "rudder.stl";
+        regions { rudder { name rudder; } }
+    }
     BoxRefinement { type searchableBox; min (-0.85 -0.45 -0.3); max (3.25 0.45 0.3); }
 }
 castellatedMeshControls
@@ -248,6 +263,7 @@ castellatedMeshControls
     maxGlobalCells 4000000;
     minRefinementCells 10;
     nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
     features ();
     refinementSurfaces
     {
@@ -287,13 +303,19 @@ vertices
     (-1 -0.5 -0.35) (3.5 -0.5 -0.35) (3.5 0.5 -0.35) (-1 0.5 -0.35)
     (-1 -0.5 0.35) (3.5 -0.5 0.35) (3.5 0.5 0.35) (-1 0.5 0.35)
 );
-blocks ((hex (0 1 2 3 4 5 6 7) (90 20 14) simpleGrading (1 1 1)));
-edges ();
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (90 20 14) simpleGrading (1 1 1)
+);
+edges
+(
+);
 boundary
 (
     inlet { type patch; faces ((0 4 7 3)); }
     outlet { type patch; faces ((1 2 6 5)); }
-    side { type symmetryPlane; faces ((0 1 5 4) (3 7 6 2)); }
+    sideA { type symmetryPlane; faces ((0 1 5 4)); }
+    sideB { type symmetryPlane; faces ((3 7 6 2)); }
     bottom { type wall; faces ((0 3 2 1)); }
     atmosphere { type patch; faces ((4 5 6 7)); }
 );
@@ -318,6 +340,8 @@ minDeterminant 1e-6;
 minFaceWeight 0.02;
 minVolRatio 0.01;
 minTriangleTwist -1;
+nSmoothScale 4;
+errorReduction 0.75;
 '''
 
 ALLMESH = '''#!/bin/sh
@@ -346,7 +370,7 @@ runApplication postProcess -func rigidBodyForces
 ALLCLEAN = '''#!/bin/sh
 set -eu
 cd "${0%/*}"
-rm -rf constant/polyMesh [0-9]* processor* postProcessing log.*
+rm -rf constant/polyMesh processor* postProcessing log.* [1-9]*
 '''
 
 README = '''# Turning35Foundation13
@@ -381,6 +405,111 @@ la classification hole/fringe n’ont pas été validées sur Turning35.
 '''
 
 
+def vol_field(object_name: str, field_class: str, dimensions: str, internal: str, boundary: str) -> str:
+    return HEADER + f'''FoamFile
+{{
+    format ascii;
+    class {field_class};
+    location "0";
+    object {object_name};
+}}
+dimensions {dimensions};
+internalField uniform {internal};
+boundaryField
+{{
+{boundary}
+}}
+'''
+
+
+BOUNDARY_U = '''    inlet { type fixedValue; value uniform (6 0 0); }
+    outlet { type pressureInletOutletVelocity; value uniform (6 0 0); }
+    sideA { type symmetryPlane; }
+    sideB { type symmetryPlane; }
+    bottom { type slip; }
+    atmosphere { type pressureInletOutletVelocity; value uniform (6 0 0); }
+    hull { type movingWallVelocity; value uniform (0 0 0); }'''
+BOUNDARY_P = '''    inlet { type fixedValue; value uniform 0; }
+    outlet { type fixedFluxPressure; value uniform 0; }
+    sideA { type symmetryPlane; }
+    sideB { type symmetryPlane; }
+    bottom { type fixedFluxPressure; value uniform 0; }
+    atmosphere { type totalPressure; p0 uniform 0; }
+    hull { type fixedFluxPressure; value uniform 0; }'''
+BOUNDARY_ALPHA = '''    inlet { type fixedValue; value uniform 1; }
+    outlet { type inletOutlet; inletValue uniform 1; value uniform 1; }
+    sideA { type symmetryPlane; }
+    sideB { type symmetryPlane; }
+    bottom { type zeroGradient; }
+    atmosphere { type inletOutlet; inletValue uniform 0; value uniform 0; }
+    hull { type zeroGradient; }'''
+BOUNDARY_K = '''    inlet { type fixedValue; value uniform 0.01; }
+    outlet { type inletOutlet; inletValue uniform 0.01; value uniform 0.01; }
+    sideA { type symmetryPlane; }
+    sideB { type symmetryPlane; }
+    bottom { type slip; }
+    atmosphere { type inletOutlet; inletValue uniform 0.01; value uniform 0.01; }
+    hull { type kqRWallFunction; value uniform 0.01; }'''
+BOUNDARY_EPSILON = BOUNDARY_K.replace('kqRWallFunction', 'epsilonWallFunction').replace('0.01', '0.001')
+BOUNDARY_NUT = BOUNDARY_K.replace('kqRWallFunction', 'nutkWallFunction').replace('0.01', '0')
+BOUNDARY_DISPLACEMENT = '''    inlet { type fixedValue; value uniform (0 0 0); }
+    outlet { type fixedValue; value uniform (0 0 0); }
+    sideA { type symmetryPlane; }
+    sideB { type symmetryPlane; }
+    bottom { type fixedValue; value uniform (0 0 0); }
+    atmosphere { type fixedValue; value uniform (0 0 0); }
+    hull { type calculated; value uniform (0 0 0); }'''
+
+FIELDS = {
+    "U": vol_field("U", "volVectorField", "[0 1 -1 0 0 0 0]", "(6 0 0)", BOUNDARY_U),
+    "p_rgh": vol_field("p_rgh", "volScalarField", "[1 -1 -2 0 0 0 0]", "0", BOUNDARY_P),
+    "alpha.water": vol_field("alpha.water", "volScalarField", "[0 0 0 0 0 0 0]", "1", BOUNDARY_ALPHA),
+    "k": vol_field("k", "volScalarField", "[0 2 -2 0 0 0 0]", "0.01", BOUNDARY_K),
+    "epsilon": vol_field("epsilon", "volScalarField", "[0 2 -3 0 0 0 0]", "0.001", BOUNDARY_EPSILON),
+    "nut": vol_field("nut", "volScalarField", "[0 2 -1 0 0 0 0]", "0", BOUNDARY_NUT),
+    "pointDisplacement": vol_field("pointDisplacement", "pointVectorField", "[0 1 0 0 0 0 0]", "(0 0 0)", BOUNDARY_DISPLACEMENT),
+}
+
+MOMENTUM_TRANSPORT = HEADER + '''FoamFile
+{
+    format ascii;
+    class dictionary;
+    location "constant";
+    object momentumTransport;
+}
+simulationType RAS;
+RAS
+{
+    model kEpsilon;
+    turbulence on;
+}
+'''
+
+PHYSICAL_WATER = HEADER + '''FoamFile
+{
+    format ascii;
+    class dictionary;
+    location "constant";
+    object physicalProperties.water;
+}
+viscosityModel constant;
+nu 1.09e-06;
+rho 998.8;
+'''
+
+PHYSICAL_AIR = HEADER + '''FoamFile
+{
+    format ascii;
+    class dictionary;
+    location "constant";
+    object physicalProperties.air;
+}
+viscosityModel constant;
+nu 1.48e-05;
+rho 1;
+'''
+
+
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -398,6 +527,11 @@ def main() -> None:
     write(TARGET / "system/snappyHexMeshDict", MESH)
     write(TARGET / "system/blockMeshDict", BLOCK)
     write(TARGET / "system/meshQualityDict", MESH_QUALITY)
+    write(TARGET / "constant/momentumTransport", MOMENTUM_TRANSPORT)
+    write(TARGET / "constant/physicalProperties.water", PHYSICAL_WATER)
+    write(TARGET / "constant/physicalProperties.air", PHYSICAL_AIR)
+    for name, text in FIELDS.items():
+        write(TARGET / "0" / name, text)
     write(TARGET / "constant/marineProperties", MARINE_PROPERTIES)
     write(TARGET / "constant/phaseProperties", PHASE_PROPERTIES)
     write(TARGET / "constant/dynamicMeshDict", DYNAMIC_MESH)

@@ -8,19 +8,19 @@
 FoamFile
 {
     format ascii;
-    class pointVectorField;
+    class volScalarField;
     location "0";
-    object pointDisplacement;
+    object nut;
 }
-dimensions [0 1 0 0 0 0 0];
-internalField uniform (0 0 0);
+dimensions [0 2 -1 0 0 0 0];
+internalField uniform 0;
 boundaryField
 {
-    inlet { type fixedValue; value uniform (0 0 0); }
-    outlet { type fixedValue; value uniform (0 0 0); }
+    inlet { type fixedValue; value uniform 0; }
+    outlet { type inletOutlet; inletValue uniform 0; value uniform 0; }
     sideA { type symmetryPlane; }
     sideB { type symmetryPlane; }
-    bottom { type fixedValue; value uniform (0 0 0); }
-    atmosphere { type fixedValue; value uniform (0 0 0); }
-    hull { type calculated; value uniform (0 0 0); }
+    bottom { type slip; }
+    atmosphere { type inletOutlet; inletValue uniform 0; value uniform 0; }
+    hull { type nutkWallFunction; value uniform 0; }
 }
