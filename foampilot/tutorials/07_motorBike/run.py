@@ -28,11 +28,12 @@ Usage :
 """
 
 import sys
+import os
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-from foampilot.solver import Solver
+from foampilot.solver import Solver, OpenFOAMEnvironment
 from foampilot import Meshing, postprocess, latex_pdf
 from foampilot.mesh.snappymesh import SnappyMesher
 import numpy as np
@@ -42,6 +43,7 @@ import pandas as pd
 
 
 def main():
+    os.environ.update(OpenFOAMEnvironment().environment())
     case_path = Path.cwd()
 
     # --- 1. Initialiser le solveur incompressible turbulente ---
@@ -110,8 +112,7 @@ def main():
     blockmesh.mergePatchPairs = []
     blockmesh.write(case_path / "system" / "blockMeshDict")
 
-    # Step 2b: import the official OpenFOAM resource through Foampilot
-    import os
+    # Step 2b: materialize the official geometry asset through FoamPilot
     obj_gz = Path(os.environ["FOAM_TUTORIALS"]) / "resources" / "geometry" / "motorBike.obj.gz"
     snappy = SnappyMesher(
         parent=solver._solver,
@@ -125,7 +126,7 @@ def main():
     snappy.castellatedMeshControls["maxGlobalCells"] = 7000000
 
     # Add surface refinement (matching reference level 6-8)
-    snappy.refinementSurfaces = {
+    snappy.castellatedMeshControls["refinementSurfaces"] = {
         "motorBike": {"level": (6, 8)},
     }
 
