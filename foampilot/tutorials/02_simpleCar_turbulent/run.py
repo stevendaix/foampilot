@@ -28,17 +28,20 @@ Usage :
 """
 
 import sys
+import os
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-from foampilot.solver import Solver
+from foampilot.solver import Solver, OpenFOAMEnvironment
 from foampilot import Meshing
 from foampilot.mesh.snappymesh import SnappyMesher
 from foampilot.utilities.function import Functions
 
 
 def main():
+    environment = OpenFOAMEnvironment().environment()
+    os.environ.update(environment)
     case_path = Path.cwd()
 
     # --- 1. Initialiser le solveur ---
@@ -48,6 +51,7 @@ def main():
     solver.with_gravity = False
     solver.turbulence_model = "kOmegaSST"
     solver.transient = False  # Stationnaire (SIMPLE)
+    solver.setup_case()
 
     # Configuration du controlDict
     solver.system.controlDict.use_solver_keyword = True
@@ -231,7 +235,6 @@ endsolid
     solver.constant.write()
 
     # --- 4. Generate 0/ field files (initial conditions) ---
-    solver.setup_case()
 
     # --- 5. Conditions aux limites ---
     print("4. Configuration des conditions aux limites ...")

@@ -15,7 +15,7 @@ class SnappyMesher:
     - snappy_hex_mesh_dict_path (Path): Path to the snappyHexMeshDict file.
     """
 
-    def __init__(self, parent=None, stl_file=None, case_path=None, castellatedMesh=True, snap=True, addLayers=False):
+    def __init__(self, parent=None, stl_file=None, case_path=None, castellatedMesh=True, snap=True, addLayers=False, mergeTolerance=1e-6):
         if parent is not None:
             self.parent = parent
             self.case_path = parent.case_path
@@ -33,6 +33,7 @@ class SnappyMesher:
         self.castellatedMesh = castellatedMesh
         self.snap = snap
         self.addLayers = addLayers
+        self.mergeTolerance = mergeTolerance
         
         self.geometry = {}
         if self.stl_file:
@@ -409,6 +410,7 @@ class SnappyMesher:
             f"castellatedMesh {str(self.castellatedMesh).lower()};",
             f"snap {str(self.snap).lower()};",
             f"addLayers {str(self.addLayers).lower()};",
+            f"mergeTolerance {self.mergeTolerance};",
             "",
             "geometry",
             "{"

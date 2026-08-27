@@ -67,3 +67,13 @@ Les tutoriels validés dans la tranche courante sont `compressibleMultiphaseVoF/
 | API-041 | `BaseSolver.import_reference_asset` | Extension générique d’import | Décompresser automatiquement un asset de référence `.gz` lorsque la destination demandée ne porte pas `.gz`, tout en conservant la copie directe pour les destinations compressées | `mesh/spiralPipe` et futurs assets géométriques compressés | Ajoutée pour matérialiser `curve.obj` à partir de `curve.obj.gz` conformément à `extrudeMeshDict`; permet de gérer les ressources gzip sans commande shell dans les runners. Validée sous OpenFOAM 13 avec `blockMesh` puis `extrudeMesh`. |
 | API-042 | `OpenFOAMEnvironment` | Nouvelle façade générique d’environnement | Résoudre une installation OpenFOAM à partir de `etc/bashrc`, produire un environnement isolé et appliquer des overrides sans modifier le shell parent | Tous les runners OF13 et futurs cas multi-version | Centralise la résolution de `PATH`, `LD_LIBRARY_PATH`, variables `WM_*`, bibliothèques OpenFOAM et paramètres MPI. Testée avec une erreur explicite lorsque le `bashrc` est absent. |
 | API-043 | `RunWorkflow` | Retirée / supersédée | La façade ajoutait une couche au-dessus de `BaseSolver` sans usage démontré dans les runners | Aucun | Retirée après audit: les primitives `BaseSolver.run_command`, `run_simulation` et `run_parallel` restent l’API d’exécution actuelle. Une façade ne sera réintroduite qu’après migration concrète de runners et preuve de valeur utilisateur. |
+
+### API-044 — `SnappyMesher.mergeTolerance`
+
+Ajout d’un paramètre générique `mergeTolerance` à `SnappyMesher` et écriture systématique de cette entrée dans `snappyHexMeshDict`. OpenFOAM Foundation 13 l’exige au niveau racine du dictionnaire. Cette évolution a été découverte et validée lors de la réécriture de `02_simpleCar_turbulent`; elle est indépendante du tutoriel et s’applique à tout maillage `snappyHexMesh`.
+
+Validation: `snappyHexMesh` termine, tous les fichiers principaux et champs sont générés par FoamPilot, et le calcul turbulent atteint `Time=300 s`/`End` sans `FOAM FATAL`.
+
+### Statut de réécriture
+
+Les runners `01_cavity_laminar` et `02_simpleCar_turbulent` sont les premières réécritures complètes validées: ils ne copient pas de dictionnaires ni de champs de référence. Les autres runners restent classés selon la matrice complète jusqu’à leur migration effective.
