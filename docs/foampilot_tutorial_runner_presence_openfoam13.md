@@ -203,6 +203,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `193_multicomponentFluid_counterFlowFlame2D` | Présent | Présent | Conforme OF13 | Validé — maillage 2D `100×40×1`, réaction méthane simplifiée, calcul jusqu’à `Time=0,5 s`, Courant maximal ≈0,398 et aucun `FOAM FATAL` |
 | `194_multicomponentFluid_counterFlowFlame2DLTS` | Présent | Présent | Conforme OF13 | Validé — maillage counter-flow 2D, schéma `localEuler`, calcul LTS jusqu’à `Time=1000 s`, erreurs de continuité de l’ordre de `10^-8` à `10^-10` et aucun `FOAM FATAL` |
 | `195_multicomponentFluid_counterFlowFlame2DLTS_GRI_TDAC` | Présent | Présent | Conforme OF13 | Validé — décomposition hiérarchique `2×2×1`, chimie GRI sous TDAC, calcul LTS parallèle jusqu’à `Time=1500 s`, reconstruction des temps 20–1500 et aucun `FOAM FATAL` |
+| `196_multicomponentFluid_counterFlowFlame2D_GRI` | Présent | Présent | Conforme OF13 | Accepté avec réserve — décomposition hiérarchique/Zoltan `6×2×1`, calcul GRI stable jusqu’à `Time≈0,151 s` sur `0,5 s` au plafond de 300 s, Courant maximal sous `0,4` et aucun `FOAM FATAL`; reconstruction finale à poursuivre |
 
 ## Conclusion
 
