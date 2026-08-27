@@ -12,17 +12,20 @@ sous l'effet de la gravité, avec tension superficielle.
 """
 
 import sys
+import os
 from pathlib import Path
 
 # Add src to path for tutorial execution from any directory
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-from foampilot.solver import Solver
+from foampilot.solver import Solver, OpenFOAMEnvironment
 from foampilot import Meshing
 from foampilot.utilities.function import Functions
 
 
 def main():
+    environment = OpenFOAMEnvironment().environment()
+    os.environ.update(environment)
     case_path = Path.cwd()
 
     # --- 1. Initialiser le solveur VOF incompressible ---
@@ -32,6 +35,7 @@ def main():
     solver.is_vof = True
     solver.transient = True
     solver.turbulence_model = "laminar"
+    solver.setup_case()
 
     # Configure VoF constant files (phaseProperties, physicalProperties.<phase>,
     # momentumTransport) via the library

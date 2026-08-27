@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TUTORIALS = ROOT / "foampilot" / "tutorials"
 INTEGRATION = ROOT / "docs" / "openfoam13_foampilot_integration.md"
 OUTPUT = ROOT / "docs" / "openfoam13_foampilot_rewrite_matrix_full.md"
-VERIFIED_REWRITTEN = {"01_cavity_laminar", "02_simpleCar_turbulent"}
+VERIFIED_REWRITTEN = {"01_cavity_laminar", "02_simpleCar_turbulent", "04_damBreak_multiphase"}
 REWRITTEN_PARTIAL = {"03_pitzDaily_step"}
 
 
