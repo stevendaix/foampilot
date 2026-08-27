@@ -113,3 +113,8 @@ Le writer accepte l’attribut `includes`, sérialisé en directives natives `#i
 ## API-051 — Configuration XiFluid avancée
 
 Les writers déclaratifs existants sont utilisés conjointement pour produire les propriétés thermophysiques incluses, `combustionProperties`, les solveurs `fvSolution` (`rhoFinal`, `epsilonFinal`, `pFinal`, `MeshPhi`, PIMPLE) et les schémas de convection XiFluid. Validation OF13: #11 atteint `Time=5000 s` puis `End`; #10 atteint `End` après 1412 s.
+
+
+## API-052 — Génération déclarative de mélanges homogènes XiFluid
+
+Les runners peuvent désormais construire sans import les propriétés `homogeneousMixture` (`thermoType`, `reactants`, `products`, coefficients JANAF, transport `mu/Pr`), les modèles de combustion Gulder, les schémas XiFluid composés et les champs initiaux de combustion. Validation OF13: les variantes propane et hydrogène de `12_XiFluid_moriyoshiHomogeneous` atteignent chacune `Time=0,015 s` puis `End`.
