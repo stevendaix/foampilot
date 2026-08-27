@@ -212,6 +212,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `202_multicomponentFluid_parcelInBox` | Présent | Présent | Conforme OF13 | Validé — nuage 3D `cloud` avec un parcel, transport de `H2O`, calcul jusqu’à `Time=0,5 s`, erreurs de continuité faibles et aucun `FOAM FATAL` |
 | `203_multicomponentFluid_simplifiedSiwek` | Présent | Présent | Conforme OF13 | Validé — clouds 2D `coalCloud`/`limestoneCloud`, radiation et réactions de surface, 27 et 18 parcels, calcul jusqu’à `Time=0,5 s`, Courant maximal <0,044 et aucun `FOAM FATAL` |
 | `204_multicomponentFluid_smallPoolFire2D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — `blockMesh`, `createPatch` validés, feu de nappe stable jusqu’à `Time≈2,684 s` sur `3 s` au plafond de 300 s, Courant maximal proche de `0,5` et aucun `FOAM FATAL` |
+| `205_multicomponentFluid_smallPoolFire3D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — préparation et décomposition hiérarchique `1×2×2` validées, calcul parallèle stable jusqu’à `Time≈2,726 s` sur `4 s` au plafond de 300 s, Courant maximal proche de `0,6` et aucun `FOAM FATAL`; reconstruction finale à poursuivre |
 
 ## Conclusion
 
