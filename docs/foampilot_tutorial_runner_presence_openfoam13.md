@@ -156,9 +156,10 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `144_incompressibleVoF_waterChannel` | Présent | Présent | Conforme OF13 | Validé — maillage de 8 000 cellules, kOmegaSST, flux entrant `-50`, `End=200 s`, fonctions `surfaceFieldValue` et aucun `FOAM FATAL` |
 | `145_incompressibleVoF_wave` | Présent | Présent | Conforme OF13 | Validé — extrusion/raffinement, vague Airy, 6 domaines MPI, `End=200 s`, reconstruction réussie et aucun `FOAM FATAL` |
 | `146_incompressibleVoF_wave3D` | Présent | Présent | Conforme OF13 | Accepté avec réserve — `blockMesh` 353 440 cellules et `refineMesh` jusqu’à 1 024 024 cellules; SIGTERM du sandbox avant `setWaves`, calcul et reconstruction |
+| `147_incompressibleVoF_weirOverflow` | Présent | Présent | Conforme OF13 | Validé — débit d’entrée 75, modèle kEpsilon, débordement VoF stable, `End=60 s`, alpha bornée et aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/wave3D` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `incompressibleVoF/weirOverflow` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
