@@ -8,6 +8,7 @@ TUTORIALS = ROOT / "foampilot" / "tutorials"
 INTEGRATION = ROOT / "docs" / "openfoam13_foampilot_integration.md"
 OUTPUT = ROOT / "docs" / "openfoam13_foampilot_rewrite_matrix_full.md"
 VERIFIED_REWRITTEN = {"01_cavity_laminar", "02_simpleCar_turbulent"}
+REWRITTEN_PARTIAL = {"03_pitzDaily_step"}
 
 
 def count(text: str, pattern: str) -> int:
@@ -87,6 +88,9 @@ def main() -> None:
         if runner.parent.name in VERIFIED_REWRITTEN and status == "Réécrit FoamPilot à vérifier":
             status = "Réécrit et validé OF13"
             reason = "Aucun import de référence; fichiers et calcul vérifiés sous OF13"
+        elif runner.parent.name in REWRITTEN_PARTIAL and status == "Réécrit FoamPilot à vérifier":
+            status = "Réécrit FoamPilot — validation partielle"
+            reason = "Aucun import de référence; fichiers générés et calcul sans fatal jusqu’à la limite de temps"
         rows.append((index, rel, status, validation_status(rel, integration), api_names(text), reason))
 
     lines = [

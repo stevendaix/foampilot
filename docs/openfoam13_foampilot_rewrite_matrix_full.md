@@ -6,7 +6,7 @@
 |---:|---|---|---|---|---|
 | 1 | `01_cavity_laminar` | Réécrit et validé OF13 | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Aucun import de référence; fichiers et calcul vérifiés sous OF13 |
 | 2 | `02_simpleCar_turbulent` | Réécrit et validé OF13 | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Aucun import de référence; fichiers et calcul vérifiés sous OF13 |
-| 3 | `03_pitzDaily_step` | Réécrit FoamPilot à vérifier | Mentionné dans le suivi | `run_simulation, register_field, set_raw_condition, write, Meshing, Boundary` | Pas d’import de référence détecté |
+| 3 | `03_pitzDaily_step` | Réécrit FoamPilot — validation partielle | Mentionné dans le suivi | `run_simulation, register_field, set_raw_condition, write, Meshing, Boundary` | Aucun import de référence; fichiers générés et calcul sans fatal jusqu’à la limite de temps |
 | 4 | `04_damBreak_multiphase` | Réécrit FoamPilot à vérifier | Validé fonctionnellement | `run_command, run_simulation, set_raw_condition, write, Meshing` | Pas d’import de référence détecté |
 | 5 | `05_scalarTransport` | Réécrit FoamPilot à vérifier | Validé fonctionnellement | `run_command, run_simulation, set_raw_condition, write, Meshing` | Pas d’import de référence détecté |
 | 6 | `06_buildingAero` | Partiellement réécrit | Validé fonctionnellement | `import_reference_file, import_reference_field, run_command, run_simulation, write` | Imports et génération FoamPilot mélangés |

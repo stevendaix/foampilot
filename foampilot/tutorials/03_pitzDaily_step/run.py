@@ -18,12 +18,13 @@ Usage :
 """
 
 import sys
+import os
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot import Meshing
-from foampilot.solver import Solver
+from foampilot.solver import Solver, OpenFOAMEnvironment
 from foampilot.utilities.function import Functions
 
 
@@ -64,6 +65,8 @@ def build_geometry_and_mesh(case_path):
 
 
 def main():
+    environment = OpenFOAMEnvironment().environment()
+    os.environ.update(environment)
     case_path = Path.cwd()
 
     # --- 1. Solver ---
@@ -75,6 +78,7 @@ def main():
     solver.energy_activated = True
     solver.turbulence_model = "LES:kEqn"
     solver.transient = True
+    solver.setup_case()
     solver.fields_manager.register_field("T", 300.0, "K")
     solver.fields_manager.register_field("k", 0.0, "m^2/s^2")
     solver.fields_manager.register_field("nut", 0.0, "m^2/s")
@@ -139,7 +143,6 @@ def main():
 
     solver.system.write()
     solver.constant.write()
-    solver.setup_case()
 
     # --- 2. Geometry + mesh ---
     print("2. Géométrie + maillage (blockMesh Foampilot, référence OpenFOAM 13) ...")
