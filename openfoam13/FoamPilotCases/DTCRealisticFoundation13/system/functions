@@ -41,3 +41,15 @@ surfaces
 }
 
 // ************************************************************************* //
+
+
+forces
+{
+    type            forces;
+    libs            ("libforces.so");
+    patches         (hull);
+    CofR            (0 0 0);
+    log             on;
+    writeControl    timeStep;
+    writeInterval   1;
+}

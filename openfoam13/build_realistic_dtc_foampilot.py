@@ -24,6 +24,30 @@ TARGET = ROOT / "FoamPilotCases" / "DTCRealisticFoundation13"
 if TARGET.exists():
     shutil.rmtree(TARGET)
 shutil.copytree(SOURCE, TARGET, symlinks=True)
+functions = TARGET / "system" / "functions"
+if functions.exists():
+    functions_text = functions.read_text()
+    functions_text = re.sub(
+        r"(?ms)^rigidBodyForces\s*\{.*?^\}\s*",
+        "",
+        functions_text,
+        count=1,
+    )
+    if "\nforces\n{" not in functions_text:
+        functions_text += """
+
+forces
+{
+    type            forces;
+    libs            (\"libforces.so\");
+    patches         (hull);
+    CofR            (0 0 0);
+    log             on;
+    writeControl    timeStep;
+    writeInterval   1;
+}
+"""
+    functions.write_text(functions_text)
 initial_fields = tuple((TARGET / "0").glob("*.orig"))
 if initial_fields and not (TARGET / "0" / "U").exists():
     for source_field in initial_fields:
