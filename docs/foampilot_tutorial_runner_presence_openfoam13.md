@@ -168,9 +168,10 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `156_legacy_adjointShapeOptimisationFoam_pitzDaily` | Présent | Présent | Conforme OF13 | Validé — champs primaux/adjoints, maillage pitzDaily, `adjointShapeOptimisationFoam`, `End=1000 s` et aucun `FOAM FATAL` |
 | `157_legacy_icoFoam_elbow` | Présent | Présent | Conforme OF13 | Validé — conversion `elbow.msh` Fluent, `icoFoam` jusqu’à `End=10 s`, exports Fluent et aucun `FOAM FATAL` |
 | `158_legacy_porousSimpleFoam_angledDuctExplicit` | Présent | Présent | Conforme OF13 | Validé — ressource `blockMesh/angledDuct`, 22 000 cellules, zone Darcy–Forchheimer, `porousSimpleFoam`, `End=200 s` et aucun `FOAM FATAL` |
+| `159_legacy_porousSimpleFoam_angledDuctImplicit` | Présent | Présent | Conforme OF13 | Validé — même maillage et zone Darcy–Forchheimer, formulation implicite conservée, `porousSimpleFoam`, `End=100 s` et aucun `FOAM FATAL` |
 
 ## Conclusion
 
-Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `legacy/incompressible/porousSimpleFoam/angledDuctExplicit` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
+Aucun équivalent non vide déclaré dans la matrice ne possède de dossier ou de `run.py` manquant. Les runners suivis jusqu’à `legacy/incompressible/porousSimpleFoam/angledDuctImplicit` sont effectivement présents. Cette tranche ajoute les runners des ordres 46 à 55; `column` et `TJunction` sont validés jusqu’à leur `endTime`, plusieurs cas particulaires et drift-flux sont acceptés avec réserve après progression sans erreur fatale visible, et `tank3D` reste en cours de calcul.
 
 Pour les prochains tutoriels, le contrôle doit être relancé après chaque création de runner et avant le marquage `Validé` dans la matrice. Toute nouvelle fonction ajoutée pour permettre un runner doit également être inscrite dans [`foampilot_api_evolution_openfoam13.md`](foampilot_api_evolution_openfoam13.md).
