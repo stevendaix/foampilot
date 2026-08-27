@@ -190,6 +190,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `180_multiRegion_CHT_shellAndTubeHeatExchanger` | Présent | Présent | Conforme OF13 | Accepté avec réserve — import des cinq STL, maillage initial snappy sur 8 domaines et lecture des régions prévues; le premier `snappyHexMesh` est interrompu par SIGKILL au plafond de ressources avant les couches et le solveur, aucun `FOAM FATAL` observé |
 | `181_multiRegion_CHT_wallBoiling` | Présent | Présent | Conforme OF13 | Accepté avec réserve — extrusion et séparation `fluid/solid`, phases `gas/liquid`, modèles `heatTransferLimitedPhaseChange` et `wallBoiling` actifs jusqu’à `Time≈1,93 s` sur `8 s` au plafond de 300 s, aucun `FOAM FATAL` observé |
 | `182_multiRegion_film_VoFToFilm` | Présent | Présent | Conforme OF13 | Validé — maillage VoF, extrusion film de 1 mm, initialisation `alpha.liquid`, solveurs VoF/film couplés jusqu’à `Time=5 s` et aucun `FOAM FATAL` |
+| `183_multiRegion_film_cylinder` | Présent | Présent | Conforme OF13 | Validé — Allrun parallèle, maillage fluid/film dans les quatre processeurs, particules absorbées par le film, espèces `N2/O2/H2O`, `foamMultiRun` jusqu’à `Time=20 s`, reconstruction des deux régions et aucun `FOAM FATAL` |
 
 ## Conclusion
 
