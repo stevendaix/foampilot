@@ -10,7 +10,7 @@
 | 4 | `04_damBreak_multiphase` | Réécrit et validé OF13 | Validé fonctionnellement | `run_command, run_simulation, set_raw_condition, write, Meshing` | Aucun import de référence; fichiers et calcul vérifiés sous OF13 |
 | 5 | `05_scalarTransport` | Réécrit et validé OF13 | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Aucun import de référence; fichiers et calcul vérifiés sous OF13 |
 | 6 | `06_buildingAero` | Réécrit et validé OF13 | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Aucun import de référence; fichiers et calcul vérifiés sous OF13 |
-| 7 | `07_motorBike` | À corriger — opération directe | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Opération directe détectée |
+| 7 | `07_motorBike` | Réécrit FoamPilot — validation partielle | Validé fonctionnellement | `run_simulation, set_raw_condition, write, Meshing` | Aucun import de référence; fichiers générés et calcul sans fatal jusqu’à la limite de temps |
 | 8 | `08_thermalBuoyancy` | Réécrit FoamPilot à vérifier | Validé fonctionnellement | `run_simulation, register_field, set_raw_condition, write, Meshing, Boundary` | Pas d’import de référence détecté |
 | 9 | `09_CHT_heatedDuct` | À corriger — opération directe | Validé fonctionnellement | `run_command, run_simulation, write, Meshing` | Opération directe détectée |
 | 10 | `10_compressibleVoF_ballValve` | Partiellement réécrit | Validé fonctionnellement | `import_reference_file, import_reference_asset, import_reference_dict, run_command, run_simulation, set_raw_condition, write, Meshing, Boundary` | Imports et génération FoamPilot mélangés |

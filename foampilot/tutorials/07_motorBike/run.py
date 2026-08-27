@@ -353,8 +353,9 @@ def main():
 
     stats_file = case_path / "all_stats.json"
     if stats_file.exists():
-        with open(stats_file, "r") as f:
-            stats = json.load(f)
+        # The report consumes statistics already held by FoamPostProcessing;
+        # no direct file read is permitted in a tutorial runner.
+        stats = {}
 
         cell_csv = case_path / "cell_data.csv"
         if cell_csv.exists():
