@@ -22,6 +22,8 @@ _LAZY_ATTRS = {
     "CaseBuilder": ("foampilot.base", "CaseBuilder"),
     "create_case_structure": ("foampilot.base", "create_case_structure"),
     "Solver": ("foampilot.solver", "Solver"),
+    "OpenFOAMEnvironment": ("foampilot.solver", "OpenFOAMEnvironment"),
+    "RunWorkflow": ("foampilot.solver", "RunWorkflow"),
     "ConstantDirectory": ("foampilot.constant.constantDirectory", "ConstantDirectory"),
     "SystemDirectory": ("foampilot.system.SystemDirectory", "SystemDirectory"),
     "Boundary": ("foampilot.boundaries.boundaries_dict", "Boundary"),
