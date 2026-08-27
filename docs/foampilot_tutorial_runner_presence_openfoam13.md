@@ -228,6 +228,7 @@ La vérification couvre désormais les équivalents déclarés dans la matrice a
 | `218_multiphaseEuler_bubbleColumnIATE` | Présent | Présent | Conforme OF13 | Accepté avec réserve — champ `kappai.air`, coalescence/cassure IATE, fractions air/eau bornées, Courant maximal inférieur à 0,95 et calcul stable jusqu’à `Time≈75,75 s` sur `100 s` au plafond, sans `FOAM FATAL` |
 | `219_multiphaseEuler_bubbleColumnLES` | Présent | Présent | Conforme OF13 | Accepté avec réserve — turbulence LES air/eau, `nSubCycles=2`, fractions bornées et normalisées, Courant maximal proche de 1,00, calcul stable jusqu’à `Time≈79,39 s` sur `100 s` au plafond, sans `FOAM FATAL` |
 | `220_multiphaseEuler_bubbleColumnLaminar` | Présent | Présent | Conforme OF13 | Validé — colonne air/eau laminaire, `nSubCycles=2`, fractions bornées, Courant maximal proche de 0,74, calcul jusqu’à `End` vers `Time≈84,38 s` et aucun `FOAM FATAL` |
+| `221_multiphaseEuler_bubblePipe` | Présent | Présent | Conforme OF13 | Accepté avec réserve — phases `water/air1/air2/bubbles`, population balance, groupes de taille, forces interfaciales et décomposition à 4 domaines validés; calcul stable jusqu’à `Time≈3,366 s` sur `4 s`, fractions normalisées, Courant proche de 0,80, sans `FOAM FATAL`, mais reconstruction hors budget |
 
 ## Conclusion
 
