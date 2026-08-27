@@ -11,6 +11,6 @@ if [ ! -d constant/polyMesh ]; then
 fi
 runApplication setWaves
 runApplication marineFoam -solver incompressibleVoF
-runApplication postProcess -func rigidBodyForces
+runApplication postProcess -func forces
 
 #------------------------------------------------------------------------------

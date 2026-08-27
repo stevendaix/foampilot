@@ -9,4 +9,4 @@ marine_require_command marineFoam
 if [ ! -d constant/polyMesh ]; then ./Allmesh.FoamPilot; fi
 runApplication setFields
 runApplication marineFoam -solver incompressibleVoF
-runApplication postProcess -func rigidBodyForces
+runApplication postProcess -func forces

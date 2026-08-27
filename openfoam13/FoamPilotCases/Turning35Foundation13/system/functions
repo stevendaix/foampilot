@@ -12,16 +12,6 @@ FoamFile
     location "system";
     object functions;
 }
-rigidBodyForces
-{
-    type rigidBodyForces;
-    libs ("librigidBodyForces.so");
-    body hull;
-    patches (hull);
-    log on;
-    writeControl timeStep;
-    writeInterval 1;
-}
 forces
 {
     type forces;
