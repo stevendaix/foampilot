@@ -96,3 +96,20 @@ Tutoriel concerné: `06_buildingAero`; validation OF13: background mesh, extract
 
 ### API-049 — sous-dictionnaire `potentialFlow` dans `FvSolutionFile`
 `FvSolutionFile` expose désormais `potentialFlow` dans son constructeur, sa sérialisation et `from_dict`. Les cas utilisant `potentialFoam` peuvent déclarer `nNonOrthogonalCorrectors` sans importer `fvSolution`.
+
+
+## API-048 — Directives `#include` déclaratives dans `OpenFOAMDictAddFile`
+
+Le writer accepte l’attribut `includes`, sérialisé en directives natives `#include`, pour composer des dictionnaires OpenFOAM sans recopier leurs fichiers sources. Utilisé pour les mélanges thermodynamiques XiFluid.
+
+## API-049 — Géométrie avancée et faces top-level dans `BlockMesher`
+
+`BlockMesher` sait déclarer les objets de géométrie, les sommets nommés/projetés et les faces top-level nécessaires aux maillages ballValve et aux géométries multi-blocs avancées.
+
+## API-050 — Dimensions et champs thermiques XiFluid
+
+`OpenFOAMFile.FIELD_DIMENSIONS` reconnaît `Tu` comme température. La génération compressible conserve la pression dynamique et permet l’initialisation déclarative des champs XiFluid (`T`, `Tu`, `Xi`, `b`, `egr`, `ft`, `fu`, `k`, `epsilon`, `omega`, `p`) sur les patches produits par baffles et couples NCC.
+
+## API-051 — Configuration XiFluid avancée
+
+Les writers déclaratifs existants sont utilisés conjointement pour produire les propriétés thermophysiques incluses, `combustionProperties`, les solveurs `fvSolution` (`rhoFinal`, `epsilonFinal`, `pFinal`, `MeshPhi`, PIMPLE) et les schémas de convection XiFluid. Validation OF13: #11 atteint `Time=5000 s` puis `End`; #10 atteint `End` après 1412 s.

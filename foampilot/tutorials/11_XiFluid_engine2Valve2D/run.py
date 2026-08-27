@@ -308,11 +308,11 @@ def configure_xifluid_fields(solver):
     solver.boundary.set_raw_condition("inlet", "U", {"type": "fixedValue", "value": "uniform (0 0 0)"})
     solver.boundary.set_raw_condition("inlet", "T", {"type": "fixedValue", "value": "uniform 300"})
     solver.boundary.write_boundary_conditions({
-        "U": "uniform (0 0 0)", "T": "uniform 300", "Tu": "uniform 0.01",
-        "Xi": "uniform 1", "b": "uniform 0", "egr": "uniform 0",
+        "U": "uniform (0 0 0)", "T": "uniform 700", "Tu": "uniform 700",
+        "Xi": "uniform 1", "b": "uniform 1", "egr": "uniform 0",
         "ft": "uniform 0", "fu": "uniform 0", "alphat": "uniform 0",
-        "k": "uniform 1e-6", "nut": "uniform 1e-6", "omega": "uniform 1",
-        "p": "uniform 1e5",
+        "k": "uniform 0.23", "nut": "uniform 0", "omega": "uniform 1000",
+        "epsilon": "uniform 0.125", "p": "uniform 1e5",
     })
 
 
