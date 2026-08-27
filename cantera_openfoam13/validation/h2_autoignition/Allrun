@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -eo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "${ROOT}/../../.." && pwd)"
+
+# Select an explicit OpenFOAM environment supplied by the caller.
+if [ -n "${FOAM_BASHRC:-}" ] && [ -f "${FOAM_BASHRC}" ]; then
+    source "${FOAM_BASHRC}"
+elif [ -n "${WM_PROJECT_DIR:-}" ] && [ -f "${WM_PROJECT_DIR}/etc/bashrc" ]; then
+    source "${WM_PROJECT_DIR}/etc/bashrc"
+else
+    echo "OpenFOAM environment unavailable. Set FOAM_BASHRC or WM_PROJECT_DIR." >&2
+    exit 2
+fi
+set -u
+
+: "${CANTERA_ROOT:?Set CANTERA_ROOT to the Cantera C++ installation}"
+: "${CANTERA_DATA:=${CANTERA_ROOT}/share/cantera/data}"
+export CANTERA_DATA
+export LD_LIBRARY_PATH="${CANTERA_ROOT}/lib:${LD_LIBRARY_PATH:-}"
+python3 -c 'import cantera as ct; print(f"Cantera Python {ct.__version__}")'
+
+for path in "${CANTERA_ROOT}/include" "${CANTERA_ROOT}/lib" "${CANTERA_DATA}"; do
+    [ -d "${path}" ] || { echo "Missing Cantera path: ${path}" >&2; exit 2; }
+done
+[ -f "${CANTERA_ROOT}/lib/libcantera_shared.so" ] || {
+    echo "Missing Cantera shared library: ${CANTERA_ROOT}/lib/libcantera_shared.so" >&2
+    exit 2
+}
+
+(cd "${REPO}/third_party/cantera-openfoam13" && wmake)
+PYTHONPATH="${REPO}/foampilot/src:${PYTHONPATH:-}" python3 "${ROOT}/validate.py"
