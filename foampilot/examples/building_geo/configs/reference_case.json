@@ -1,0 +1,53 @@
+{
+  "name": "urbgen_reference_block",
+  "units": "m",
+  "site": {
+    "vertices": [[0, 0], [120, 0], [120, 80], [0, 80]],
+    "holes": []
+  },
+  "population": {
+    "count": 24,
+    "mode": 2,
+    "jitter": 0.2,
+    "angle_rad": 0.0,
+    "seed": 42,
+    "min_dist": null
+  },
+  "urbgen": {
+    "bcr": 0.30,
+    "upper_bcr": 0.33,
+    "far": 2.5,
+    "setback": 4.0,
+    "min_width": 8.0,
+    "tower_size_mode": 1,
+    "min_footprint_per_tower": 45.0,
+    "max_footprint_per_tower": 180.0,
+    "max_length_width_ratio": 4.0,
+    "min_tower_distance": 5.0,
+    "tower_bcr_priority": 0.65,
+    "tower_grow_step": 1.0,
+    "tower_grow_iterations": 80,
+    "seed": 42,
+    "tower_typology_mode": 6,
+    "arm_length_ratio": 1.3,
+    "podium_floors": 1,
+    "podium_min_offset": 2.0,
+    "podium_max_offset": 12.0,
+    "floor_height": 3.5,
+    "global_rotation_mode": 2,
+    "uniform_rotation_deg": 0.0,
+    "height_variation": 0.25,
+    "enforce_height_regulation": true,
+    "height_regulation_mode": 1,
+    "max_building_height": 60.0,
+    "min_building_height": 3.0
+  },
+  "meshing": {
+    "backend": "gmsh",
+    "output_subdirectory": "urbgen_cfd_validation"
+  },
+  "solver": {
+    "status": "not_run",
+    "note": "The current validator checks mesh and case export; OpenFOAM solver execution is an explicit next-stage validation."
+  }
+}
