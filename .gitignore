@@ -74,3 +74,26 @@ validation/yade-openfoam13/processor*/
 **/__pycache__/
 __pycache__/
 *.pyc
+
+# === FoamPilot marine / OpenFOAM Foundation 13 ===
+!openfoam13/
+!openfoam13/**
+openfoam13/**/polyMesh/
+openfoam13/**/polyMesh/**
+openfoam13/**/postProcessing/
+openfoam13/**/postProcessing/**
+openfoam13/**/processor*/
+openfoam13/**/processor*/**
+openfoam13/**/VTK/
+openfoam13/**/VTK/**
+openfoam13/**/*.log
+openfoam13/**/*.o
+openfoam13/**/*.dep
+openfoam13/**/Make/linux*/
+openfoam13/**/lnInclude/
+openfoam13/**/__pycache__/
+openfoam13/**/*.pyc
+openfoam13/**/0.[0-9]*/
+openfoam13/**/0.[0-9]*/**
+openfoam13/**/constant/polyMesh/
+openfoam13/**/constant/polyMesh/**

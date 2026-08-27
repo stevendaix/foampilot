@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source /opt/openfoam13/etc/bashrc
+set -eo pipefail
+
+for CASE in "$ROOT/background" "$ROOT/hull"; do
+    rm -rf "$CASE/constant/polyMesh"
+    (cd "$CASE" && blockMesh)
+done
+
+BACKGROUND="$ROOT/background"
+HULL="$ROOT/hull"
+
+extract_centres()
+{
+    local CASE_PATH="$1"
+    local TIME_SPEC="$2"
+    local DYNAMIC="$CASE_PATH/constant/dynamicMeshDict"
+    local DISABLED="$DYNAMIC.disabled"
+    if [ -f "$DYNAMIC" ]; then
+        mv "$DYNAMIC" "$DISABLED"
+    fi
+    trap 'if [ -f "$DISABLED" ]; then mv "$DISABLED" "$DYNAMIC"; fi' RETURN
+    (cd "$CASE_PATH" && foamPostProcess -func writeCellCentres -time "$TIME_SPEC")
+    if [ -f "$DISABLED" ]; then
+        mv "$DISABLED" "$DYNAMIC"
+    fi
+    trap - RETURN
+}
+
+extract_centres "$BACKGROUND" 0
+extract_centres "$HULL" constant
+
+python3 "$ROOT/../build_dtc_intermesh_stencils.py"
+python3 "$ROOT/../export_dtc_intermesh_dictionary.py"
+cp "$BACKGROUND/constant/marineInterMeshStencils" "$HULL/constant/marineInterMeshStencils"
+
+(cd "$HULL" && marineInterMeshStencilTest)
+(cd "$BACKGROUND" && marineFoam -solver incompressibleVoF)

@@ -1,0 +1,60 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object dynamicMeshDict;
+}
+mover
+{
+    type motionSolver;
+    libs ("librigidBodyMeshMotion.so");
+    motionSolver rigidBodyMotion;
+    report on;
+    solver
+    {
+        type Newmark;
+    }
+    accelerationRelaxation 0.8;
+    accelerationDamping 0.9;
+    nIter 3;
+    bodies
+    {
+        hull
+        {
+            type rigidBody;
+            parent root;
+            mass 412.73;
+            centreOfMass (0 0 0);
+            inertia (40 0 0 921 0 921);
+            transform (1 0 0 0 1 0 0 0 1) (2.929541 0 0.2);
+            joint
+            {
+                type composite;
+                joints
+                (
+                    { type Pz; }
+                    { type Ry; }
+                );
+            }
+            patches (hull);
+            innerDistance 100;
+            outerDistance 200;
+        }
+    }
+    restraints
+    {
+        translationDamper
+        {
+            type linearDamper;
+            body hull;
+            coeff 8596;
+        }
+        rotationDamper
+        {
+            type sphericalAngularDamper;
+            body hull;
+            coeff 11586;
+        }
+    }
+}

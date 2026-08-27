@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+
+fgrep -w 'Time =' log.overInterDyMFoam > Time.dat
+sed -i 's/Time =//' Time.dat
+
+fgrep -w 'Orientation: ' log.overInterDyMFoam > Orientation.dat
+sed -i 's/   Orientation: //' Orientation.dat
+sed -i 's/(//' Orientation.dat
+sed -i 's/)//' Orientation.dat
+
+fgrep -w 'Linear velocity: ' log.overInterDyMFoam > LinearVelocity.dat
+sed -i 's/    Linear velocity: //' LinearVelocity.dat
+sed -i 's/(//' LinearVelocity.dat
+sed -i 's/)//' LinearVelocity.dat
+
+fgrep -w 'Angular velocity: ' log.overInterDyMFoam > AngularVelocity.dat
+sed -i 's/    Angular velocity: //' AngularVelocity.dat
+sed -i 's/(//' AngularVelocity.dat
+sed -i 's/)//' AngularVelocity.dat
+
+mkdir -p postProcessing/sixDoFRigidBodyState/0
+paste Time.dat Orientation.dat LinearVelocity.dat AngularVelocity.dat > postProcessing/sixDoFRigidBodyState/0/sixDoFRigidBodyState.dat
+
+rm Time.dat Orientation.dat LinearVelocity.dat AngularVelocity.dat
+#------------------------------------------------------------------------------

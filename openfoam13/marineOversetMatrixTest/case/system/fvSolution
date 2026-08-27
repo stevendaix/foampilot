@@ -1,0 +1,23 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object fvSolution;
+}
+solvers
+{
+    p
+    {
+        solver PBiCGStab;
+        preconditioner DILU;
+        tolerance 1e-10;
+        relTol 0;
+    }
+}
+PIMPLE
+{
+    nOuterCorrectors 1;
+    nCorrectors 1;
+    nNonOrthogonalCorrectors 0;
+}

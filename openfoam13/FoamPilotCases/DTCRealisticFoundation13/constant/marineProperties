@@ -1,0 +1,12 @@
+FoamFile
+{
+    format ascii;
+    class dictionary;
+    object marineProperties;
+}
+
+mode dtc_moving;
+solver incompressibleVoF;
+meshBackend snappyHexMesh;
+fluid waterAir;
+freeSurfaceLevel 0.244;

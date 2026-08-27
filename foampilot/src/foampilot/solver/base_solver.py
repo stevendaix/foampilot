@@ -7,6 +7,7 @@ from foampilot.system.SystemDirectory import SystemDirectory
 from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.base.cases_variables import CaseFieldsManager
+from foampilot.solver.marine_case import MarineCaseConfig
 import os
 
 logger = logging.getLogger(__name__)
@@ -119,6 +120,17 @@ class BaseSolver:
         """Default: do nothing"""
         pass
 
+    # ---------- Marine case validation ----------
+    def validate_marine_case(self, strict: bool = True) -> MarineCaseConfig:
+        """Validate the structural inputs of a Foundation 13 marine case.
+
+        Validation is opt-in and never replaces OpenFOAM's ``checkMesh``.
+        """
+        config = MarineCaseConfig.from_case(self.case_path)
+        if strict:
+            config.validate_files()
+        return config
+
     # ---------- Directory and setup ----------
     def ensure_dirs(self) -> None:
         (self.case_path / "system").mkdir(parents=True, exist_ok=True)
@@ -197,7 +209,7 @@ class BaseSolver:
 
     def run_simulation(self, nb_proc: int = 1, log_filename: str | None = None):
         # --- Legacy OpenCFD solvers run directly without foamRun ---
-        legacy_solvers = {"overInterDyMFoam", "rhoSimpleFoam", "simpleFoam", "pimpleFoam"}
+        legacy_solvers = {"overInterDyMFoam", "rhoSimpleFoam", "simpleFoam", "pimpleFoam", "marineFoam"}
         if self.solver_name in legacy_solvers:
             self._run_legacy_solver(nb_proc, log_filename)
             return

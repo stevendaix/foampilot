@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit 1
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+mkdir -p constant/geometry
+cp "$FOAM_TUTORIALS/resources/geometry/propeller"*.obj.gz constant/geometry/
+runApplication blockMesh
+runApplication surfaceFeatures
+runApplication snappyHexMesh -overwrite
+runApplication createBaffles -overwrite
+runApplication splitBaffles -overwrite
+runApplication renumberMesh -noFields
+runApplication createNonConformalCouples nonCouple1 nonCouple2

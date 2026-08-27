@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 class Solver:
     """Generic solver manager with automatic solver selection."""
 
-    def __init__(self, case_path: str | Path):
+    def __init__(self, case_path: str | Path, solver_name: str | None = None):
         self.case_path = Path(case_path)
+        self._requested_solver = solver_name
         self._solver: Optional[BaseSolver] = None
 
         # Flags
@@ -132,7 +133,10 @@ class Solver:
 
     # ---------- Solver selection ----------
     def _update_solver(self):
-        if self._is_solid:
+        if self._requested_solver:
+            solver_name = self._requested_solver
+            self._sub_solver = None
+        elif self._is_solid:
             solver_name = "solidDisplacement"
             self._sub_solver = None
         elif self._is_vof:

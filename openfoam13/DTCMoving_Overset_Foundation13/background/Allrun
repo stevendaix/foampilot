@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+restore0Dir
+
+runApplication mergeMeshes . ../hull -overwrite
+
+runApplication -s zoneIDs topoSet # create cellSets
+
+runApplication setFields # assign zoneIDs and alpha.water
+
+runApplication decomposePar -force
+runParallel $(getApplication)
+# runParallel redistributePar -reconstruct -overwrite
+runApplication reconstructPar
+# runApplication $(getApplication)
+
+
+#------------------------------------------------------------------------------

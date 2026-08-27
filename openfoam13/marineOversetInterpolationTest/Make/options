@@ -1,0 +1,11 @@
+EXE_INC = \
+    -I../marineOversetProbe \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/OpenFOAM/lnInclude \
+    -I$(LIB_SRC)/OSspecific/POSIX/lnInclude
+
+EXE_LIBS = \
+    -L$(FOAM_USER_LIBBIN) \
+    -lmarineOversetProbe \
+    -lfiniteVolume \
+    -lOpenFOAM
