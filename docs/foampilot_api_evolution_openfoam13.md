@@ -118,3 +118,8 @@ Les writers déclaratifs existants sont utilisés conjointement pour produire le
 ## API-052 — Génération déclarative de mélanges homogènes XiFluid
 
 Les runners peuvent désormais construire sans import les propriétés `homogeneousMixture` (`thermoType`, `reactants`, `products`, coefficients JANAF, transport `mu/Pr`), les modèles de combustion Gulder, les schémas XiFluid composés et les champs initiaux de combustion. Validation OF13: les variantes propane et hydrogène de `12_XiFluid_moriyoshiHomogeneous` atteignent chacune `Time=0,015 s` puis `End`.
+
+
+## API-053 — Génération déclarative de zones XiFluid et `setFieldsDict`
+
+`OpenFOAMDictAddFile` est utilisé pour générer les valeurs par défaut et les zones box de `setFieldsDict`, tandis que `BlockMesher`, `CaseFieldsManager` et les writers système construisent le cas XiFluid stratifié sans import de `system/`, `constant/` ou `0/`. Validation OF13: `13_XiFluid_stratified` atteint `Time=0,015 s` puis `End` sans `FOAM FATAL`.
