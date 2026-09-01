@@ -1,5 +1,5 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+set -e
 
 case_dir=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
 cd "$case_dir"
@@ -14,6 +14,8 @@ else
     echo "ERROR: set FOAM_BASHRC or WM_PROJECT_DIR for OpenFOAM 13" >&2
     exit 2
 fi
+
+set -u
 
 if [ ! -f constant/triSurface/aorta_multiregion.stl ]; then
     if [ -z "${MEDICAL_SURFACE_VTP:-}" ] || [ ! -f "$MEDICAL_SURFACE_VTP" ]; then

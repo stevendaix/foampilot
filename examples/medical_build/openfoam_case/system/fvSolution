@@ -21,6 +21,16 @@ solvers
         tolerance       1e-9;
         relTol          0.05;
     }
+    pFinal
+    {
+        $p;
+        relTol          0;
+    }
+    UFinal
+    {
+        $U;
+        relTol          0;
+    }
 }
 PIMPLE
 {
