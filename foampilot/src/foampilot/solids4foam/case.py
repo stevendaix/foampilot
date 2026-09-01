@@ -33,6 +33,7 @@ class SolidMaterial:
     young_modulus: float = 1.0e6
     poisson_ratio: float = 0.4
     plane_stress: bool = False
+    alternate_pressure_definition: bool = False
 
     def __post_init__(self) -> None:
         _word(self.name, "material name")
@@ -368,7 +369,7 @@ mechanical
         rho rho [1 -3 0 0 0 0 0] {m.density:.16g};
         E   E   [1 -1 -2 0 0 0 0] {m.young_modulus:.16g};
         nu  nu  [0 0 0 0 0 0 0] {m.poisson_ratio:.16g};
-    }}
+{"        alternatePressureDefinition true;\n" if m.alternate_pressure_definition and m.law == "neoHookeanElastic" else ""}    }}
 );
 """
 
