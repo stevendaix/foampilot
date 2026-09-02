@@ -53,13 +53,15 @@ dependencies = [
   "pyacvd",
   "kagglehub",
   "vmtk",
-  "geomdl",
-  "opencascade"
+  "geomdl"
 ]
 
 [project.optional-dependencies]
 chemistry = [
   "cantera>=3.0",
+]
+vmtk-reference = [
+  "vmtk",
 ]
 gnn = [
   "torch>=2.5.0,<2.6.0",

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -e
+
+case_dir=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+cd "$case_dir"
+
+if [ -n "${FOAM_BASHRC:-}" ] && [ -f "$FOAM_BASHRC" ]; then
+    # shellcheck disable=SC1090
+    . "$FOAM_BASHRC"
+elif [ -n "${WM_PROJECT_DIR:-}" ] && [ -f "$WM_PROJECT_DIR/etc/bashrc" ]; then
+    # shellcheck disable=SC1091
+    . "$WM_PROJECT_DIR/etc/bashrc"
+else
+    echo "ERROR: set FOAM_BASHRC or WM_PROJECT_DIR for OpenFOAM 13" >&2
+    exit 2
+fi
+
+set -u
+
+[ -f constant/polyMesh/boundary ] || {
+    echo 'Mesh missing: run ./Allrun first' >&2
+    exit 1
+}
+cp system/controlDict.pimpleFoam system/controlDict
+pimpleFoam -case "$case_dir"
