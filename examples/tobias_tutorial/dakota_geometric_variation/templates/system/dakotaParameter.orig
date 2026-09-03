@@ -1,0 +1,7 @@
+# This file contains the parameters that can be changed
+# Dakota will change the parameters with brackets and the name
+# corresponds to the variables in the dakotaDict
+
+angle1 = {angle1}
+angle2 = {angle2}
+length = {length}

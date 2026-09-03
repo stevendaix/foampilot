@@ -271,6 +271,37 @@ class BaseSolver:
         return boundary_path
 
     # ---------- Running simulation ----------
+    def _command_environment(self) -> Dict[str, str]:
+        """Return a portable environment for OpenFOAM commands.
+
+        An explicitly configured ``FOAM_BASHRC`` or ``WM_PROJECT_DIR`` is
+        sourced in a child Bash process. No machine-specific installation path
+        is guessed; when no configuration is supplied, the current environment
+        is returned unchanged.
+        """
+        environment = os.environ.copy()
+        bashrc = environment.get("FOAM_BASHRC", "")
+        if not bashrc and environment.get("WM_PROJECT_DIR"):
+            bashrc = str(Path(environment["WM_PROJECT_DIR"]) / "etc" / "bashrc")
+        if not bashrc:
+            return environment
+        bashrc_path = Path(bashrc).expanduser()
+        if not bashrc_path.is_file():
+            raise FileNotFoundError(f"OpenFOAM bashrc not found: {bashrc_path}")
+        result = subprocess.run(
+            ["bash", "-lc", 'source "$1" >/dev/null 2>&1 && env -0', "foampilot-env", str(bashrc_path)],
+            capture_output=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"Failed to source OpenFOAM bashrc: {bashrc_path}")
+        sourced = {}
+        for item in result.stdout.split(b"\0"):
+            if b"=" in item:
+                key, value = item.split(b"=", 1)
+                sourced[key.decode()] = value.decode(errors="replace")
+        return sourced
+
     def run_command(
         self,
         cmd: Sequence[str],
@@ -288,7 +319,7 @@ class BaseSolver:
         log_path = self.case_path / log_filename
         log_path.parent.mkdir(parents=True, exist_ok=True)
         logger.info("Running command: %s -> log: %s", " ".join(cmd), log_path)
-        process_environment = os.environ.copy()
+        process_environment = self._command_environment()
         if env:
             process_environment.update(env)
         if environment:
@@ -316,7 +347,7 @@ class BaseSolver:
         logger.info("Starting async command: %s -> log: %s", " ".join(cmd), log_path)
         log_file = log_path.open("w", encoding="utf-8")
         process = subprocess.Popen(
-            list(cmd), cwd=self.case_path, text=True,
+            list(cmd), cwd=self.case_path, env=self._command_environment(), text=True,
             stdout=log_file, stderr=subprocess.STDOUT,
         )
         process._foampilot_log_file = log_file

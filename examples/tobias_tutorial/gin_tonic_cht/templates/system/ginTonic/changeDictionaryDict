@@ -1,0 +1,143 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+p_rgh
+{
+    boundaryField
+    {
+        //- Problem with pressure momentum coupling if we close it
+        top
+        {
+            type    totalPressure;
+            p0      $internalField;
+            value   $internalField;
+        }
+
+        fixedWalls
+        {
+            type    fixedFluxPressure;
+            value   $internalField;
+        }
+
+        ginTonic_to_iceCube1
+        {
+            type    fixedFluxPressure;
+            value   $internalField;
+        }
+
+        ginTonic_to_iceCube2
+        {
+            type    fixedFluxPressure;
+            value   $internalField;
+        }
+    }
+}
+
+p
+{
+    boundaryField
+    {
+        top
+        {
+            type    calculated;
+            value   $internalField;
+        }
+
+        fixedWalls
+        {
+            type    calculated;
+            value   $internalField;
+        }
+
+        ginTonic_to_iceCube1
+        {
+            type    calculated;
+            value   $internalField;
+        }
+
+        ginTonic_to_iceCube2
+        {
+            type    calculated;
+            value   $internalField;
+        }
+    }
+}
+
+T
+{
+    //- Gin + Tonic was not cooled :( so they are 20degree C
+    internalField   uniform 293;
+
+    boundaryField
+    {
+        top
+        {
+            type    zeroGradient;
+        }
+
+        fixedWalls
+        {
+            type    zeroGradient;
+        }
+
+        ginTonic_to_iceCube1
+        {
+            type    compressible::turbulentTemperatureCoupledBaffleMixed;
+            value   $internalField;
+            kappaMethod fluidThermo;
+            Tnbr    T;
+        }
+
+        ginTonic_to_iceCube2
+        {
+            type    compressible::turbulentTemperatureCoupledBaffleMixed;
+            value   $internalField;
+            kappaMethod fluidThermo;
+            Tnbr    T;
+        }
+    }
+}
+
+
+U
+{
+    boundaryField
+    {
+        top
+        {
+            //- Problem with pressure momentum coupling if we fix it
+            type    pressureInletOutletVelocity;
+            value   $internalField;
+        }
+
+        fixedWalls
+        {
+            type    noSlip;
+        }
+
+        ginTonic_to_iceCube1
+        {
+            type    noSlip;
+        }
+
+        ginTonic_to_iceCube2
+        {
+            type    noSlip;
+        }
+    }
+}
+
+// ************************************************************************* //

@@ -1,0 +1,67 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    e
+    {
+        solver           PCG;
+        preconditioner   DIC;
+        tolerance        1e-08;
+        relTol           0.1;
+        minIter          1;
+    }
+
+    eFinal
+    {
+        $e;
+        tolerance        1e-08;
+        relTol           0;
+    }
+}
+
+PIMPLE
+{
+    //- If the transient solution tends towards a steady state solution,
+    //  end the calculation after the residual control is reached
+    residualControl
+    {
+        e       4e-4;
+    }
+}
+
+//- Relaxation factors applied to the fields or equations in the outer loops
+//  If nOuterCorrectors is not used, no underrelaxation should be placed.
+//  Always use the *.Final factor too, only you really know what your are doing
+//  ++ Relaxation of the final outer correction is possible, if the residual
+//     controls are very strict. 
+relaxationFactors
+{
+    //- Relaxation of the equation: 
+    //  Factor: -1 disables the usage
+    //  Factor: 1 makes the matrix diagonal dominant or at least equal
+    //          --> matrix might be manipulated
+    //  Factor: 0 < alpha < 1; underrelaxation - make matrix diagonal dominat
+    //  Factor: alpha > 1; over-relaxation - make matrix diagonal dominat weak
+    //          --> can be used in some cases, generally not stable
+    equations
+    {
+        e               0.85;
+        eFinal          1;
+    }
+}
+
+// ************************************************************************* //

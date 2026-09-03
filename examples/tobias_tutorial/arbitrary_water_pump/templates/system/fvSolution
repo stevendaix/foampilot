@@ -1,0 +1,120 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "alpha.water.*"
+    {
+        nAlphaCorr      2;
+        nAlphaSubCycles 1;
+        cAlpha          1;
+
+        MULESCorr       yes;
+        nLimiterIter    3;
+
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-8;
+        relTol          0;
+    }
+
+    pcorr
+    {
+        solver          PCG;
+        preconditioner  FDIC;
+        tolerance       1e-5;
+        relTol          0;
+    }
+
+    pcorrFinal
+    {
+        $pcorr;
+    }
+
+    p_rgh
+    {
+        solver GAMG;
+        agglomerator faceAreaPair;
+        mergeLevels 1;
+        cacheAgglomeration true;
+        nCellsInCoarsestLevel 40;
+        smoother GaussSeidel;
+        nPreSweeps 0;
+        nPostSweeps 2;
+        nFinestSweeps 2;
+
+        minIter 1;
+
+        tolerance 1e-8;
+        relTol 0.01;
+    }
+
+    p_rghFinal
+    {
+        $p_rgh;
+        relTol          0;
+    }
+
+    "(U|k|epsilon)"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU
+        tolerance       1e-08;
+        relTol          0.1;
+    }
+    
+    "(U|k|epsilon)Final"
+    {
+        $U;
+        relTol          0;
+    }
+}
+
+PIMPLE
+{
+    momentumPredictor   no;
+    nOuterCorrectors    1;
+    nCorrectors         2;
+    nNonOrthogonalCorrectors 0;
+    consistent          yes;
+
+    pRefCell 0;
+    pRefValue 0;
+}
+
+relaxationFactors
+{
+    fields
+    {
+        p_rgh       0.8;
+        p_rghFinal  1;
+    }
+
+    equations
+    {
+        k           0.8;
+        epsilon     0.8;
+        U           0.8;
+
+        kFinal      1;
+        epsilonFinal 1;
+        UFinal      1;
+    }
+}
+
+
+// ************************************************************************* //

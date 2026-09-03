@@ -1,0 +1,189 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+dynamicFvMesh      dynamicMotionSolverFvMesh;
+
+motionSolverLibs ("libsixDoFRigidBodyMotion.so");
+
+solver            sixDoFRigidBodyMotion;
+
+sixDoFRigidBodyMotionCoeffs
+{
+    //- The following stuff is read from the rigidBodyMeshMotionSolver class 
+    //  lOD = lookupOrDefault | l = lookup
+    //  :: l :: patches
+    //  :: l :: innerDistance
+    //  :: l :: outerDistance
+    //  :: l :: g                   (only if g is in db()) 
+    //
+    //  :: lOD :: test              (default = false) | test mode, only g act 
+    //  :: lOD :: rho               (default = rho)   | needed for inco.
+    //                              if rho = rhoInf -> lookup rhoInf value
+
+    //- List of mesh patches associated with the solid body 
+    patches         (rotor);
+
+    //- Inner morphing distance (limit of solid-body region)
+    innerDistance   0.008;
+
+    //- Outer morphing distance (limit of linear interpolation region)
+    outerDistance   0.02;
+
+    //- Note: Based on innterDistance and outerDistance, we make a pointField
+    //  that scales the morphing stuff (see also in the source code)
+
+    //- Gravitational acceleration if g is used in the calculation
+    g               (0 0 0);
+
+    //- Denisty name (normally rho but for incompressible cases we have to
+    //  specify rhoInf and set the density). Each name different from rhoInf
+    //  will be treated as variable. E.g. if we set rhoTest, FOAM search for
+    //  a reserved rhoTest quantity
+    rho             rhoInf;
+
+    //- For incompressible cases [kg/m^3]
+    rhoInf          1000;
+
+
+    //- The following stuff is read from the sixDoFRigidBodyMotion class and
+    //  sixDoFRigidBodyMotionState
+    //  lOD = lookupOrDefault | l = lookup
+    //  :: l ::  mass
+    //  :: l ::  momentOfInertia
+    //
+    //  :: lOD :: initialCentreOfMass       (default = l :: centreOfMass)
+    //  :: lOD :: centreOfRotation          (default = l :: centreOfMass)
+    //  :: lOD :: initialOrientation        (default = l :: orientation)
+    //  :: lOD :: orientation               (default = identiy matrix I)
+    //  :: lOD :: accelerationRelaxation    (default = 1) 
+    //  :: lOD :: accelerationDumping       (default = 1)
+    //  :: lOD :: report                    (default = false)
+    //  :: lOD :: velocity                  (default = (0 0 0))
+    //  :: lOD :: acceleration              (default = (0 0 0)) 
+    //  :: lOD :: angularMomentum           (default = (0 0 0))
+    //  :: lOD :: torque                    (default = (0 0 0))
+    //
+    //  -- need subDicts 
+    //          "solver"
+    //     and read if found
+    //          "restraints"
+    //          "constraints"
+
+    //- Mass of rotor [kg]
+    mass            0.0000229;
+
+    //- Based on a cylinder in kgm^2
+    //  My assumption :: m*(r1^2 + r2^2 / 2)
+    momentOfInertia (0 0 3.88384e-8);
+
+    //- Intial center of mass (default) and centre of rotation of the rigid-body 
+    centreOfMass     (0.1 0.025 0.00125);
+
+    //- Intial center of mass of the rigid-body (used if CenterOfMass move)
+    //initialCenterOfMass     (0.1 0.025 0.00125);
+
+    //- Initial orientation of the rigid-body (default) and rotational orient.
+    orientation
+    (
+        1 0 0
+        0 1 0
+        0 0 1
+    );
+    
+    //- Initial orientation of the rigid-body (used if orientation differs)
+    //initialOrientation
+    //(
+    //    1 0 0
+    //    0 1 0
+    //    0 0 1
+    //);
+
+    //- Linear velocity of the rigid-body
+    velocity        (0 0 0);
+
+    //- Total linear acceleration of the rigid-body
+    acceleration    (0 0 0);
+
+    //- Angular momentum of the rigid-body in local reference frame
+    angularMomentum (0 0 0);
+
+    //- Total torque on rigid-body in local reference frame
+    torque          (0 0 0);
+
+    //- Report motion data
+    report          on;
+
+    //- Acceleration relaxation coeff
+    accelerationRelaxation 0.9;
+
+    //- Acceleration dumping coeff (for steady-state simulations)
+    accelerationDumping 0.9;
+
+
+    //- Motion Solver (for AMI not really needed)
+    //  Newmark
+    //  Crank-Nicolsen
+    //  and ... foobar
+    solver
+    {
+        type Newmark;
+    }
+
+
+    //- Section for constraints 
+    //  Checkout the openfoamwiki or the source code
+    constraints
+    {
+        //- Arbitrary name
+        zAxis
+        {
+            //- Fix the axis
+            //  Here: rigid-body cannot move in x and y and rotate
+            sixDoFRigidBodyMotionConstraint axis;
+            axis        (0 0 1);
+        }
+
+        //- Arbitrary name
+        fixedPt
+        {
+            //- Fix the point
+            //  Here: motion also avoided in z direction
+            //  Only possibility now -> rotate arount z axis
+            sixDoFRigidBodyMotionConstraint point;
+            point        (0.1 0.025 0.00125);
+        }
+    }
+
+    
+    //- Section for restraints
+    //  Checkout the openfoamwiki or the source code
+    restraints
+    {
+        //- Some dumping functions
+        translationDamper
+        {
+                //- Nms/rad
+                //  Acts against motion as friction
+                sixDoFRigidBodyMotionRestraint  sphericalAngularDamper;
+                coeff 10;
+        }
+    }
+}
+
+
+// ************************************************************************* //
