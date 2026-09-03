@@ -1,6 +1,7 @@
 from pathlib import Path
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import shutil
@@ -14,10 +15,10 @@ lines = ['# Validation approfondie Foampilot / OpenFOAM 13', '', '| Test | Résu
 def add(name, ok, detail):
     lines.append(f'| {name} | {"PASS" if ok else "FAIL"} | {detail.replace(chr(10), " ")} |')
 
-r = subprocess.run(['pytest', '-q', 'test/test_multiphysics_integration.py'], cwd=foampilot, text=True, capture_output=True)
+r = subprocess.run(['pytest', '-q', 'test/test_multiphysics_integration.py'], cwd=root, text=True, capture_output=True)
 add('Tests unitaires multiphysiques', r.returncode == 0, (r.stdout + r.stderr).strip()[-500:])
 
-module_path = foampilot / 'foampilot/src/foampilot/multiphysics/integration.py'
+module_path = foampilot / 'src/foampilot/multiphysics/integration.py'
 spec = importlib.util.spec_from_file_location('fpi', module_path)
 mod = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = mod
@@ -29,7 +30,7 @@ manifest, dictionary = config.write_case_assets(assets)
 add('Génération manifeste Foampilot', manifest.exists() and dictionary.exists(), str(manifest))
 add('Profil openHFDIB-DEM/libAcoustics', config.modules == ('openhfdib_dem', 'libacoustics'), 'combinaison autorisée avec openHFDIB-DEM + acoustique')
 config_sedi = mod.MultiphysicsConfiguration(('sedifoam', 'libacoustics'))
-plan = config_sedi.build_plan if hasattr(config_sedi, 'build_plan') else mod.build_plan(config_sedi, foampilot)
+plan = config_sedi.build_plan if hasattr(config_sedi, 'build_plan') else mod.build_plan(config_sedi, root)
 add('Profil sediFoam/libAcoustics', config_sedi.modules == ('sedifoam', 'libacoustics'), 'combinaison autorisée avec sediFoam + acoustique')
 add('Chemins vendorisés', all(Path(item['source']).exists() for item in plan), json.dumps(plan))
 
@@ -62,8 +63,12 @@ for label, library, symbols in [
     else:
         add(label, False, f'artefact absent: {library}')
 
-case_src = root / 'validation' / 'normalForce_OF13'
+case_src = Path(os.environ.get('MULTIPHYSICS_VALIDATION_CASE', str(root / 'validation' / 'normalForce_OF13')))
 case = root / 'validation' / 'normalForce_OF13_deep'
+if not case_src.exists():
+    add('Cas DEM HFDIB', False, f'cas de validation absent: {case_src}; fournir MULTIPHYSICS_VALIDATION_CASE')
+    report.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    raise SystemExit(1)
 if case.exists():
     shutil.rmtree(case)
 shutil.copytree(case_src, case)
