@@ -1,7 +1,22 @@
-from build123d import *
 from typing import Optional, Tuple, List
-from jupyter_cadquery import show
-from build123d import exporters3d
+
+try:
+    from jupyter_cadquery import show
+except ImportError:  # Optional viewer dependency; STEP export does not need it.
+    show = None
+
+from build123d import (
+    Align,
+    Box,
+    BuildPart,
+    Compound,
+    Cylinder,
+    Location,
+    Part,
+    Sphere,
+    exporters3d,
+    scale,
+)
 
 class HumanGeometry:
     """

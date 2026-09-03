@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Do a synchronisation of coupled points after creation of any patches.
+// Note: this does not work with points that are on multiple coupled patches
+//       with transformations (i.e. cyclics).
+pointSync false;
+
+// Patches to create. An empty patch list just removes patches with zero
+// faces from $FOAM_CASE/constant/polyMesh/boundary.
+patches
+(
+    //- Add correct patches to interfaceOuter
+    {
+        name interfaceOuter;
+
+        patchInfo
+        {
+            type wall;
+        }
+
+        constructFrom patches;
+
+        patches (interface connected_slave);
+    }
+    //- Rename patch connected -> interfaceInner
+    {
+        name interfaceInner;
+
+        patchInfo
+        {
+            type wall;
+        }
+
+        constructFrom patches;
+
+        patches (connected);
+    }
+);
+
+// ************************************************************************* //
