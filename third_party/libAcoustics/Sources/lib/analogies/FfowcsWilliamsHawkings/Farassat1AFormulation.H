@@ -1,0 +1,83 @@
+#ifndef Farassat1AFormulation_H
+#define Farassat1AFormulation_H
+
+#include "fwhFormulation.H"
+#include "vector.H"
+#include "label.H"
+#include "List.H"
+#include "AcousticAnalogy.H"
+
+namespace Foam
+{
+
+namespace functionObjects
+{
+
+class Farassat1AFormulation : public fwhFormulation
+{
+
+private:
+
+    //types for internal usage
+
+    typedef Pair<DynamicList<scalar> > pointTimeData;
+
+    typedef List<List<List<pointTimeData > > > surfaceTimeData;
+
+    template<typename T>
+    using tdPrimitive = AcousticAnalogy::tdPrimitive<T>;
+
+private:
+
+    //-
+    List<List<tdPrimitive<scalar> > > Un_;
+
+    //-
+    List<List<tdPrimitive<vector> > > L_;
+
+    //-
+    List<List<tdPrimitive<vector> > > M_;
+
+    //-
+    tdPrimitive<scalar> intDotQdS_;
+
+    //-
+    tdPrimitive<scalar> intFdS_;
+
+private:
+
+    //- Disable default constructor
+    Farassat1AFormulation();
+
+    //- Disable copy constructor
+    Farassat1AFormulation(const Farassat1AFormulation&);
+
+public:
+
+    //-
+    Farassat1AFormulation(const FfowcsWilliamsHawkings& fwh);
+
+    //-
+    ~Farassat1AFormulation();
+
+    //-
+    scalar observerAcousticPressure (const vectorField& Sf, const vectorField& uS, const scalarField& rhoS, const scalarField& pS, label iObs, label iSurf, scalar ct);
+    
+    //-
+    inline void calculateAcousticPressure (const vectorField& Sf, const vectorField& uS, const scalarField& rhoS, const scalarField& pS, label iObs, label iSurf, scalar ct);
+
+    //-
+    void clearExpiredData();
+
+    //-
+    void update();
+
+    //-
+    void initialize();
+};
+
+}
+
+} // namespace Foam
+
+#endif

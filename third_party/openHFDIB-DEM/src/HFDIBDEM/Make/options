@@ -1,0 +1,14 @@
+EXE_INC = \
+    -I$(PWD)/compat/openfoam13 \
+    -I$(LIB_SRC)/triSurface/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/polyTopoChange/lnInclude \
+    -I$(LIB_SRC)/mesh/blockMesh/lnInclude \
+    -I$(MPI_ARCH_PATH)/include \
+    -I./lnInclude
+LIB_LIBS = \
+    -lfiniteVolume \
+    -ltriSurface \
+    -lmeshTools \
+    -lblockMesh
