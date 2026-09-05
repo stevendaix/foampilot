@@ -12,6 +12,7 @@ from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.base.cases_variables import CaseFieldsManager
 from foampilot.solver.marine_case import MarineCaseConfig
+from foampilot.core.case import CaseLayout
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,7 @@ class BaseSolver:
         with_moving_mesh: bool = False,
     ):
         self.case_path = Path(case_path)
+        self.case_layout = CaseLayout(self.case_path)
         self.solver_name = solver_name
         self.foamrun_module = self.SOLVER_MODULES.get(solver_name, solver_name)
 
@@ -136,9 +138,8 @@ class BaseSolver:
 
     # ---------- Directory and setup ----------
     def ensure_dirs(self) -> None:
-        (self.case_path / "system").mkdir(parents=True, exist_ok=True)
-        (self.case_path / "constant").mkdir(parents=True, exist_ok=True)
-        (self.case_path / "0").mkdir(parents=True, exist_ok=True)
+        """Ensure the standard case layout through the v3 core primitive."""
+        self.case_layout.ensure(extra_directories=())
 
     def setup_case(self) -> None:
         self.ensure_dirs()
