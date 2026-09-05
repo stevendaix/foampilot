@@ -1,4 +1,7 @@
-"""Reusable OpenFOAM dictionary capabilities."""
-from .writer import DictionaryWriter
+"""Reusable OpenFOAM dictionary capabilities.
 
-__all__ = ["DictionaryWriter"]
+The classes are internal building blocks for high-level FoamPilot objects.
+"""
+from .writer import DictionaryWriter, FoamDict
+
+__all__ = ["DictionaryWriter", "FoamDict"]
