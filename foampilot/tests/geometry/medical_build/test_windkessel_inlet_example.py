@@ -1,5 +1,5 @@
 import numpy as np
-from foampilot.model_addon.windkessel import Windkessel
+from foampilot.workflows.medical.windkessel import Windkessel
 
 
 def test_windkessel_inlet_waveform_is_solved_in_si_units():

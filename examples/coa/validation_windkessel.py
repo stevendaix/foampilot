@@ -15,7 +15,7 @@ from pathlib import Path
 # Add foampilot to path
 sys.path.insert(0, '/home/steven/foampilot')
 
-from foampilot.model_addon.windkessel import Windkessel
+from foampilot.workflows.medical.windkessel import Windkessel
 
 
 # ---------------------------------------------------------------------

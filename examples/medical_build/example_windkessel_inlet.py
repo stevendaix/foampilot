@@ -8,7 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 import json
 import numpy as np
-from foampilot.model_addon.windkessel import Windkessel
+from foampilot.workflows.medical.windkessel import Windkessel
 
 ROOT = Path(__file__).resolve().parents[2]
 COA = ROOT / 'examples' / 'coa'
