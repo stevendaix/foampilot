@@ -155,7 +155,7 @@ class SystemDirectory:
 
         writer.write_all()
 
-        if getattr(self.parent, "energy_activated", False):
+        if self.parent.config.requires_energy:
             self._write_functions_file(system_path)
 
         logger.info("System directory written to %s", system_path)
@@ -173,7 +173,7 @@ class SystemDirectory:
         step and solves the advection-diffusion equation for ``T``.
         """
         parent = self.parent
-        energy_var = getattr(parent, "energy_variable", "T")
+        energy_var = parent.config.get_energy_variable()
         field_names = getattr(parent, "fields_manager", None)
         field_list = field_names.get_field_names() if field_names else []
 
@@ -285,7 +285,7 @@ class SystemDirectory:
             using ``librigidBodyForces.so`` for the ``hull`` body.
         """
         base_content = ""
-        energy_var = getattr(self.parent, "energy_variable", "T")
+        energy_var = self.parent.config.get_energy_variable()
         field_names = getattr(self.parent, "fields_manager", None)
         field_list = field_names.get_field_names() if field_names else []
 

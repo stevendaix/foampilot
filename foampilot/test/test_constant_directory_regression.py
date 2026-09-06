@@ -11,6 +11,19 @@ class MockFieldsManager:
     def get_field_names(self):
         return list(self.fields.keys())
 
+class MockConfig:
+    """Minimal mock solver config for testing."""
+    def __init__(self, **kwargs):
+        self.is_compressible = kwargs.get("is_compressible", False)
+        self.use_solver_keyword = kwargs.get("use_solver_keyword", False)
+        self.is_vof = kwargs.get("is_vof", False)
+        self.requires_gravity = kwargs.get("requires_gravity", False)
+        self.requires_energy = kwargs.get("requires_energy", False)
+        self.writes_pRef = kwargs.get("writes_pRef", True)
+
+    def get_energy_variable(self):
+        return "T"
+
 class MockSolver:
     """Minimal mock solver for testing."""
     def __init__(self, case_path):
@@ -20,6 +33,7 @@ class MockSolver:
         self.with_gravity = False
         self.fields_manager = MockFieldsManager()
         self.energy_activated = False
+        self.config = MockConfig()
 
     def get_turbulence_configuration(self):
         return ("RAS", "kEpsilon")
@@ -47,6 +61,7 @@ def test_turbulence_properties_write(tmp_path: Path):
     """Verify turbulenceProperties is written correctly."""
     solver = MockSolver(str(tmp_path / "test_case"))
     solver.compressible = False
+    solver.config = MockConfig(is_compressible=False, use_solver_keyword=False)
     const_dir = ConstantDirectory(solver)
 
     const_dir.write()
@@ -61,6 +76,7 @@ def test_physical_properties_write_compressible(tmp_path: Path):
     """Verify physicalProperties is written for compressible solvers."""
     solver = MockSolver(str(tmp_path / "test_case"))
     solver.compressible = True
+    solver.config = MockConfig(is_compressible=True, use_solver_keyword=False)
     const_dir = ConstantDirectory(solver)
 
     const_dir.write()
@@ -76,6 +92,7 @@ def test_momentum_transfer_compressible(tmp_path: Path):
     """Verify momentumTransfer is written for compressible solvers."""
     solver = MockSolver(str(tmp_path / "test_case"))
     solver.compressible = True
+    solver.config = MockConfig(is_compressible=True, use_solver_keyword=False)
     const_dir = ConstantDirectory(solver)
 
     const_dir.write()
@@ -90,6 +107,7 @@ def test_gravity_write(tmp_path: Path):
     """Verify g file is written when gravity is enabled."""
     solver = MockSolver(str(tmp_path / "test_case"))
     solver.with_gravity = True
+    solver.config = MockConfig(requires_gravity=True)
     const_dir = ConstantDirectory(solver)
 
     const_dir.write()
@@ -103,6 +121,7 @@ def test_gravity_write(tmp_path: Path):
 def test_prefs_write(tmp_path: Path):
     """Verify pRef file is written."""
     solver = MockSolver(str(tmp_path / "test_case"))
+    solver.config = MockConfig(writes_pRef=True)
     const_dir = ConstantDirectory(solver)
 
     const_dir.write()
@@ -116,6 +135,7 @@ def test_prefs_write(tmp_path: Path):
 def test_radiation_write(tmp_path: Path):
     """Verify radiation files are written when enabled."""
     solver = MockSolver(str(tmp_path / "test_case"))
+    solver.config = MockConfig()
     const_dir = ConstantDirectory(solver, with_radiation=True)
 
     const_dir.write()
@@ -133,6 +153,7 @@ def test_vof_configuration(tmp_path: Path):
     """Verify VoF configuration writes phase-specific files."""
     solver = MockSolver(str(tmp_path / "test_case"))
     solver.is_vof = True
+    solver.config = MockConfig(is_vof=True, requires_energy=False, writes_pRef=False)
     const_dir = ConstantDirectory(solver)
     const_dir.configure_vof(
         phases=["water", "air"],
