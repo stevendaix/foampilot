@@ -126,10 +126,10 @@ def test_fluid_region_thermophysical_properties():
 
 def test_cht_solvers_in_modules():
     """Test that both CHT solvers are registered in SOLVER_MODULES."""
-    from foampilot.solver.base_solver import BaseSolver
+    from foampilot.openfoam.solvers.registry import SOLVER_MODULES
 
-    assert "chtMultiRegionFoam" in BaseSolver.SOLVER_MODULES
-    assert "chtMultiRegionSimpleFoam" in BaseSolver.SOLVER_MODULES
+    assert "chtMultiRegionFoam" in SOLVER_MODULES
+    assert "chtMultiRegionSimpleFoam" in SOLVER_MODULES
     print("[OK] Both CHT solvers registered in SOLVER_MODULES")
 
 

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Optional, Sequence
 
 from foampilot.openfoam.execution.environment import OpenFOAMEnvironment
+from foampilot.openfoam.solvers.registry import SolverRegistry
 
 
 class OpenFOAMRunner:
@@ -103,8 +104,7 @@ class OpenFOAMRunner:
         return True
 
     def run_simulation(self, solver_name: str, foamrun_module: str, nb_proc: int = 1, log_filename: Optional[str] = None):
-        legacy_solvers = {"overInterDyMFoam", "rhoSimpleFoam", "simpleFoam", "pimpleFoam", "marineFoam"}
-        if solver_name in legacy_solvers:
+        if SolverRegistry.is_legacy(solver_name):
             self._run_legacy_solver(solver_name, nb_proc, log_filename)
             return
 

@@ -128,8 +128,8 @@ def test_controlDictFile_from_dict():
 
 
 def test_base_solver_opfoam14_solvers():
-    """Test that base_solver.SOLVER_MODULES includes OpenFOAM-14 solvers."""
-    from foampilot.solver.base_solver import BaseSolver
+    """Test that SolverRegistry.SOLVER_MODULES includes OpenFOAM-14 solvers."""
+    from foampilot.openfoam.solvers.registry import SOLVER_MODULES
 
     expected_solvers = [
         "icoFoam", "simpleFoam", "pimpleFoam", "pimpleDyMFoam",
@@ -137,7 +137,7 @@ def test_base_solver_opfoam14_solvers():
         "scalarTransportFoam", "chtMultiRegionFoam",
     ]
     for s in expected_solvers:
-        assert s in BaseSolver.SOLVER_MODULES, f"Missing solver: {s}"
+        assert s in SOLVER_MODULES, f"Missing solver: {s}"
     print(f"[OK] SOLVER_MODULES contains {len(expected_solvers)} OpenFOAM-14 solvers")
 
 

@@ -53,8 +53,8 @@ import numpy as np
 # ---------------------------------------------------------------------------
 SOLVER_NAME = "incompressibleFluud"
 try:
-    from foampilot.solver.base_solver import BaseSolver
-    SOLVER_MODULE = BaseSolver.SOLVER_MODULES.get("incompressibleFluid", "incompressibleFluid")
+    from foampilot.openfoam.solvers.registry import SolverRegistry
+    SOLVER_MODULE = SolverRegistry.get_module("incompressibleFluid")
 except Exception:
     SOLVER_MODULE = "incompressibleFluid"
 

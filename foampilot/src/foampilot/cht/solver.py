@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Any
 from foampilot.solver.base_solver import BaseSolver
 from foampilot.cht.regions import FluidRegion, SolidRegion
 from foampilot.cht.interfaces import CoupledInterface
+from foampilot.openfoam.solvers.registry import SolverRegistry, SOLVER_MODULES
 
 
 class ChtSolver(BaseSolver):
@@ -44,7 +45,7 @@ class ChtSolver(BaseSolver):
         region_solvers: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ):
-        if solver_name not in self.SOLVER_MODULES:
+        if solver_name not in SOLVER_MODULES:
             raise ValueError(
                 f"Solver '{solver_name}' not supported. "
                 f"Available CHT solvers: chtMultiRegionFoam, "

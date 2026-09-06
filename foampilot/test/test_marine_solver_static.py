@@ -20,9 +20,9 @@ def test_python_wrapper_accepts_explicit_solver():
 
 
 def test_base_solver_runs_marine_executable_directly():
-    source = (ROOT / "foampilot/src/foampilot/openfoam/execution/runner.py").read_text()
+    source = (ROOT / "foampilot/src/foampilot/openfoam/solvers/registry.py").read_text()
     assert '"marineFoam"' in source
-    assert "solver_name" in source
+    assert "LEGACY_SOLVERS" in source
 
 
 def test_marine_apis_are_publicly_exported():

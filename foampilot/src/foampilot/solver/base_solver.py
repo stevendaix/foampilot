@@ -14,42 +14,12 @@ from foampilot.base.cases_variables import CaseFieldsManager
 from foampilot.solver.marine_case import MarineCaseConfig
 from foampilot.openfoam.execution.environment import OpenFOAMEnvironment
 from foampilot.openfoam.execution.runner import OpenFOAMRunner
+from foampilot.openfoam.solvers.registry import SolverRegistry
 
 logger = logging.getLogger(__name__)
 
 class BaseSolver:
     """Base solver class with all common functionality."""
-
-    SOLVER_MODULES = {
-        # Single-phase modules
-        "fluid": "fluid",
-        "incompressibleFluid": "incompressibleFluid",
-        "multicomponentFluid": "multicomponentFluid",
-        # Multiphase/VoF flow modules
-        "compressibleVoF": "compressibleVoF",
-        "incompressibleVoF": "incompressibleVoF",
-        # Solid modules
-        "solidDisplacement": "solidDisplacement",
-        # Utility modules
-        "functions": "functions",
-        "movingMesh": "movingMesh",
-        # OpenFOAM-14 solvers
-        "icoFoam": "icoFoam",
-        "simpleFoam": "simpleFoam",
-        "pimpleFoam": "pimpleFoam",
-        "pimpleDyMFoam": "pimpleDyMFoam",
-        "rhoCentralFoam": "rhoCentralFoam",
-        "sonicFoam": "sonicFoam",
-        "reactingFoam": "reactingFoam",
-        "scalarTransportFoam": "scalarTransportFoam",
-        "chtMultiRegionFoam": "chtMultiRegionFoam",
-        "chtMultiRegionSimpleFoam": "chtMultiRegionSimpleFoam",
-        "compressibleSinglePhasePorosityFoam": "compressibleSinglePhasePorosityFoam",
-        "porousSimpleFoam": "porousSimpleFoam",
-        # Legacy OpenCFD solvers used in marine/overset studies
-        "overInterDyMFoam": "overInterDyMFoam",
-        "rhoSimpleFoam": "rhoSimpleFoam",
-    }
 
     def __init__(
         self,
@@ -66,7 +36,7 @@ class BaseSolver:
     ):
         self.case_path = Path(case_path)
         self.solver_name = solver_name
-        self.foamrun_module = self.SOLVER_MODULES.get(solver_name, solver_name)
+        self.foamrun_module = SolverRegistry.get_module(solver_name)
 
         # Flags
         self.compressible = compressible
