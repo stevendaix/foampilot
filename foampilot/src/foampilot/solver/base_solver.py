@@ -15,6 +15,7 @@ from foampilot.solver.marine_case import MarineCaseConfig
 from foampilot.openfoam.execution.environment import OpenFOAMEnvironment
 from foampilot.openfoam.execution.runner import OpenFOAMRunner
 from foampilot.openfoam.solvers.registry import SolverRegistry
+from foampilot.openfoam.solvers.configs import config_from_flags
 
 logger = logging.getLogger(__name__)
 
@@ -68,23 +69,27 @@ class BaseSolver:
         self._env = OpenFOAMEnvironment()
         self._runner = OpenFOAMRunner(case_path=self.case_path, env=self._env)
 
+        self.config = config_from_flags(
+            solver_name,
+            compressible=compressible,
+            with_gravity=with_gravity,
+            is_vof=is_vof,
+            is_solid=is_solid,
+            energy_activated=energy_activated,
+            transient=transient,
+            turbulence_model=turbulence_model,
+            with_moving_mesh=with_moving_mesh,
+        )
+
     @property
     def simulation_type(self) -> str:
         """Return the simulation type string used by fvSchemes/fvSolution."""
-        if self.is_solid:
-            return "solid"
-        if self.compressible:
-            return "compressible"
-        if self.is_vof:
-            return "vof"
-        return "incompressible"
+        return self.config.get_simulation_type()
 
     @property
     def energy_variable(self) -> str:
         """Return the primary energy/temperature variable name."""
-        if self.compressible and not self.is_vof:
-            return "h"
-        return "T"
+        return self.config.get_energy_variable()
 
     @property
     def sub_solver(self) -> Optional[str]:
