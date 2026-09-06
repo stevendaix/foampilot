@@ -112,10 +112,11 @@ class GravityFile(OpenFOAMFile):
 
         return default_vec
 
-    def write(self):
+    def write(self, filepath: Optional[Path] = None):
         """Write gravity file to parent's constant directory."""
-        case_path = Path(getattr(self.parent, "case_path", "."))
-        file_path = case_path / "constant" / self.object_name
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        self.write_file(file_path)
-        print(f"✅ Gravity file written to {file_path}")
+        if filepath is None:
+            case_path = Path(getattr(self.parent, "case_path", "."))
+            filepath = case_path / "constant" / self.object_name
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        self.write_file(filepath)
+        print(f"✅ Gravity file written to {filepath}")
