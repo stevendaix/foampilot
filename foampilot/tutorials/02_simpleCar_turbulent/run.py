@@ -329,7 +329,7 @@ endsolid
 
     log_file = case_path / "log.incompressibleFluid"
     if log_file.exists():
-        from foampilot.utilities.residuals import ResidualsPost
+        from foampilot.core.postprocessing.residuals import ResidualsPost
 
         residuals = ResidualsPost(log_file)
         residuals.process(export_csv=True, export_png=True)

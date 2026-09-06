@@ -34,6 +34,8 @@ _LAZY_ATTRS = {
     "ResultMetadata": ("foampilot.core.postprocessing.results", "ResultMetadata"),
     "TimeSeriesResult": ("foampilot.core.postprocessing.results", "TimeSeriesResult"),
     "EngineeringReport": ("foampilot.core.postprocessing.engineering_report", "EngineeringReport"),
+    "ResidualsPost": ("foampilot.core.postprocessing.residuals", "ResidualsPost"),
+    "ConvergenceMonitor": ("foampilot.core.postprocessing.residuals", "ConvergenceMonitor"),
 }
 
 __all__ = sorted(_LAZY_ATTRS)
