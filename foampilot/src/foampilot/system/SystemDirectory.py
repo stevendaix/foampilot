@@ -82,6 +82,35 @@ class SystemDirectory:
 
 
 
+    def _create_foam_dict(self, file_instance, name: str) -> FoamDict:
+        """Create a FoamDict from a file class instance.
+
+        Args:
+            file_instance: OpenFOAMFile subclass instance
+            name: Name for the FoamDict (used as filename)
+
+        Returns:
+            FoamDict with same header and data as the file instance
+        """
+        foam_dict = FoamDict(object_name=file_instance.object_name)
+        foam_dict._header = file_instance.header.copy()
+        foam_dict._data = file_instance.attributes.copy()
+
+        if hasattr(file_instance, "adaptiveTimeStep") and file_instance.adaptiveTimeStep:
+            foam_dict._data.update(file_instance.adaptiveTimeStep)
+        if hasattr(file_instance, "libs") and file_instance.libs:
+            includes_lib = "\n".join([f'"{fname}"' for fname in file_instance.libs])
+            foam_dict._data["libs"] = f"\n(\n{includes_lib} \n)"
+        if hasattr(file_instance, "region_solvers") and file_instance.region_solvers:
+            foam_dict._data["regionSolvers"] = file_instance.region_solvers
+        if (
+            getattr(file_instance, "use_solver_keyword", False)
+            and "application" in foam_dict._data
+        ):
+            foam_dict._data["solver"] = foam_dict._data.pop("application")
+
+        return foam_dict
+
     def write(self):
         """
         Write all system files to the case directory.
@@ -94,31 +123,31 @@ class SystemDirectory:
 
         The files are written to <case_path>/system/ directory.
         """
-        base_path = Path(self.parent.case_path)
-        system_path = Path(base_path) / 'system'
-        system_path.mkdir(parents=True, exist_ok=True)
+        system_path = Path(self.parent.case_path) / "system"
+        self.layout.ensure()
 
-        # Initialize DictionaryWriter from core/dictionaries (Internal Use Only)
         writer = self._get_dictionary_writer()
         writer.clear()
 
-        # Write main system files
-        self.controlDict.write(system_path / 'controlDict')
-        self.fvSchemes.write(system_path / 'fvSchemes')
-        self.fvSolution.write(system_path / 'fvSolution')
+        writer.register("controlDict", self._create_foam_dict(self.controlDict, "controlDict"))
+        writer.register("fvSchemes", self._create_foam_dict(self.fvSchemes, "fvSchemes"))
+        writer.register("fvSolution", self._create_foam_dict(self.fvSolution, "fvSolution"))
 
-        # Write functions file with scalarTransport when energy is activated
+        if self.decomposeParDict is not None:
+            writer.register(
+                "decomposeParDict",
+                self._create_foam_dict(self.decomposeParDict, "decomposeParDict"),
+            )
+
+        for file_name, file_instance in self.additional_files.items():
+            writer.register(file_name, self._create_foam_dict(file_instance, file_name))
+
+        writer.write_all()
+
         if getattr(self.parent, "energy_activated", False):
             self._write_functions_file(system_path)
 
-        # Write decomposeParDict if created
-        if self.decomposeParDict is not None:
-           self.decomposeParDict.write(system_path / "decomposeParDict")
-
-        # Write any additional files that were added
-        for file_name, file in self.additional_files.items():
-            file.write(system_path / file_name)
-
+        logger.info("System directory written to %s", system_path)
         return system_path
 
     def _write_functions_file(self, system_path: Path) -> None:
