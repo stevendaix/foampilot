@@ -30,7 +30,7 @@ import build123d as b123d
 # foampilot local VMTK
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.geometry.topology import (
+from foampilot.core.geometry.topology import (
     BoundaryRole,
     OpenProfile,
     OpenProfileClassifier,
@@ -38,9 +38,9 @@ from foampilot.geometry.topology import (
     TopologyCenterlineExtractor,
     TopologySectionExtractor,
 )
-from foampilot.geometry.topology.vmtk.vmtkcenterlines import vmtkCenterlines, _trimesh_to_vtk_polydata
-from foampilot.geometry.cad.bspline_fitter import BSplineFitter
-from foampilot.geometry.cad.occ_builder import OCCBuilder
+from foampilot.core.geometry.topology.vmtk.vmtkcenterlines import vmtkCenterlines, _trimesh_to_vtk_polydata
+from foampilot.core.geometry.cad.bspline_fitter import BSplineFitter
+from foampilot.core.geometry.cad.occ_builder import OCCBuilder
 
 # Paths
 BASE_DIR = Path(__file__).resolve().parent
@@ -146,7 +146,7 @@ def step2b_diagnostic_sections(centerline: np.ndarray, mesh: trimesh.Trimesh) ->
     """Diagnostic: verify section geometry before loft."""
     print("\n=== Step 2b: Diagnostic sections ===")
 
-    from foampilot.geometry.topology.section_extractor import _process_section_polylines
+    from foampilot.core.geometry.topology.section_extractor import _process_section_polylines
 
     sample_indices = _sample_centerline_by_spacing(centerline, spacing_mm=2.0)
     sections = []
@@ -461,7 +461,7 @@ def step3b_build_cad_loft_stl_sections(
     from OCP.BRepBuilderAPI import BRepBuilderAPI_MakeWire, BRepBuilderAPI_MakeEdge
     from OCP.BRep import BRep_Tool
     from OCP.gp import gp_Pnt, gp_Dir, gp_Ax2, gp_Ax3, gp_Trsf
-    from foampilot.geometry.topology.section_extractor import _process_section_polylines
+    from foampilot.core.geometry.topology.section_extractor import _process_section_polylines
 
     sample_indices = _sample_centerline_by_spacing(centerline, spacing_mm=2.0)
     print(f"  Centerline samples: {len(sample_indices)}")

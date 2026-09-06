@@ -2,7 +2,7 @@ from pathlib import Path
 import json, os, shutil
 import numpy as np
 import vtk
-from foampilot.geometry.topology.vmtk.vmtkcenterlinesections_local import (
+from foampilot.core.geometry.topology.vmtk.vmtkcenterlinesections_local import (
     vmtkCenterlineSectionsLocal, _parallel_transport_frame,
 )
 

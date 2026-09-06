@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilo
 
 import numpy as np
 import pyvista as pv
-from foampilot.geometry.topology import OpenProfileClassifier, SurfaceTopologyAnalyzer
+from foampilot.core.geometry.topology import OpenProfileClassifier, SurfaceTopologyAnalyzer
 from foampilot.core.postprocessing import OpenFOAMDirectReader
 
 CASE_DIR = Path(__file__).resolve().parent.parent.parent.parent / "examples" / "coa" / "patient58_cfd_example"

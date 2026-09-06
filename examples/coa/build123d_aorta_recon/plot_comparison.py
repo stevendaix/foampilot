@@ -19,8 +19,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.geometry.topology import TopologySectionExtractor
-from foampilot.geometry.topology.section_extractor import _process_section_polylines
+from foampilot.core.geometry.topology import TopologySectionExtractor
+from foampilot.core.geometry.topology.section_extractor import _process_section_polylines
 
 BASE_DIR = Path(__file__).resolve().parent
 STL_PATH = BASE_DIR.parent / "patient58_cfd_example" / "constant" / "triSurface" / "tbad_TL_walls.stl"

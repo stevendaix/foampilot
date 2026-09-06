@@ -93,7 +93,7 @@ def test_from_stl_sections():
     print("\n=== Test 5: Sections STL ===")
     
     try:
-        from foampilot.geometry.topology import TopologySectionExtractor
+        from foampilot.core.geometry.topology import TopologySectionExtractor
         import trimesh
         
         stl_path = Path("/home/steven/foampilot/examples/coa/patient58_cfd_example/constant/triSurface/tbad_TL_walls.stl")

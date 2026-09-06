@@ -10,7 +10,7 @@ import trimesh
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.geometry.topology.section_extractor import TopologySectionExtractor
+from foampilot.core.geometry.topology.section_extractor import TopologySectionExtractor
 
 BASE_DIR = Path(__file__).resolve().parent
 STL_PATH = BASE_DIR.parent / "patient58_cfd_example" / "constant" / "triSurface" / "tbad_TL_walls.stl"

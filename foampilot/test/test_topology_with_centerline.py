@@ -3,7 +3,7 @@ import numpy as np
 import trimesh
 import pyvista as pv
 
-from foampilot.geometry.topology import (
+from foampilot.core.geometry.topology import (
     BoundaryRole,
     OpenProfile,
     OpenProfileClassifier,

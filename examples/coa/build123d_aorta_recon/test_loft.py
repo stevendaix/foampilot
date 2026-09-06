@@ -133,7 +133,7 @@ def test_few_real_sections():
     """Test 4: Loft avec 5 vraies sections STL."""
     print("\n=== Test 4: Loft avec 5 sections STL réelles ===")
     
-    from foampilot.geometry.topology import TopologySectionExtractor
+    from foampilot.core.geometry.topology import TopologySectionExtractor
     import trimesh
     
     stl_path = Path("/home/steven/foampilot/examples/coa/patient58_cfd_example/constant/triSurface/tbad_TL_walls.stl")
