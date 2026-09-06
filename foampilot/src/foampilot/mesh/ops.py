@@ -199,70 +199,43 @@ def write_dynamic_mesh_dict(
     outer_distance_str = str(outer_distance).rstrip("0").rstrip(".") if isinstance(outer_distance, float) and outer_distance == int(outer_distance) else str(outer_distance)
     inner_distance_str = str(inner_distance).rstrip("0").rstrip(".") if isinstance(inner_distance, float) and inner_distance == int(inner_distance) else str(inner_distance)
 
-    content = f"""FoamFile
-{{
-    version     2.0;
-    format     ascii;
-    class     dictionary;
-    object     dynamicMeshDict;
-}}
-
-mover
-{{
-    type motionSolver;
-    libs ("librigidBodyMeshMotion.so");
-    motionSolver rigidBodyMotion;
-    report on;
-    solver
-    {{
-        type Newmark;
-    }}
-    accelerationRelaxation 0.4;
-    bodies
-    {{
-        {body_name}
-        {{
-            type rigidBody;
-            parent root;
-            centreOfMass ({" ".join(str(value) for value in centre_of_mass)});
-            mass {mass};
-            inertia ({" ".join(str(value) for value in inertia)});
-            transform (1 0 0 0 1 0 0 0 1) ({" ".join(str(value) for value in transform_origin)});
-            joint
-            {{
-                type composite;
-                joints (
-{joint_blocks}
-);
-            }}
-            patches ({patch_name});
-            innerDistance {inner_distance_str};
-            outerDistance {outer_distance_str};
-        }}
-    }}
-    restraints
-    {{
-        translationDamper
-        {{
-            type linearDamper;
-            body {body_name};
-            coeff {translation_damper_coeff};
-        }}
-        rotationDamper
-        {{
-            type sphericalAngularDamper;
-            body {body_name};
-            coeff {rotation_damper_coeff};
-        }}
-    }}
-}}
-"""
+    dictionary = FoamDict(
+        object_name="dynamicMeshDict",
+        default_data={
+            "mover": {
+                "type": "motionSolver",
+                "libs": '("librigidBodyMeshMotion.so")',
+                "motionSolver": "rigidBodyMotion",
+                "report": "on",
+                "solver": {"type": "Newmark"},
+                "accelerationRelaxation": 0.4,
+                "bodies": {
+                    body_name: {
+                        "type": "rigidBody",
+                        "parent": "root",
+                        "centreOfMass": "(" + " ".join(str(value) for value in centre_of_mass) + ")",
+                        "mass": mass,
+                        "inertia": "(" + " ".join(str(value) for value in inertia) + ")",
+                        "transform": "(1 0 0 0 1 0 0 0 1) (" + " ".join(str(value) for value in transform_origin) + ")",
+                        "joint": {"type": "composite", "joints": "(\n" + joint_blocks + "\n);"},
+                        "patches": "(" + patch_name + ")",
+                        "innerDistance": inner_distance_str,
+                        "outerDistance": outer_distance_str,
+                    }
+                },
+                "restraints": {
+                    "translationDamper": {"type": "linearDamper", "body": body_name, "coeff": translation_damper_coeff},
+                    "rotationDamper": {"type": "sphericalAngularDamper", "body": body_name, "coeff": rotation_damper_coeff},
+                },
+            },
+        },
+    )
 
     case_path = Path(case_path)
     constant_path = case_path / "constant"
     constant_path.mkdir(parents=True, exist_ok=True)
     path = constant_path / "dynamicMeshDict"
-    path.write_text(content)
+    dictionary.write(path)
     return path
 
 

@@ -70,7 +70,7 @@ class Meshing:
             ValueError: If the provided `mesher` string does not match a 
                 supported meshing backend.
         """
-        from foampilot.mesh.BlockMeshFile import BlockMesher
+        from foampilot.core.meshing.blockmesh import BlockMesher
 
         self.case_path = Path(case_path)
         self.mesher_name = mesher
