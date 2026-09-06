@@ -1,10 +1,17 @@
 """OpenFOAM 13 integrations for FoamPilot.
 
-The lightweight physics catalog is imported eagerly. Urban-climate builders are
-loaded lazily so users can inspect or configure OpenFOAM modules without first
-installing the optional geometry and fluid-property stack.
+.. deprecated::
+    This module is deprecated. Use:
+    - ``foampilot.core.physics.openfoam13`` for physics configs
+    - ``foampilot.workflows.urban_climate`` for urban climate workflows
 """
-from __future__ import annotations
+import warnings
+warnings.warn(
+    "foampilot.openfoam13 is deprecated, use foampilot.core.physics.openfoam13 "
+    "or foampilot.workflows.urban_climate instead",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 from foampilot.core.physics.openfoam13 import (
     DEFAULT_MODULES,
@@ -27,7 +34,7 @@ _URBAN_EXPORTS = {
 
 def __getattr__(name: str):
     if name in {"PROFILES", "UrbanClimateCase", "UrbanClimateProfile", "materialize_all"}:
-        from foampilot.workflows.urban.urbanclimate import (
+        from foampilot.workflows.urban_climate.urbanclimate import (
             PROFILES,
             UrbanClimateCase,
             UrbanClimateProfile,
@@ -35,7 +42,7 @@ def __getattr__(name: str):
         )
         return locals()[name]
     if name in {"RegionSpec", "UrbanClimateNativeCaseBuilder"}:
-        from foampilot.workflows.urban.urbanclimate_native import (
+        from foampilot.workflows.urban_climate.urbanclimate_native import (
             RegionSpec,
             UrbanClimateNativeCaseBuilder,
         )

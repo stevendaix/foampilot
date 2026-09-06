@@ -1,4 +1,17 @@
-from foampilot.workflows.urban.urbanclimate import (
+"""Urban climate workflows for OpenFOAM.
+
+.. deprecated::
+    Use ``foampilot.workflows.urban_climate.urbanclimate`` instead.
+"""
+import warnings
+warnings.warn(
+    "foampilot.openfoam13.urbanclimate is deprecated, "
+    "use foampilot.workflows.urban_climate.urbanclimate instead",
+    DeprecationWarning,
+    stacklevel=2
+)
+
+from foampilot.workflows.urban_climate.urbanclimate import (
     PROFILES,
     UrbanClimateCase,
     UrbanClimateProfile,
