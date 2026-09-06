@@ -81,7 +81,7 @@ class Meshing:
             from foampilot.mesh.gmsh_mesher import GmshMesher
             self.mesher = GmshMesher(self)
         elif mesher == "snappy":
-            from foampilot.mesh.snappymesh import SnappyMesher
+            from foampilot.core.meshing.snappy import SnappyMesher
             self.mesher = SnappyMesher(self, stl_file='placeholder.stl')
         else:
             raise ValueError(f"Unknown mesher: {mesher}")

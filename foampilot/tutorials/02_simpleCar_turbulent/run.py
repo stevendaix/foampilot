@@ -34,7 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot.solver import Solver
 from foampilot import Meshing
-from foampilot.mesh.snappymesh import SnappyMesher
+from foampilot.core.meshing.snappy import SnappyMesher
 from foampilot.utilities.function import Functions
 
 

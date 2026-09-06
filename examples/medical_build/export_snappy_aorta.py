@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def load_snappy_mesher():
-    source = Path(__file__).parents[2] / "foampilot" / "src" / "foampilot" / "mesh" / "snappymesh.py"
+    source = Path(__file__).parents[2] / "foampilot" / "src" / "foampilot" / "core" / "meshing" / "snappy.py"
     spec = importlib.util.spec_from_file_location("foampilot_snappymesh_standalone", source)
     if spec is None or spec.loader is None:
         raise ImportError(f"Cannot load SnappyMesher from {source}")

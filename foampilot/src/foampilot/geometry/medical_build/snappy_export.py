@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import shutil
 
-from foampilot.mesh.snappymesh import SnappyMesher
+from foampilot.core.meshing.snappy import SnappyMesher
 from foampilot.solver.solver import Solver
 from foampilot.utilities.manageunits import ValueWithUnit
 

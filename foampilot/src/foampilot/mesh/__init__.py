@@ -27,7 +27,7 @@ from foampilot.core.meshing.overset import (
 
 _LAZY_MODULES = {
     "GmshMesher": ("foampilot.mesh.gmsh_mesher", "GmshMesher"),
-    "SnappyMesher": ("foampilot.mesh.snappymesh", "SnappyMesher"),
+    "SnappyMesher": ("foampilot.core.meshing.snappy", "SnappyMesher"),
     "DirectOpenFOAMExporter": ("foampilot.mesh.direct_openfoam_exporter", "DirectOpenFOAMExporter"),
     "GmshQualityAnalyzer": ("foampilot.mesh.quality", "GmshQualityAnalyzer"),
     "QualityThresholds": ("foampilot.mesh.quality", "QualityThresholds"),
@@ -53,7 +53,7 @@ def __getattr__(name: str):
         "create_buildings_geo", "create_motorcycle_geo",
     }:
         import importlib
-        value = getattr(importlib.import_module("foampilot.mesh.geo_generator"), name)
+        value = getattr(importlib.import_module("foampilot.core.meshing.geo_generator"), name)
         globals()[name] = value
         return value
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

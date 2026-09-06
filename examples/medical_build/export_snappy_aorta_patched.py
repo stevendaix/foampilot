@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def load_snappy():
-    source = Path(__file__).parents[2] / "foampilot" / "src" / "foampilot" / "mesh" / "snappymesh.py"
+    source = Path(__file__).parents[2] / "foampilot" / "src" / "foampilot" / "core" / "meshing" / "snappy.py"
     spec = importlib.util.spec_from_file_location("foampilot_snappymesh_standalone", source)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

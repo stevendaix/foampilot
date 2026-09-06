@@ -34,7 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot.solver import Solver
 from foampilot import Meshing, postprocess, latex_pdf
-from foampilot.mesh.snappymesh import SnappyMesher
+from foampilot.core.meshing.snappy import SnappyMesher
 import numpy as np
 import pyvista as pv
 import json

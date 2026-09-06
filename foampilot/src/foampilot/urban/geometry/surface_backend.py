@@ -166,7 +166,7 @@ class SurfaceQuarterBuilder:
         if not self._built:
             raise RuntimeError("build() must be called before build_mesh()")
 
-        from foampilot.mesh.snappymesh import SnappyMesher
+        from foampilot.core.meshing.snappy import SnappyMesher
 
         if self._stl_path is None or not self._stl_path.exists():
             raise RuntimeError("STL surface not found. Call build() first.")
@@ -226,7 +226,7 @@ class SurfaceQuarterBuilder:
                 }
 
     def run(self) -> None:
-        from foampilot.mesh.snappymesh import SnappyMesher
+        from foampilot.core.meshing.snappy import SnappyMesher
 
         if not self._built:
             raise RuntimeError("build() must be called before run()")

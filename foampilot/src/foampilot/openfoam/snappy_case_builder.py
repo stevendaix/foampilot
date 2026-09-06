@@ -87,7 +87,7 @@ class SnappyCaseBuilder:
     def configure_snappy(self):
         """Configure SnappyMesher from urban model and STL bounds."""
         try:
-            from foampilot.mesh.snappymesh import SnappyMesher
+            from foampilot.core.meshing.snappy import SnappyMesher
         except ImportError as exc:
             raise RuntimeError("pyvista/snappy mesh module is required") from exc
 
