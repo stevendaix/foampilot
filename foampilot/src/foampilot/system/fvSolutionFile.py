@@ -26,8 +26,9 @@ class FvSolutionFile(OpenFOAMFile):
         self.fields_manager = fields_manager
         self.solvers = self._init_solvers(solvers)
 
-        algo = getattr(self.parent, "algorithm", "SIMPLE")
-        transient = getattr(self.parent, "transient", False)
+        parent_config = getattr(self.parent, "config", None)
+        algo = parent_config.algorithm if parent_config is not None else getattr(self.parent, "algorithm", "SIMPLE")
+        transient = parent_config.is_transient if parent_config is not None else getattr(self.parent, "transient", False)
 
         if transient or algo == "PIMPLE":
             self.PIMPLE = self._init_pimple(PIMPLE)
@@ -56,11 +57,12 @@ class FvSolutionFile(OpenFOAMFile):
             return
 
         field_names = self.fields_manager.get_field_names()
-        sim_type = getattr(self.parent, "simulation_type", "incompressible")
-        energy_active = getattr(self.parent, "energy_activated", False)
-        energy_var = getattr(self.parent, "energy_variable", "e")
-        algo = getattr(self.parent, "algorithm", "SIMPLE")
-        transient = getattr(self.parent, "transient", False)
+        config = getattr(self.parent, "config", None)
+        sim_type = config.get_simulation_type() if config else "incompressible"
+        energy_active = config.requires_energy if config else False
+        energy_var = config.get_energy_variable() if config else "e"
+        algo = config.algorithm if config else "SIMPLE"
+        transient = config.is_transient if config else False
 
         # --- Solvers ---
         # Pression : p ou p_rgh
@@ -109,7 +111,7 @@ class FvSolutionFile(OpenFOAMFile):
             }
 
         # Modular OpenFOAM 13 fluid solver also assembles rho and h.
-        if getattr(self.parent, "solver_name", "") == "fluid":
+        if config is not None and config.use_solver_keyword:
             self.solvers.setdefault("rho", {
                 "solver": "PCG", "preconditioner": "DIC",
                 "tolerance": "1e-6", "relTol": "0.01",
@@ -218,11 +220,12 @@ class FvSolutionFile(OpenFOAMFile):
         }
 
     def _extend_solvers_for_simulation_type(self, solvers: Dict[str, Dict[str, str]]) -> None:
-        sim_type = getattr(self.parent, "simulation_type", "incompressible")
-        algo = getattr(self.parent, "algorithm", "SIMPLE")
-        transient = getattr(self.parent, "transient", False)
-        energy_active = getattr(self.parent, "energy_activated", False)
-        energy_var = getattr(self.parent, "energy_variable", "e")
+        config = getattr(self.parent, "config", None)
+        sim_type = config.get_simulation_type() if config else "incompressible"
+        algo = config.algorithm if config else "SIMPLE"
+        transient = config.is_transient if config else False
+        energy_active = config.requires_energy if config else False
+        energy_var = config.get_energy_variable() if config else "e"
 
         if sim_type == "boussinesq":
             solvers["T"] = {
@@ -274,9 +277,10 @@ class FvSolutionFile(OpenFOAMFile):
             "pRefValue": "0",
         }
 
-        sim_type = getattr(self.parent, "simulation_type", "incompressible")
-        energy_active = getattr(self.parent, "energy_activated", False)
-        energy_var = getattr(self.parent, "energy_variable", "e")
+        config = getattr(self.parent, "config", None)
+        sim_type = config.get_simulation_type() if config else "incompressible"
+        energy_active = config.requires_energy if config else False
+        energy_var = config.get_energy_variable() if config else "e"
 
         if sim_type == "boussinesq":
             SIMPLE["residualControl"]["T"] = "1e-4"
@@ -316,9 +320,10 @@ class FvSolutionFile(OpenFOAMFile):
             },
         }
 
-        sim_type = getattr(self.parent, "simulation_type", "incompressible")
-        energy_active = getattr(self.parent, "energy_activated", False)
-        energy_var = getattr(self.parent, "energy_variable", "e")
+        config = getattr(self.parent, "config", None)
+        sim_type = config.get_simulation_type() if config else "incompressible"
+        energy_active = config.requires_energy if config else False
+        energy_var = config.get_energy_variable() if config else "e"
 
         if sim_type == "boussinesq":
             relaxationFactors["equations"]["T"] = "0.7"

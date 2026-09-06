@@ -70,6 +70,12 @@ class SolverConfig:
             return "h"
         return "T"
 
+    @property
+    def algorithm(self) -> str:
+        if self.is_transient:
+            return self.default_algorithm_transient or "PIMPLE"
+        return self.default_algorithm_steady or "SIMPLE"
+
 
 def config_from_flags(
     solver_name: str,

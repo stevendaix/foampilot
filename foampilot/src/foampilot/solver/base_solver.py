@@ -50,6 +50,18 @@ class BaseSolver:
         self.with_moving_mesh = with_moving_mesh
         self._sub_solver = None
 
+        self.config = config_from_flags(
+            solver_name,
+            compressible=compressible,
+            with_gravity=with_gravity,
+            is_vof=is_vof,
+            is_solid=is_solid,
+            energy_activated=energy_activated,
+            transient=transient,
+            turbulence_model=turbulence_model,
+            with_moving_mesh=with_moving_mesh,
+        )
+
         # --- Field manager ---
         self.fields_manager = CaseFieldsManager(
             is_solid=is_solid,
@@ -68,18 +80,6 @@ class BaseSolver:
         # --- Execution backend ---
         self._env = OpenFOAMEnvironment()
         self._runner = OpenFOAMRunner(case_path=self.case_path, env=self._env)
-
-        self.config = config_from_flags(
-            solver_name,
-            compressible=compressible,
-            with_gravity=with_gravity,
-            is_vof=is_vof,
-            is_solid=is_solid,
-            energy_activated=energy_activated,
-            transient=transient,
-            turbulence_model=turbulence_model,
-            with_moving_mesh=with_moving_mesh,
-        )
 
     @property
     def simulation_type(self) -> str:
