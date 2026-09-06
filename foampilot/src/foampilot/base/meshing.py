@@ -1,4 +1,4 @@
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.dictionaries import FoamDict
 from pathlib import Path
 
 import json
@@ -54,7 +54,7 @@ class Meshing:
         mesher_name (str): The name of the selected meshing strategy.
         mesher (Union[BlockMesher, GmshMesher, SnappyMesher]): The specific mesher 
             instance handling the mesh generation logic.
-        additional_files (Dict[str, OpenFOAMFile]): A registry of additional 
+        additional_files (Dict[str, FoamDict]): A registry of additional 
             OpenFOAM configuration files to be written to the `system/` folder.
     """
 
@@ -99,9 +99,9 @@ class Meshing:
             file_content: A dictionary containing the parameters and settings 
                 for the OpenFOAM file.
         """
-        self.additional_files[file_name] = OpenFOAMFile(
+        self.additional_files[file_name] = FoamDict(
             object_name=file_name,
-            **file_content
+            default_data=file_content,
         )
 
     def write(self):

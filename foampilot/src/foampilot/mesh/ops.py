@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Tuple
 
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.dictionaries import FoamDict
 
 
 def write_rotating_zone(
@@ -43,19 +43,21 @@ def write_rotating_zone(
     constant_path = case_path / "constant"
     constant_path.mkdir(parents=True, exist_ok=True)
 
-    dictionary = OpenFOAMFile(
+    dictionary = FoamDict(
         object_name="MRFProperties",
-        MRF1={
-            "cellZone": cell_zone,
-            "active": "yes",
-            "nonRotatingPatches": "(" + " ".join(non_rotating_patches) + ")",
-            "origin": "(" + " ".join(str(value) for value in origin) + ")",
-            "axis": "(" + " ".join(str(value) for value in axis) + ")",
-            "omega": omega,
+        default_data={
+            "MRF1": {
+                "cellZone": cell_zone,
+                "active": "yes",
+                "nonRotatingPatches": "(" + " ".join(non_rotating_patches) + ")",
+                "origin": "(" + " ".join(str(value) for value in origin) + ")",
+                "axis": "(" + " ".join(str(value) for value in axis) + ")",
+                "omega": omega,
+            },
         },
     )
     path = constant_path / "MRFProperties"
-    dictionary.write_file(path)
+    dictionary.write(path)
     return path
 
 
@@ -95,77 +97,81 @@ def write_mesh_motion(
     if mode == "openfoam13":
         if inner_distance is None or outer_distance is None:
             raise ValueError("inner_distance and outer_distance are required for openfoam13 mode")
-        dictionary = OpenFOAMFile(
+        dictionary = FoamDict(
             object_name="dynamicMeshDict",
-            mover={
-                "type": "motionSolver",
-                "libs": '("librigidBodyMeshMotion.so")',
-                "motionSolver": "rigidBodyMotion",
-                "report": "on",
-                "solver": {"type": "Newmark"},
-                "accelerationRelaxation": 0.4,
-                "bodies": {
-                    body_name: {
-                        "type": "rigidBody",
-                        "parent": "root",
-                        "centreOfMass": "(" + " ".join(str(value) for value in centre_of_mass) + ")",
-                        "mass": mass,
-                        "inertia": "(" + " ".join(str(value) for value in inertia) + ")",
-                        "transform": "(1 0 0 0 1 0 0 0 1) (" + " ".join(str(value) for value in transform_origin) + ")",
-                        "joint": {"type": "composite", "joints": "(\n" + joint_blocks + "\n);"},
-                        "patches": "(" + patch_name + ")",
-                        "innerDistance": inner_distance,
-                        "outerDistance": outer_distance,
-                    }
-                },
-                "restraints": {
-                    "translationDamper": {"type": "linearDamper", "body": body_name, "coeff": translation_damper_coeff},
-                    "rotationDamper": {"type": "sphericalAngularDamper", "body": body_name, "coeff": rotation_damper_coeff},
-                },
-            },
-        )
-    elif mode == "legacy":
-        if cell_set is None:
-            raise ValueError("cell_set is required for legacy mode")
-        dictionary = OpenFOAMFile(
-            object_name="dynamicMeshDict",
-            dynamicFvMesh="dynamicOversetFvMesh",
-            solvers={
-                "boat": {
-                    "motionSolverLibs": "(librigidBodyMeshMotion)",
+            default_data={
+                "mover": {
+                    "type": "motionSolver",
+                    "libs": '("librigidBodyMeshMotion.so")',
                     "motionSolver": "rigidBodyMotion",
                     "report": "on",
-                    "cellSet": cell_set,
                     "solver": {"type": "Newmark"},
-                    "accelerationRelaxation": 0.8,
-                    "accelerationDamping": 0.9,
-                    "nIter": 3,
+                    "accelerationRelaxation": 0.4,
                     "bodies": {
                         body_name: {
                             "type": "rigidBody",
                             "parent": "root",
-                            "mass": mass,
                             "centreOfMass": "(" + " ".join(str(value) for value in centre_of_mass) + ")",
+                            "mass": mass,
                             "inertia": "(" + " ".join(str(value) for value in inertia) + ")",
                             "transform": "(1 0 0 0 1 0 0 0 1) (" + " ".join(str(value) for value in transform_origin) + ")",
-                            "joint": {"type": "composite", "joints": "\n        (\n" + joint_blocks + "\n        );"},
+                            "joint": {"type": "composite", "joints": "(\n" + joint_blocks + "\n);"},
                             "patches": "(" + patch_name + ")",
-                            "innerDistance": legacy_inner_distance,
-                            "outerDistance": legacy_outer_distance,
+                            "innerDistance": inner_distance,
+                            "outerDistance": outer_distance,
                         }
                     },
                     "restraints": {
                         "translationDamper": {"type": "linearDamper", "body": body_name, "coeff": translation_damper_coeff},
                         "rotationDamper": {"type": "sphericalAngularDamper", "body": body_name, "coeff": rotation_damper_coeff},
                     },
-                }
+                },
+            },
+        )
+    elif mode == "legacy":
+        if cell_set is None:
+            raise ValueError("cell_set is required for legacy mode")
+        dictionary = FoamDict(
+            object_name="dynamicMeshDict",
+            default_data={
+                "dynamicFvMesh": "dynamicOversetFvMesh",
+                "solvers": {
+                    "boat": {
+                        "motionSolverLibs": "(librigidBodyMeshMotion)",
+                        "motionSolver": "rigidBodyMotion",
+                        "report": "on",
+                        "cellSet": cell_set,
+                        "solver": {"type": "Newmark"},
+                        "accelerationRelaxation": 0.8,
+                        "accelerationDamping": 0.9,
+                        "nIter": 3,
+                        "bodies": {
+                            body_name: {
+                                "type": "rigidBody",
+                                "parent": "root",
+                                "mass": mass,
+                                "centreOfMass": "(" + " ".join(str(value) for value in centre_of_mass) + ")",
+                                "inertia": "(" + " ".join(str(value) for value in inertia) + ")",
+                                "transform": "(1 0 0 0 1 0 0 0 1) (" + " ".join(str(value) for value in transform_origin) + ")",
+                                "joint": {"type": "composite", "joints": "\n        (\n" + joint_blocks + "\n        );"},
+                                "patches": "(" + patch_name + ")",
+                                "innerDistance": legacy_inner_distance,
+                                "outerDistance": legacy_outer_distance,
+                            }
+                        },
+                        "restraints": {
+                            "translationDamper": {"type": "linearDamper", "body": body_name, "coeff": translation_damper_coeff},
+                            "rotationDamper": {"type": "sphericalAngularDamper", "body": body_name, "coeff": rotation_damper_coeff},
+                        },
+                    }
+                },
             },
         )
     else:
         raise ValueError(f"Unknown mesh motion mode: {mode!r}. Expected 'openfoam13' or 'legacy'.")
 
     path = constant_path / "dynamicMeshDict"
-    dictionary.write_file(path)
+    dictionary.write(path)
     return path
 
 

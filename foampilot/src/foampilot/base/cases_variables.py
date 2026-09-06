@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Dict, Optional, Any, List, Union
 from pathlib import Path
+from foampilot.core.dictionaries import BoundaryDict
 from foampilot.utilities.manageunits import ValueWithUnit
-from foampilot.base.openFOAMFile import OpenFOAMFile
 
 
 class CaseFieldsManager:
@@ -286,18 +286,20 @@ class CaseFieldsManager:
                 custom ``internalField`` strings.
         """
         internal_field_overrides = internal_field_overrides or {}
-        foam_file = OpenFOAMFile("region_boundary")
 
         for field_name in self.get_region_field_names(region_name):
             region_0_path = Path(case_path) / "0" / region_name
             region_0_path.mkdir(parents=True, exist_ok=True)
 
-            foam_file.write_boundary_file(
+            boundary_dict = BoundaryDict(
                 field=field_name,
                 boundaries=boundaries,
-                case_path=str(region_0_path),
                 internal_field=internal_field_overrides.get(field_name),
+                include_etc=True,
+                compressible=False,
+                base_path=region_0_path,
             )
+            boundary_dict.write()
 
     # ------------------------------------------------------------------
     # Public API (backward-compatible)

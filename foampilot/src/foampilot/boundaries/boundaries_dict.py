@@ -4,7 +4,6 @@ import logging
 import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-from foampilot.base.openFOAMFile import OpenFOAMFile
 from foampilot.core.dictionaries import BoundaryDict
 from foampilot.utilities.manageunits import ValueWithUnit
 from foampilot.boundaries.boundaries_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
