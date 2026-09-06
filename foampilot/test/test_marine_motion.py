@@ -7,7 +7,7 @@ import pytest
 
 
 ROOT = Path(__file__).parents[2]
-OPS = types.ModuleType("foampilot.mesh.ops")
+OPS = types.ModuleType("foampilot.core.meshing.ops")
 MESH = types.ModuleType("foampilot.mesh")
 PACKAGE = types.ModuleType("foampilot")
 CALLS = []
@@ -19,8 +19,8 @@ def fake_writer(case_path, **kwargs):
 
 
 OPS.write_dynamic_mesh_dict = fake_writer
-_original_modules = {name: sys.modules.get(name) for name in ("foampilot", "foampilot.mesh", "foampilot.mesh.ops")}
-sys.modules.update({"foampilot": PACKAGE, "foampilot.mesh": MESH, "foampilot.mesh.ops": OPS})
+_original_modules = {name: sys.modules.get(name) for name in ("foampilot", "foampilot.mesh", "foampilot.core.meshing.ops")}
+sys.modules.update({"foampilot": PACKAGE, "foampilot.mesh": MESH, "foampilot.core.meshing.ops": OPS})
 
 path = ROOT / "foampilot/src/foampilot/mesh/marine_motion.py"
 spec = importlib.util.spec_from_file_location("marine_motion_under_test", path)

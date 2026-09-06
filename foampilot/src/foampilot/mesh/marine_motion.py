@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Tuple
 
-from foampilot.mesh.ops import write_dynamic_mesh_dict
+from foampilot.core.meshing.ops import write_dynamic_mesh_dict
 
 
 FOUNDATION13_JOINTS = ("Px", "Py", "Pz", "Rx", "Ry", "Rz")
