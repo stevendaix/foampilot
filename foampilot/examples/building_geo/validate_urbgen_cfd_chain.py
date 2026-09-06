@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 
 import gmsh
-from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+from foampilot.core.meshing.direct_openfoam_exporter import DirectOpenFOAMExporter
 from foampilot.urban.generation import UrbGENConfig, generate_urbgen
 from shapely.geometry import Polygon
 

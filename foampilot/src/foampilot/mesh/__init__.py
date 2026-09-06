@@ -26,17 +26,17 @@ from foampilot.core.meshing.overset import (
 )
 
 _LAZY_MODULES = {
-    "GmshMesher": ("foampilot.mesh.gmsh_mesher", "GmshMesher"),
+    "GmshMesher": ("foampilot.core.meshing.gmsh", "GmshMesher"),
     "SnappyMesher": ("foampilot.core.meshing.snappy", "SnappyMesher"),
-    "DirectOpenFOAMExporter": ("foampilot.mesh.direct_openfoam_exporter", "DirectOpenFOAMExporter"),
-    "GmshQualityAnalyzer": ("foampilot.mesh.quality", "GmshQualityAnalyzer"),
-    "QualityThresholds": ("foampilot.mesh.quality", "QualityThresholds"),
-    "QualityReport": ("foampilot.mesh.quality", "QualityReport"),
-    "ElementQuality": ("foampilot.mesh.quality", "ElementQuality"),
-    "CheckMeshParser": ("foampilot.mesh.quality", "CheckMeshParser"),
-    "QualityGate": ("foampilot.mesh.quality", "QualityGate"),
-    "OpenFOAMQualityAnalyzer": ("foampilot.mesh.quality", "OpenFOAMQualityAnalyzer"),
-    "AdaptiveMeshImprover": ("foampilot.mesh.adaptation", "AdaptiveMeshImprover"),
+    "DirectOpenFOAMExporter": ("foampilot.core.meshing.direct_openfoam_exporter", "DirectOpenFOAMExporter"),
+    "GmshQualityAnalyzer": ("foampilot.core.meshing.quality", "GmshQualityAnalyzer"),
+    "QualityThresholds": ("foampilot.core.meshing.quality", "QualityThresholds"),
+    "QualityReport": ("foampilot.core.meshing.quality", "QualityReport"),
+    "ElementQuality": ("foampilot.core.meshing.quality", "ElementQuality"),
+    "CheckMeshParser": ("foampilot.core.meshing.quality", "CheckMeshParser"),
+    "QualityGate": ("foampilot.core.meshing.quality", "QualityGate"),
+    "OpenFOAMQualityAnalyzer": ("foampilot.core.meshing.quality", "OpenFOAMQualityAnalyzer"),
+    "AdaptiveMeshImprover": ("foampilot.core.meshing.adaptation", "AdaptiveMeshImprover"),
 }
 
 

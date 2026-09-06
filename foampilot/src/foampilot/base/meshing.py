@@ -78,7 +78,7 @@ class Meshing:
         if mesher == "blockMesh":
             self.mesher = BlockMesher(self)
         elif mesher == "gmsh":
-            from foampilot.mesh.gmsh_mesher import GmshMesher
+            from foampilot.core.meshing.gmsh import GmshMesher
             self.mesher = GmshMesher(self)
         elif mesher == "snappy":
             from foampilot.core.meshing.snappy import SnappyMesher

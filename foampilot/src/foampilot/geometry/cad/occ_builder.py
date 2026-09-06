@@ -195,7 +195,7 @@ class OCCBuilder:
         return curve_tag
 
     def _mesh_and_export(self, vol_tag: int, case_dir: Path) -> Path:
-        from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+        from foampilot.core.meshing.direct_openfoam_exporter import DirectOpenFOAMExporter
 
         gmsh.option.setNumber("Mesh.CharacteristicLengthFactor", self.mesh_size_factor)
         gmsh.model.mesh.generate(3)

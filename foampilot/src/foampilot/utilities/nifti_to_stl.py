@@ -84,7 +84,7 @@ def nifti_to_stl(
 
     # Optional decimation
     if decimate_target is not None and len(mesh.faces) > decimate_target:
-        from foampilot.mesh.quality.stl_ops import decimate_stl
+        from foampilot.core.meshing.quality.stl_ops import decimate_stl
 
         result = decimate_stl(
             input_path=None,

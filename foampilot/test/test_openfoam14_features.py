@@ -172,7 +172,7 @@ def test_gmsh_mesher_primitives():
         print("[SKIP] gmsh not installed — skipping primitives test")
         return
 
-    from foampilot.mesh.gmsh_mesher import GmshMesher
+    from foampilot.core.meshing.gmsh import GmshMesher
 
     gmsh.initialize()
     gmsh.model.add("test")
@@ -209,7 +209,7 @@ def test_gmsh_mesher_primitives():
 
 def test_gmsh_mesher_assign_patches_by_normal():
     """Test that assign_patches_by_normal exists in GmshMesher."""
-    from foampilot.mesh.gmsh_mesher import GmshMesher
+    from foampilot.core.meshing.gmsh import GmshMesher
     assert hasattr(GmshMesher, "assign_patches_by_normal"), "Missing assign_patches_by_normal"
     assert hasattr(GmshMesher, "add_point"), "Missing add_point"
     assert hasattr(GmshMesher, "add_line"), "Missing add_line"

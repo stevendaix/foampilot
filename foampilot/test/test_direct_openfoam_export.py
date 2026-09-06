@@ -20,7 +20,7 @@ from typing import List, Tuple
 import gmsh
 import numpy as np
 
-from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+from foampilot.core.meshing.direct_openfoam_exporter import DirectOpenFOAMExporter
 
 logger = logging.getLogger(__name__)
 

@@ -433,7 +433,7 @@ class GmshQuarterBuilder:
         if not self._built:
             raise RuntimeError("build() must be called before export_openfoam()")
 
-        from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+        from foampilot.core.meshing.direct_openfoam_exporter import DirectOpenFOAMExporter
         exporter = DirectOpenFOAMExporter(self.case_path)
         exporter.export_single_region()
         gmsh.finalize()

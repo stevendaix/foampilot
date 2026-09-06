@@ -439,7 +439,7 @@ def main():
     # Step 3b: Mesh quality check with foampilot quality gates
     print(f"\n[3b/7] Checking mesh quality...")
     try:
-        from foampilot.mesh.quality.openfoam_quality import OpenFOAMQualityAnalyzer, console_report
+        from foampilot.core.meshing.quality.openfoam_quality import OpenFOAMQualityAnalyzer, console_report
         import subprocess
 
         checkmesh_log = case_dir / "log.checkMesh"

@@ -14,7 +14,7 @@ import shapely.geometry
 import shapely.ops
 from foampilot.urban.model.urban_model import Building, UrbanModel
 from foampilot.urban.model.terrain import CFDTerrain
-from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+from foampilot.core.meshing.direct_openfoam_exporter import DirectOpenFOAMExporter
 from shapely.geometry import Point
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))

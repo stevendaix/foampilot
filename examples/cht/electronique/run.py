@@ -44,8 +44,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "foampilot" / "src"))
 
 import gmsh
-from foampilot.mesh.gmsh_mesher import GmshMesher
-from foampilot.mesh.direct_openfoam_exporter import DirectOpenFOAMExporter
+from foampilot.core.meshing.gmsh import GmshMesher
+from foampilot.core.meshing.direct_openfoam_exporter import DirectOpenFOAMExporter
 from foampilot.cht import (
     ChtSolver,
     FluidRegion,

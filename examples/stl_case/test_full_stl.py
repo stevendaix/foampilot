@@ -1,10 +1,10 @@
 import gmsh
 from pathlib import Path
-from foampilot.mesh.gmsh_mesher import gmsh_mesher
+from foampilot.core.meshing.gmsh import GmshMesher
 
 def run_full_stl_test():
     model_name = "chess_pieces_full_test"
-    case = gmsh_mesher(model_name)
+    case = GmshMesher(model_name)
 
     try:
         # 1. Load the STL geometry
