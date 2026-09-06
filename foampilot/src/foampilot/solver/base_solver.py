@@ -12,6 +12,8 @@ from foampilot.constant.constantDirectory import ConstantDirectory
 from foampilot.boundaries.boundaries_dict import Boundary
 from foampilot.base.cases_variables import CaseFieldsManager
 from foampilot.solver.marine_case import MarineCaseConfig
+from foampilot.openfoam.execution.environment import OpenFOAMEnvironment
+from foampilot.openfoam.execution.runner import OpenFOAMRunner
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +93,10 @@ class BaseSolver:
         self.system = SystemDirectory(self)
         self.constant = ConstantDirectory(self)
         self.boundary = Boundary(self, fields_manager=self.fields_manager, turbulence_model=turbulence_model)
+
+        # --- Execution backend ---
+        self._env = OpenFOAMEnvironment()
+        self._runner = OpenFOAMRunner(case_path=self.case_path, env=self._env)
 
     @property
     def simulation_type(self) -> str:
@@ -272,35 +278,7 @@ class BaseSolver:
 
     # ---------- Running simulation ----------
     def _command_environment(self) -> Dict[str, str]:
-        """Return a portable environment for OpenFOAM commands.
-
-        An explicitly configured ``FOAM_BASHRC`` or ``WM_PROJECT_DIR`` is
-        sourced in a child Bash process. No machine-specific installation path
-        is guessed; when no configuration is supplied, the current environment
-        is returned unchanged.
-        """
-        environment = os.environ.copy()
-        bashrc = environment.get("FOAM_BASHRC", "")
-        if not bashrc and environment.get("WM_PROJECT_DIR"):
-            bashrc = str(Path(environment["WM_PROJECT_DIR"]) / "etc" / "bashrc")
-        if not bashrc:
-            return environment
-        bashrc_path = Path(bashrc).expanduser()
-        if not bashrc_path.is_file():
-            raise FileNotFoundError(f"OpenFOAM bashrc not found: {bashrc_path}")
-        result = subprocess.run(
-            ["bash", "-lc", 'source "$1" >/dev/null 2>&1 && env -0', "foampilot-env", str(bashrc_path)],
-            capture_output=True,
-            check=False,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Failed to source OpenFOAM bashrc: {bashrc_path}")
-        sourced = {}
-        for item in result.stdout.split(b"\0"):
-            if b"=" in item:
-                key, value = item.split(b"=", 1)
-                sourced[key.decode()] = value.decode(errors="replace")
-        return sourced
+        return self._env.command_environment()
 
     def run_command(
         self,
@@ -310,25 +288,7 @@ class BaseSolver:
         env: Dict[str, str] | None = None,
         environment: Optional[Dict[str, str]] = None,
     ) -> subprocess.CompletedProcess:
-        """Run a command and persist its combined log.
-
-        ``cwd`` defaults to the case directory. Both ``env`` and the legacy
-        ``environment`` keyword are merged over the parent environment.
-        """
-        workdir = Path(cwd) if cwd is not None else self.case_path
-        log_path = self.case_path / log_filename
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info("Running command: %s -> log: %s", " ".join(cmd), log_path)
-        process_environment = self._command_environment()
-        if env:
-            process_environment.update(env)
-        if environment:
-            process_environment.update(environment)
-        with log_path.open("w", encoding="utf-8") as log_file:
-            return subprocess.run(
-                list(cmd), cwd=workdir, env=process_environment, text=True,
-                stdout=log_file, stderr=subprocess.STDOUT, check=True,
-            )
+        return self._runner.run_command(cmd, log_filename, cwd=cwd, env=env, environment=environment)
 
     def run_external(
         self,
@@ -337,231 +297,32 @@ class BaseSolver:
         cwd: str | Path | None = None,
         env: Dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess:
-        """Run an external build or preprocessing command with FoamPilot logging."""
-        return self.run_command(cmd, log_filename, cwd=cwd, env=env)
+        return self._runner.run_external(cmd, log_filename, cwd=cwd, env=env)
 
     def run_command_async(self, cmd: Sequence[str], log_filename: str):
-        """Start a FoamPilot-managed command and return its process handle."""
-        log_path = self.case_path / log_filename
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info("Starting async command: %s -> log: %s", " ".join(cmd), log_path)
-        log_file = log_path.open("w", encoding="utf-8")
-        process = subprocess.Popen(
-            list(cmd), cwd=self.case_path, env=self._command_environment(), text=True,
-            stdout=log_file, stderr=subprocess.STDOUT,
-        )
-        process._foampilot_log_file = log_file
-        return process
+        return self._runner.run_command_async(cmd, log_filename)
 
     def wait_command(self, process, check: bool = True) -> int:
-        """Wait for a process returned by :meth:`run_command_async`."""
-        returncode = process.wait()
-        log_file = getattr(process, "_foampilot_log_file", None)
-        if log_file is not None:
-            log_file.close()
-        if check and returncode != 0:
-            raise subprocess.CalledProcessError(returncode, process.args)
-        return returncode
+        return self._runner.wait_command(process, check=check)
 
     @staticmethod
     def openfoam_version() -> str | None:
-        """Return the sourced OpenFOAM major version, if discoverable."""
-        version = os.environ.get("WM_PROJECT_VERSION")
-        if version:
-            return version
-        foam_version = shutil.which("foamVersion")
-        if not foam_version:
-            return None
-        result = subprocess.run([foam_version], capture_output=True, text=True, check=False)
-        output = (result.stdout or result.stderr).strip()
-        return output.removeprefix("OpenFOAM-") or None
+        return OpenFOAMEnvironment.openfoam_version()
 
     def require_openfoam(self, major: str | int | None = None) -> str:
-        """Require a sourced OpenFOAM environment and optionally a major version."""
-        version = self.openfoam_version()
-        if not version:
-            raise RuntimeError("OpenFOAM is not sourced or foamVersion is unavailable")
-        if major is not None and str(version) != str(major):
-            raise RuntimeError(f"OpenFOAM {major} is required, found {version}")
-        return version
+        return self._env.require_openfoam(major=major)
 
     def validate_results(self, log_filename: str | None = None) -> Path:
-        """Validate that a solver log ended and produced a numeric time directory."""
-        log_path = self.case_path / (log_filename or f"log.{self.solver_name}")
-        if not log_path.is_file():
-            raise RuntimeError(f"Solver log was not produced: {log_path}")
-        if "End" not in log_path.read_text(encoding="utf-8", errors="replace"):
-            raise RuntimeError(f"Solver did not finish successfully: {log_path}")
-        times = []
-        for path in self.case_path.iterdir():
-            if not path.is_dir():
-                continue
-            try:
-                float(path.name)
-            except ValueError:
-                continue
-            times.append(path)
-        if not times:
-            raise RuntimeError("The solver produced no numeric time directory")
-        return max(times, key=lambda p: float(p.name))
+        return self._runner.validate_results(self.solver_name, log_filename=log_filename)
 
     def check_solver_module_exists(self) -> bool:
-        foam_modules = os.getenv("FOAM_MODULES", "")
-        if not foam_modules:
-            # OpenFOAM 13 commonly exposes modules through foamRun rather than
-            # a standalone path; use the executable as the fallback check.
-            return shutil.which("foamRun") is not None
-        module_dir = Path(foam_modules)
-        module_candidates = (
-            module_dir / self.foamrun_module,
-            module_dir / f"lib{self.foamrun_module}.so",
-            module_dir / f"lib{self.foamrun_module}.dylib",
-        )
-        if not any(candidate.exists() for candidate in module_candidates):
-            logger.warning("Solver module '%s' not found in %s", self.foamrun_module, foam_modules)
-            return False
-        return True
-
-    def get_turbulence_configuration(self):
-        """
-        Normalize turbulence configuration.
-
-        Returns
-        -------
-        simulationType : str
-            'laminar', 'RAS', or 'LES'
-        model : Optional[str]
-            Turbulence model name or None
-        """
-        # --- DEFAULT / LAMINAR ------------------------------------------
-        if self.turbulence_model is None:
-            return "laminar", None
-
-        if isinstance(self.turbulence_model, str):
-            model = self.turbulence_model.strip()
-
-            if model.lower() == "laminar":
-                return "laminar", None
-
-            # --- LES ------------------------------------------------------
-            if model.lower().startswith("les:"):
-                return "LES", model.split(":", 1)[1]
-
-            # --- RAS ------------------------------------------------------
-            return "RAS", model
-
-        raise ValueError(f"Invalid turbulence_model: {self.turbulence_model}")
+        return self._runner.check_solver_module_exists(self.foamrun_module)
 
     def run_simulation(self, nb_proc: int = 1, log_filename: str | None = None):
-        # --- Legacy OpenCFD solvers run directly without foamRun ---
-        legacy_solvers = {"overInterDyMFoam", "rhoSimpleFoam", "simpleFoam", "pimpleFoam", "marineFoam"}
-        if self.solver_name in legacy_solvers:
-            self._run_legacy_solver(nb_proc, log_filename)
-            return
-
-        # --- parallel execution ---
-        if nb_proc >= 2:
-            return self.run_parallel(nb_proc, log_filename)
-
-        # --- serial execution ---
-        if log_filename is None:
-            log_filename = f"log.{self.solver_name}"
-
-        if not self.check_solver_module_exists():
-            raise RuntimeError(
-                f"Solver module '{self.foamrun_module}' is not available."
-            )
-
-        logger.info("Running simulation in serial mode (1 proc)")
-
-        self.run_command(["foamRun", "-solver", self.foamrun_module], log_filename)
+        self._runner.run_simulation(self.solver_name, self.foamrun_module, nb_proc=nb_proc, log_filename=log_filename)
 
     def _run_legacy_solver(self, nb_proc: int, log_filename: str | None = None) -> None:
-        if log_filename is None:
-            log_filename = f"log.{self.solver_name}"
-
-        if nb_proc >= 2:
-            logger.info("Parallel legacy solver run with %d processors", nb_proc)
-            with open(self.case_path / log_filename, "w", encoding="utf-8") as log_file:
-                log_file.write("=== decomposePar ===\n")
-                subprocess.run(
-                    ["decomposePar", "-case", str(self.case_path)],
-                    stdout=log_file,
-                    stderr=subprocess.STDOUT,
-                    check=True,
-                )
-                log_file.write(f"\n=== mpirun {self.solver_name} ===\n")
-                subprocess.run(
-                    ["mpirun", "--oversubscribe", "-np", str(nb_proc), self.solver_name, "-parallel"],
-                    cwd=self.case_path,
-                    stdout=log_file,
-                    stderr=subprocess.STDOUT,
-                    check=True,
-                )
-                log_file.write("\n=== reconstructPar ===\n")
-                subprocess.run(
-                    ["reconstructPar", "-case", str(self.case_path)],
-                    stdout=log_file,
-                    stderr=subprocess.STDOUT,
-                    check=True,
-                )
-        else:
-            logger.info("Serial legacy solver run")
-            self.run_command([self.solver_name], log_filename)
+        self._runner._run_legacy_solver(self.solver_name, nb_proc, log_filename)
 
     def run_parallel(self, nb_proc: int, log_filename: str | None = None, force_decompose: bool = False):
-
-        if log_filename is None:
-            log_filename = f"log.{self.solver_name}"
-        log_path = self.case_path / log_filename
-
-        logger.info("Parallel run with %d processors", nb_proc)
-
-        # Ask the system directory to prepare decomposeParDict
-        if hasattr(self.system, "ensure_decomposeParDict"):
-            self.system.ensure_decomposeParDict(nb_proc)
-            # Only write decomposeParDict; do NOT overwrite existing system files
-            system_path = Path(self.case_path) / "system"
-            system_path.mkdir(parents=True, exist_ok=True)
-            if self.system.decomposeParDict is not None:
-                self.system.decomposeParDict.write(system_path / "decomposeParDict")
-
-        # 1. decomposePar
-        logger.info("Running decomposePar ...")
-        with open(log_path, "w", encoding="utf-8") as log_file:
-            log_file.write("=== decomposePar ===\n")
-            subprocess.run(
-                ["decomposePar", "-force", "-case", str(self.case_path)] if force_decompose else ["decomposePar", "-case", str(self.case_path)],
-                stdout=log_file,
-                stderr=subprocess.STDOUT,
-                check=True
-            )
-
-        # 2. mpirun with foamRun
-        logger.info("Running mpirun simulation ...")
-        with open(log_path, "a", encoding="utf-8") as log_file:
-            log_file.write("\n=== mpirun foamRun ===\n")
-            mpi_command = ["mpirun"]
-            if os.getenv("FOAMPILOT_MPI_OVERSUBSCRIBE", "1").lower() not in {"0", "false", "no"}:
-                mpi_command.append("--oversubscribe")
-            mpi_command += ["-np", str(nb_proc), "foamRun", "-solver", self.foamrun_module, "-parallel"]
-            subprocess.run(
-                mpi_command,
-                cwd=self.case_path,
-                stdout=log_file,
-                stderr=subprocess.STDOUT,
-                check=True
-            )
-
-        # 3. reconstructPar
-        logger.info("Running reconstructPar ...")
-        with open(log_path, "a", encoding="utf-8") as log_file:
-            log_file.write("\n=== reconstructPar ===\n")
-            subprocess.run(
-                ["reconstructPar", "-case", str(self.case_path)],
-                stdout=log_file,
-                stderr=subprocess.STDOUT,
-                check=True
-            )
-
-        logger.info("Parallel simulation finished ! (log: %s)", log_path)
+        self._runner.run_parallel(self.foamrun_module, nb_proc, log_filename=log_filename, force_decompose=force_decompose)

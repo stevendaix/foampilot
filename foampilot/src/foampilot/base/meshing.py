@@ -1,4 +1,4 @@
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.dictionaries import FoamDict
 from pathlib import Path
 
 import json
@@ -8,7 +8,7 @@ from typing import Union, Dict, Any
 
 def create_case_structure(case_path: Union[str, Path], extra_dirs=()):
     """Lazily forward to the mesh case-layout helper."""
-    from foampilot.mesh.ops import create_case_structure as _create_case_structure
+    from foampilot.core.meshing.ops import create_case_structure as _create_case_structure
 
     return _create_case_structure(case_path, extra_dirs=extra_dirs)
 
@@ -26,7 +26,7 @@ class CaseBuilder:
         self.case_path = Path(case_path).expanduser().resolve()
 
     def ensure_dirs(self, extra_dirs=()) -> "CaseBuilder":
-        from foampilot.mesh.ops import create_case_structure
+        from foampilot.core.meshing.ops import create_case_structure
 
         create_case_structure(self.case_path, extra_dirs=extra_dirs)
         return self
@@ -54,7 +54,7 @@ class Meshing:
         mesher_name (str): The name of the selected meshing strategy.
         mesher (Union[BlockMesher, GmshMesher, SnappyMesher]): The specific mesher 
             instance handling the mesh generation logic.
-        additional_files (Dict[str, OpenFOAMFile]): A registry of additional 
+        additional_files (Dict[str, FoamDict]): A registry of additional 
             OpenFOAM configuration files to be written to the `system/` folder.
     """
 
@@ -70,7 +70,7 @@ class Meshing:
             ValueError: If the provided `mesher` string does not match a 
                 supported meshing backend.
         """
-        from foampilot.mesh.BlockMeshFile import BlockMesher
+        from foampilot.core.meshing.blockmesh import BlockMesher
 
         self.case_path = Path(case_path)
         self.mesher_name = mesher
@@ -99,9 +99,9 @@ class Meshing:
             file_content: A dictionary containing the parameters and settings 
                 for the OpenFOAM file.
         """
-        self.additional_files[file_name] = OpenFOAMFile(
+        self.additional_files[file_name] = FoamDict(
             object_name=file_name,
-            **file_content
+            default_data=file_content,
         )
 
     def write(self):

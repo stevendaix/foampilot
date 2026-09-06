@@ -8,6 +8,7 @@ from foampilot.tutorials import (
     validate_generated_case,
 )
 from foampilot.solver.base_solver import BaseSolver
+from foampilot.openfoam.execution.environment import OpenFOAMEnvironment
 from foampilot.utilities import OpenFOAMDictAddFile
 
 
@@ -68,13 +69,13 @@ def test_run_command_passes_prepared_environment(tmp_path, monkeypatch):
     prepared = {"PATH": str(tmp_path / "openfoam13" / "bin"), "FOAM_VERSION": "13"}
     captured = {}
 
-    monkeypatch.setattr(solver, "_command_environment", lambda: prepared)
+    monkeypatch.setattr(OpenFOAMEnvironment, "command_environment", lambda self: prepared)
 
     def fake_run(command, **kwargs):
         captured["command"] = command
         captured.update(kwargs)
 
-    monkeypatch.setattr("foampilot.solver.base_solver.subprocess.run", fake_run)
+    monkeypatch.setattr("foampilot.openfoam.execution.runner.subprocess.run", fake_run)
     solver.run_command(["blockMesh"], "log.blockMesh")
 
     assert captured["command"] == ["blockMesh"]

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from foampilot.mesh.ops import write_rotating_zone
+from foampilot.core.meshing.ops import write_rotating_zone
 
 
 @dataclass(frozen=True)
