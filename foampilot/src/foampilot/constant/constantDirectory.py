@@ -21,7 +21,19 @@ from foampilot.constant.phasePropertiesFile import PhasePropertiesFile
 from foampilot.constant.momentumTransportFile import MomentumTransportFile
 from foampilot.constant.phasePhysicalPropertiesFile import PhasePhysicalPropertiesFile
 
+# Core dictionaries module (Internal Use Only - delegates to this in the future)
+from foampilot.core.dictionaries import FoamDict, DictionaryWriter, CaseLayout
+
+
 class ConstantDirectory:
+    """Manages the constant directory for an OpenFOAM case.
+
+    Internal Use Only - This class delegates to core/dictionaries module.
+    The business logic (VoF configuration, radiation management, turbulence
+    model selection) is preserved, while actual file writing is coordinated
+    through FoamDict/DictionaryWriter.
+    """
+
     def __init__(self, solver: Solver, *, with_radiation: bool = False):
         """
         Initialize constant directory manager.
@@ -49,8 +61,35 @@ class ConstantDirectory:
         self._fvmodels: Optional[FvModelsFile] = None
         self._turbulenceProperties: Optional[TurbulencePropertiesFile] = None
 
+        # Core dictionaries module (Internal Use Only)
+        self._dictionary_writer: Optional[DictionaryWriter] = None
+        self._case_layout: Optional[CaseLayout] = None
+
         if with_radiation:
             self.enable_radiation()
+
+    def _get_dictionary_writer(self) -> DictionaryWriter:
+        """Get or create the DictionaryWriter for this case."""
+        if self._dictionary_writer is None:
+            constant_path = Path(self.solver.case_path) / "constant"
+            self._dictionary_writer = DictionaryWriter(constant_path)
+        return self._dictionary_writer
+
+    def _get_case_layout(self) -> CaseLayout:
+        """Get or create the CaseLayout for this case."""
+        if self._case_layout is None:
+            self._case_layout = CaseLayout(self.solver.case_path)
+        return self._case_layout
+
+    @property
+    def writer(self) -> DictionaryWriter:
+        """Access the DictionaryWriter for fluent dictionary operations."""
+        return self._get_dictionary_writer()
+
+    @property
+    def layout(self) -> CaseLayout:
+        """Access the CaseLayout for directory management."""
+        return self._get_case_layout()
 
     # Properties
     @property
@@ -151,6 +190,10 @@ class ConstantDirectory:
     def write(self):
         constant_path = Path(self.solver.case_path) / "constant"
         constant_path.mkdir(parents=True, exist_ok=True)
+
+        # Initialize DictionaryWriter from core/dictionaries (Internal Use Only)
+        writer = self._get_dictionary_writer()
+        writer.clear()
 
         # --- Turbulence properties -----------------------------------------
         # OpenFOAM 13 renamed turbulenceProperties → momentumTransport

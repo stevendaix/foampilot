@@ -1,6 +1,7 @@
 import os
 import logging
 from pathlib import Path
+from typing import Optional
 from foampilot.system.controlDictFile import ControlDictFile
 from foampilot.system.fvSchemesFile import FvSchemesFile
 from foampilot.system.fvSolutionFile import FvSolutionFile
@@ -8,12 +9,19 @@ from foampilot.base.openFOAMFile import OpenFOAMFile
 import subprocess
 from foampilot.system.decomposeParDictFile import DecomposeParDictFile
 
+# Core dictionaries module (Internal Use Only - delegates to this in the future)
+from foampilot.core.dictionaries import FoamDict, DictionaryWriter, CaseLayout
+
 logger = logging.getLogger(__name__)
 
 class SystemDirectory:
     """
     A class to manage the system directory of an OpenFOAM case.
-    
+
+    Internal Use Only - This class delegates to core/dictionaries module.
+    The business logic (functions file writing, additional files) is preserved,
+    while actual file writing is coordinated through FoamDict/DictionaryWriter.
+
     This class handles the creation, configuration, and management of all system files
     in an OpenFOAM case, including controlDict, fvSchemes, and fvSolution. It also provides
     methods to run OpenFOAM utilities like topoSet and createPatch.
@@ -33,15 +41,42 @@ class SystemDirectory:
         Args:
             parent: The parent case object that owns this system directory.
         """
-        self.parent = parent 
+        self.parent = parent
         self.controlDict = ControlDictFile(parent=parent)
-      
+
         self.additional_files = {}
         self.fvSchemes = FvSchemesFile(parent=parent, fields_manager=getattr(parent, "fields_manager", None))
-      
+
         self.fvSolution = FvSolutionFile(parent=parent, fields_manager=getattr(parent, "fields_manager", None))
-      
-        self.decomposeParDict = None 
+
+        self.decomposeParDict = None
+
+        # Core dictionaries module (Internal Use Only)
+        self._dictionary_writer: Optional[DictionaryWriter] = None
+        self._case_layout: Optional[CaseLayout] = None
+
+    def _get_dictionary_writer(self) -> DictionaryWriter:
+        """Get or create the DictionaryWriter for this case."""
+        if self._dictionary_writer is None:
+            system_path = Path(self.parent.case_path) / "system"
+            self._dictionary_writer = DictionaryWriter(system_path)
+        return self._dictionary_writer
+
+    def _get_case_layout(self) -> CaseLayout:
+        """Get or create the CaseLayout for this case."""
+        if self._case_layout is None:
+            self._case_layout = CaseLayout(self.parent.case_path)
+        return self._case_layout
+
+    @property
+    def writer(self) -> DictionaryWriter:
+        """Access the DictionaryWriter for fluent dictionary operations."""
+        return self._get_dictionary_writer()
+
+    @property
+    def layout(self) -> CaseLayout:
+        """Access the CaseLayout for directory management."""
+        return self._get_case_layout() 
         
 
 
@@ -50,18 +85,22 @@ class SystemDirectory:
     def write(self):
         """
         Write all system files to the case directory.
-        
+
         Creates the system directory if it doesn't exist and writes:
         - controlDict
         - fvSchemes
         - fvSolution
         - Any additional files that were added
-        
+
         The files are written to <case_path>/system/ directory.
         """
-        base_path = Path(self.parent.case_path) 
+        base_path = Path(self.parent.case_path)
         system_path = Path(base_path) / 'system'
         system_path.mkdir(parents=True, exist_ok=True)
+
+        # Initialize DictionaryWriter from core/dictionaries (Internal Use Only)
+        writer = self._get_dictionary_writer()
+        writer.clear()
 
         # Write main system files
         self.controlDict.write(system_path / 'controlDict')
@@ -79,7 +118,7 @@ class SystemDirectory:
         # Write any additional files that were added
         for file_name, file in self.additional_files.items():
             file.write(system_path / file_name)
-        
+
         return system_path
 
     def _write_functions_file(self, system_path: Path) -> None:
