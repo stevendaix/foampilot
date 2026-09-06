@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 @dataclass

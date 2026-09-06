@@ -142,7 +142,7 @@ def test_non_newtonian_carreau_yasuda_available():
 def test_non_newtonian_carreau_yasuda_config():
     """Test that Carreau-Yasuda coefficients are correctly set."""
     from foampilot.constant.transportPropertiesFile import TransportPropertiesFile, NonNewtonianModels
-    from foampilot.utilities.manageunits import ValueWithUnit
+    from foampilot.core.units.manageunits import ValueWithUnit
 
     tp = TransportPropertiesFile(transportModel="Newtonian")
     tp.set_non_newtonian(

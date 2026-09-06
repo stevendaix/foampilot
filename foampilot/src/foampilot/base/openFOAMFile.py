@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 from typing import Optional, Any, Union, Tuple
 
 logger = logging.getLogger(__name__)

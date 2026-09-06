@@ -1,5 +1,5 @@
 from typing import Optional
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 def snap_to_grid(value: float, step: float) -> float:

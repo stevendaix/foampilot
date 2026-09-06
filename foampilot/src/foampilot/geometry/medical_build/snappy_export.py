@@ -6,7 +6,7 @@ import shutil
 
 from foampilot.core.meshing.snappy import SnappyMesher
 from foampilot.solver.solver import Solver
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 @dataclass

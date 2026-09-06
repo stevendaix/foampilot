@@ -3,7 +3,7 @@ from typing import Any, Type, TypeVar, get_origin, get_args, Union, Optional
 
 T = TypeVar("T", bound="Serializable")
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 class Serializable:
     """

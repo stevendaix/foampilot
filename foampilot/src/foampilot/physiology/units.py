@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from ..utilities.manageunits import Q_, ValueWithUnit
+from foampilot.core.units.manageunits import Q_, ValueWithUnit
 
 
 def as_magnitude(value: Any, unit: str, *, name: str = "value") -> np.ndarray:

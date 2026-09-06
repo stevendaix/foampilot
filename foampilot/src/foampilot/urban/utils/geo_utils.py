@@ -1,5 +1,5 @@
 from typing import Tuple, Optional
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 def ensure_metric(value: ValueWithUnit, target_unit: str = "m") -> float:

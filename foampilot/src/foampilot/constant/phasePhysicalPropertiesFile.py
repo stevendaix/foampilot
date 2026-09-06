@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional, Any, Union
 from foampilot.base.openFOAMFile import OpenFOAMFile
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 class PhasePhysicalPropertiesFile(OpenFOAMFile):

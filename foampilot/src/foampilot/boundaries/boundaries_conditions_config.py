@@ -1,7 +1,7 @@
 
 # Configuration des conditions aux limites pour foampilot
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 # Constantes physiques et de modélisation
 CONSTANTS = {

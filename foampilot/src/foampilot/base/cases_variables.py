@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Dict, Optional, Any, List, Union
 from pathlib import Path
 from foampilot.core.dictionaries import BoundaryDict
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 class CaseFieldsManager:

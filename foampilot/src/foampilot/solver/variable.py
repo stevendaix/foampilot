@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Dict, Optional, List, Union
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 from abc import ABC
 import warnings
 

@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Optional, Union, Dict
 import logging
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 logger = logging.getLogger(__name__)
 

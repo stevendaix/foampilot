@@ -3,7 +3,7 @@ from typing import Optional, List, Tuple, Dict, Any
 from pathlib import Path
 import json
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 from foampilot.urban.model.domain import CFDDomain
 from foampilot.urban.model.terrain import CFDTerrain
 

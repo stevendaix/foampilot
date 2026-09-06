@@ -3,7 +3,7 @@ from typing import Optional, List, Tuple, Dict, Any
 from pathlib import Path
 import numpy as np
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 @dataclass

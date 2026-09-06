@@ -52,7 +52,7 @@ from foampilot.cht import (
     SolidRegion,
     CoupledInterface,
 )
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 # ============================================================================
 # 1. Paramètres géométriques et physiques

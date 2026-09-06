@@ -1,11 +1,11 @@
 # Public utility exports.
 from foampilot.utilities.dictonnary import OpenFOAMDictAddFile
 from foampilot.utilities.epw_weather_reader import WeatherFileEPW
-from foampilot.utilities.fluids_theory import FluidMechanics
-from foampilot.utilities.manageunits import ValueWithUnit
 from foampilot.utilities.function import Functions
 from foampilot.utilities.residuals import ResidualsPost
 from foampilot.utilities.coupling_foam_csv import CSVFoamIntegrator
+from foampilot.core.units.manageunits import ValueWithUnit
+from foampilot.core.physics.fluids_theory import FluidMechanics
 
 
 def __getattr__(name):

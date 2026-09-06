@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 from typing import Tuple
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 @dataclass

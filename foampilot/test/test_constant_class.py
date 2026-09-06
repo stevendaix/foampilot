@@ -4,7 +4,7 @@ import filecmp
 import os
 
 from foampilot.solver.solver import Solver
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 BASE_REFERENCE_DIR = Path("reference/constant_files")
 TESTS_DIR = Path("tests")

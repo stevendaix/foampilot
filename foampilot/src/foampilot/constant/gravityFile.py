@@ -1,4 +1,4 @@
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 from foampilot.base.openFOAMFile import OpenFOAMFile
 from pathlib import Path
 from typing import Optional, Any, Union, Tuple

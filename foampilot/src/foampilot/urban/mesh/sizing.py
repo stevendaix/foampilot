@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional, Any, Union
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 def _to_vwu(value: Union[ValueWithUnit, float], default_unit: str = "m") -> ValueWithUnit:

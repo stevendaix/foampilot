@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 from typing import Literal, Optional, Tuple
 
-from foampilot.utilities.manageunits import ValueWithUnit
+from foampilot.core.units.manageunits import ValueWithUnit
 
 
 ReferenceHeightMethod = Literal["Hmax", "Hmean", "H90", "H95", "custom"]
