@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+rm -rf "$HERE/urbgen_cfd_validation" "$HERE/urbgen_validation_images"
+rm -f "$HERE/urbgen_population_report.json"
+find "$HERE" -type d -name '__pycache__' -prune -exec rm -rf {} +
+
+echo "UrbGEN generated validation outputs removed."

@@ -29,6 +29,11 @@ class FluidRegion:
         equation_of_state: str = "perfectGas",
         specie: str = "specie",
         energy: str = "sensibleEnthalpy",
+        mol_weight: float = 18.0,
+        rho: float = 1000.0,
+        Cp: float = 4181.0,
+        mu: float = 959e-6,
+        Pr: float = 6.62,
     ):
         self.name = name
         self.temperature = temperature
@@ -41,6 +46,30 @@ class FluidRegion:
         self.equation_of_state = equation_of_state
         self.specie = specie
         self.energy = energy
+        self.mol_weight = mol_weight
+        self.rho = rho
+        self.Cp = Cp
+        self.mu = mu
+        self.Pr = Pr
+
+    def get_physical_properties(self) -> str:
+        return (
+            f'FoamFile\n{{\n    format ascii;\n    class dictionary;\n    location "constant/{self.name}";\n    object physicalProperties;\n}}\n\n'
+            "thermoType\n{\n"
+            f"    type            {self.thermophysical_model};\n"
+            f"    mixture         {self.mixture_type};\n"
+            f"    transport       {self.transport_model};\n"
+            f"    thermo          {self.thermo_model};\n"
+            f"    equationOfState {self.equation_of_state};\n"
+            f"    specie          {self.specie};\n"
+            f"    energy          {self.energy};\n"
+            "}\n\nmixture\n{\n"
+            f"    specie {{ molWeight {self.mol_weight}; }}\n"
+            f"    equationOfState {{ rho {self.rho}; }}\n"
+            f"    thermodynamics {{ Cp {self.Cp}; hf 0; }}\n"
+            f"    transport {{ mu {self.mu}; Pr {self.Pr}; }}\n"
+            "}\n"
+        )
 
     def get_T_field_content(self) -> str:
         """Generate the OpenFOAM content for the initial temperature field ``T``."""
@@ -65,6 +94,16 @@ class FluidRegion:
             f'}}\n'
             f'\n'
             f'// ************************************************************************* //\n'
+        )
+
+    def get_scalar_field_content(self, field_name: str, internal_value: str, dimensions: str) -> str:
+        return (
+            "FoamFile\n{\n"
+            "    format ascii;\n    class volScalarField;\n"
+            f"    location \"0/{self.name}\";\n    object {field_name};\n"
+            "}\n\n"
+            f"dimensions {dimensions};\n\ninternalField uniform {internal_value};\n\n"
+            "boundaryField\n{\n    #includeEtc \"caseDicts/setConstraintTypes\"\n}\n"
         )
 
     def get_U_field_content(self) -> str:
@@ -147,10 +186,11 @@ class SolidRegion:
         thermophysical_model: str = "heSolidThermo",
         mixture_type: str = "pureMixture",
         transport_model: str = "const",
-        thermo_model: str = "hConst",
-        equation_of_state: str = "perfectGas",
+        thermo_model: str = "eConst",
+        equation_of_state: str = "rhoConst",
         specie: str = "specie",
-        energy: str = "sensibleEnthalpy",
+        energy: str = "sensibleInternalEnergy",
+        mol_weight: float = 27.0,
     ):
         self.name = name
         self.temperature = temperature
@@ -164,6 +204,26 @@ class SolidRegion:
         self.equation_of_state = equation_of_state
         self.specie = specie
         self.energy = energy
+        self.mol_weight = mol_weight
+
+    def get_physical_properties(self) -> str:
+        return (
+            f'FoamFile\n{{\n    format ascii;\n    class dictionary;\n    location "constant/{self.name}";\n    object physicalProperties;\n}}\n\n'
+            "thermoType\n{\n"
+            f"    type            {self.thermophysical_model};\n"
+            f"    mixture         {self.mixture_type};\n"
+            "    transport       constIsoSolid;\n"
+            f"    thermo          {self.thermo_model};\n"
+            "    equationOfState rhoConst;\n"
+            f"    specie          {self.specie};\n"
+            "    energy          sensibleInternalEnergy;\n"
+            "}\n\nmixture\n{\n"
+            f"    specie {{ molWeight {self.mol_weight}; }}\n"
+            f"    equationOfState {{ rho {self.density}; }}\n"
+            f"    transport {{ kappa {self.thermal_conductivity}; }}\n"
+            f"    thermodynamics {{ hf 0; Cv {self.specific_heat}; }}\n"
+            "}\n"
+        )
 
     def get_T_field_content(self) -> str:
         """Generate the OpenFOAM content for the initial temperature field ``T``."""

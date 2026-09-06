@@ -1,54 +1,79 @@
 #!/usr/bin/env python3
-"""Tutoriel 1 : Écoulement laminaire dans une cavité entraînée (icoFoam).
+"""Tutoriel 1 : cavité entraînée, écoulement incompressible laminaire.
 
-Référence OpenFOAM-14 : tutorials/incompressible/icoFoam/cavity
-https://develop.openfoam.com/Development/openfoam/-/tree/master/tutorials/incompressible/icoFoam/cavity
-
-Cet exemple montre la mise en place complète d'un cas laminaire incompressible
-avec foampilot : géométrie blockMesh, conditions aux limites, solveur et
-post-traitement des résidus.
+Référence OpenFOAM 13 : ``$FOAM_TUTORIALS/fluid/cavity``.
+Cette adaptation reconstruit la mise en données du cas source avec l'API
+Foampilot uniquement.
 """
 
 from pathlib import Path
+
+from foampilot import Meshing
 from foampilot.solver import Solver
-from foampilot import ValueWithUnit
 
 
-def main():
+def build_cavity_mesh(case_path: Path) -> None:
+    """Construire et exécuter le maillage blockMesh de la cavité."""
+    meshing = Meshing(case_path, mesher="blockMesh")
+    blockmesh = meshing.mesher
+    blockmesh.scale = 1.0
+    blockmesh.vertices = [
+        [0.0, 0.0, 0.0], [0.1, 0.0, 0.0], [0.1, 0.1, 0.0], [0.0, 0.1, 0.0],
+        [0.0, 0.0, 0.01], [0.1, 0.0, 0.01], [0.1, 0.1, 0.01], [0.0, 0.1, 0.01],
+    ]
+    blockmesh.blocks = [
+        "hex (0 1 2 3 4 5 6 7) (20 20 1) simpleGrading (1 1 1)",
+    ]
+    blockmesh.edges = []
+    blockmesh.defaultPatch = {"type": "empty"}
+    blockmesh.boundary = {
+        "movingWall": {"type": "wall", "faces": [[3, 7, 6, 2]]},
+        "fixedWalls": {
+            "type": "wall",
+            "faces": [[0, 4, 5, 1], [0, 3, 7, 4], [1, 2, 6, 5]],
+        },
+        "frontAndBack": {
+            "type": "empty",
+            "faces": [[0, 1, 2, 3], [4, 7, 6, 5]],
+        },
+    }
+    blockmesh.mergePatchPairs = []
+    blockmesh.write(case_path / "system" / "blockMeshDict")
+    blockmesh.run()
+
+
+def main() -> None:
     case_path = Path.cwd()
-
-    # --- 1. Initialiser le solveur ---
     solver = Solver(case_path)
     solver.compressible = False
     solver.with_gravity = False
     solver.turbulence_model = "laminar"
+    solver.transient = True
 
-    # --- 2. Écrire les dictionnaires système et constantes ---
+    solver.system.controlDict.use_solver_keyword = True
+    solver.system.controlDict.startTime = 0.0
+    solver.system.controlDict.stopAt = "endTime"
+    solver.system.controlDict.endTime = 1.0
+    solver.system.controlDict.deltaT = 0.01
+    solver.system.controlDict.writeControl = "runTime"
+    solver.system.controlDict.writeInterval = 0.1
     solver.system.write()
+
+    build_cavity_mesh(case_path)
     solver.constant.write()
+    solver.setup_case()
 
-    # --- 3. Conditions aux limites ---
     solver.boundary.initialize_boundary()
-    solver.boundary.apply_condition_with_wildcard(
-        pattern="movingWall",
-        condition_type="velocityInlet",
-        velocity=(ValueWithUnit(1, "m/s"), ValueWithUnit(0, "m/s"), ValueWithUnit(0, "m/s")),
+    solver.boundary.set_raw_condition(
+        "movingWall", "U", {"type": "fixedValue", "value": "uniform (1 0 0)"}
     )
-    solver.boundary.apply_condition_with_wildcard(
-        pattern="fixedWalls",
-        condition_type="wall",
-    )
-    solver.boundary.apply_condition_with_wildcard(
-        pattern="frontAndBack",
-        condition_type="symmetry",
-    )
+    solver.boundary.set_raw_condition("movingWall", "p", {"type": "zeroGradient"})
+    solver.boundary.set_raw_condition("fixedWalls", "U", {"type": "noSlip"})
+    solver.boundary.set_raw_condition("fixedWalls", "p", {"type": "zeroGradient"})
+    solver.boundary.set_raw_condition("frontAndBack", "U", {"type": "empty"})
+    solver.boundary.set_raw_condition("frontAndBack", "p", {"type": "empty"})
     solver.boundary.write_boundary_conditions()
-
-    # --- 4. Lancer la simulation ---
-    solver.run_simulation(nb_proc=1)
-
-    # --- 5. Post-traitement ---
-    # Les résultats sont dans le dossier VTK/ du cas
+    solver.run_simulation(nb_proc=1, log_filename="log.cavity")
 
 
 if __name__ == "__main__":

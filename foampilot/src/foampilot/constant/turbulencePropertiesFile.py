@@ -76,10 +76,12 @@ class TurbulencePropertiesFile(OpenFOAMFile):
             model = self.AVAILABLE_LES_MODELS.get(LESModel, LESModel)
 
             data["LES"] = {
-                "LESModel": model,
+                "model": model,
                 "turbulence": turbulence,
                 "printCoeffs": printCoeffs,
             }
+            if str(model).lower() == "keqn":
+                data["LES"]["delta"] = "cubeRootVol"
 
             super().__init__(**data)
             return

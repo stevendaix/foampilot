@@ -10,6 +10,7 @@
 #include "uniformDimensionedFields.H"
 #include "volFields.H"
 #include "fvMatrices.H"
+#include "vofFragmentTransitionManager.H"
 
 namespace Foam
 {
@@ -23,9 +24,39 @@ class incompressibleVoFClouds
     const incompressibleTwoPhaseVoFMixture& mixture_;
     const uniformDimensionedVectorField g_;
     const wordList cloudNames_;
+    const scalarList speciesFractions_;
     mutable volScalarField mu_;
+    mutable volScalarField confirmedTransferRate_;
     mutable parcelCloudList clouds_;
+    mutable volScalarField fragmentMask_;
+    mutable volScalarField alphaConsumptionRate_;
+    const Switch consumeAlpha_;
+    mutable bool consumptionPending_;
+    mutable bool transitionApplied_;
+    const scalar alphaThreshold_;
+    const label minCells_;
+    const scalar minVolume_;
+    const Switch detectFragments_;
     mutable label curTimeIndex_;
+    mutable autoPtr<vofFragmentTransitionManager> transitionManagerPtr_;
+    mutable vofFragmentBatch transitionBatch_;
+
+    void publishLocalBatchForEachCloud(const label timeIndex) const;
+
+    void commitDirectLocalParcels
+    (
+        List<vofParcelConfirmation>& localConfirmations
+    ) const;
+
+    List<vofParcelConfirmation> collectLocalInjectionConfirmations
+    (
+        const label timeIndex
+    ) const;
+
+    void applyConfirmedResults
+    (
+        const List<vofParcelConfirmation>& results
+    ) const;
 
 public:
     TypeName("incompressibleVoFClouds");

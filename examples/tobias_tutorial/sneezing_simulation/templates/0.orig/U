@@ -1,0 +1,233 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      binary;
+    class       volVectorField;
+    location    "0";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    #includeEtc         "caseDicts/setConstraintTypes"
+
+    side
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    top
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform (0 0 0);
+    }
+    ground
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    bodies
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    mouth_1
+    {
+        type            codedFixedValue;
+        value           uniform (0 0 0);
+        name            sneeze;
+
+        codeInclude
+        #{
+            #include "randomGenerator.H"
+        #};
+        code            
+        #{
+            //- Time access
+            const scalar t = this->db().time().value();
+
+            //- Magnitude of velocity follows a log-normal function
+            //  and is combined with a Gauss normal function
+            //  Switching point is t = 0.039
+            const scalar logSigma = 1;
+            const scalar logMu = 0.5;
+            const scalar logA = 8;
+            const scalar logPre = 1/(sqrt(2*3.1418)*logSigma*t);
+            const scalar logExp = -(pow(log10(t)-logMu, 2)/(2*pow(logSigma, 2)));
+            const scalar vLog = logPre * exp(logExp) * logA;
+
+            const scalar norSigma = 0.08;
+            const scalar norMu = 0.08;
+            const scalar norA = 2.14;
+            const scalar norPre = 1/(sqrt(2*3.1418*pow(norSigma,2)));
+            const scalar norExp = -(pow(t-norMu, 2)/(2*pow(norSigma, 2)));
+            const scalar vNor = norPre * exp(norExp) * norA;
+
+            //- Random number generation; seed is always different
+            randomGenerator rand(t*1e7/2);
+
+            // Seed for the new random object
+            const scalar number = rand.scalarAB(0, 100000);
+            const scalar numberX = rand.scalar01();
+            const scalar numberZ = rand.scalar01();
+            const int signX = numberX < 0.5 ? -1 : 1;
+            const int signZ = numberZ < 0.5 ? -1 : 1;
+
+            //- Seed number is now more random
+            randomGenerator rand2(number);
+            const scalar number2 = rand2.scalarAB(0, 0.7);
+
+            //- Magntude velocity
+            scalar magVelo = 0;
+            if (t <= 0.105) magVelo = vLog;
+            else            magVelo = vNor;
+
+            // Applied velocity
+            vector velo;
+
+            //- Scaling in x, y, z for more realistic results
+            //  Assumption 1: Ux = Uz 
+            //  Assumption 2: magnitude of velo is the one given above
+            const scalar scaleXZ = number2/2;
+            const scalar scaleY = 1 - number2;
+
+            const scalar sqrMagVelo = pow(magVelo, 2);
+            const scalar UySqr = sqrMagVelo * scaleY;
+            const scalar UzSqr = sqrMagVelo * scaleXZ;
+            const scalar UxSqr = sqrMagVelo * scaleXZ;
+
+            const scalar Ux = sqrt(UxSqr) * signX;
+            const scalar Uz = sqrt(UzSqr) * signZ;
+            const scalar Uy = sqrt(UySqr) * -1;   //- Always in negative direction
+
+            velo = vector(Ux, Uy, Uz);
+
+            Pout<< "Time = " << t << "\n";
+            Pout<< "logPre: " << logPre << "\n";
+            Pout<< "logExp: " << logExp << "\n";
+            Pout<< "norPre: " << norPre << "\n";
+            Pout<< "norExp: " << norExp << "\n";
+            Pout<< "vLog: " << vLog << "\n";
+            Pout<< "vNor: " << vNor << "\n";
+            Pout<< "magVelo: " << magVelo << "\n";
+            Pout<< "magVelo Recalc: " << sqrt(pow(Ux,2) + pow(Uy,2) + pow(Uz, 2)) << "\n";
+
+            operator==(velo);
+        #};
+    }
+    mouth_2
+    {
+        type            codedFixedValue;
+        value           uniform (0 0 0);
+        name            sneeze2;
+
+        codeInclude
+        #{
+            #include "randomGenerator.H"
+        #};
+
+        code            
+        #{
+            //- Time access
+            const scalar realt = this->db().time().value();
+            const scalar t = this->db().time().value() - 1;
+
+            //  Same as previously but with a delay of 1 s
+            //  Also, the fluctuations might have 20 percent and the speed
+            //  is a bit increased
+
+            //- Magnitude of velocity follows a log-normal function
+            //  and is combined with a Gauss normal function
+            //  Switching point is t = 0.039
+            if (t > 0)
+            {
+                const scalar logSigma = 1;
+                const scalar logMu = 0.5;
+                const scalar logA = 10;
+                const scalar logPre = 1/(sqrt(2*3.1418)*logSigma*t);
+                const scalar logExp = -(pow(log10(t)-logMu, 2)/(2*pow(logSigma, 2)));
+                const scalar vLog = logPre * exp(logExp) * logA;
+
+                const scalar norSigma = 0.08;
+                const scalar norMu = 0.08;
+                const scalar norA = 2.67;
+                const scalar norPre = 1/(sqrt(2*3.1418*pow(norSigma,2)));
+                const scalar norExp = -(pow(t-norMu, 2)/(2*pow(norSigma, 2)));
+                const scalar vNor = norPre * exp(norExp) * norA;
+
+                //- Random number generation; seed is always different
+                randomGenerator rand(realt*1e7/2);
+
+                // Seed for the new random object
+                const scalar number = rand.scalarAB(0, 100000);
+                const scalar numberX = rand.scalar01();
+                const scalar numberZ = rand.scalar01();
+                const int signX = numberX < 0.5 ? -1 : 1;
+                const int signZ = numberZ < 0.5 ? -1 : 1;
+
+                //- Seed number is now more random
+                randomGenerator rand2(number);
+                const scalar number2 = rand2.scalarAB(0, 1);
+
+                //- Magntude velocity
+                scalar magVelo = 0;
+                if (t <= 0.105) magVelo = vLog;
+                else            magVelo = vNor;
+
+                // Applied velocity
+                vector velo;
+
+                //- Scaling in x, y, z for more realistic results
+                //  Assumption 1: Ux = Uz 
+                //  Assumption 2: magnitude of velo is the one given above
+                const scalar scaleXZ = number2/2;
+                const scalar scaleY = 1 - number2;
+
+                const scalar sqrMagVelo = pow(magVelo, 2);
+                const scalar UySqr = sqrMagVelo * scaleY;
+                const scalar UzSqr = sqrMagVelo * scaleXZ;
+                const scalar UxSqr = sqrMagVelo * scaleXZ;
+
+                const scalar Ux = sqrt(UxSqr) * signX;
+                const scalar Uz = sqrt(UzSqr) * signZ;
+                const scalar Uy = sqrt(UySqr);
+
+                velo = vector(Ux, Uy, Uz);
+
+                /*
+                Pout<< "Time = " << t << "\n";
+                Pout<< "logPre: " << logPre << "\n";
+                Pout<< "logExp: " << logExp << "\n";
+                Pout<< "norPre: " << norPre << "\n";
+                Pout<< "norExp: " << norExp << "\n";
+                Pout<< "vLog: " << vLog << "\n";
+                Pout<< "vNor: " << vNor << "\n";
+                Pout<< "magVelo: " << magVelo << "\n";
+                Pout<< "magVelo Recalc: " << sqrt(pow(Ux,2) + pow(Uy,2) + pow(Uz, 2)) << "\n";
+                */
+
+                operator==(velo);
+            }
+            else
+            {
+                operator==(vector(0,0,0));
+            }
+        #};
+    }
+}
+
+
+// ************************************************************************* //

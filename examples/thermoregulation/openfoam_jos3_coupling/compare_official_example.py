@@ -20,7 +20,11 @@ sys.path[:0] = [str(SRC), str(JOS3_SRC)]
 import jos3 as reference_jos3
 
 # Chargement ciblé de la copie FoamPilot sans importer les extensions CAD globales.
-sys.modules.setdefault("foampilot", types.ModuleType("foampilot"))
+foampilot_pkg = sys.modules.setdefault("foampilot", types.ModuleType("foampilot"))
+foampilot_pkg.__path__ = [str(SRC / "foampilot")]
+utilities_pkg = types.ModuleType("foampilot.utilities")
+utilities_pkg.__path__ = [str(SRC / "foampilot" / "utilities")]
+sys.modules.setdefault("foampilot.utilities", utilities_pkg)
 physiology_spec = importlib.util.spec_from_file_location(
     "foampilot.physiology",
     SRC / "foampilot" / "physiology" / "__init__.py",

@@ -1,0 +1,423 @@
+{
+  "backend": "python_fmm_poly",
+  "acceleration": "numba",
+  "numba_available": true,
+  "phase_timings": {
+    "preprocess": 0.0,
+    "capping": 0.174,
+    "delaunay": 1.3035,
+    "internal_tets": 22.7573,
+    "voronoi": 33.3926,
+    "poles": 0.2094,
+    "fast_marching": 151.8,
+    "endpoints": 0.0003,
+    "resampling": 0.0291,
+    "sections": 1.0134,
+    "network": 0.5165
+  },
+  "quality_metrics": {
+    "n_internal_tets": 36983,
+    "n_seed_component": 36983,
+    "voronoi_n_points": 36983,
+    "voronoi_n_edges": 61618,
+    "source_cap_id": 4,
+    "target_cap_ids": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8
+    ],
+    "cap_areas": [
+      33.009006990643684,
+      0.04783122311346231,
+      36.45416835224023,
+      10.090688522832354,
+      4.774125462790834,
+      25.824115098910635,
+      36.21703760814853,
+      6.734305760604912,
+      8.318265620036986
+    ],
+    "backtracking_diagnostics": [
+      {
+        "source_vertex": 32091,
+        "target_vertex": 177,
+        "iterations": 438,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 438,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 168,
+        "iterations": 467,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 467,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 425,
+        "iterations": 485,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 485,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 33933,
+        "iterations": 584,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 584,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 36714,
+        "iterations": 236,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 236,
+        "best_slope": 0.9196174247086714,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 36867,
+        "iterations": 431,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 431,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 36972,
+        "iterations": 303,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 303,
+        "best_slope": 1.0222754817020445,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 1
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 5139,
+        "iterations": 283,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 283,
+        "best_slope": 1.3234755046985553,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0
+      }
+    ],
+    "backtracking_failed_count": 0,
+    "branch_cap_pairs": [
+      {
+        "branch_id": 0,
+        "source_cap_id": 4,
+        "target_cap_id": 0
+      },
+      {
+        "branch_id": 1,
+        "source_cap_id": 4,
+        "target_cap_id": 1
+      },
+      {
+        "branch_id": 2,
+        "source_cap_id": 4,
+        "target_cap_id": 2
+      },
+      {
+        "branch_id": 3,
+        "source_cap_id": 4,
+        "target_cap_id": 3
+      },
+      {
+        "branch_id": 4,
+        "source_cap_id": 4,
+        "target_cap_id": 5
+      },
+      {
+        "branch_id": 5,
+        "source_cap_id": 4,
+        "target_cap_id": 6
+      },
+      {
+        "branch_id": 6,
+        "source_cap_id": 4,
+        "target_cap_id": 7
+      },
+      {
+        "branch_id": 7,
+        "source_cap_id": 4,
+        "target_cap_id": 8
+      }
+    ],
+    "branch_diagnostics": [
+      {
+        "source_vertex": 32091,
+        "target_vertex": 177,
+        "iterations": 438,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 438,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0,
+        "branch_id": 0,
+        "source_cap_id": 4,
+        "target_cap_id": 0
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 168,
+        "iterations": 467,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 467,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0,
+        "branch_id": 1,
+        "source_cap_id": 4,
+        "target_cap_id": 1
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 425,
+        "iterations": 485,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 485,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0,
+        "branch_id": 2,
+        "source_cap_id": 4,
+        "target_cap_id": 2
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 33933,
+        "iterations": 584,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 584,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0,
+        "branch_id": 3,
+        "source_cap_id": 4,
+        "target_cap_id": 3
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 36714,
+        "iterations": 236,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 236,
+        "best_slope": 0.9196174247086714,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0,
+        "branch_id": 4,
+        "source_cap_id": 4,
+        "target_cap_id": 5
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 36867,
+        "iterations": 431,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 431,
+        "best_slope": 0.7928971864786356,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0,
+        "branch_id": 5,
+        "source_cap_id": 4,
+        "target_cap_id": 6
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 36972,
+        "iterations": 303,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 303,
+        "best_slope": 1.0222754817020445,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 1,
+        "branch_id": 6,
+        "source_cap_id": 4,
+        "target_cap_id": 7
+      },
+      {
+        "source_vertex": 32091,
+        "target_vertex": 5139,
+        "iterations": 283,
+        "termination_reason": "source_reached",
+        "termination_status": "source_reached",
+        "source_reached": true,
+        "fallback_used": false,
+        "output_points": 283,
+        "best_slope": 1.3234755046985553,
+        "final_edge": [
+          32091,
+          32091
+        ],
+        "final_pcoord": 0.0,
+        "subdivisions": 250,
+        "relaxed_steps": 0,
+        "branch_id": 7,
+        "source_cap_id": 4,
+        "target_cap_id": 8
+      }
+    ],
+    "n_centerline_branches": 8,
+    "branch_lengths": [
+      257.86703734161455,
+      278.1198207199916,
+      282.2921681437321,
+      252.2813118294181,
+      91.50495650209535,
+      200.04237048244335,
+      130.82353587395156,
+      140.73124561852433
+    ],
+    "total_centerline_length": 1633.662446511771,
+    "n_sections": 100,
+    "network_n_points": 1189,
+    "network_n_edges": 1188,
+    "total_elapsed_s": 211.90841843397357
+  },
+  "warnings": [],
+  "status": "PASS"
+}

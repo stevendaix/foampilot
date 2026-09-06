@@ -1,0 +1,17 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeaturesDict;
+}
+
+surfaces
+(
+    "inlet"
+    "outlet_0"
+    "outlet_1"
+    "wall"
+);
+
+includedAngle   30;

@@ -1,0 +1,6 @@
+grassModel/grassModel.C
+grassModel/grassModelNew.C
+noGrass/noGrass.C
+simpleGrass/simpleGrass.C
+
+LIB=$(FOAM_USER_LIBBIN)/libgrassModel

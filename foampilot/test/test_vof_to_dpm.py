@@ -1,12 +1,23 @@
 """Tests for conservative VOF-to-DPM fragment extraction."""
 
+import importlib.util
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from vof_to_dpm import VofToDpmConverter
+
+_vof_to_dpm_path = Path(__file__).parents[1] / "src" / "foampilot" / "utilities" / "vof_to_dpm.py"
+_vof_to_dpm_spec = importlib.util.spec_from_file_location("foampilot_vof_to_dpm", _vof_to_dpm_path)
+if _vof_to_dpm_spec is None or _vof_to_dpm_spec.loader is None:
+    raise RuntimeError(f"Cannot load {_vof_to_dpm_path}")
+_vof_to_dpm = importlib.util.module_from_spec(_vof_to_dpm_spec)
+sys.modules[_vof_to_dpm_spec.name] = _vof_to_dpm
+_vof_to_dpm_spec.loader.exec_module(_vof_to_dpm)
+OpenFoamCaseReader = _vof_to_dpm.OpenFoamCaseReader
+VofToDpmConverter = _vof_to_dpm.VofToDpmConverter
 
 
 def line_neighbours(n: int) -> list[list[int]]:
@@ -89,6 +100,68 @@ def test_filters_are_explicit_and_do_not_change_retained_volume():
     assert fragments[0].volume == pytest.approx(3.0)
 
 
+def test_build_transition_removes_only_selected_liquid_and_conserves_volume(tmp_path: Path):
+    converter = VofToDpmConverter(alpha_threshold=0.5)
+    alpha = np.array([1.0, 0.5, 0.25])
+    volumes = np.array([2.0, 4.0, 8.0])
+    fragments = converter.extract(
+        alpha=alpha,
+        cell_centres=[(0, 0, 0), (1, 0, 0), (2, 0, 0)],
+        cell_volumes=volumes,
+        neighbours=[[], [], []],
+    )
+
+    transition = converter.build_transition(alpha, volumes, fragments)
+    assert transition.converted_cell_indices == (0, 1)
+    assert transition.remaining_alpha.tolist() == [0.0, 0.0, 0.25]
+    assert transition.converted_volume == pytest.approx(4.0)
+    assert transition.remaining_volume == pytest.approx(2.0)
+    assert transition.total_volume == pytest.approx(np.sum(alpha * volumes))
+    assert np.array_equal(alpha, np.array([1.0, 0.5, 0.25]))
+
+    residual_path = converter.write_scalar_field(
+        transition.remaining_alpha, tmp_path / "0" / "alpha.liquid"
+    )
+    residual_text = residual_path.read_text()
+    assert "nonuniform List<scalar> 3" in residual_text
+    assert "0.25" in residual_text
+
+
+def test_multiple_fragment_batches_are_independently_conservative():
+    converter = VofToDpmConverter(alpha_threshold=0.5)
+    first = converter.extract(
+        alpha=[1.0, 0.0],
+        cell_centres=[(0, 0, 0), (1, 0, 0)],
+        cell_volumes=[2.0, 1.0],
+        neighbours=[[], []],
+    )
+    second = converter.extract(
+        alpha=[0.0, 1.0],
+        cell_centres=[(0, 0, 0), (1, 0, 0)],
+        cell_volumes=[2.0, 1.0],
+        neighbours=[[], []],
+    )
+    assert first[0].volume == pytest.approx(2.0)
+    assert second[0].volume == pytest.approx(1.0)
+    assert first[0].cell_indices != second[0].cell_indices
+
+
+def test_build_transition_rejects_duplicate_or_inconsistent_fragments():
+    converter = VofToDpmConverter(alpha_threshold=0.5)
+    fragment = converter.extract(
+        alpha=[1.0],
+        cell_centres=[(0, 0, 0)],
+        cell_volumes=[2.0],
+        neighbours=[[]],
+    )[0]
+
+    with pytest.raises(ValueError, match="more than once"):
+        converter.build_transition([1.0], [2.0], [fragment, fragment])
+    bad = type(fragment)(fragment.cell_indices, 3.0, fragment.centroid, fragment.velocity)
+    with pytest.raises(ValueError, match="does not match"):
+        converter.build_transition([1.0], [2.0], [bad])
+
+
 def _foam_field(path: Path, object_name: str, class_name: str, values: str) -> None:
     path.write_text(
         f"FoamFile\n{{\n    format ascii;\n    class {class_name};\n    object {object_name};\n}}\n"
@@ -98,8 +171,6 @@ def _foam_field(path: Path, object_name: str, class_name: str, values: str) -> N
 
 
 def test_extract_case_reads_ascii_openfoam_files(tmp_path: Path):
-    from vof_to_dpm import OpenFoamCaseReader
-
     mesh = tmp_path / "constant" / "polyMesh"
     time_zero = tmp_path / "0"
     mesh.mkdir(parents=True)

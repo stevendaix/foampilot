@@ -1,0 +1,20 @@
+{
+  "coordinate_system": "input",
+  "source_cap_id": 4,
+  "branches": [
+    {
+      "branch_id": 0,
+      "source_cap_id": 4,
+      "target_cap_id": 0,
+      "points": [[0,0,0],[0,0,1],[0,0,2]],
+      "abscissas": [0,1,2],
+      "tangents": [[0,0,1],[0,0,1],[0,0,1]],
+      "length": 2.0,
+      "sections": [
+        {"station_id":0,"abscissa":0.0,"center":[0,0,0],"phase_locked_points":[[1,0,0],[0,1,0],[-1,0,0],[0,-1,0]]},
+        {"station_id":1,"abscissa":1.0,"center":[0,0,1],"phase_locked_points":[[1,0,1],[0,1,1],[-1,0,1],[0,-1,1]]},
+        {"station_id":2,"abscissa":2.0,"center":[0,0,2],"phase_locked_points":[[1,0,2],[0,1,2],[-1,0,2],[0,-1,2]]}
+      ]
+    }
+  ]
+}

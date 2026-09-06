@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+if [ -z "${WM_PROJECT_VERSION:-}" ]; then
+    echo "OpenFOAM n'est pas chargé. Sourcez etc/bashrc avant AllrunMPI." >&2
+    exit 1
+fi
+case "$WM_PROJECT_VERSION" in
+    13|13.*) ;;
+    *) echo "Cas prévu pour OpenFOAM 13, version détectée: $WM_PROJECT_VERSION" >&2; exit 1 ;;
+esac
+: "${FOAM_USER_LIBBIN:?FOAM_USER_LIBBIN doit contenir libturbinesFoam.so}"
+: "${NPROCS:=2}"
+
+blockMesh
+decomposePar -force
+mpirun --allow-run-as-root --oversubscribe -np "$NPROCS" \
+    foamRun -parallel -solver incompressibleFluid
+reconstructPar -latestTime

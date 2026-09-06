@@ -2,6 +2,7 @@ import pyvista as pv
 from pathlib import Path
 import numpy as np
 import subprocess
+import shutil
 
 
 class SnappyMesher:
@@ -133,8 +134,30 @@ class SnappyMesher:
             "level": level
         })
 
+    def import_reference_surface(self, source_surface, target_name=None):
+        """Import a reference OBJ/STL surface through the Foampilot API."""
+        source = Path(source_surface)
+        if not source.exists():
+            raise FileNotFoundError(f"Reference surface not found: {source}")
+        target_name = target_name or source.name
+        target = self.case_path / "constant" / "triSurface" / target_name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if source.suffix == ".gz":
+            import gzip
+            with gzip.open(source, "rb") as source_stream, open(target, "wb") as target_stream:
+                shutil.copyfileobj(source_stream, target_stream)
+        else:
+            shutil.copy2(source, target)
+        self.stl_file = target
+        self.geometry = {}
+        self.add_geometry(target.stem, target)
+        self.castellatedMeshControls["refinementSurfaces"] = {
+            target.stem: {"level": (2, 3)}
+        }
+        return target
+
     def add_geometry(self, name, stl_path, geo_type="triSurfaceMesh"):
-        """Add an STL geometry to the snappyHexMesh configuration."""
+        """Add an STL/OBJ geometry to the snappyHexMesh configuration."""
         stl_file = Path(stl_path)
         self.geometry[name] = {
             "type": geo_type,
@@ -187,50 +210,48 @@ class SnappyMesher:
     # ----------------------
     # Utilities
     # ----------------------
-    def run_surface_feature_extract(self):
-        """
-        Runs surfaceFeatureExtract utility for the case.
-        Creates a default surfaceFeaturesDict if none exists.
+    def run_surface_features(self):
+        """Run the OpenFOAM surface-feature utility for this case.
+
+        OpenFOAM 13 provides ``surfaceFeatures`` and deprecates
+        ``surfaceFeatureExtract``.  The method selects the modern executable
+        when available, preserves compatibility with older installations, and
+        verifies that every requested feature file was actually created.
         """
         system_path = self.case_path / "system"
         system_path.mkdir(parents=True, exist_ok=True)
         dict_file = system_path / "surfaceFeaturesDict"
 
         if not dict_file.exists():
-            stl_names = [geo.get("name", geo["file"]) for geo in self.geometry.values()]
+            stl_names = [geo.get("file", geo["name"]) for geo in self.geometry.values()]
             lines = [
-                "FoamFile",
-                "{",
-                "    version     2.0;",
-                "    format      ascii;",
-                "    class       dictionary;",
-                "    location    \"system\";",
-                "    object      surfaceFeaturesDict;",
-                "}",
-                "",
-                "module(s) (surfaceFeatures);",
-                "",
-                "surfaces",
-                "(",
+                "FoamFile", "{", "    version     2.0;", "    format      ascii;",
+                "    class       dictionary;", "    location    \"system\";",
+                "    object      surfaceFeaturesDict;", "}", "", "surfaces", "(",
             ]
-            for name in stl_names:
-                lines.append(f'    "{name}"')
-            lines.append(");")
-            lines.append("")
-            lines.append("includedAngle 60;")
-            lines.append("")
-            lines.append("featureEndPoints true;")
-            lines.append("featureSnapRefine true;")
-            lines.append("")
-            dict_file.write_text("\n".join(lines))
+            lines.extend(f'    "{name}"' for name in stl_names)
+            lines.extend([");", "", "includedAngle 60;", ""])
+            dict_file.write_text("\n".join(lines), encoding="utf-8")
 
-        cmd = ["surfaceFeatureExtract", "-case", str(self.case_path)]
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        executable = shutil.which("surfaceFeatures") or shutil.which("surfaceFeatureExtract")
+        if executable is None:
+            raise RuntimeError("Neither surfaceFeatures nor surfaceFeatureExtract is available")
+        result = subprocess.run([executable, "-case", str(self.case_path)], capture_output=True, text=True)
         if result.returncode != 0:
-            print("Error running surfaceFeatureExtract:")
-            print(result.stderr)
-        else:
-            print("surfaceFeatureExtract finished successfully.")
+            raise RuntimeError(f"{Path(executable).name} failed: {result.stderr}")
+
+        missing = []
+        for feature in self.castellatedMeshControls.get("features", []):
+            feature_path = self.case_path / "constant" / "triSurface" / feature["file"]
+            if not feature_path.exists():
+                missing.append(str(feature_path))
+        if missing:
+            raise RuntimeError("Surface feature files were not created: " + ", ".join(missing))
+        print(f"{Path(executable).name} finished successfully.")
+
+    def run_surface_feature_extract(self):
+        """Backward-compatible alias for :meth:`run_surface_features`."""
+        self.run_surface_features()
 
     def add_refinement_region(self, name, mode, levels):
         """

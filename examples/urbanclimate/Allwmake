@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+: "${WM_PROJECT_DIR:?Source OpenFOAM Foundation 13 before running Allwmake}"
+cd "$ROOT/solver"
+./Allwmake
+printf '%s\n' 'urbanMicroclimateFoam and auxiliary urban tools built successfully.'

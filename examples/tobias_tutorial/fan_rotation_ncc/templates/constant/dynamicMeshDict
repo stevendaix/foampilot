@@ -1,0 +1,57 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+mover
+{
+    type                    motionSolver;
+    libs                    ( "libfvMotionSolvers.so" );
+
+    motionSolver            solidBody;
+    solidBodyMotionFunction rotatingMotion;
+
+    cellZone    rotatingZone;
+    origin      (0.055 0 0.051);
+    axis        (0 1 0);
+
+    // Function1 usage
+    // Ramp from 0 s to 1 s to the maximum RPM. Max RPM = 600 rotations per
+    // minute omega however is in rad/s = 62.8
+
+    // We use the "scale" function1.
+    omega      scale; 
+
+    // Using "scale" we have to tell FOAM the value we want to scale and how the
+    // value should be scaled. Hence, scale below is the function and value
+    // is the value we want to scale. Both are again function1 which lead to 
+    // the possibility for high complexe functions
+    scale
+    {
+        type        linearRamp;         // Function1 -> linearRamp
+        start       0;
+        duration    4;
+    }
+
+    // The value we want to scale
+    value
+    {
+        type            constant;       // Function1 -> constant
+        value           62.8;
+    }
+}
+
+
+// ************************************************************************* //

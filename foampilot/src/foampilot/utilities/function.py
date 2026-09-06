@@ -653,6 +653,85 @@ class Functions:
             file.write("}\n")
 
     @classmethod
+    def copy_reference_fields(cls, source_case, target_case, fields=None, source_time="0"):
+        """Copy reference field files into a case through the Foampilot API.
+
+        This supports continuation tutorials whose initial fields are nonuniform
+        results from a previous OpenFOAM case.
+        """
+        import shutil
+        source_dir = Path(source_case) / source_time
+        target_dir = Path(target_case) / source_time
+        cls.check_directory(target_dir)
+        selected = fields or [p.name for p in source_dir.iterdir() if p.is_file()]
+        copied = []
+        for field in selected:
+            source = source_dir / field
+            if source.exists():
+                destination = target_dir / field
+                shutil.copy2(source, destination)
+                copied.append(field)
+        return copied
+
+    @staticmethod
+    def scalar_transport(
+        field="T",
+        schemes_field="T",
+        diffusivity="viscosity",
+        alphal=1,
+        alphat=0.85,
+        write_control="timeStep",
+        write_interval=50,
+        libs='("libsolverFunctionObjects.so")',
+    ):
+        """Return a declarative OpenFOAM ``scalarTransport`` function object."""
+        return {
+            "type": "scalarTransport",
+            "libs": libs,
+            "field": field,
+            "schemesField": schemes_field,
+            "diffusivity": diffusivity,
+            "alphal": alphal,
+            "alphat": alphat,
+            "writeControl": write_control,
+            "writeInterval": write_interval,
+        }
+
+    @staticmethod
+    def coded_function_object(code_include="", code_execute="", libs='("libutilityFunctionObjects.so")'):
+        """Return a declarative OpenFOAM ``coded`` function object."""
+        result = {"type": "coded", "libs": libs}
+        if code_include:
+            result["codeInclude"] = code_include
+        if code_execute:
+            result["codeExecute"] = code_execute
+        return result
+
+    @classmethod
+    def write_function_object(cls, name, function_dict, base_path, folder="system/functions", append=False):
+        """Write an arbitrary OpenFOAM function object from a nested dictionary."""
+        path = Path(base_path) / folder / name
+        cls.check_directory(path.parent)
+
+        def write_value(file, key, value, indent):
+            pad = "    " * indent
+            if isinstance(value, dict):
+                file.write(f"{pad}{key}\n{pad}{{\n")
+                for sub_key, sub_value in value.items():
+                    write_value(file, sub_key, sub_value, indent + 1)
+                file.write(f"{pad}}}\n")
+            elif isinstance(value, (list, tuple)):
+                rendered = " ".join(str(item) for item in value)
+                file.write(f"{pad}{key} ({rendered});\n")
+            else:
+                file.write(f"{pad}{key} {value};\n")
+
+        with open(path, "a" if append else "w") as file:
+            for key, value in function_dict.items():
+                write_value(file, key, value, 1)
+        return path
+
+    @classmethod
     def write_functions_in_controlDict(cls, base_path, folder='system', 
                                     control_dict_filename='controlDict', 
                                     functions_files=None):

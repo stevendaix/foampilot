@@ -1,0 +1,52 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Compared to v9, massive simplification happend
+    // Even though the creation I was using was also not the best as it could
+    // be done way easier
+    // In older versions I created a bunch of faceSets that were used with
+    // createBaffles to produces the ACMI
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // Create cellZone for moving cells 
+    {
+        name    movingCellSet;
+        type    cellSet;
+        action  new;
+        source  cylinderToCell;
+
+        sourceInfo
+        {
+            p1 (0 0 0.1);
+            p2 (0 0 0.2);
+            radius 0.05;
+        }
+    }
+    {
+        name    movingZone;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set     movingCellSet;
+        }
+    }
+);
+
+// ************************************************************************* //

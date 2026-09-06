@@ -1,0 +1,63 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeatureExtractDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+AMI
+{
+    //- The name of the geometry you want to extrude feature edges
+    //  Location: constant/triSurface/
+    surfaces
+    (
+        "AMI.stl"
+    );
+
+    //- Since 6.x
+    //  Needed especially for bad triangulations.
+    //  Always check your feature edge mesh
+    trimFeatures
+    {
+        //- Feature edges that contains less than 'minElem' of edges are
+        //  removed automatically
+        minElem 5;
+
+        //- Remove feature edges that are less than the total length of [m]
+        minLen  0.01;
+    }
+
+    //- This is the angle between faces
+    includedAngle       147;
+
+    //- Since 6.x
+    //  Outputs the curvature of the surface
+    //curvature           no;
+
+    //- Since 6.x
+    //  Outputs the priximity of points and edges to each other
+    //featureProximity    no;
+
+    //- Since 6.x
+    //  The maximum search distance to use, when looking for other feature
+    //  points and edges
+    //maxFeatureProximity  1;
+
+    //- Write features for post processing into *.obj format
+    //  *.obj can be read by ParaView
+    writeObj            no;
+
+    //- Write the surface proximity and curvature to the VTK format
+    writeVTK            no;
+}
+
+// ************************************************************************* //

@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+p_rgh
+{
+    boundaryField
+    {
+        baffle_master
+        {
+            type            fanPressureJump;
+            patchType       cyclic;
+            value           uniform 0;
+
+            jump            uniform 0;
+            jumpTable       constant 4500;
+        }
+
+        baffle_slave
+        {
+            type            fanPressureJump;
+            patchType       cyclic;
+            value           uniform 0;
+        }
+    }
+}
+
+
+U
+{
+    boundaryField
+    {
+        inletOutlet
+        {
+            type            codedFixedValue;
+            name            inlet;
+            value           uniform (0 0 0);
+
+            code
+            #{
+                const scalar t = this->db().time().value();
+
+                vector fU = vector(0,-2.5,0);
+
+                //- Outflow - not in video
+                if (t > 20)
+                {
+                    fU = vector(0,2,0);
+                }
+
+                operator==(fU);
+            #};
+        }
+    }
+}
+
+// ************************************************************************* //

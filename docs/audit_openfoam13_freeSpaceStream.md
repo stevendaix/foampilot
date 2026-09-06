@@ -1,0 +1,9 @@
+# Audit OF13 — legacy/lagrangian/dsmcFoam/freeSpaceStream
+
+Source locale OpenFOAM 13 : `/opt/openfoam13/tutorials/legacy/lagrangian/dsmcFoam/freeSpaceStream`.
+
+L’Allrun officielle exécute `blockMesh`, `dsmcInitialise`, puis `dsmcFoam`. Le maillage comporte un domaine avec un patch `inlet`, un patch `outlet` et les faces latérales de paroi, conformément à la référence. Les champs DSMC importés sont `boundaryT`, `boundaryU`, `dsmcRhoN`, `fD`, `iDof`, `internalE`, `linearKE`, `momentum`, `q`, `rhoM` et `rhoN`.
+
+`constant/dsmcProperties` conserve `nEquivalentParticles=1e12`, l’interaction murale `MaxwellianThermal`, le modèle de collisions `LarsenBorgnakkeVariableHardSphere` avec `Tref=273` et le nombre de relaxation `5`, ainsi que `InflowBoundaryModel FreeStream`. Les densités de flux sont `N2=0,777e20` et `O2=0,223e20`; les espèces, masses, diamètres, degrés de liberté internes et paramètres `omega` restent ceux de la référence. Les champs imposent `T=300 K` et `U=(1325 -352 823)` aux entrées et sorties selon la mise en données OF13.
+
+Le contrôle officiel est `endTime=2e-2 s`, `deltaT=1e-6 s` et écriture toutes les `1e-3 s`. Le runner `162_legacy_dsmcFoam_freeSpaceStream/run.py` utilise uniquement les gestionnaires FoamPilot `fields_manager`, `constant`, `system` et `run_command`. La validation atteint `Time≈0,005494/0,02 s` après environ 177 s, avec injection régulière d’environ 1 800 particules par pas, environ 63 400 particules présentes et des collisions régulières. Les avertissements `Freestream inflow ... did not accurately locate ... particles` sont ceux émis par le modèle FreeStream officiel; aucun `FOAM FATAL` n’est observé. Le calcul est arrêté proprement avant l’endTime pour coût disproportionné et classé accepté avec réserve. Aucune nouvelle fonction d’API n’est nécessaire.

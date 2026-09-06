@@ -1,0 +1,146 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     foamRun;
+
+solver          incompressibleFluid;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         30.5;
+
+deltaT          1e-05;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.005;
+
+purgeWrite      0;
+
+writeFormat     binary;     // Recommended to store in binary - less cutoff
+
+writePrecision  6;
+
+writeCompression false;     // Recommended, saves space, read and write time
+                            // Dont use it if you have binary files
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           0.8;
+
+maxDeltaT       0.001;
+
+
+//- Include libraries in order to get access
+//  Run time loadable | not linked in the solver itself - powerful option
+libs
+(
+    //- Include the solverFunctionObjects to get access to build passive
+    //  scalar equations on the fly
+    "libsolverFunctionObjects.so"
+);
+
+//- Build ower own functions
+functions
+{
+    // For OpenFOAM v9 this is not working as you need
+    // at least the commit: 987d5906
+    // This commit resolved the issue with the on-the-fly generation of 
+    // the passive scalar and applying the fvModels
+    // Tested using commit: 984066f81e
+    /*
+    S
+    {
+        //- Here we build an new transport equations such as:
+        //  ddt(rho, S) + div(phi,S) + laplacian(D,S) == Q 
+        //  The source term Q can be modelled with the fvOptions
+        //  functionality. Attention to the units you specify.
+
+        type            scalarTransport;
+        writeInterval   outputTime;
+        active          false;
+
+        //- Field name 
+        field           S;
+
+        //- Diffusivity field in use ?
+        //- constant
+        //- viscosity
+        //- no/off/false
+        diffusivity     false;
+
+        //- Schemes used -> system/fvSchemes
+        schemesField    S;
+
+        //- Either use auto schemes or manuell added schemes
+        autoSchemes     false;
+
+        //- Corrections
+        nCorr           0;
+
+        //- Restart on start-up
+        resetOnStartUp  false;
+
+        //- Build a source term Q at different points (in this case)
+        //  Highly flexible
+        fvConstraints
+        {
+            sourceForS
+            {
+                type            scalarSemiImplicitSource;
+                active          true;
+
+                //- Different selection modes possible such as points or
+                //  cellZones etc.
+                selectionMode   points;
+                volumeMode      specific;
+                points
+                4( 
+                    (-0.6  0.15 0.0025)
+                    (-0.6  0.13 0.0025)
+
+                    (-0.6 -0.21 0.0025)
+                    (-0.6 -0.23 0.0025)
+                );
+
+                //- Take care of the specific vs absolute value
+                injectionRateSuSp
+                {
+                    //- Value 2 starting at time t = 0
+                    S (2 0);
+                }
+            }
+        };
+    }
+    */
+
+    //- Additionally, include the residual functionallity. This will save
+    //  the residuals into a file on the fly. Can be monitored using gnuplot
+    #includeFunc residuals
+}
+
+// ************************************************************************* //

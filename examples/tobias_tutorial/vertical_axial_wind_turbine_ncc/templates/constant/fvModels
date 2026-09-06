@@ -1,0 +1,52 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvConstraints;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Used if the passive scalar is activated in the controlDict
+// Read the controlDict entry as this is not working with the stable
+// v9 release...
+scalarConstraint
+{
+    type        semiImplicitSource;
+
+    //- Different selection modes possible such as points or
+    //  cellZones etc.
+    selectionMode   points;
+    volumeMode      specific;
+
+    points
+    4( 
+        (-0.6  0.15 0.0025)
+        (-0.6  0.13 0.0025)
+
+        (-0.6 -0.21 0.0025)
+        (-0.6 -0.23 0.0025)
+    );
+
+    //- Take care of the specific vs absolute value
+    sources 
+    {
+        //- Value 2 starting at time t = 0
+        S 
+        {
+            explicit 2;
+            implicit 0;
+        }
+    }
+}
+
+
+// ************************************************************************* //

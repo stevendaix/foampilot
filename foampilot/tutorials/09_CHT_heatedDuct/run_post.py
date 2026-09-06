@@ -37,17 +37,21 @@ output_dir.mkdir(parents=True, exist_ok=True)
 # ---------------------------------------------------------------------------
 print("=== Loading VTK data ===")
 
-# Load fluid mesh (internal + patches)
-fluid_vtk = vtk_dir / "fluid" / "simple_heated_duct_2000.vtk"
-fluid_mesh = pv.read(str(fluid_vtk))
+def latest_internal_vtk(region: str) -> Path:
+    candidates = [p for p in (vtk_dir / region).glob("*.vtk") if p.is_file()]
+    if not candidates:
+        raise FileNotFoundError(f"No internal VTK found for region {region}")
+    return max(candidates, key=lambda p: p.stat().st_mtime)
 
-# Load solid mesh
-solid_vtk = vtk_dir / "solid" / "simple_heated_duct_2000.vtk"
-solid_mesh = pv.read(str(solid_vtk))
+# Load the generated multi-region internal meshes.
+fluid_mesh = pv.read(str(latest_internal_vtk("fluid")))
+metal_mesh = pv.read(str(latest_internal_vtk("metal")))
+heater_mesh = pv.read(str(latest_internal_vtk("heater")))
+solid_mesh = pv.merge([metal_mesh, heater_mesh])
 
-# Load interface patches
-fluid_interface = pv.read(str(vtk_dir / "fluid" / "fluid_to_solid" / "fluid_to_solid_2000.vtk"))
-solid_interface = pv.read(str(vtk_dir / "solid" / "solid_to_fluid" / "solid_to_fluid_2000.vtk"))
+# Load the reference fluid-metal interface patches.
+fluid_interface = pv.read(str(max((vtk_dir / "fluid" / "fluid_to_metal").glob("*.vtk"), key=lambda p: p.stat().st_mtime)))
+solid_interface = pv.read(str(max((vtk_dir / "metal" / "metal_to_fluid").glob("*.vtk"), key=lambda p: p.stat().st_mtime)))
 
 print(f"Fluid mesh: {fluid_mesh.n_cells} cells, {fluid_mesh.n_points} points")
 print(f"Solid mesh: {solid_mesh.n_cells} cells, {solid_mesh.n_points} points")
@@ -246,7 +250,7 @@ print("CHT POST-PROCESSING SUMMARY")
 print("=" * 60)
 print(f"Case: {case_path.name}")
 print(f"Solver: chtMultiRegionFoam (OpenFOAM 13)")
-print(f"Time: 1.0 s (end time)")
+print(f"Time: 20 s (end time)")
 print(f"")
 print(f"Fluid region: {fluid_mesh.n_cells} cells")
 print(f"  Temperature: {stats['fluid']['min']:.2f} - {stats['fluid']['max']:.2f} K (mean: {stats['fluid']['mean']:.2f} K)")

@@ -1,0 +1,11 @@
+# Audit OF13 — multiphaseEuler/aeratedStirredTankMRF
+
+L’Allrun OpenFOAM 13 exécute `snappyHexMeshConfig -cylindricalBackground -rotatingZones 'rotatingZone' -surfaceLevels "(sparger 3) (stirrer 3)" -baffles "baffles"`, puis `blockMesh`, `decomposePar -copyZero`, `snappyHexMesh -parallel`, `setFields -parallel`, reconstruction sélective de `alpha.gas` et `alpha.liquid`, `foamRun -parallel`, reconstruction finale et génération de graphes de validation. Le cas comporte les phases gaz/liquide, une zone MRF `rotatingZone` à `omega=500 rpm`, les géométries OBJ du tank, des baffles, du sparger, du stirrer et de l’arbre, ainsi que des fonctions de débit gaz et de holdup.
+
+Le runner `211_multiphaseEuler_aeratedStirredTankMRF/run.py` importe par FoamPilot les champs, les dictionnaires `constant/system` et les géométries OBJ, puis reproduit la chaîne complète sans appel shell direct de gestion de cas : configuration `snappyHexMeshConfig`, maillage de fond, décomposition Scotch à 8 domaines, maillage parallèle, `setFields`, reconstruction des fractions, calcul MRF parallèle et reconstruction finale. Les opérations passent par `BaseSolver.run_command(environment=...)`.
+
+La validation confirme la génération de la configuration et de la zone de rotation, avec détection de `rotatingZone` et de ses interfaces de baffles. `blockMesh`, `decomposePar -copyZero`, `snappyHexMesh -parallel`, `setFields -parallel` et la reconstruction sélective terminent correctement. `foamRun -parallel` reste stable jusqu’à `Time≈1.884 s` sur `15 s` au plafond de 300 secondes. Les fractions gaz restent bornées et aucun `FOAM FATAL`, problème de MRF, défaut de maillage ou erreur MPI n’est observé. La reconstruction finale et les graphes ne sont pas atteints dans le budget; le Courant instantané maximal observé est élevé, autour de 39–40, conformément au caractère industriel très raide du cas.
+
+Statut : **accepté avec réserve — chaîne MRF/snappy et prétraitement validés, calcul stable mais limité à `Time≈1,884 s` sur `15 s` par le budget**.
+
+Le runner utilise l’extension générique `BaseSolver.run_command(environment=...)` documentée sous API-037; aucun changement d’API supplémentaire n’a été nécessaire.

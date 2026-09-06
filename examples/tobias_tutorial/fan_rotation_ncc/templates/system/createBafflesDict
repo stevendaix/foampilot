@@ -1,0 +1,44 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createBafflesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+internalFacesOnly true;
+
+baffles
+{
+    baffleFaces
+    {
+        type        faceZone;
+        zoneName    rotatingZone;
+
+        patches
+        {
+            master
+            {
+                name            AMI1;
+                type            patch;
+                inGroups        (nonCoupled);
+            }
+            slave
+            {
+                name            AMI2;
+                type            patch;
+                inGroups        (nonCoupled);
+            }
+        }
+    }
+}
+
+// ************************************************************************* //

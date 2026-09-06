@@ -1,0 +1,17 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    location "0";
+    object U;
+}
+dimensions [0 1 -1 0 0 0 0];
+internalField uniform (0 0 0);
+boundaryField
+{
+    inlet { type fixedValue; value uniform (0 0 0); }
+    outlet_0 { type zeroGradient; }
+    outlet_1 { type zeroGradient; }
+    wall { type noSlip; }
+}

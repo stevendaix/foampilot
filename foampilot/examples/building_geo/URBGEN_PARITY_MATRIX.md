@@ -1,0 +1,63 @@
+# Matrice de parité UrbGEN / foampilot
+
+Cette matrice définit le score de parité et le critère de validation de chaque groupe fonctionnel. Un groupe n’est considéré comme validé que si son test numérique et son test visuel passent.
+
+| Groupe | Pondération | Critère 100 % | État initial |
+|---|---:|---|---|
+| Normalisation des paramètres | 10 | Toutes les bornes et valeurs par défaut du GHA sont reproduites | À auditer |
+| Population des centroïdes | 8 | Même filtrage, ordre déterministe et comportement multi-site | Partiel |
+| Typologies I/L/T/H/C/Plus | 15 | Même modules, aire et orientation à tolérance définie | Partiel |
+| Rotation | 5 | Mêmes candidats et règles d’alignement | Partiel |
+| Courtyard | 20 | Même zones, anneaux, coins, ruptures et couverture | Partiel |
+| Placement et espacement | 10 | Même containment, distance et déplacement maximal | Partiel |
+| Croissance/réduction BCR | 15 | Même plafond, seuil d’expansion, tolérance et retrait | Partiel |
+| Podium | 7 | Podiums individuels, regroupement et offset optimal | Partiel |
+| FAR et hauteurs | 7 | Même GFA résiduelle, niveaux, variation et règlements | Partiel |
+| Sorties et diagnostics | 3 | Toutes les métriques et métadonnées accessibles dans `UrbGENResult` | Partiel |
+
+## Règle de score
+
+Le score publié doit être calculé comme la somme des groupes validés, et non comme une estimation subjective. Tant qu’aucun fichier de référence Grasshopper n’est disponible, le score géométrique peut être validé fonctionnellement mais pas déclaré numériquement équivalent.
+
+## Fixtures nécessaires
+
+Pour une parité numérique complète, il faut au minimum exporter depuis Grasshopper, pour trois sites (rectangle, concave, multi-zone), deux seeds et les modes typologiques 0–7 : les empreintes, centres, angles, niveaux, surfaces, BCR, FAR, podiums et diagnostics. Les fixtures doivent être stockées dans un format JSON indépendant de Rhino, avec une tolérance géométrique explicitement indiquée.
+
+## Validation visuelle round 3
+
+Le visualiseur `plot_urbgen_validation.py` produit cinq scénarios avec un PNG et un JSON de métriques pour chacun.
+
+| Scénario | BCR observé | FAR observé | Tours | Podiums | Contrôle visuel |
+|---|---:|---:|---:|---:|---|
+| random_typologies | 0.1600 | 2.4215 | 4 | 4 | Valide |
+| courtyard | 0.1555 | 2.0221 | 3 | 0 | Couronne et ruptures visibles |
+| edge_aligned | 0.1401 | 3.0278 | 4 | 4 | Orientations et containment valides |
+| setback_moved | 0.0931 | 2.5131 | 5 | 0 | Déplacement et containment valides |
+| podium_edge | 0.1201 | 2.0124 | 5 | 5 | Podiums individuels et containment valides |
+
+Les contrôles visuels ont été effectués sur les cas `setback_moved`, `podium_edge`, `edge_aligned` et `courtyard`. Les fichiers JSON associés conservent les diagnostics de convergence, le nombre d’itérations et les hauteurs pour une validation automatisée ultérieure.
+
+## Avancement après convergence et multi-site
+
+Le générateur utilise maintenant `CourtyardContext` et `grow_courtyard_to_bcr` pour réutiliser les anneaux et rechercher la couverture par dichotomie. Les opérations de déplacement utilisent `_max_feasible_move`. Les podiums individuels et l’allocation GFA des hauteurs sont intégrés.
+
+L’API `generate_urbgen_multi_site` accepte une liste ou un dictionnaire de sites et dérive les seeds de manière déterministe par index.
+
+Validation courante : **18 tests UrbGEN ciblés réussis**. Les validations visuelles comprennent cinq scénarios et les métriques JSON associées.
+
+Les éléments restant à comparer numériquement au GHA sont les tolérances Rhino/Shapely, les fixtures Grasshopper de référence, les détails exacts de la grammaire des typologies, les statistiques de hauteur et la chaîne de maillage CFD complète.
+
+## Contrôle de cardinalité
+
+La population initiale ne s’arrête plus lorsque la surface BCR intermédiaire est atteinte. Chaque centroïde admissible est essayé avec un dimensionnement indépendant par tour et plusieurs angles candidats, puis la convergence BCR intervient séparément.
+
+Pour le site de référence `(10,10)-(190,140)`, avec `BCR=0.08`, `FAR=1.5`, `setback=5`, `seed=42` et sans podium, les cardinalités mesurées sont :
+
+| `tower_size_mode` | Nombre de tours | BCR observé | FAR observé |
+|---:|---:|---:|---:|
+| 0 | 7 | 0.07754 | 1.52862 |
+| 1 | 7 | 0.07754 | 1.52862 |
+| 2 | 6 | 0.07268 | 1.52622 |
+| 3 | 7 | 0.07928 | 1.50627 |
+
+Le contrôle de non-régression sur centroïdes explicites confirme que la population ne s’arrête plus prématurément sur la cible BCR intermédiaire.

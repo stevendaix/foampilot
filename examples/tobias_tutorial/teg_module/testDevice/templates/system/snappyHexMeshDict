@@ -1,0 +1,197 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Which of the steps to run
+castellatedMesh   true;
+snap              true;
+addLayers         false;
+
+geometry
+{
+	regionSTL
+	{
+        file "regionSTL.stl";
+		type triSurfaceMesh;
+		regions
+		{
+			adiabatic { name adiabatic; };
+			cooling { name cooling; };
+			heating { name heating; };
+		}
+	}
+};
+
+castellatedMeshControls
+{
+    maxLocalCells 8000000;
+    maxGlobalCells 2000000;
+    minRefinementCells 0;
+    maxLoadUnbalance 0.20;
+    nCellsBetweenLevels 3;
+
+    features
+    (
+    );
+
+    refinementSurfaces
+    {
+		regionSTL
+		{
+			level (0 0);
+			regions
+			{
+				adiabatic { level (0 0); patchInfo { type wall; }};
+				cooling { level (1 1); patchInfo { type wall; }};
+				heating { level (1 1); patchInfo { type wall; }};
+			}
+		}
+    }
+
+    refinementRegions
+    {
+        regionSTL
+        {
+            mode inside;
+            levels ((0 1));
+        }
+    }
+
+    // Resolve sharp angles
+    resolveFeatureAngle 30;
+
+    locationInMesh (0.01 0.01 0.01);
+
+    allowFreeStandingZoneFaces yes;
+}
+
+
+
+// Settings for the snapping.
+snapControls
+{
+    //- Number of patch smoothing iterations before finding correspondence
+    //  to surface
+    nSmoothPatch 3;
+    tolerance 1.2;
+    nSolveIter 200;
+
+    //- Maximum number of snapping relaxation iterations. Should stop
+    //  before upon reaching a correct mesh.
+    nRelaxIter 4;
+
+    // Feature snapping
+
+        nFeatureSnapIter 5;
+        implicitFeatureSnap true;
+        explicitFeatureSnap false;
+        multiRegionFeatureSnap false;
+}
+
+
+
+// Settings for the layer addition.
+addLayersControls
+{
+    relativeSizes true;
+
+    layers
+    {
+    }
+
+    // Expansion factor for layer mesh
+    expansionRatio 1.4;
+    finalLayerThickness 0.006;
+    minThickness 0.0001;
+
+    // If points get not extruded do nGrow layers of connected faces that are
+    // also not grown. This helps convergence of the layer addition process
+    // close to features.
+    // Note: changed(corrected) w.r.t 17x! (didn't do anything in 17x)
+    nGrow 0;
+
+    // Advanced settings
+
+    // When not to extrude surface. 0 is flat surface, 90 is when two faces
+    // are perpendicular
+    featureAngle 85;
+
+    // At non-patched sides allow mesh to slip if extrusion direction makes
+    // angle larger than slipFeatureAngle.
+    slipFeatureAngle 25;
+
+    // Maximum number of snapping relaxation iterations. Should stop
+    // before upon reaching a correct mesh.
+    nRelaxIter 5;
+
+    // Number of smoothing iterations of surface normals
+    nSmoothSurfaceNormals 4;
+
+    // Number of smoothing iterations of interior mesh movement direction
+    nSmoothNormals 3;
+
+    // Smooth layer thickness over surface patches
+    nSmoothThickness 10;
+
+    // Stop layer growth on highly warped cells
+    maxFaceThicknessRatio 0.5;
+
+    // Reduce layer growth where ratio thickness to medial
+    // distance is large
+    maxThicknessToMedialRatio 0.2;
+
+    // Angle used to pick up medial axis points
+    // Note: changed(corrected) w.r.t 17x! 90 degrees corresponds to 130 in 17x.
+    minMedianAxisAngle 90;
+
+
+    // Create buffer region for new layer terminations
+    nBufferCellsNoExtrude 0;
+
+
+    // Overall max number of layer addition iterations. The mesher will exit
+    // if it reaches this number of iterations; possibly with an illegal
+    // mesh.
+    nLayerIter 50;
+}
+
+meshQualityControls
+{
+    #include "meshQualityDict"
+
+    // Advanced
+
+    //- Number of error distribution iterations
+    nSmoothScale 4;
+    //- amount to scale back displacement at error points
+    errorReduction 0.75;
+}
+
+
+// Advanced
+
+// Write flags
+writeFlags
+(
+    scalarLevels
+    layerSets
+    layerFields     // write volScalarField for layer coverage
+);
+
+
+mergeTolerance 1e-6;
+
+
+// ************************************************************************* //

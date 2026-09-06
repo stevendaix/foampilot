@@ -1,0 +1,129 @@
+FoamFile
+{ version 2.0; format ascii; class dictionary; object snappyHexMeshDict; }
+castellatedMesh true;
+snap true;
+addLayers false;
+geometry
+{
+    inlet
+    {
+        type triSurfaceMesh;
+        name inlet;
+    }
+    outlet_0
+    {
+        type triSurfaceMesh;
+        name outlet_0;
+    }
+    outlet_1
+    {
+        type triSurfaceMesh;
+        name outlet_1;
+    }
+    outlet_2
+    {
+        type triSurfaceMesh;
+        name outlet_2;
+    }
+    outlet_3
+    {
+        type triSurfaceMesh;
+        name outlet_3;
+    }
+    outlet_5
+    {
+        type triSurfaceMesh;
+        name outlet_5;
+    }
+    outlet_6
+    {
+        type triSurfaceMesh;
+        name outlet_6;
+    }
+    outlet_7
+    {
+        type triSurfaceMesh;
+        name outlet_7;
+    }
+    outlet_8
+    {
+        type triSurfaceMesh;
+        name outlet_8;
+    }
+    wall
+    {
+        type triSurfaceMesh;
+        name wall;
+    }
+}
+castellatedMeshControls
+{
+    maxLocalCells 1000000;
+    maxGlobalCells 5000000;
+    minRefinementCells 10;
+    maxLoadUnbalance 0.10;
+    nCellsBetweenLevels 3;
+    features ();
+    refinementSurfaces
+    {
+        inlet
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( inlet ); }
+        }
+        outlet_0
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( outlet_0 ); }
+        }
+        outlet_1
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( outlet_1 ); }
+        }
+        outlet_2
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( outlet_2 ); }
+        }
+        outlet_3
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( outlet_3 ); }
+        }
+        outlet_5
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( outlet_5 ); }
+        }
+        outlet_6
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( outlet_6 ); }
+        }
+        outlet_7
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( outlet_7 ); }
+        }
+        outlet_8
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( outlet_8 ); }
+        }
+        wall
+        {
+            level (2 2);
+            patchInfo { type patch; inGroups ( wall ); }
+        }
+    }
+    refinementRegions {}
+    locationInMesh (-118.90591  24.750779  37.095603);
+    allowFreeStandingZoneFaces true;
+}
+snapControls
+{ nSmoothPatch 3; tolerance 2.0; nSolveIter 30; nRelaxIter 5; }
+addLayersControls {}
+meshQualityControls {}
+writeFlags (scalarLevels layerSets layerFields);
+mergeTolerance 1e-6;

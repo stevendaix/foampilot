@@ -1,0 +1,94 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     foamRun;
+
+solver          incompressibleFluid;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         2000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   2000;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+libs
+(
+    "libfieldFunctionObjects.so"
+    "libsolverFunctionObjects.so"
+);
+
+//- Passive scalar that imitates the mixture (Temperature)
+functions
+{
+    T
+    {
+        type            scalarTransport;
+        writeInterval   outputTime;
+        field           T;
+        schemesField    T;
+        nCorr           0;
+        resetOnStartUp  false;
+        diffusivity     viscosity; 
+        alphal          1;
+        alphat          1;
+    }
+
+    //- Flux weighted average temperature at outlet surface
+    Taverage
+    {
+        type            surfaceFieldValue;
+
+        log             true;
+        writeControl    writeTime;
+        writeFields     true;
+
+        regionType      patch;
+        name            outlet;
+        operation       areaAverage;
+        weightField     phi;
+        surfaceFormat   off;
+
+        fields
+        (
+            T
+        );
+    }
+}
+
+// ************************************************************************* //

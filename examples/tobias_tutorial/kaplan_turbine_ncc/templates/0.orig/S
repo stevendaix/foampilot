@@ -1,0 +1,84 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      S;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    AMI
+    {
+        type            zeroGradient;
+    }
+
+    AMI_slave
+    {
+        type            zeroGradient;
+    }
+
+    inlet 
+    {
+        type            codedFixedValue;
+        value           uniform 0;
+
+        name            scalarInlet;
+
+        code
+        #{
+            const fvPatch& boundaryPatch = patch(); 
+            const vectorField& Cf = boundaryPatch.Cf(); 
+
+            scalarField& fv = *this;
+
+            forAll(Cf, faceI)
+            {
+                if
+                (
+                    Cf[faceI].z() > 0.244 
+                 && Cf[faceI].z() < 0.269
+                 && Cf[faceI].y() > 0.495
+                 && Cf[faceI].y() < 0.520
+                )
+                {
+                    fv[faceI] = 1;
+                }
+            }
+        #};
+    }
+
+    outlet 
+    {
+        type            zeroGradient;
+        value           uniform 0;
+    }
+
+    kaplan 
+    {
+        type            zeroGradient;
+        value           uniform 0;
+    }
+
+    wall
+    {
+        type            zeroGradient;
+        value           uniform 0;
+    }
+}
+
+// ************************************************************************* //

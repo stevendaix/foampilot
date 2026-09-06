@@ -23,6 +23,7 @@ class Solver:
         self._transient = False
         self._turbulence_model = "kEpsilon"
         self._with_moving_mesh = False
+        self._solver_name_user: Optional[str] = None
 
         # Handlers
         self._error_handlers: List[Callable[[str], None]] = []
@@ -131,10 +132,22 @@ class Solver:
         self._with_moving_mesh = value
         self._update_solver()
 
+    @property
+    def solver_name(self) -> Optional[str]:
+        """Explicit OpenFOAM solver module override, if configured."""
+        return self._solver_name_user
+
+    @solver_name.setter
+    def solver_name(self, value: Optional[str]):
+        self._solver_name_user = value
+        self._update_solver()
+
     # ---------- Solver selection ----------
     def _update_solver(self):
         if self._requested_solver:
             solver_name = self._requested_solver
+        elif self._solver_name_user:
+            solver_name = self._solver_name_user
             self._sub_solver = None
         elif self._is_solid:
             solver_name = "solidDisplacement"

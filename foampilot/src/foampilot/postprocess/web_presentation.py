@@ -38,17 +38,15 @@ def plotly_contour_from_mesh(
     -------
     plotly.graph_objects.Figure
     """
-    bounds = np.array(mesh.bounds)
-    x_center = bounds[0:3].mean()
-    y_center = bounds[3:6].mean()
-    z_center = bounds[6:9].mean()
-    x_extent = (bounds[1] - bounds[0]) * 0.6
-    y_extent = (bounds[4] - bounds[3]) * 0.6
+    if resolution < 2:
+        raise ValueError("resolution must be at least 2")
+    xmin, xmax, ymin, ymax, zmin, zmax = np.asarray(mesh.bounds, dtype=float)
+    z_center = 0.5 * (zmin + zmax)
+    x_extent = (xmax - xmin) * 0.1
+    y_extent = (ymax - ymin) * 0.1
 
-    x = np.linspace(bounds[0] - x_extent, bounds[1] + x_extent, resolution)
-    y = np.linspace(bounds[3] - y_extent, bounds[4] + y_extent, resolution)
-    xx, yy = np.meshgrid(x, y)
-
+    x = np.linspace(xmin - x_extent, xmax + x_extent, resolution)
+    y = np.linspace(ymin - y_extent, ymax + y_extent, resolution)
     grid = pv.ImageData(dimensions=(resolution, resolution, 1),
                         spacing=(x[1] - x[0], y[1] - y[0], 1),
                         origin=(x[0], y[0], z_center))
@@ -56,8 +54,6 @@ def plotly_contour_from_mesh(
     scalars_grid = grid.point_data.get(scalars)
     if scalars_grid is None:
         raise ValueError(f"Scalar field '{scalars}' not available after sampling.")
-
-    z_vals = np.full((resolution, resolution), z_center)
 
     fig = go.Figure(
         data=go.Heatmap(

@@ -48,6 +48,10 @@ nav:
   - Meshing:
       - Meshing strategy and cases: en/meshing_cases.md
   - Post-processing and reporting: en/postprocessing_and_reporting.md
+  - VOF-to-DPM OpenFOAM 13:
+      - Main guide: en/vof_to_dpm_openfoam13.md
+      - Implementation status: en/vof_to_dpm_implementation_status.md
+      - Technical audit: fr/vof_to_dpm_code_audit_openfoam13.md
   - Advanced workflows:
       - Overview: en/advanced_workflows.md
       - CHT workflow and data setup: en/cht_workflow.md

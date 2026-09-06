@@ -42,10 +42,11 @@ class MomentumTransportFile(OpenFOAMFile):
                 "turbulence": "on",
             }
         elif sim_type_lower == "les":
+            model = self._LESModel or "Smagorinsky"
             self.attributes["LES"] = {
-                "model": self._LESModel or "Smagorinsky",
+                "model": model,
                 "turbulence": "on",
-                "delta": "vanDriest",
+                "delta": "cubeRootVol" if str(model).lower() == "keqn" else "vanDriest",
             }
 
     def write(self, filepath: Path):

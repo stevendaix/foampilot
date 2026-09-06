@@ -127,10 +127,19 @@ class GNNConfig:
         return len(self.fields_out)
     
     @property
+    def u_indices(self) -> List[int]:
+        """Indices des composantes de vitesse dans ``fields_out``."""
+        return [i for i, f in enumerate(self.fields_out) if f.upper().startswith("U")]
+
+    @property
     def u_slice(self) -> slice:
-        """Indices des composantes de vitesse dans fields_out."""
-        u_idx = [i for i, f in enumerate(self.fields_out) if f.upper().startswith("U")]
-        return slice(u_idx[0], u_idx[-1] + 1) if u_idx else slice(0, 0)
+        """Backward-compatible slice for contiguous velocity components."""
+        indices = self.u_indices
+        if not indices:
+            return slice(0, 0)
+        if indices != list(range(indices[0], indices[-1] + 1)):
+            raise ValueError("Velocity fields must be contiguous when u_slice is used")
+        return slice(indices[0], indices[-1] + 1)
     
     @property
     def n_physical_params(self) -> int:
@@ -524,9 +533,9 @@ class HybridLoss(nn.Module):
         
         # No-slip loss (U=0 sur paroi)
         wall_mask = (batch.node_type == NODE_WALL)
-        u_slice = self.cfg.u_slice
-        if wall_mask.any() and u_slice.stop > u_slice.start:
-            u_pred = pred[wall_mask][:, u_slice]
+        u_indices = self.cfg.u_indices
+        if wall_mask.any() and u_indices:
+            u_pred = pred[wall_mask][:, u_indices]
             losses["no_slip"] = F.mse_loss(u_pred, torch.zeros_like(u_pred))
         else:
             losses["no_slip"] = torch.tensor(0.0, device=pred.device)
@@ -814,6 +823,8 @@ class Experiment:
         with torch.no_grad():
             for data in self.val_dataset:
                 data = data.to(self.device)
+                data.x = self.normalizer.encode_x(data.x)
+                data.edge_attr = self.normalizer.encode_edge(data.edge_attr)
                 pred = self.normalizer.decode_y(self.model(data)).cpu()
                 
                 # Métriques génériques

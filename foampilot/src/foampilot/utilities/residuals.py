@@ -71,14 +71,19 @@ class ResidualsPost:
     def extract_residuals(self) -> None:
         """Parse the log file and build DataFrame of residuals."""
         if not self.log_file.exists():
-            logging.error("Log file %s does not exist.", self.log_file)
-            return
+            raise FileNotFoundError(f"OpenFOAM log not found: {self.log_file}")
 
-        time_pattern = re.compile(r"Time = (\d+\.?\d*)")
+        # Accept decimal and scientific OpenFOAM time tokens and arbitrary
+        # field names (for example rho, h, e and alpha.water).
+        time_pattern = re.compile(r"Time\s*=\s*([+\-]?\d*\.?\d+(?:[Ee][+\-]?\d+)?)")
         solver_pattern = re.compile(
-            r"Solving for (\w+),.*?Initial residual = ([\d\.Ee\+\-]+), Final residual = ([\d\.Ee\+\-]+)"
+            r"Solving\s+for\s+([A-Za-z0-9_.]+),.*?"
+            r"Initial\s+residual\s*=\s*([\d\.Ee+\-]+),\s*"
+            r"Final\s+residual\s*=\s*([\d\.Ee+\-]+)"
         )
 
+        # A parser instance can be reused after a solver restart.
+        self.residuals = {}
         current_time = None
         with self.log_file.open("r", encoding="utf-8", errors="ignore") as f:
             for line in f:
@@ -87,10 +92,12 @@ class ResidualsPost:
 
                 if current_time is not None and (s_match := solver_pattern.search(line)):
                     field, init_res, final_res = s_match.groups()
-                    if field in self.residuals:
-                        self.residuals[field]["time"].append(current_time)
-                        self.residuals[field]["initial"].append(float(init_res))
-                        self.residuals[field]["final"].append(float(final_res))
+                    bucket = self.residuals.setdefault(
+                        field, {"time": [], "initial": [], "final": []}
+                    )
+                    bucket["time"].append(current_time)
+                    bucket["initial"].append(float(init_res))
+                    bucket["final"].append(float(final_res))
 
         # Build DataFrame
         records = [

@@ -7,6 +7,7 @@ from foampilot.tutorials import (
     OpenFOAMTutorialManifest,
     validate_generated_case,
 )
+from foampilot.solver.base_solver import BaseSolver
 from foampilot.utilities import OpenFOAMDictAddFile
 
 
@@ -58,6 +59,27 @@ def test_manifest_discovers_families_and_external_geometry(tmp_path):
 def test_environment_fails_with_actionable_error(tmp_path):
     with pytest.raises(FileNotFoundError, match="bashrc"):
         OpenFOAM13Environment(tmp_path / "missing-bashrc").environment()
+
+
+def test_run_command_passes_prepared_environment(tmp_path, monkeypatch):
+    solver = BaseSolver(
+        tmp_path, solver_name="incompressibleFluid", turbulence_model="kEpsilon"
+    )
+    prepared = {"PATH": str(tmp_path / "openfoam13" / "bin"), "FOAM_VERSION": "13"}
+    captured = {}
+
+    monkeypatch.setattr(solver, "_command_environment", lambda: prepared)
+
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        captured.update(kwargs)
+
+    monkeypatch.setattr("foampilot.solver.base_solver.subprocess.run", fake_run)
+    solver.run_command(["blockMesh"], "log.blockMesh")
+
+    assert captured["command"] == ["blockMesh"]
+    assert captured["env"] == prepared
+    assert (tmp_path / "log.blockMesh").exists()
 
 
 def test_write_raw_preserves_existing_foamfile_header(tmp_path):

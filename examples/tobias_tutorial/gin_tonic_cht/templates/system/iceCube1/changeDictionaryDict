@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+T
+{
+    //- ICE CUBES have -15 degree
+    internalField   uniform 258;
+
+    boundaryField
+    {
+        isolated
+        {
+            type    zeroGradient;
+        }
+
+        iceCube1_to_ginTonic
+        {
+            type    compressible::turbulentTemperatureCoupledBaffleMixed;
+            value   $internalField;
+            kappaMethod solidThermo;
+            Tnbr    T;
+        }
+    }
+}
+
+p
+{
+    boundaryField
+    {
+        isolated
+        {
+            type    calculated;
+            value   $internalField;
+        }
+
+        iceCube1_to_ginTonic
+        {
+            type    calculated;
+            value   $internalField;
+        }
+    }
+}
+// ************************************************************************* //

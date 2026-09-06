@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+if [ -z "${WM_PROJECT_VERSION:-}" ]; then
+    echo "OpenFOAM n'est pas chargé. Sourcez etc/bashrc avant Allwmake." >&2
+    exit 1
+fi
+
+case "$WM_PROJECT_VERSION" in
+    13|13.*) ;;
+    *)
+        echo "floatingTurbinesFoam porté pour OpenFOAM 13, version détectée: $WM_PROJECT_VERSION" >&2
+        exit 1
+        ;;
+esac
+
+wmake "$@"

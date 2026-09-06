@@ -231,14 +231,18 @@ def heat_resistances(
         clo=np.zeros(17),
         posture="standing",
         iclo=np.ones(17)*0.45,
-        options={},):
+        options=None,):
 
-    hc = fixed_hc(conv_coef(posture, va, ta, tsk,))
-    hr = fixed_hr(rad_coef(posture,))
-    to = operative_temp(ta, tr, hc, hr,)
-    fcl = clo_area_factor(clo,)
-    r_t, r_a, r_cl = dry_r(hc, hr, clo)
-    r_et, r_ea, r_ecl = wet_r(hc, clo, iclo)
+    hc = fixed_hc(conv_coef(posture, va, ta, tsk), va)
+    hr = fixed_hr(rad_coef(posture))
+    to = operative_temp(ta, tr, hc, hr)
+    fcl = clo_area_factor(clo)
+    r_t = dry_r(hc, hr, clo)
+    r_et = wet_r(hc, clo, iclo)
+    r_a = 1 / (hc + hr)
+    r_cl = 0.155 * np.asarray(clo, dtype=float)
+    r_ea = 1 / (hc * 16.5)
+    r_ecl = r_cl / (16.5 * np.asarray(iclo, dtype=float))
 
     return to, r_t, r_et, r_a, r_cl, r_ea, r_ecl, fcl
 
@@ -351,10 +355,14 @@ def evaporation(err_cr, err_sk, tsk, ta, rh, ret,
                 0.40, 0.40, 0.40, 0.40, 0.40, 0.40,])
 
     e_sweat = skin_sweat * sig_sweat * sd_sweat * 2**((err_sk)/10)
-    wet = 0.06 + 0.94*(e_sweat/e_max)
-    wet = np.minimum(wet, 1)  # Wettedness' upper limit
-    e_sk = wet * e_max
-    e_sweat = (wet - 0.06) / 0.94 * e_max  # Effective sweating
+    # When ambient vapour pressure reaches or exceeds skin saturation,
+    # evaporation cannot provide a positive cooling capacity.
+    wet = np.full_like(e_max, 0.06, dtype=float)
+    valid = e_max > 0
+    wet[valid] += 0.94 * e_sweat[valid] / e_max[valid]
+    wet = np.clip(wet, 0, 1)  # Wettedness' physical bounds
+    e_sk = wet * np.maximum(e_max, 0)
+    e_sweat = (wet - 0.06) / 0.94 * np.maximum(e_max, 0)
     return wet, e_sk, e_max, e_sweat
 
 
@@ -706,7 +714,7 @@ shivering
 def nonshivering(err_cr, err_sk,
              height=1.72, weight=74.43, equation="dubois", age=20,
              coldacclimation=False, batpositive=True,
-             options={},):
+             options=None,):
     """
     Calculate local metabolic rate by non-shivering [W]
 

@@ -1,0 +1,109 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        solver          PCG;
+        preconditioner  DIC;
+
+        tolerance       1e-6;
+        relTol          0.01;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol          0;
+    }
+
+    pcorr
+    {
+        $p;
+        tolerance       1e-3;
+        relTol          0;
+    }
+
+    pcorrFinal
+    {
+        $pcorr;
+    }
+
+    MeshPhi
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-01;
+        relTol          0;
+    }
+
+    "(U|T)"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-06;
+        relTol          0.1;
+    }
+
+    "(U|T)Final"
+    {
+        $U;
+        relTol          0;
+    }
+
+}
+
+PIMPLE
+{
+    momentumPredictor           yes;
+    transonic                   no;
+    consistent                  true;
+    nOuterCorrectors            10;
+    nCorrectors                 2;
+    nNonOrthogonalCorrectors    0;
+    correctMeshPhi              true;
+
+    outerCorrectorResidualControl
+    {
+        p 
+        {
+            tolerance   1e-3;
+            relTol      0;
+        }
+        T
+        {
+            tolerance   1e-3;
+            relTol      0;
+        }
+    }
+}
+
+relaxationFactors
+{
+    fields
+    {}
+
+    equations
+    {
+        p       1;      // Make matrix at least diagonal dominant
+        U       0.95;
+    }
+}
+        
+
+// ************************************************************************* //

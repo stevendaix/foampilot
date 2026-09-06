@@ -1,0 +1,94 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Get both sides of ami
+    // ~~~~~~~~~~~~~~~~~~~~~
+
+    // Create faceSet using patch interfaceInner
+    {
+        name    interfaceInnerFaceSet;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        sourceInfo
+        {
+            name    interfaceInner;
+        }
+    }
+    // Create faceZoneSet using face set
+    {
+        name    interfaceInnerFaceZone;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        sourceInfo
+        {
+            faceSet interfaceInnerFaceSet;
+        }
+    }
+
+    // Create faceSet using patch interfaceOuter
+    {
+        name    interfaceOuterFaceSet;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        sourceInfo
+        {
+            name    interfaceOuter;
+        }
+    }
+    // Create faceZoneSet using face set
+    {
+        name    interfaceOuterFaceZone;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        sourceInfo
+        {
+            faceSet interfaceOuterFaceSet;
+        }
+    }
+
+    // Create cellZone for moving cells 
+    {
+        name    movingCellSet;
+        type    cellSet;
+        action  new;
+        source  cylinderToCell;
+
+        sourceInfo
+        {
+            p1  (0.1 -0.02 0);
+            p2  (0.1 -0.02 1);
+            radius 0.02;
+        }
+    }
+    {
+        name    movingZone;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set     movingCellSet;
+        }
+    }
+);
+
+// ************************************************************************* //

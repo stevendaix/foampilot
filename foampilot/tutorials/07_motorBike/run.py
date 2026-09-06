@@ -110,37 +110,16 @@ def main():
     blockmesh.mergePatchPairs = []
     blockmesh.write(case_path / "system" / "blockMeshDict")
 
-    # Step 2b: Copy motorBike.obj from OpenFOAM resources
-    stl_file = case_path / "constant" / "triSurface" / "motorBike.obj"
-    stl_file.parent.mkdir(parents=True, exist_ok=True)
-
-    if not stl_file.exists():
-        import subprocess
-        result = subprocess.run(
-            ["sh", "-c", "echo $FOAM_TUTORIALS"],
-            capture_output=True, text=True,
-        )
-        foam_tutorials = result.stdout.strip()
-        if not foam_tutorials:
-            foam_tutorials = "/opt/openfoam13/tutorials"
-
-        obj_gz = Path(foam_tutorials) / "resources/geometry/motorBike.obj.gz"
-        if obj_gz.exists():
-            import gzip
-            with gzip.open(obj_gz, "rb") as f_in:
-                stl_file.write_bytes(f_in.read())
-            print(f"Copied motorBike.obj from {obj_gz} to {stl_file}")
-        else:
-            raise FileNotFoundError(f"Cannot find motorBike.obj.gz at {obj_gz}")
-
-    # Step 2c: snappyHexMesh
+    # Step 2b: import the official OpenFOAM resource through Foampilot
+    import os
+    obj_gz = Path(os.environ["FOAM_TUTORIALS"]) / "resources" / "geometry" / "motorBike.obj.gz"
     snappy = SnappyMesher(
         parent=solver._solver,
-        stl_file=str(stl_file),
         castellatedMesh=True,
         snap=True,
         addLayers=False,
     )
+    surface_file = snappy.import_reference_surface(obj_gz, target_name="motorBike.obj")
     snappy.locationInMesh = (5, 4, 2)  # point inside fluid domain
     snappy.castellatedMeshControls["maxLocalCells"] = 100000
     snappy.castellatedMeshControls["maxGlobalCells"] = 7000000
@@ -151,7 +130,7 @@ def main():
     }
 
     snappy.write_surface_features_dict(
-        stl_list_for_emesh=["motorBike.obj"],
+        stl_list_for_emesh=[surface_file.name],
         included_angle=60,
     )
     snappy.add_feature("motorBike.eMesh", 0)

@@ -1,0 +1,122 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Website:  www.openfoam.org                      |
+|   \\  /    A nd           | Version:  12                                    |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      setFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+defaultFieldValues
+(
+    volScalarFieldValue T 293
+    volScalarFieldValue DT 15.26e-6
+);
+
+// Heater and Cooler Steel
+//---------------------------------------------
+// conductivity:    50 W/m/K
+// heat capacity:   420 J/kg/K
+// density:         7800 kg/m^3
+//
+// --> Thermal diffusivity = 15.26e-6 m^2/s
+
+// Copper
+//---------------------------------------------
+// conductivity:    300 W/m/K
+// heat capacity:   385 J/kg/K
+// density:         8920 kg/m^3
+//
+// --> Thermal diffusivity = 87.36e-6 m^2/s
+
+// TEG Module --> Bismuttellurid + Silicium oxid (Assumption here)
+//---------------------------------------------
+// conductivity:    5 W/m/K
+// heat capacity:   750 J/kg/K
+// density:         2650 kg/m^3
+//
+// --> Thermal diffusivity = 2.51e-6 m^2/s
+regions
+(
+    // Setting values inside a surface geometry file
+    surfaceToCell
+    {
+        file           "cad/stlParts/TEG.stl";
+        outsidePoints  ( (0 0 0) (0 0 0.211) );
+        includeCut     yes;
+        includeInside  yes;
+        includeOutside no;
+        nearDistance   0;
+        curvature      0;
+        fieldValues
+        (
+            volScalarFieldValue DT 2.51e-6
+        );
+    }
+    surfaceToCell
+    {
+        file           "cad/stlParts/CopperBlock.stl";
+        outsidePoints  ( (0 0 0) (0 0 0.211) );
+        includeCut     yes;
+        includeInside  yes;
+        includeOutside no;
+        nearDistance   0;
+        curvature      0;
+        fieldValues
+        (
+            volScalarFieldValue DT 87.36e-6
+        );
+    }
+    surfaceToCell
+    {
+        file           "cad/stlParts/CopperBlock2.stl";
+        outsidePoints  ( (0 0 0) (0 0 0.211) );
+        includeCut     yes;
+        includeInside  yes;
+        includeOutside no;
+        nearDistance   0;
+        curvature      0;
+        fieldValues
+        (
+            volScalarFieldValue DT 87.36e-6
+        );
+    }
+    surfaceToCell
+    {
+        file           "cad/stlParts/Concentrator.stl";
+        outsidePoints  ( (0 0 0) (0 0 0.211) );
+        includeCut     yes;
+        includeInside  yes;
+        includeOutside no;
+        nearDistance   0;
+        curvature      0;
+        fieldValues
+        (
+            volScalarFieldValue DT 87.36e-6
+        );
+    }
+    surfaceToCell
+    {
+        file           "cad/stlParts/Concentrator2.stl";
+        outsidePoints  ( (0 0 0) (0 0 0.211) );
+        includeCut     yes;
+        includeInside  yes;
+        includeOutside no;
+        nearDistance   0;
+        curvature      0;
+        fieldValues
+        (
+            volScalarFieldValue DT 87.36e-6
+        );
+    }
+);
+
+
+// ************************************************************************* //

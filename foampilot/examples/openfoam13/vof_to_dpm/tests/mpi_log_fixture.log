@@ -1,0 +1,4 @@
+[rank 0] parcelCreated cloud=spray timeIndex=42 fragmentId=100 ownerProc=0 count=1 mass=2.0e-6
+[rank 1] parcelCreated cloud=spray timeIndex=42 fragmentId=100 ownerProc=1 count=1 mass=2.0e-6
+[rank 0] confirmed cloud=spray timeIndex=42 fragmentId=100 ownerProc=0 parcelsAdded=1 massAdded=2.0e-6 expectedMass=2.0e-6 success=1
+[rank 0] confirmed cloud=spray timeIndex=42 fragmentId=101 ownerProc=0 parcelsAdded=0 massAdded=0 expectedMass=3.0e-6 success=0

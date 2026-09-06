@@ -1,0 +1,6 @@
+# OpenFOAM build products generated below each application/library.
+**/lnInclude/
+**/Make/linux64GccDPInt32Opt/
+**/*.dep
+**/*.o
+**/*.so

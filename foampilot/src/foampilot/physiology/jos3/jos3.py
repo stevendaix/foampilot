@@ -13,6 +13,7 @@ try:
     from . import construction as cons
     from .construction import _BSAst
     from .params import ALL_OUT_PARAMS, show_outparam_docs
+    from ..units import as_magnitude
 # Import from absolute path
 # These codes are for debugging
 except ImportError:
@@ -299,8 +300,12 @@ class JOS3():
         None.
 
         """
-        for t in range(times):
-            self._t += dt.timedelta(0, dtime)
+        if isinstance(times, bool) or not isinstance(times, (int, np.integer)) or times < 0:
+            raise ValueError("times doit être un entier positif ou nul")
+        if not np.isscalar(dtime) or not np.isfinite(dtime) or dtime <= 0:
+            raise ValueError("dtime doit être un nombre fini strictement positif")
+        for t in range(int(times)):
+            self._t += dt.timedelta(seconds=float(dtime))
             self._cycle += 1
             dictdata = self._run(dtime=dtime, output=output)
             if output:
@@ -475,7 +480,8 @@ class JOS3():
         arrA_dia += np.eye(NUM_NODES)
 
         arrA = arrA_tria + arrA_dia
-        arrA_inv = np.linalg.inv(arrA)
+        if not np.all(np.isfinite(arrA)):
+            raise FloatingPointError("La matrice thermique contient une valeur non finie")
 
         # Matrix Q [W] / [J/K] * [sec] = [-]
         # Thermogensis
@@ -503,11 +509,15 @@ class JOS3():
 
         # all
         arr = self._bodytemp + arrB * arr_to + arrQ
+        if not np.all(np.isfinite(arr)):
+            raise FloatingPointError("Le second membre thermique contient une valeur non finie")
 
         #------------------------------------------------------------------
         # New body temp. [oC]
         #------------------------------------------------------------------
-        self._bodytemp = np.dot(arrA_inv, arr)
+        self._bodytemp = np.linalg.solve(arrA, arr)
+        if not np.all(np.isfinite(self._bodytemp)):
+            raise FloatingPointError("La résolution thermique produit une température non finie")
 
         #------------------------------------------------------------------
         # Output paramters
@@ -792,7 +802,7 @@ class JOS3():
         return self._ta
     @Ta.setter
     def Ta(self, inp):
-        self._ta = _to17array(inp)
+        self._ta = _to17array(inp, name="Ta", unit="degC")
 
     @property
     def Tr(self):
@@ -807,7 +817,7 @@ class JOS3():
         return self._tr
     @Tr.setter
     def Tr(self, inp):
-        self._tr = _to17array(inp)
+        self._tr = _to17array(inp, name="Tr", unit="degC")
 
     @property
     def To(self):
@@ -825,8 +835,8 @@ class JOS3():
         return to
     @To.setter
     def To(self, inp):
-        self._ta = _to17array(inp)
-        self._tr = _to17array(inp)
+        self._ta = _to17array(inp, name="To", unit="degC")
+        self._tr = _to17array(inp, name="To", unit="degC")
 
     @property
     def RH(self):
@@ -841,7 +851,7 @@ class JOS3():
         return self._rh
     @RH.setter
     def RH(self, inp):
-        self._rh = _to17array(inp)
+        self._rh = _to17array(inp, name="RH", unit="percent")
 
     @property
     def Va(self):
@@ -856,7 +866,9 @@ class JOS3():
         return self._va
     @Va.setter
     def Va(self, inp):
-        self._va = _to17array(inp)
+        self._va = _to17array(inp, name="Va", unit="m/s")
+        if np.any(self._va < 0):
+            raise ValueError("Va doit être positif ou nul")
 
     @property
     def posture(self):
@@ -871,23 +883,16 @@ class JOS3():
         return self._posture
     @posture.setter
     def posture(self, inp):
-        if inp == 0:
-            self._posture = "standing"
-        elif inp == 1:
-            self._posture = "sitting"
-        elif inp == 2:
-            self._posture = "lying"
-        elif type(inp) == str:
-            if inp.lower() == "standing":
-                self._posture = "standing"
-            elif inp.lower() in ["sitting", "sedentary"]:
-                self._posture = "sitting"
-            elif inp.lower() in ["lying", "supine"]:
-                self._posture = "lying"
-        else:
-            self._posture = "standing"
-            print('posture must be 0="standing", 1="sitting" or 2="lying".')
-            print('posture was set "standing".')
+        aliases = {0: "standing", 1: "sitting", 2: "lying",
+                   "standing": "standing", "sitting": "sitting",
+                   "sedentary": "sitting", "lying": "lying", "supine": "lying"}
+        key = inp.lower() if isinstance(inp, str) else inp
+        try:
+            self._posture = aliases[key]
+        except (KeyError, TypeError) as error:
+            raise ValueError(
+                "posture doit être standing, sitting, lying ou 0/1/2"
+            ) from error
 
     @property
     def Icl(self):
@@ -991,8 +996,18 @@ class JOS3():
         """
         err_cr = self.Tcr - self.setpt_cr
         err_sk = self.Tsk - self.setpt_sk
-        wet, *_ = threg.evaporation(err_cr, err_sk,
-                self._ta, self._rh, self.Ret, self._bsa_rate, self._age)
+        wet, *_ = threg.evaporation(
+            err_cr=err_cr,
+            err_sk=err_sk,
+            tsk=self.Tsk,
+            ta=self._ta,
+            rh=self._rh,
+            ret=self.Ret,
+            height=self._height,
+            weight=self._weight,
+            equation=self._bsa_equation,
+            age=self._age,
+        )
         return wet
 
     @property
@@ -1133,13 +1148,7 @@ class JOS3():
             "LThigh", "LLeg", "LHand",
             "RThigh", "RLeg" and "RHand".
         """
-        body = [
-                "Head", "Neck", "Chest", "Back", "Pelvis",
-                "LShoulder", "LArm", "LHand",
-                "RShoulder", "RArm", "RHand",
-                "LThigh", "LLeg", "LHand",
-                "RThigh", "RLeg", "RHand",]
-        return body
+        return list(BODY_NAMES)
 
     @property
     def results(self):
@@ -1161,7 +1170,7 @@ class JOS3():
         return bmr / self.BSA.sum()
 
 
-def _to17array(inp):
+def _to17array(inp, name="value", unit=None):
     """
     Make ndarray (17,).
 
@@ -1174,15 +1183,16 @@ def _to17array(inp):
     -------
     ndarray
     """
-    try:
-        if len(inp) == 17:
-            array = np.array(inp)
-        else:
-            first_item = inp[0]
-            array = np.ones(17)*first_item
-    except:
-        array = np.ones(17)*inp
-    return array.copy()
+    array = as_magnitude(inp, unit, name=name) if unit else np.asarray(inp, dtype=float)
+    if array.ndim == 0:
+        result = np.full(17, float(array))
+    elif array.ndim == 1 and array.size == 17:
+        result = array.copy()
+    else:
+        raise ValueError(f"{name} doit être un scalaire ou un vecteur de longueur 17")
+    if not np.all(np.isfinite(result)):
+        raise ValueError(f"{name} contient une valeur non finie")
+    return result
 
 if __name__ == "__main__":
     import jos3

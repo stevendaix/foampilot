@@ -38,10 +38,15 @@ def write_create_zones_dict(case_path: Path):
     using the foampilot OpenFOAMDictAddFile API."""
     zones_dict = OpenFOAMDictAddFile(
         object_name="createZonesDict",
-        solid={
+        metal={
             "type": "box",
             "zoneType": "cell",
-            "box": "(0 -1 -1) (0.1 0.002 1)",
+            "box": "(0.03 0.005 -1) (0.07 0.015 1)",
+        },
+        heater={
+            "type": "box",
+            "zoneType": "cell",
+            "box": "(0.07 0.005 -1) (0.09 0.015 1)",
         },
     )
     system_path = case_path / "system"
@@ -61,29 +66,40 @@ def main():
         turbulence_model="kOmegaSST",
         thermophysical_model="heRhoThermo",
         thermo_model="hConst",
-        equation_of_state="perfectGas",
+        equation_of_state="rhoConst",
     )
 
     # Solide : cuivre (mur chauffé, conductivité élevée)
-    solid_region = SolidRegion(
-        name="solid",
+    metal_region = SolidRegion(
+        name="metal",
         temperature=350.0,
-        thermal_conductivity=380.0,  # W/(m·K)
-        density=8960.0,              # kg/m³
-        specific_heat=385.0,         # J/(kg·K)
+        thermal_conductivity=380.0,
+        density=8960.0,
+        specific_heat=385.0,
+    )
+    heater_region = SolidRegion(
+        name="heater",
+        temperature=350.0,
+        thermal_conductivity=0.5,
+        density=1000.0,
+        specific_heat=1000.0,
     )
 
-    # Interfaces fluide-solide
-    interface = CoupledInterface(
-        name="fluid_to_solid",
-        fluid_region="fluid",
-        solid_region="solid",
+    # Interfaces fluid-metal and metal-heater from the reference topology.
+    fluid_metal = CoupledInterface(
+        name="fluid_to_metal", fluid_region="fluid", solid_region="metal",
         heat_transfer_coefficient=10.0,
     )
-    solid_interface = CoupledInterface(
-        name="solid_to_fluid",
-        fluid_region="fluid",
-        solid_region="solid",
+    metal_fluid = CoupledInterface(
+        name="metal_to_fluid", fluid_region="fluid", solid_region="metal",
+        heat_transfer_coefficient=10.0,
+    )
+    metal_heater = CoupledInterface(
+        name="metal_to_heater", fluid_region="heater", solid_region="metal",
+        heat_transfer_coefficient=10.0,
+    )
+    heater_metal = CoupledInterface(
+        name="heater_to_metal", fluid_region="heater", solid_region="metal",
         heat_transfer_coefficient=10.0,
     )
 
@@ -91,20 +107,24 @@ def main():
     solver = ChtSolver(
         case_path=case_path,
         solver_name="chtMultiRegionFoam",
-        regions=[fluid_region, solid_region],
-        interfaces=[interface, solid_interface],
+        regions=[fluid_region, metal_region, heater_region],
+        interfaces=[fluid_metal, metal_fluid, metal_heater, heater_metal],
     )
 
     # --- 3. Configurer le controlDict ------------------------------------
-    solver.system.controlDict.start_time = 0
-    solver.system.controlDict.end_time = 1.0
-    solver.system.controlDict.delta_t = 5e-4
-    solver.system.controlDict.write_interval = 0.1
-    solver.system.controlDict.application = "chtMultiRegionFoam"
+    solver.system.controlDict.startTime = 0
+    solver.system.controlDict.endTime = 20
+    solver.system.controlDict.deltaT = 1e-3
+    solver.system.controlDict.writeControl = "adjustableRunTime"
+    solver.system.controlDict.writeInterval = 1
+    solver.system.controlDict.application = "foamMultiRun"
 
     # --- 4. Setup de base : fichiers système et constant -----------------
     solver.setup_case()
     solver.write_case()
+    solver.write_region_system_files()
+    solver.set_region_gravity("fluid", "(0 0 0)")
+    solver.set_region_momentum_transport("fluid", "laminar")
 
     # --- 5. Maillage (blockMesh via JSON config) -------------------------
     print("1. Generating mesh (blockMesh) ...")
@@ -126,29 +146,47 @@ def main():
         log_filename="log.splitMeshRegions",
     )
 
-    # --- 7. foamSetupCHT — setup automatisé ------------------------------
-    print("4. Setting up CHT case (foamSetupCHT) ...")
-    solver.run_command(["foamSetupCHT"], log_filename="log.foamSetupCHT")
+    # --- 7. Conditions limites régionales via l’API ChtSolver ------------
+    fluid_default = {".*": {"type": "zeroGradient"}}
+    solver.set_region_boundary_conditions("fluid", "T", {
+        "fluidInlet": {"type": "fixedValue", "value": "$internalField"},
+        "fluidOutlet": {"type": "inletOutlet", "value": "$internalField", "inletValue": "$internalField"},
+        "frontAndBack": {"type": "empty"},
+        "fluid_to_metal": {"type": "coupledTemperature", "value": "$internalField"},
+        "fluid_to_heater": {"type": "coupledTemperature", "value": "$internalField"},
+        ".*": {"type": "zeroGradient"},
+    })
+    solver.set_region_boundary_conditions("fluid", "U", {
+        "fluidInlet": {"type": "fixedValue", "value": "uniform (0 0 1e-3)"},
+        "fluidOutlet": {"type": "pressureInletOutletVelocity", "value": "$internalField"},
+        "frontAndBack": {"type": "empty"},
+        "fluid_to_metal": {"type": "noSlip"},
+        "fluid_to_heater": {"type": "noSlip"},
+        ".*": {"type": "noSlip"},
+    })
+    solver.set_region_boundary_conditions("fluid", "p", {".*": {"type": "calculated", "value": "$internalField"}})
+    solver.set_region_boundary_conditions("fluid", "p_rgh", {
+        ".*": {"type": "fixedFluxPressure", "value": "$internalField"},
+        "fluidOutlet": {"type": "fixedValue", "value": "$internalField"},
+    })
+    for field in ("k", "omega", "nut"):
+        solver.set_region_boundary_conditions("fluid", field, fluid_default)
+    for region in ("metal", "heater"):
+        solver.set_region_boundary_conditions(region, "T", {
+            ".*": {"type": "zeroGradient"},
+            ("heater_to_fluid" if region == "heater" else "metal_to_fluid"): {
+                "type": "coupledTemperature", "value": "$internalField"
+            },
+        })
 
-    # --- 8. Conditions initiales -----------------------------------------
-    print("5. Setting initial conditions ...")
-    solver.run_command(
-        ["foamDictionary", "-entry", "internalField",
-         "-set", "uniform 350", "0/solid/T"],
-        log_filename="log.dict_solid_T",
-    )
-    solver.run_command(
-        ["foamDictionary", "-entry", "internalField",
-         "-set", "uniform 300", "0/fluid/T"],
-        log_filename="log.dict_fluid_T",
-    )
-    solver.run_command(
-        ["foamDictionary", "-entry", "internalField",
-         "-set", "uniform 1e5", "0/fluid/p"],
-        log_filename="log.dict_fluid_p",
-    )
+    # --- 8. Conditions initiales via l’API ChtSolver ----------------------
+    print("4. Setting initial conditions ...")
+    solver.set_region_internal_field("heater", "T", "uniform 350")
+    solver.set_region_internal_field("metal", "T", "uniform 300")
+    solver.set_region_internal_field("fluid", "T", "uniform 300")
+    solver.set_region_internal_field("fluid", "p", "uniform 0")
 
-    # --- 9. Lancer la simulation ------------------------------------------
+    # --- 8. Lancer la simulation ------------------------------------------
     print("6. Running chtMultiRegionFoam ...")
     solver.run_simulation(nb_proc=1)
 
@@ -159,21 +197,19 @@ def main():
          "-fields", "(T U p k omega)"],
         log_filename="log.foamToVTK_fluid",
     )
-    solver.run_command(
-        ["foamToVTK", "-region", "solid", "-latestTime",
-         "-fields", "(T)"],
-        log_filename="log.foamToVTK_solid",
-    )
+    for solid_region in ("metal", "heater"):
+        solver.run_command(
+            ["foamToVTK", "-region", solid_region, "-latestTime",
+             "-fields", "(T)"],
+            log_filename=f"log.foamToVTK_{solid_region}",
+        )
 
     # --- 11. Post-traitement ---------------------------------------------
     print("8. Post-processing ...")
-    run_post = subprocess.run(
+    solver.run_command(
         ["python", "run_post.py"],
-        cwd=case_path, capture_output=True, text=True,
+        log_filename="log.run_post",
     )
-    print(run_post.stdout)
-    if run_post.returncode != 0:
-        print(f"Post-processing warning: {run_post.stderr[-500:]}")
 
     # --- 12. Validation --------------------------------------------------
     print("\n" + "=" * 60)

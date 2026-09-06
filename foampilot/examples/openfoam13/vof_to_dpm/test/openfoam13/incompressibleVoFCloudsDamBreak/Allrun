@@ -17,6 +17,7 @@ sed -i \
     's/solver          incompressibleVoF;/solver          incompressibleVoF;\nlibs            ("libincompressibleVoFClouds.so" "liblagrangianParcel.so");/' \
     system/controlDict
 sed -i 's/endTime         1;/endTime         0.02;/' system/controlDict
+sed -i 's/writeInterval   0.05;/writeInterval   0.01;/' system/controlDict
 sed -i 's/momentumPredictor no;/momentumPredictor yes;\n    models          yes;/' system/fvSolution
 
 cat > constant/fvModels <<'EOF'
@@ -32,10 +33,12 @@ incompressibleVoFClouds
 {
     type            incompressibleVoFClouds;
     clouds          (cloud);
+    consumeAlpha    true;
 }
 EOF
 
 cp "$FOAM_TUTORIALS/incompressibleFluid/mixerVesselHorizontal2DParticles/constant/cloudProperties" constant/cloudProperties
+sed -i 's/type            manualInjection;/type            vofFragmentInjection;/' constant/cloudProperties
 cat > constant/cloudPositions <<'EOF'
 /* OpenFOAM vector field */
 FoamFile
@@ -53,10 +56,15 @@ EOF
 blockMesh > log.blockMesh 2>&1
 setFields > log.setFields 2>&1
 foamRun -solver incompressibleVoF > log.foamRun 2>&1
+foamPostProcess -func 'volIntegrate(alpha.water)' -time 0.01 > log.alphaBalance 2>&1
 
 grep -q "Selecting solver incompressibleVoF" log.foamRun
 grep -q "Selecting finite volume model type incompressibleVoFClouds" log.foamRun
 grep -q "Selecting parcelCloud collidingCloud" log.foamRun
 grep -q "Current number of parcels" log.foamRun
+grep -q "VOF fragments detected:" log.foamRun
+grep -q "VOF alpha consumption armed" log.foamRun
+grep -q "Applied conservative VOF alpha consumption" log.foamRun
+grep -q "volIntegrate(all) of alpha.water = 0" log.alphaBalance
 
 echo "PASS: incompressibleVoF + incompressibleVoFClouds + collidingCloud"

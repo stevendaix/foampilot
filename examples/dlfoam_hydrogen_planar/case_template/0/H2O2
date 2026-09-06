@@ -1,0 +1,50 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version         2;
+    format          ascii;
+    class           volScalarField;
+    location        "0";
+    object          H2O2;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [ 0 0 0 0 0 0 0 ];
+
+#include        "planarMappingDict"
+
+#include        "readInletValue.H"
+
+#include        "readInternalScalarField.H"
+
+internalField   nonuniform $internalScalarField;
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           uniform $inletValue;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    "top|bottom"
+    {
+        type            cyclic;
+    }
+    empty
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

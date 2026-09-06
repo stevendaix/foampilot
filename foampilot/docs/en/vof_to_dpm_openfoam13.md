@@ -2,7 +2,7 @@
 
 This page documents the complete VOF-to-DPM project bundled with FoamPilot. It covers the Python converter, the native OpenFOAM 13 C++ sources, the incompressible and compressible `fvModel` bridges, the validation cases, and the PDF technical-note generator.
 
-> The current implementation has two distinct capabilities: offline fragment extraction and solver–cloud coupling. It does not yet claim a fully automatic real-time transition unless the VOF volume is removed and the parcel is inserted transactionally.
+> The implementation provides both offline fragment extraction and runtime solver–cloud coupling. The runtime transition is now transactional: VOF volume and energy sources are committed only after the cloud confirms effective parcel creation in `postInject()`. The qualification remains limited to the documented serial OpenFOAM 13 nominal cases.
 
 ## 1. Requirements
 
@@ -40,6 +40,8 @@ The complete VOF-to-DPM implementation is stored under `foampilot/examples/openf
 | `examples/openfoam13/vof_to_dpm/applications/incompressibleVoFClouds` | Incompressible `fvModel` bridge |
 | `examples/openfoam13/vof_to_dpm/applications/compressibleVoFClouds` | Compressible `fvModel` bridge |
 | `examples/openfoam13/vof_to_dpm/test/openfoam13` | OpenFOAM 13 validation cases and `Allrun` scripts |
+| `examples/openfoam13/vof_to_dpm/example/sprayCrossFlow` | Self-contained VOF-to-DPM spray example with mass-volume post-processing |
+| `examples/openfoam13/vof_to_dpm/test/openfoam13/compressibleVoFCloudsThermoDamBreak` | Compressible `thermoCloud` regression with enthalpy-source checks |
 | `docs/fr/vof_to_dpm_technical_note.pdf` | Generated technical note |
 
 ## 3. Run the Python tests
@@ -117,7 +119,7 @@ cd foampilot/examples/openfoam13/vof_to_dpm/test/openfoam13/incompressibleVoFClo
 ./Allrun
 ```
 
-The script prepares the OpenFOAM case, enables the `fvModels` and momentum-predictor hooks, loads `incompressibleVoFClouds`, and checks the resulting cloud activity. The current validation uses a controlled manual injection to validate the solver–cloud path.
+The script prepares the OpenFOAM case, enables the `fvModels` and momentum-predictor hooks, loads `incompressibleVoFClouds`, and checks the fragment-to-parcel conversion path. Confirmation occurs after effective parcel creation, and confirmed fragments are not injected again.
 
 ## 7. Run the compressible validation
 
@@ -128,9 +130,20 @@ cd foampilot/examples/openfoam13/vof_to_dpm/test/openfoam13/compressibleVoFCloud
 ./Allrun
 ```
 
-This case validates the `compressibleVoFClouds` runtime selection, the mechanical cloud coupling and the momentum source. It is not yet an energy-conservative VOF-to-DPM transition: mass, enthalpy and pressure consistency still require a dedicated thermodynamic transfer implementation.
+This case validates `compressibleVoFClouds` runtime selection, mechanical coupling, alpha-rho transfer and normal solver completion. Use the dedicated thermoCloud case below to validate the thermodynamic path.
 
-## 8. Generate the technical PDF
+## 8. Validate the compressible thermoCloud path
+
+The dedicated case enables a `thermoCloud`, declares the H2O liquid components required by `parcelThermo`, and checks enthalpy-source application after parcel confirmation:
+
+```bash
+cd foampilot/examples/openfoam13/vof_to_dpm/test/openfoam13/compressibleVoFCloudsThermoDamBreak
+./Allrun
+```
+
+The post-processing checks one confirmed batch, one enthalpy-source application to `e.water`, two alpha-rho source applications, normal solver completion and absence of floating-point or fatal errors. See [`vof_to_dpm_implementation_status.md`](../fr/vof_to_dpm_implementation_status.md) for the detailed implementation matrix and current limitations.
+
+## 9. Generate the technical PDF
 
 The report generator uses FoamPilot’s `ScientificDocument` and `TypstRenderer` classes:
 
@@ -149,16 +162,16 @@ report/vof_to_dpm.bib
 
 The generator documents the theoretical transition criteria, conservation equations, implementation audit and recommended production architecture.
 
-## 9. Current scientific scope
+## 10. Current scientific scope
 
 The Python and native offline extractors correctly compute component volume, centroid, volume-weighted velocity and equivalent spherical diameter. The C++ `fvModel` bridges evolve a `parcelCloudList` and return its mechanical source to the carrier momentum equation.
 
-A fully automatic production transition still needs bounded `alpha` consumption, dynamic parcel insertion, stable fragment IDs, MPI component reconciliation, duplicate-conversion prevention and, for compressible cases, consistent mass and energy transfer. These limitations are documented in the French and Chinese technical materials as well.
+The nominal automatic transition now provides bounded `alpha` consumption, dynamic parcel insertion, deterministic fragment IDs, duplicate-conversion prevention and confirmed compressible mass and energy transfer. MPI reconciliation, multi-component thermodynamics and pathological geometries remain outside the current regression coverage.
 
-## 10. Related documentation
+## 11. Related documentation
 
 | Language | Main guide | Technical materials |
 |---|---|---|
 | English | `docs/en/vof_to_dpm_openfoam13.md` | `docs/en/vof_to_dpm.md` |
-| Français | `docs/fr/vof_to_dpm_openfoam13.md` | `docs/fr/cours_vof_to_dpm.md`, `docs/fr/audit_implementation_vof_to_dpm.md` |
+| Français | `docs/fr/vof_to_dpm_openfoam13.md` | `docs/fr/vof_to_dpm_implementation_status.md`, `docs/fr/cours_vof_to_dpm.md`, `docs/fr/audit_implementation_vof_to_dpm.md` |
 | 中文 | `docs/zh/vof_to_dpm_openfoam13.md` | `docs/zh/vof_to_dpm.md` |

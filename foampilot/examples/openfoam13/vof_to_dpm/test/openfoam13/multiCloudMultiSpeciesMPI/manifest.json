@@ -1,0 +1,51 @@
+{
+  "case": "multiCloudMultiSpeciesMPI",
+  "purpose": "Validation MPI du routage Direct Commit pour deux clouds et deux espèces",
+  "openfoam": {
+    "distribution": "OpenFOAM Foundation",
+    "version": "13",
+    "language_standard": "C++14"
+  },
+  "execution": {
+    "launcher": "Allrun.parallel",
+    "default_ranks": 2,
+    "recommended_ranks": [2, 4],
+    "decomposition": "simple along x",
+    "keep_case": "KEEP_CASE=1"
+  },
+  "clouds": [
+    {
+      "name": "waterCloud",
+      "alphaField": "alpha.water",
+      "species": ["H2O", "C2H5OH"],
+      "massFractions": [0.70, 0.30]
+    },
+    {
+      "name": "fuelCloud",
+      "alphaField": "alpha.air",
+      "species": ["H2O", "C2H5OH"],
+      "massFractions": [0.20, 0.80]
+    }
+  ],
+  "transactionKey": ["cloudName", "alphaFieldName", "fragmentId"],
+  "tolerances": {
+    "massRelative": 1e-8,
+    "massAbsolute": 1e-10,
+    "speciesRelative": 1e-8,
+    "speciesAbsolute": 1e-10,
+    "fractionSumAbsolute": 1e-12
+  },
+  "expectedMetrics": {
+    "solverEnd": true,
+    "allExpectedCommittedExactlyOnce": true,
+    "allExpectedConfirmedExactlyOnce": true,
+    "speciesMassesConserved": true,
+    "noDefaultCloudFallback": true,
+    "noFatalOrMPI": true
+  },
+  "knownLimitations": [
+    "NP=4 et une décomposition différente doivent être qualifiés séparément",
+    "Les fractions d'espèces sont configurées, non reconstruites depuis des champs species VOF",
+    "Evaporation, réactions et diffusion réactive hors périmètre"
+  ]
+}

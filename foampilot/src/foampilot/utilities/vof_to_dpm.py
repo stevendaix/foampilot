@@ -38,6 +38,28 @@ class VofFragment:
         return float((6.0 * self.volume / pi) ** (1.0 / 3.0))
 
 
+@dataclass(frozen=True)
+class VofDpmTransition:
+    """Conservative result of transferring selected VOF liquid to DPM.
+
+    ``remaining_alpha`` is a copy of the input field with the liquid represented
+    by ``fragments`` removed.  The transfer is intentionally explicit and
+    offline: the OpenFOAM fvModel still needs a native C++ implementation for
+    in-solver parcel creation.
+    """
+
+    remaining_alpha: np.ndarray
+    converted_volume: float
+    remaining_volume: float
+    converted_cell_indices: tuple[int, ...]
+
+    @property
+    def total_volume(self) -> float:
+        """Return the liquid volume before the transfer."""
+
+        return self.converted_volume + self.remaining_volume
+
+
 class OpenFoamFormatError(ValueError):
     """Raised when an OpenFOAM ASCII file cannot be interpreted safely."""
 
@@ -363,6 +385,91 @@ class VofToDpmConverter:
         """Return the total liquid volume represented by fragments."""
 
         return float(sum(fragment.volume for fragment in fragments))
+
+    def build_transition(
+        self,
+        alpha: Sequence[float],
+        cell_volumes: Sequence[float],
+        fragments: Sequence[VofFragment],
+    ) -> VofDpmTransition:
+        """Build a conservative VOF-to-DPM transfer plan.
+
+        Each cell can be consumed at most once.  The amount removed from a cell
+        is its physical liquid fraction, ``alpha[i]``; consequently the parcel
+        volume is exactly ``sum(alpha[i] * V[i])`` and the residual field keeps
+        all unselected or filtered-out liquid.  The method performs no I/O and
+        does not mutate the caller's arrays.
+        """
+
+        alpha_array = self._array("alpha", alpha, 1).copy()
+        volumes = self._array("cell_volumes", cell_volumes, 1)
+        if volumes.size != alpha_array.size:
+            raise ValueError("cell_volumes must have one value per cell")
+        if np.any(~np.isfinite(alpha_array)) or np.any(~np.isfinite(volumes)):
+            raise ValueError("alpha and cell_volumes must be finite")
+        if np.any((alpha_array < -1e-12) | (alpha_array > 1.0 + 1e-12)):
+            raise ValueError("alpha values must lie in [0, 1]")
+        if np.any(volumes <= 0.0):
+            raise ValueError("cell_volumes must be strictly positive")
+        if not self.strict:
+            alpha_array = np.clip(alpha_array, 0.0, 1.0)
+
+        consumed = np.zeros(alpha_array.size, dtype=bool)
+        converted_indices: list[int] = []
+        converted_volume = 0.0
+        for fragment in fragments:
+            indices = tuple(int(index) for index in fragment.cell_indices)
+            if not indices:
+                raise ValueError("fragments must not contain an empty cell list")
+            if any(index < 0 or index >= alpha_array.size for index in indices):
+                raise ValueError("fragment contains an invalid cell index")
+            if any(consumed[index] for index in indices):
+                raise ValueError("a cell cannot be converted more than once")
+            if any(alpha_array[index] < self.alpha_threshold for index in indices):
+                raise ValueError("fragment contains a cell below alpha_threshold")
+            expected_volume = float(np.sum(alpha_array[list(indices)] * volumes[list(indices)]))
+            if not np.isclose(expected_volume, fragment.volume, rtol=1e-10, atol=1e-14):
+                raise ValueError("fragment volume does not match alpha*cell_volumes")
+            consumed[list(indices)] = True
+            alpha_array[list(indices)] = 0.0
+            converted_indices.extend(indices)
+            converted_volume += expected_volume
+
+        remaining_volume = float(np.sum(alpha_array * volumes))
+        return VofDpmTransition(
+            remaining_alpha=alpha_array,
+            converted_volume=converted_volume,
+            remaining_volume=remaining_volume,
+            converted_cell_indices=tuple(sorted(converted_indices)),
+        )
+
+    @staticmethod
+    def write_scalar_field(
+        values: Sequence[float],
+        output_path: str | Path,
+        object_name: str = "alpha.liquid",
+    ) -> Path:
+        """Write an ASCII OpenFOAM ``volScalarField`` internal field."""
+
+        array = np.asarray(values, dtype=float)
+        if array.ndim != 1 or np.any(~np.isfinite(array)):
+            raise ValueError("values must be a finite one-dimensional array")
+        path = Path(output_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as stream:
+            stream.write(
+                "FoamFile\\n{\\n"
+                "    format ascii;\\n"
+                "    class volScalarField;\\n"
+                f"    object {object_name};\\n"
+                "}\\n\\n"
+                "dimensions [0 0 0 0 0 0 0];\\n"
+                f"internalField nonuniform List<scalar> {array.size} (\\n"
+            )
+            for value in array:
+                stream.write(f"{value:.16g}\\n")
+            stream.write(")\\n\\nboundaryField {}\\n")
+        return path
 
     def write_openfoam_outputs(
         self,
