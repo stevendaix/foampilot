@@ -11,7 +11,7 @@ from .ops import (
 )
 from .marine_motion import FOUNDATION13_JOINTS, write_six_dof_dynamic_mesh_dict
 from .marine_mrf import MarineMRFZone, write_marine_mrf
-from .marine_overset import (
+from foampilot.core.meshing.overset import (
     DonorStencil,
     OversetZone,
     build_donor_stencil,

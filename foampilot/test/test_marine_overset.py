@@ -4,7 +4,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
-path = ROOT / "foampilot/src/foampilot/mesh/marine_overset.py"
+path = ROOT / "foampilot/src/foampilot/core/meshing/overset.py"
 spec = importlib.util.spec_from_file_location("marine_overset_under_test", path)
 module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module
