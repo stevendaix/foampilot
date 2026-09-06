@@ -22,6 +22,39 @@ class SolverConfig:
     is_compressible: bool = False
     turbulence_model: Optional[str] = None
     sub_solver: Optional[str] = None
+    turbulence_file: Optional[str] = None
+    transport_file: Optional[str] = None
+    writes_pRef: bool = False
+    writes_phase_properties: bool = False
+    writes_physical_properties_per_phase: bool = False
+    removes_transport_properties: bool = False
+    removes_turbulence_properties: bool = False
+    removes_pRef: bool = False
+    default_sigma: float = 0.0
+    default_phases: Optional[list] = None
+    default_wall_dist: Optional[dict] = None
+    default_div_alpha: Optional[str] = None
+    default_div_rhoPhi_U: Optional[str] = None
+    adds_interface_compression: bool = False
+    default_turbulence_model: Optional[str] = None
+    writes_region_solvers: bool = False
+    per_region_system_files: bool = False
+    solid_properties_file: Optional[str] = None
+    fluid_properties_file: Optional[str] = None
+    energy_variable: Optional[str] = None
+    pressure_dimensions: Optional[str] = None
+    t_default: Optional[str] = None
+    adds_rho_solver: bool = False
+    adds_energy_solver: bool = False
+    use_solver_keyword: bool = False
+    default_ddt_steady: Optional[str] = None
+    default_ddt_transient: Optional[str] = None
+    default_div_phi_U_steady: Optional[str] = None
+    default_div_phi_U_transient: Optional[str] = None
+    default_algorithm_steady: Optional[str] = None
+    default_algorithm_transient: Optional[str] = None
+    residual_control_defaults: Optional[dict] = None
+    relaxation_defaults: Optional[dict] = None
 
     def get_simulation_type(self) -> str:
         if self.is_solid:
@@ -67,7 +100,7 @@ def config_from_flags(
     if is_vof and with_gravity:
         effective_energy = False
 
-    return SolverConfig(
+    base_kwargs = dict(
         name=solver_name,
         foamrun_module=foamrun_module,
         is_legacy=is_legacy,
@@ -81,3 +114,18 @@ def config_from_flags(
         turbulence_model=turbulence_model,
         sub_solver=None,
     )
+
+    if is_solid:
+        from foampilot.openfoam.solvers.configs.solid import SolidConfig
+        return SolidConfig(**base_kwargs)
+    if is_vof:
+        from foampilot.openfoam.solvers.configs.multiphase import VoFConfig
+        return VoFConfig(**base_kwargs)
+    if solver_name == "chtMultiRegionFoam" or solver_name == "chtMultiRegionSimpleFoam":
+        from foampilot.openfoam.solvers.configs.cht import CHTConfig
+        return CHTConfig(**base_kwargs)
+    if effective_compressible or solver_name in {"fluid", "rhoCentralFoam", "sonicFoam", "reactingFoam"}:
+        from foampilot.openfoam.solvers.configs.compressible import CompressibleConfig
+        return CompressibleConfig(**base_kwargs)
+    from foampilot.openfoam.solvers.configs.incompressible import IncompressibleConfig
+    return IncompressibleConfig(**base_kwargs)

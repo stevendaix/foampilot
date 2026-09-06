@@ -100,6 +100,13 @@ class BaseSolver:
     def sub_solver(self, value: Optional[str]):
         self._sub_solver = value
 
+    def get_turbulence_configuration(self):
+        """Return turbulence configuration as (simulation_type, model)."""
+        if self.config.is_solid:
+            return ("laminar", None)
+        model = self.config.turbulence_model or "kEpsilon"
+        return ("RAS", model)
+
     def update_case_specific_attributes(self):
         """Default: do nothing"""
         pass
