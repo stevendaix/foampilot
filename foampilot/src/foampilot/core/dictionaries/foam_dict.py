@@ -173,11 +173,12 @@ class FoamDict:
             else:
                 file.write(f'{indent}{quoted_key} {fmt_val};\n')
 
-    def write(self, path: Optional[Union[str, Path]] = None) -> None:
+    def write(self, path: Optional[Union[str, Path]] = None, footer: bool = False) -> None:
         """Write this FoamDict to a file.
 
         Args:
             path: Optional path to write to. If not provided, uses base_path
+            footer: Whether to add the OpenFOAM footer (default: False for compatibility)
         """
         if path is None:
             path = self._base_path
@@ -194,7 +195,8 @@ class FoamDict:
                     file.write(f'    {key}     {value};\n')
                 file.write("}\n\n")
                 self._write_content(file)
-                file.write("\n// ************************************************************************* //\n")
+                if footer:
+                    file.write("\n// ************************************************************************* //\n")
         except IOError as e:
             logger.error(f"Error writing file {filepath}: {e}")
             raise

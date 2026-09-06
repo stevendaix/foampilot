@@ -186,18 +186,28 @@ class ConstantDirectory:
         self._fvmodels = None
         logger.info("Radiation disabled")
 
-    # Write files
+    def _create_foam_dict(self, file_instance, name: str) -> FoamDict:
+        """Create a FoamDict from a file class instance.
+
+        Args:
+            file_instance: OpenFOAMFile subclass instance
+            name: Name for the FoamDict (used as filename)
+
+        Returns:
+            FoamDict with same header and data as the file instance
+        """
+        foam_dict = FoamDict(object_name=file_instance.object_name)
+        foam_dict._header = file_instance.header.copy()
+        foam_dict._data = file_instance.attributes.copy()
+        return foam_dict
+
     def write(self):
         constant_path = Path(self.solver.case_path) / "constant"
-        constant_path.mkdir(parents=True, exist_ok=True)
+        self.layout.ensure()
 
-        # Initialize DictionaryWriter from core/dictionaries (Internal Use Only)
         writer = self._get_dictionary_writer()
         writer.clear()
 
-        # --- Turbulence properties -----------------------------------------
-        # OpenFOAM 13 renamed turbulenceProperties → momentumTransport
-        # for compressible solvers (fluid, buoyantSimpleFoam, etc.)
         simulationType, model = self.solver.get_turbulence_configuration()
         is_compressible = getattr(self.solver, "compressible", False)
 
@@ -208,7 +218,7 @@ class ConstantDirectory:
                 RASModel=model if simulationType == "RAS" else None,
                 LESModel=model if simulationType == "LES" else None,
             )
-            mt_file.write(constant_path / "momentumTransport")
+            writer.register("momentumTransport", self._create_foam_dict(mt_file, "momentumTransport"))
         else:
             turbulence = TurbulencePropertiesFile(
                 parent=self.solver,
@@ -216,33 +226,60 @@ class ConstantDirectory:
                 RASModel=model if simulationType == "RAS" else None,
                 LESModel=model if simulationType == "LES" else None,
             )
-            turbulence.write(constant_path / "turbulenceProperties")
+            writer.register("turbulenceProperties", self._create_foam_dict(turbulence, "turbulenceProperties"))
 
-
-        # Transport / Physical
         if getattr(self.solver, "compressible", False):
-            self._physicalProperties.write(constant_path / "physicalProperties")
-            self._pRef.write(constant_path / "pRef")
+            writer.register("physicalProperties", self._create_foam_dict(self._physicalProperties, "physicalProperties"))
+            writer.register("pRef", self._create_foam_dict(self._pRef, "pRef"))
         else:
-            self._transportProperties.write(constant_path / "transportProperties")
-            self._pRef.write(constant_path / "pRef")
+            writer.register("transportProperties", self._create_foam_dict(self._transportProperties, "transportProperties"))
+            writer.register("pRef", self._create_foam_dict(self._pRef, "pRef"))
 
-        # Gravity
         if getattr(self.solver, "with_gravity", False):
-            self._gravity.write()
-            # Update p → p_rgh if necessary
+            writer.register("g", self._create_foam_dict(self._gravity, "g"))
             if "p" in self.solver.fields_manager.fields and "p_rgh" not in self.solver.fields_manager.fields:
                 self.solver.fields_manager.fields["p_rgh"] = self.solver.fields_manager.fields.pop("p")
 
-        # Radiation
         if self.with_radiation:
             if self._radiation is None:
                 self.enable_radiation()
-            self._radiation.write(constant_path )
-            self._fvmodels.write(constant_path )
+            writer.register("radiationProperties", self._create_foam_dict(self._radiation, "radiationProperties"))
+            writer.register("fvModels", self._create_foam_dict(self._fvmodels, "fvModels"))
 
-        # VoF-specific constant files (overwrites single-phase files + cleanup)
-        self._write_vof_constants(constant_path)
+        is_vof = getattr(self.solver, "is_vof", False) and self._vof_phases is not None
+        if is_vof:
+            phase_props = PhasePropertiesFile(
+                parent=self.solver,
+                phases=self._vof_phases,
+                sigma=self._vof_sigma,
+            )
+            writer.register("phaseProperties", self._create_foam_dict(phase_props, "phaseProperties"))
+
+            for phase in self._vof_phases:
+                props = self._vof_phase_properties.get(phase, {})
+                nu = props.get("nu", 1e-6)
+                rho = props.get("rho", 1000)
+                pp_file = PhasePhysicalPropertiesFile(
+                    parent=self.solver, phase=phase, nu=nu, rho=rho
+                )
+                writer.register(f"physicalProperties.{phase}", self._create_foam_dict(pp_file, f"physicalProperties.{phase}"))
+
+            mt_file = MomentumTransportFile(
+                parent=self.solver,
+                simulationType=simulationType,
+            )
+            writer.register("momentumTransport", self._create_foam_dict(mt_file, "momentumTransport"))
+
+            for fname in ("transportProperties", "turbulenceProperties", "pRef"):
+                writer.unregister(fname)
+
+        writer.write_all()
+
+        if is_vof:
+            for fname in ("transportProperties", "turbulenceProperties", "pRef"):
+                fpath = constant_path / fname
+                if fpath.exists():
+                    fpath.unlink()
 
         logger.info(f"Constant directory written to {constant_path}")
         return self
