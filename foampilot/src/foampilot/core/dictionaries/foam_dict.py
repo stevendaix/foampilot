@@ -148,6 +148,10 @@ class FoamDict:
             if value is None:
                 continue
 
+            if key == "_include_etc":
+                file.write(f"{indent}{value}\n\n")
+                continue
+
             quoted_key = f'"{key}"' if any(c in key for c in '.*|()') else key
 
             if isinstance(value, dict):
@@ -297,3 +301,102 @@ class FoamDict:
         """
         self._header.update(kwargs)
         return self
+
+
+class BoundaryDict:
+    """Specialized writer for OpenFOAM boundary condition files in 0/.
+
+    Writes field files with proper FoamFile header, dimensions, internalField,
+    and boundaryField blocks using the FoamDict core infrastructure.
+    """
+
+    FIELD_DIMENSIONS = {
+        "U": "[0 1 -1 0 0 0 0]",
+        "p": "[0 2 -2 0 0 0 0]",
+        "p_rgh": "[1 -1 -2 0 0 0 0]",
+        "k": "[0 2 -2 0 0 0 0]",
+        "epsilon": "[0 2 -3 0 0 0 0]",
+        "nut": "[0 2 -1 0 0 0 0]",
+        "nuTilda": "[0 2 -1 0 0 0 0]",
+        "muTilda": "[1 -1 -1 0 0 0 0]",
+        "omega": "[0 0 -1 0 0 0 0]",
+        "T": "[0 0 0 1 0 0 0]",
+        "alphat": "[1 -1 -1 0 0 0 0]",
+        "alpha.water": "[]",
+        "alpha.air": "[]",
+        "alpha": "[]",
+        "pointDisplacement": "[0 1 0 0 0 0 0]",
+    }
+
+    FIELD_CLASSES = {
+        "U": "volVectorField",
+        "pointDisplacement": "pointVectorField",
+    }
+
+    DEFAULT_INTERNAL_FIELDS = {
+        "U": "uniform (0 0 0)",
+        "p": "uniform 0",
+        "p_rgh": "uniform 0",
+        "k": "uniform 0.375",
+        "epsilon": "uniform 0.125",
+        "omega": "uniform 1.0",
+        "nut": "uniform 0",
+        "alpha.water": "uniform 0",
+        "alpha.air": "uniform 1",
+        "alpha": "uniform 0",
+        "T": "uniform 0",
+        "pointDisplacement": "uniform (0 0 0)",
+    }
+
+    def __init__(self, field, boundaries, internal_field=None, dimensions=None,
+                 include_etc=True, compressible=False, base_path=None):
+        """Initialize BoundaryDict.
+
+        Args:
+            field: Field name (e.g., "U", "p", "k")
+            boundaries: Dict of patch_name -> params dict
+            internal_field: Optional internalField value string
+            dimensions: Optional dimensions string
+            include_etc: Whether to include #includeEtc directive
+            compressible: Whether this is a compressible flow
+            base_path: Optional base path for writing
+        """
+        self.field = field
+        self.boundaries = boundaries
+        self.internal_field = internal_field
+        self.dimensions = dimensions or self.FIELD_DIMENSIONS.get(field, "[0 0 0 0 0 0 0]")
+        self.include_etc = include_etc
+        self.compressible = compressible
+        self._base_path = base_path
+
+        if compressible and field == "p":
+            self.dimensions = "[1 -1 -2 0 0 0 0]"
+
+        data = {}
+        if self.dimensions:
+            data["dimensions"] = self.dimensions
+        if self.internal_field is None:
+            self.internal_field = self.DEFAULT_INTERNAL_FIELDS.get(field)
+        if self.internal_field:
+            data["internalField"] = self.internal_field
+        if self.boundaries is not None:
+            bf = {}
+            if include_etc:
+                bf["_include_etc"] = '#includeEtc "caseDicts/setConstraintTypes"'
+            for patch, params in self.boundaries.items():
+                if params:
+                    bf[patch] = params
+            data["boundaryField"] = bf
+
+        field_class = self.FIELD_CLASSES.get(field, "volScalarField")
+        self._foam_dict = FoamDict(field, base_path=base_path, default_data=data)
+        self._foam_dict.set_header(**{"class": field_class})
+
+    def write(self, path=None, footer=False):
+        """Write the boundary condition file.
+
+        Args:
+            path: Optional path to write to
+            footer: Whether to add the OpenFOAM footer
+        """
+        self._foam_dict.write(path=path, footer=footer)

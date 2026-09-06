@@ -5,6 +5,7 @@ import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.dictionaries import BoundaryDict
 from foampilot.utilities.manageunits import ValueWithUnit
 from foampilot.boundaries.boundaries_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
 
@@ -244,13 +245,6 @@ class Boundary:
 
 
     def write_boundary_conditions(self, internal_field_overrides: Optional[Dict[str, str]] = None):
-        """
-        Write the boundary conditions to their respective files in the 0/ directory.
-
-        Args:
-            internal_field_overrides: Optional dict mapping field names to
-                custom internalField values (e.g., {"U": "uniform (10 0 0)"}).
-        """
         if internal_field_overrides is None:
             internal_field_overrides = {}
         is_compressible = getattr(self.parent, "compressible", False)
@@ -259,7 +253,6 @@ class Boundary:
             for patch, params in boundaries.items():
                 if 'value' in params and isinstance(params['value'], str):
                     val = params['value']
-                    # Skip OpenFOAM variable references (e.g. $internalField)
                     if val.startswith('$'):
                         continue
                     if not val.startswith('uniform ') and not val.startswith('nonuniform '):
@@ -273,14 +266,15 @@ class Boundary:
                     internal_field = "uniform (" + " ".join(str(v) for v in value) + ")"
                 else:
                     internal_field = f"uniform {value}"
-            foam_file = OpenFOAMFile(field)
-            foam_file.write_boundary_file(
+            boundary_dict = BoundaryDict(
                 field=field,
                 boundaries=boundaries,
-                case_path=self.parent.case_path,
                 internal_field=internal_field,
+                include_etc=True,
                 compressible=is_compressible,
+                base_path=self.parent.case_path / "0",
             )
+            boundary_dict.write(self.parent.case_path / "0" / field)
 
 # Example Usage (for demonstration)
 if __name__ == '__main__':

@@ -544,7 +544,7 @@ class TestBoundary:
             if field == "T":
                 with open(file_path, "r") as f:
                     content = f.read()
-                    # Vérifier la condition par défaut sur 'walls'
-                    assert "walls: {'type': 'fixedValue', 'value': 'uniform 300'}" in content
-                    # Vérifier la condition par défaut sur 'inlet'
-                    assert "inlet: {'type': 'fixedValue', 'value': 'uniform 300'}" in content
+                    assert "walls" in content
+                    assert "type fixedValue" in content
+                    assert "value uniform 300" in content
+                    assert "inlet" in content
