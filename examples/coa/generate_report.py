@@ -16,7 +16,7 @@ import json
 import sys
 sys.path.insert(0, '/home/steven/foampilot')
 
-from foampilot.report.typst_pdf import ScientificDocument, TypstRenderer
+from foampilot.core.reporting.typst_pdf import ScientificDocument, TypstRenderer
 
 # Base path
 base_path = Path(__file__).parent

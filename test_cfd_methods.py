@@ -59,7 +59,7 @@ def _patched_set_directory(self, directory):
 
 BaseReader._set_directory = _patched_set_directory
 
-from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
+from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
 import pyvista as pv
 
 case_path = args.case.expanduser().resolve()

@@ -48,8 +48,8 @@ def _latex_safe(text: str) -> str:
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "foampilot" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "voxcity_export_work" / "src"))
 
-from foampilot.report.latex_pdf import LatexDocument
-from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
+from foampilot.core.reporting.latex_pdf import LatexDocument
+from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
 
 RHO_AIR = 1.225
 NU_AIR = 1.5e-5

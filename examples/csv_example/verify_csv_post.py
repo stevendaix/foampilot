@@ -18,7 +18,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "foampilot" / "src"))
 
-from foampilot.postprocess import OpenFOAMDirectReader
+from foampilot.core.postprocessing import OpenFOAMDirectReader
 import pyvista as pv
 
 

@@ -38,7 +38,7 @@ from foampilot import FluidMechanics, ValueWithUnit
 from foampilot.urban import Building, UrbanModel
 from foampilot.urban.model.terrain import CFDTerrain
 from foampilot.solver import Solver
-from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
+from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
 from vector_builder_build123 import VectorGmshBuilder
 from wind_profile import KAPPA, Z_REF
 

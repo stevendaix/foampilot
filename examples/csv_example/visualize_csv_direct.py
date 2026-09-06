@@ -16,7 +16,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "foampilot" / "src"))
 
-from foampilot.postprocess import OpenFOAMDirectReader, FoamPostProcessing
+from foampilot.core.postprocessing import OpenFOAMDirectReader, FoamPostProcessing
 import pyvista as pv
 
 pv.set_plot_theme("document")
@@ -31,7 +31,7 @@ def visualize_case(case_path: Path, field: str, title: str, cmap: str = "viridis
     print(f"{'='*60}")
 
     if use_foamtovtk:
-        from foampilot.postprocess import FoamPostProcessing
+        from foampilot.core.postprocessing import FoamPostProcessing
         post = FoamPostProcessing(str(case_path))
 
         vtk_dir = case_path / "VTK"

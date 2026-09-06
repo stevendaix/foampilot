@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from foampilot.postprocess.monitoring import CFDMonitor, compute_y_plus, integrate_surface_forces
+from foampilot.core.postprocessing.monitoring import CFDMonitor, compute_y_plus, integrate_surface_forces
 
 
 class FakeMesh:
@@ -68,7 +68,7 @@ def test_integrate_surface_forces_returns_lift_and_drag_coefficients():
 
 
 def test_integrate_mass_flux_tracks_inflow_and_outflow():
-    from foampilot.postprocess.monitoring import integrate_mass_flux
+    from foampilot.core.postprocessing.monitoring import integrate_mass_flux
 
     result = integrate_mass_flux(
         normals=np.array([[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]]),
@@ -82,7 +82,7 @@ def test_integrate_mass_flux_tracks_inflow_and_outflow():
 
 
 def test_mass_balance_aggregates_named_patches():
-    from foampilot.postprocess.monitoring import mass_balance
+    from foampilot.core.postprocessing.monitoring import mass_balance
 
     result = mass_balance({
         "inlet": {
@@ -101,7 +101,7 @@ def test_mass_balance_aggregates_named_patches():
 
 
 def test_engineering_result_is_json_ready():
-    from foampilot.postprocess.results import EngineeringResult, ResultMetadata
+    from foampilot.core.postprocessing.results import EngineeringResult, ResultMetadata
 
     result = EngineeringResult(
         metadata=ResultMetadata(field="U", units="m/s", method="volume_mean"),
@@ -113,7 +113,7 @@ def test_engineering_result_is_json_ready():
 
 
 def test_integrate_energy_flux_uses_outward_sign():
-    from foampilot.postprocess.monitoring import integrate_energy_flux
+    from foampilot.core.postprocessing.monitoring import integrate_energy_flux
 
     result = integrate_energy_flux(
         normals=np.array([[1.0, 0.0, 0.0]]),
@@ -127,7 +127,7 @@ def test_integrate_energy_flux_uses_outward_sign():
 
 
 def test_integrate_momentum_flux_returns_vector_components():
-    from foampilot.postprocess.monitoring import integrate_momentum_flux
+    from foampilot.core.postprocessing.monitoring import integrate_momentum_flux
 
     result = integrate_momentum_flux(
         normals=np.array([[1.0, 0.0, 0.0]]),
@@ -140,8 +140,8 @@ def test_integrate_momentum_flux_returns_vector_components():
 
 
 def test_engineering_report_exports_named_results(tmp_path):
-    from foampilot.postprocess.engineering_report import EngineeringReport
-    from foampilot.postprocess.results import EngineeringResult, ResultMetadata
+    from foampilot.core.postprocessing.engineering_report import EngineeringReport
+    from foampilot.core.postprocessing.results import EngineeringResult, ResultMetadata
 
     report = EngineeringReport(case="testCase", solver="simpleFoam")
     report.add("pressure", EngineeringResult(

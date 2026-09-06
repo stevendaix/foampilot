@@ -22,9 +22,9 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-from foampilot.report.latex_pdf import LatexDocument
-from foampilot.report.typst_pdf import ScientificDocument, TypstRenderer
-from foampilot.report.report_generator import CFDReportGenerator
+from foampilot.core.reporting.latex_pdf import LatexDocument
+from foampilot.core.reporting.typst_pdf import ScientificDocument, TypstRenderer
+from foampilot.core.reporting.report_generator import CFDReportGenerator
 
 
 def main():

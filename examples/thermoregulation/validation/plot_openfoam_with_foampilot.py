@@ -15,7 +15,7 @@ SRC = ROOT / "foampilot" / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from foampilot.postprocess.openfoam_direct import OpenFOAMDirectReader
+from foampilot.core.postprocessing.openfoam_direct import OpenFOAMDirectReader
 
 
 def finite_stats(values: np.ndarray) -> dict[str, float | int]:

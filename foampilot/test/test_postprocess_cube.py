@@ -16,7 +16,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from foampilot.postprocess.openfoam_pyvista import (
+from foampilot.core.postprocessing.openfoam_pyvista import (
     FoamPostProcessing,
     NumpyEncoder,
 )

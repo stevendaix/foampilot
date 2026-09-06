@@ -324,7 +324,7 @@ def step3_split_patches():
     """Split boundary into INLET, OUTLET, WALL using P04 region growing."""
     logger.info("=== Step 3: Patch splitting (P04 region growing) ===")
 
-    from foampilot.postprocess import OpenFOAMDirectReader
+    from foampilot.core.postprocessing import OpenFOAMDirectReader
 
     reader = OpenFOAMDirectReader(case_path=CASE_DIR)
     mesh = reader.mesh

@@ -26,8 +26,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.postprocess import FoamPostProcessing
-from foampilot.postprocess.wind_analysis import (
+from foampilot.core.postprocessing import FoamPostProcessing
+from foampilot.core.postprocessing.wind_analysis import (
     WindRose,
     WindCaseResult,
     WindEnsemble,
@@ -475,7 +475,7 @@ def generate_wind_rose_plots(ensemble, wind_rose, output_dir):
     directions = df.index.values
 
     # Normalize Lawson walking probability per direction
-    from foampilot.postprocess.wind_analysis import LawsonProcessor
+    from foampilot.core.postprocessing.wind_analysis import LawsonProcessor
     lawson = LawsonProcessor(ensemble, wind_rose, sector_half_width=0.0)
     walking_map = lawson.compute_probability_map(LAWSON_THRESHOLDS["walking"])
     walking_prob_per_case = {}

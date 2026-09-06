@@ -13,7 +13,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
-from foampilot.postprocess import OpenFOAMDirectReader
+from foampilot.core.postprocessing import OpenFOAMDirectReader
 
 CASE_DIR = Path(__file__).resolve().parent.parent
 TIME_STEP = "500"

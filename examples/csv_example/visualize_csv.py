@@ -12,7 +12,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "foampilot" / "src"))
 
-from foampilot.postprocess import FoamPostProcessing
+from foampilot.core.postprocessing import FoamPostProcessing
 import pyvista as pv
 
 pv.set_plot_theme("document")

@@ -6,7 +6,7 @@ import pyvista as pv
 from sklearn.decomposition import PCA
 from pathlib import Path
 
-from foampilot.postprocess import OpenFOAMDirectReader
+from foampilot.core.postprocessing import OpenFOAMDirectReader
 
 pv.OFF_SCREEN = True
 

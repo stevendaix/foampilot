@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
 from foampilot import postprocess, utilities
-from foampilot.postprocess import FoamPostProcessing
+from foampilot.core.postprocessing import FoamPostProcessing
 
 
 def run_case(case_dir: Path, nb_proc: int = 2, check_only: bool = False, sigfpe: bool = False):

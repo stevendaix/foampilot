@@ -19,7 +19,7 @@ postprocess_pkg.__path__ = [str(_SRC / "foampilot" / "postprocess")]
 sys.modules.setdefault("foampilot.postprocess", postprocess_pkg)
 
 from foampilot.physiology import JOS3, JOS3NodeCoupler, SurfaceMapping
-from foampilot.postprocess.openfoam_external_coupled import OpenFOAM13TemperatureProvider
+from foampilot.core.postprocessing.openfoam_external_coupled import OpenFOAM13TemperatureProvider
 from foampilot.physiology.jos3 import thermoregulation as threg
 from foampilot.physiology.units import as_magnitude
 

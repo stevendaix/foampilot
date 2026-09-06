@@ -13,8 +13,8 @@ import pyvista as pv
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from foampilot.postprocess.openfoam_direct import OpenFOAMDirectReader
-from foampilot.postprocess.boundary_viewer import (
+from foampilot.core.postprocessing.openfoam_direct import OpenFOAMDirectReader
+from foampilot.core.postprocessing.boundary_viewer import (
     BoundaryViewer,
     PatchInfo,
     _compute_patch_area,

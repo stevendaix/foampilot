@@ -19,7 +19,7 @@ import pyvista as pv
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.postprocess import (
+from foampilot.core.postprocessing import (
     CHTDirectReader,
     OpenFOAMDirectReader,
     read_openfoam,

@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 
 import pyvista as pv
-from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
+from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
 
 
 def plot_openfoam_geometry(case_dir: Path, output_path: Path):

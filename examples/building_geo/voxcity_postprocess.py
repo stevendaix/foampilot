@@ -26,7 +26,7 @@ import pyvista as pv
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
+from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
 
 RHO_AIR = 1.225
 NU_AIR = 1.5e-5

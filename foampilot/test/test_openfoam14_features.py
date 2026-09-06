@@ -232,7 +232,7 @@ def test_boundary_advanced_patches():
 
 def test_opencvfoam_reader_method():
     """Test that FoamPostProcessing has read_direct method."""
-    from foampilot.postprocess.openfoam_pyvista import FoamPostProcessing
+    from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
     assert hasattr(FoamPostProcessing, "read_direct"), "Missing read_direct"
     assert hasattr(FoamPostProcessing, "calc_y_plus"), "Missing calc_y_plus"
     assert hasattr(FoamPostProcessing, "calc_strain_rate"), "Missing calc_strain_rate"

@@ -18,8 +18,8 @@ import numpy as np
 import pandas as pd
 import pyvista as pv
 
-from foampilot.postprocess import OpenFOAMDirectReader
-from foampilot.postprocess.openfoam_pyvista import NumpyEncoder
+from foampilot.core.postprocessing import OpenFOAMDirectReader
+from foampilot.core.postprocessing.openfoam_pyvista import NumpyEncoder
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)

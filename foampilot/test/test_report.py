@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from foampilot.report import CFDReportGenerator, SimulationReport
+from foampilot.core.reporting import CFDReportGenerator, SimulationReport
 
 
 def test_simulation_report_keeps_extracted_settings(tmp_path, monkeypatch):
@@ -57,7 +57,7 @@ def test_latex_report_returns_generated_path(tmp_path):
 
 
 def test_mesh_quality_report_handles_log_without_re_or_patches(tmp_path):
-    from foampilot.report.mesh_report import MeshQualityReport
+    from foampilot.core.reporting.mesh_report import MeshQualityReport
 
     (tmp_path / "log.blockMesh").write_text(
         "Number of boundary faces: 4\n", encoding="utf-8"

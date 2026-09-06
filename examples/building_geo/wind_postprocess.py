@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilo
 import numpy as np
 import pyvista as pv
 
-from foampilot.postprocess.openfoam_direct import OpenFOAMDirectReader
+from foampilot.core.postprocessing.openfoam_direct import OpenFOAMDirectReader
 
 RHO_AIR = 1.225
 

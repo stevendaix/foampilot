@@ -30,7 +30,7 @@ import numpy as np
 from foampilot.mesh.quality.gmsh_quality import GmshQualityAnalyzer, QualityThresholds
 from foampilot.mesh.quality.openfoam_quality import OpenFOAMQualityAnalyzer
 from foampilot.mesh.adaptation.adaptive_mesher import AdaptiveMeshImprover
-from foampilot.report import SimulationReport
+from foampilot.core.reporting import SimulationReport
 
 
 MESH_CONFIGS = {

@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import numpy as np
 from sklearn.decomposition import PCA
-from foampilot.postprocess import OpenFOAMDirectReader
+from foampilot.core.postprocessing import OpenFOAMDirectReader
 
 CASE_DIR = Path(__file__).resolve().parent.parent
 TIME_STEP = "500"
