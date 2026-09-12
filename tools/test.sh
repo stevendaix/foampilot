@@ -1,15 +1,25 @@
 #!/bin/bash
+cd docs
 
-# Dossier racine pour la documentation
-ROOT_DIR="."   # ou le chemin vers ton dossier
+# Fichiers français
+for file in fr/*.md; do
+    if [ -f "$file" ]; then
+        filename=$(basename "$file")
+        mv "$file" "${filename%.md}.fr.md"
+        echo "Renommé: $file → ${filename%.md}.fr.md"
+    fi
+done
 
-# Fichier de sortie
-OUTPUT_FILE="file_list.txt"
+# Fichiers chinois
+for file in zh/*.md; do
+    if [ -f "$file" ]; then
+        filename=$(basename "$file")
+        mv "$file" "${filename%.md}.zh.md"
+        echo "Renommé: $file → ${filename%.md}.zh.md"
+    fi
+done
 
-# Supprime le fichier précédent s'il existe
-rm -f "$OUTPUT_FILE"
+# Supprimer les dossiers vides
+rmdir fr zh 2>/dev/null || true
 
-# Parcours tous les fichiers et écrit le chemin relatif dans le fichier
-find "$ROOT_DIR" -type f | sed "s|^$ROOT_DIR/||" > "$OUTPUT_FILE"
-
-echo "Liste de tous les fichiers générée dans $OUTPUT_FILE"
+echo "✅ Conversion terminée !"

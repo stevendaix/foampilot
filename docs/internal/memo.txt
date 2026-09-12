@@ -1,0 +1,16 @@
+doc 
+pour deployer 
+
+mkdocs gh-deploy
+
+pour test
+
+mkdocs serve --clean
+
+
+pypi 
+
+pip install --upgrade build
+
+python -m build
+twine upload dist/*

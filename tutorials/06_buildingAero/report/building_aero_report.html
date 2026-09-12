@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset='utf-8'>
+<title>Building Aerodynamics Report</title>
+<script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>
+<style>body { font-family: sans-serif; margin: 2em; max-width: 1200px; }h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }h2 { margin-top: 1.5em; }table { border-collapse: collapse; margin: 1em 0; }th, td { border: 1px solid #ccc; padding: 6px 12px; text-align: left; }th { background: #f0f0f0; }.figure-container { margin: 2em 0; }</style>
+</head>
+<body>
+<h1>Building Aerodynamics Report</h1>
+<p><strong>Author:</strong> FoamPilot</p>
+<p><strong>Case:</strong> /home/steven/foampilot/foampilot/tutorials/06_buildingAero</p>
+<h2>Summary Statistics</h2>
+<table><tr><th>Parameter</th><th>Value</th><th>Unit</th><th>Description</th></tr>
+<tr><td>Re_L</td><td>6700000.0</td><td></td><td>Reynolds number (building height)</td></tr>
+<tr><td>U_inlet</td><td>10.0</td><td>m/s</td><td>Inlet wind speed</td></tr>
+<tr><td>I_inlet</td><td>0.15</td><td></td><td>Turbulence intensity</td></tr>
+<tr><td>AR</td><td>1.0</td><td></td><td>Canyon aspect ratio (H/W)</td></tr>
+<tr><td>Cd</td><td>1.2</td><td></td><td>Mean drag coefficient</td></tr>
+<tr><td>mesh_num_points</td><td>11459</td><td></td><td>Mesh statistic: num_points</td></tr>
+<tr><td>mesh_num_cells</td><td>12786</td><td></td><td>Mesh statistic: num_cells</td></tr>
+<tr><td>mesh_bounds</td><td>[0.0, 200.0, 0.0, 100.00399780273438, 0.0, 50.0]</td><td></td><td>Mesh statistic: bounds</td></tr>
+<tr><td>mesh_volume</td><td>1000000.0684243309</td><td></td><td>Mesh statistic: volume</td></tr>
+<tr><td>mesh_area</td><td>None</td><td></td><td>Mesh statistic: area</td></tr>
+<tr><td>cell_U_mean</td><td>2.4451801776885986</td><td></td><td>Cell U statistic: mean</td></tr>
+<tr><td>cell_U_std</td><td>4.262539863586426</td><td></td><td>Cell U statistic: std</td></tr>
+<tr><td>cell_U_min</td><td>-0.4652418792247772</td><td></td><td>Cell U statistic: min</td></tr>
+<tr><td>cell_U_max</td><td>12.615300178527832</td><td></td><td>Cell U statistic: max</td></tr>
+<tr><td>cell_U_volume_weighted_mean</td><td>[8.617223661765742, -5.279255594863886e-05, 0.000153282820345665]</td><td></td><td>Cell U statistic: volume_weighted_mean</td></tr>
+<tr><td>cell_p_mean</td><td>0.5063239336013794</td><td></td><td>Cell p statistic: mean</td></tr>
+<tr><td>cell_p_std</td><td>1.0810129642486572</td><td></td><td>Cell p statistic: std</td></tr>
+<tr><td>cell_p_min</td><td>-4.667999744415283</td><td></td><td>Cell p statistic: min</td></tr>
+<tr><td>cell_p_max</td><td>8.727890014648438</td><td></td><td>Cell p statistic: max</td></tr>
+<tr><td>cell_p_volume_weighted_mean</td><td>0.7527323818939506</td><td></td><td>Cell p statistic: volume_weighted_mean</td></tr>
+</table>
+<h2>Figures</h2>
+<div class="figure-container">
+<h3>Slice Plot.Png</h3>
+<img src="/home/steven/foampilot/foampilot/tutorials/06_buildingAero/slice_plot.png" alt="Slice Plot.Png" style="max-width:100%;">
+</div>
+<div class="figure-container">
+<h3>Contour Plot.Png</h3>
+<img src="/home/steven/foampilot/foampilot/tutorials/06_buildingAero/contour_plot.png" alt="Contour Plot.Png" style="max-width:100%;">
+</div>
+<div class="figure-container">
+<h3>Vector Plot.Png</h3>
+<img src="/home/steven/foampilot/foampilot/tutorials/06_buildingAero/vector_plot.png" alt="Vector Plot.Png" style="max-width:100%;">
+</div>
+<div class="figure-container">
+<h3>Mesh Style Plot.Png</h3>
+<img src="/home/steven/foampilot/foampilot/tutorials/06_buildingAero/mesh_style_plot.png" alt="Mesh Style Plot.Png" style="max-width:100%;">
+</div>
+</body>
+</html>

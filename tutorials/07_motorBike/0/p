@@ -1,0 +1,244 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+
+dimensions      [0 2 -2 0 0 0 0];
+internalField   uniform 0;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "inlet"
+    {
+        type            zeroGradient;
+    }
+
+    "outlet"
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+
+    "lowerWall"
+    {
+        type            zeroGradient;
+    }
+
+    "upperWall"
+    {
+        type            symmetryPlane;
+    }
+
+    "front"
+    {
+        type            symmetryPlane;
+    }
+
+    "back"
+    {
+        type            symmetryPlane;
+    }
+
+    "motorBike_frt-fairing:001%1"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_windshield:002%2"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rr-wh-rim:005%5"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rr-wh-rim:010%10"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_frame:016-shadow%13"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rear-susp:014%14"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rr-wh-chain-hub:022%22"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rearseat%24"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_frt-fairing%25"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_windshield%26"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_driversseat%28"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rear-body%29"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_fuel-tank%30"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_exhaust%31"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_fr-mud-guard%33"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_fr-wh-rim%34"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_fr-brake-caliper%36"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_fr-wh-tyre%37"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_hbars%38"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_fr-forks%39"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rr-wh-tyre%41"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rear-susp%45"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rear-brake-lights%46"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rear-light-bracket%47"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_frame%48"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rear-mud-guard%49"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_clutch-housing%52"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rear-brake-caliper%62"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rider-helmet%65"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rider-visor%66"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rider-boots%67"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rider-gloves%68"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rider-body%69"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_frt-fairing:001-shadow%74"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_windshield-shadow%75"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_fr-mud-guard-shadow%81"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_fr-wh-brake-disk-shadow%83"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_rear-mud-guard-shadow%84"
+    {
+        type            zeroGradient;
+    }
+
+    "motorBike_r."
+    {
+        type            zeroGradient;
+    }
+
+}
+
+// ************************************************************************* //

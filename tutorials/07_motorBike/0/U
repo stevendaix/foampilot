@@ -1,0 +1,246 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "inlet"
+    {
+        type            fixedValue;
+        value           uniform (20 0 0);
+    }
+
+    "outlet"
+    {
+        type            inletOutlet;
+        inletValue      uniform (0 0 0);
+        value           uniform (20 0 0);
+    }
+
+    "lowerWall"
+    {
+        type            noSlip;
+    }
+
+    "upperWall"
+    {
+        type            symmetryPlane;
+    }
+
+    "front"
+    {
+        type            symmetryPlane;
+    }
+
+    "back"
+    {
+        type            symmetryPlane;
+    }
+
+    "motorBike_frt-fairing:001%1"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_windshield:002%2"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rr-wh-rim:005%5"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rr-wh-rim:010%10"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_frame:016-shadow%13"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rear-susp:014%14"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rr-wh-chain-hub:022%22"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rearseat%24"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_frt-fairing%25"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_windshield%26"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_driversseat%28"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rear-body%29"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_fuel-tank%30"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_exhaust%31"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_fr-mud-guard%33"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_fr-wh-rim%34"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_fr-brake-caliper%36"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_fr-wh-tyre%37"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_hbars%38"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_fr-forks%39"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rr-wh-tyre%41"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rear-susp%45"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rear-brake-lights%46"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rear-light-bracket%47"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_frame%48"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rear-mud-guard%49"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_clutch-housing%52"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rear-brake-caliper%62"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rider-helmet%65"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rider-visor%66"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rider-boots%67"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rider-gloves%68"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rider-body%69"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_frt-fairing:001-shadow%74"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_windshield-shadow%75"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_fr-mud-guard-shadow%81"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_fr-wh-brake-disk-shadow%83"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_rear-mud-guard-shadow%84"
+    {
+        type            noSlip;
+    }
+
+    "motorBike_r."
+    {
+        type            noSlip;
+    }
+
+}
+
+// ************************************************************************* //

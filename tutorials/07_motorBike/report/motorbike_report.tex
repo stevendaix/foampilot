@@ -1,0 +1,154 @@
+\documentclass{article}%
+\usepackage[T1]{fontenc}%
+\usepackage[utf8]{inputenc}%
+\usepackage{lmodern}%
+\usepackage{textcomp}%
+\usepackage{lastpage}%
+\usepackage{graphicx}%
+%
+\usepackage{graphicx}%
+\title{Simulation Report: MotorBike External Aero}%
+\author{Automated Report}%
+\date{\today}%
+%
+\begin{document}%
+\normalsize%
+\maketitle%
+\tableofcontents%
+\begin{abstract}%
+Ce rapport presente les resultats de la simulation aerodynamique externe a haute vitesse autour d'une moto avec simpleFoam et le modele SpalartAllmaras.%
+\end{abstract}%
+\section{Proprietes du fluide}%
+\label{sec:Proprietesdufluide}%
+Ecoulement incompressible, air a 20 degres C, vitesse d'entree 20 m/s.
+
+%
+\section{Statistiques du maillage}%
+\label{sec:Statistiquesdumaillage}%
+Resume des metriques de qualite du maillage :
+
+%
+
+
+\begin{figure}[h!]%
+\begin{tabular}{|c|c|}%
+\hline%
+Statistique&Valeur\\%
+\hline%
+num\_points&3888\\%
+\hline%
+num\_cells&5924\\%
+\hline%
+bounds&{[}0.0, 20.0, {-}0.06235650181770325, 8.0, 0.0, 8.0{]}\\%
+\hline%
+volume&1279.7388652798277\\%
+\hline%
+area&None\\%
+\hline%
+\end{tabular}%
+\caption{Qualite du maillage}%
+\end{figure}
+
+%
+\section{Statistiques du champ de vitesse (region cell)}%
+\label{sec:Statistiquesduchampdevitesse(regioncell)}%
+Statistiques du champ de vitesse dans le domaine fluide.
+
+%
+
+
+\begin{figure}[h!]%
+\begin{tabular}{|c|c|}%
+\hline%
+Statistique&Valeur\\%
+\hline%
+mean&5.776279449462891\\%
+\hline%
+std&9.230350494384766\\%
+\hline%
+min&{-}7.10230016708374\\%
+\hline%
+max&26.260526657104492\\%
+\hline%
+volume\_weighted\_mean&{[}18.90834181797892, {-}0.00564507449823482, 0.005593384130331571{]}\\%
+\hline%
+\end{tabular}%
+\caption{Statistiques du champ 'U'}%
+\end{figure}
+
+%
+\section{Statistiques du champ de pression (frontiere)}%
+\label{sec:Statistiquesduchampdepression(frontiere)}%
+Statistiques de la pression sur la frontiere de la moto.
+
+%
+
+
+\begin{figure}[h!]%
+\begin{tabular}{|c|c|}%
+\hline%
+Statistique&Valeur\\%
+\hline%
+mean&{-}36.8760986328125\\%
+\hline%
+std&0.0\\%
+\hline%
+min&{-}36.8760986328125\\%
+\hline%
+max&{-}36.8760986328125\\%
+\hline%
+volume\_weighted\_mean&0.0\\%
+\hline%
+\end{tabular}%
+\caption{Statistiques du champ 'p'}%
+\end{figure}
+
+%
+\section{Visualisations}%
+\label{sec:Visualisations}%
+Figures representant l'ecoulement, la pression, les vecteurs vitesse et le maillage.
+
+%
+
+
+\begin{figure}[h!]%
+\centering%
+\includegraphics[width=0.7\textwidth]{/home/steven/foampilot/foampilot/tutorials/07_motorBike/slice_plot.png}%
+\caption{Slice Plot.Png}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\centering%
+\includegraphics[width=0.7\textwidth]{/home/steven/foampilot/foampilot/tutorials/07_motorBike/contour_plot.png}%
+\caption{Contour Plot.Png}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\centering%
+\includegraphics[width=0.7\textwidth]{/home/steven/foampilot/foampilot/tutorials/07_motorBike/vector_plot.png}%
+\caption{Vector Plot.Png}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\centering%
+\includegraphics[width=0.7\textwidth]{/home/steven/foampilot/foampilot/tutorials/07_motorBike/mesh_style_plot.png}%
+\caption{Mesh Style Plot.Png}%
+\end{figure}
+
+%
+\appendix%
+\section{Export des donnees}%
+\label{sec:Exportdesdonnees}%
+Les donnees de la region 'cell' ont ete exportees dans cell\_data.csv pour analyse ulterieure.
+
+%
+\end{document}

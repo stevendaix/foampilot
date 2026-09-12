@@ -2,39 +2,46 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   architecture:
-    name: Architecture audit
+    name: Architecture Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest
-      - name: Run architecture check
-        run: python tools/audit/check_architecture.py
 
-  tests:
-    name: Test suite
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install foampilot
+        run: |
+          pip install -e .
+
+      - name: Check architecture
+        run: |
+          python tools/audit/check_architecture.py
+
+  test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - name: Install dependencies
+
+      - name: Install foampilot
         run: |
-          python -m pip install --upgrade pip
+          pip install -e .
           pip install pytest
+
       - name: Run tests
         run: |
-          cd foampilot
-          PYTHONPATH=src python3 -m pytest test/ -v --tb=short
+          PYTHONPATH=src python -m pytest test/ -v

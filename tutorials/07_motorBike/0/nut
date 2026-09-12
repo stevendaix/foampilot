@@ -1,0 +1,285 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      nut;
+}
+
+dimensions      [0 2 -1 0 0 0 0];
+internalField   uniform 0;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "inlet"
+    {
+        type            calculated;
+        value           uniform 0;
+    }
+
+    "outlet"
+    {
+        type            calculated;
+        value           uniform 0;
+    }
+
+    "lowerWall"
+    {
+        type            nutUSpaldingWallFunction;
+        value           uniform 0;
+    }
+
+    "upperWall"
+    {
+        type            symmetryPlane;
+    }
+
+    "front"
+    {
+        type            symmetryPlane;
+    }
+
+    "back"
+    {
+        type            symmetryPlane;
+    }
+
+    "motorBike_frt-fairing:001%1"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_windshield:002%2"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rr-wh-rim:005%5"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rr-wh-rim:010%10"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_frame:016-shadow%13"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rear-susp:014%14"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rr-wh-chain-hub:022%22"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rearseat%24"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_frt-fairing%25"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_windshield%26"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_driversseat%28"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rear-body%29"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_fuel-tank%30"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_exhaust%31"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_fr-mud-guard%33"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_fr-wh-rim%34"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_fr-brake-caliper%36"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_fr-wh-tyre%37"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_hbars%38"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_fr-forks%39"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rr-wh-tyre%41"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rear-susp%45"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rear-brake-lights%46"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rear-light-bracket%47"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_frame%48"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rear-mud-guard%49"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_clutch-housing%52"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rear-brake-caliper%62"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rider-helmet%65"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rider-visor%66"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rider-boots%67"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rider-gloves%68"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rider-body%69"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_frt-fairing:001-shadow%74"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_windshield-shadow%75"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_fr-mud-guard-shadow%81"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_fr-wh-brake-disk-shadow%83"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_rear-mud-guard-shadow%84"
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+
+    "motorBike_r."
+    {
+        type            nutUSpaldingWallFunction;
+        value           uniform 0;
+    }
+
+}
+
+// ************************************************************************* //

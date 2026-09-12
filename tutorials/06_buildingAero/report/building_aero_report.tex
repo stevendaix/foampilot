@@ -1,0 +1,194 @@
+\documentclass{article}%
+\usepackage[T1]{fontenc}%
+\usepackage[utf8]{inputenc}%
+\usepackage{lmodern}%
+\usepackage{textcomp}%
+\usepackage{lastpage}%
+\usepackage{amsmath}%
+\usepackage{graphicx}%
+%
+\usepackage{graphicx}%
+\title{Aérodynamique des bâtiments — Rapport complet}%
+\author{FoamPilot}%
+\date{\today}%
+%
+\begin{document}%
+\normalsize%
+\maketitle%
+\tableofcontents%
+\begin{abstract}%
+Ce rapport présente la simulation aérodynamique urbaine autour d'un quartier de bâtiments avec simpleFoam et le modèle k{-}epsilon.%
+\end{abstract}%
+\section{Profil de couche limite urbaine}%
+\label{sec:Profildecouchelimiteurbaine}%
+
+%
+\[%
+u(y) = u_* \frac{\ln(y / y_0)}{\kappa}%
+\]%
+\section{Ratio d'aspect du canyon}%
+\label{sec:Ratiodaspectducanyon}%
+
+%
+\[%
+AR = \frac{H_{building}}{W_{street}} = 1.0%
+\]%
+\section{Paramètres de simulation}%
+\label{sec:Paramtresdesimulation}%
+
+%
+
+
+\begin{figure}[h!]%
+\begin{tabular}{|c|c|c|}%
+\hline%
+Paramètre&Valeur&Unité\\%
+\hline%
+Paramètre&Valeur&Unité\\%
+\hline%
+Vitesse entrée&10&m/s\\%
+\hline%
+Intensité turbulente&15&\%\\%
+\hline%
+Modèle turbulence&k{-}epsilon&\\%
+\hline%
+Temps final&100&s\\%
+\hline%
+Taille maille&40×20×10&cells\\%
+\hline%
+\end{tabular}%
+\caption{Simulation parameters}%
+\end{figure}
+
+%
+\section{Statistiques du maillage}%
+\label{sec:Statistiquesdumaillage}%
+
+%
+
+
+\begin{figure}[h!]%
+\begin{tabular}{|c|c|}%
+\hline%
+Statistic&Value\\%
+\hline%
+Statistique&Valeur\\%
+\hline%
+num\_points&11459\\%
+\hline%
+num\_cells&12786\\%
+\hline%
+bounds&{[}0.0, 200.0, 0.0, 100.00399780273438, 0.0, 50.0{]}\\%
+\hline%
+volume&1000000.0684243309\\%
+\hline%
+area&None\\%
+\hline%
+\end{tabular}%
+\caption{Mesh quality statistics}%
+\end{figure}
+
+%
+\section{Statistiques du champ de vitesse (U)}%
+\label{sec:Statistiquesduchampdevitesse(U)}%
+
+%
+
+
+\begin{figure}[h!]%
+\begin{tabular}{|c|c|}%
+\hline%
+Statistic&Value\\%
+\hline%
+Statistique&Valeur\\%
+\hline%
+mean&2.4451801776885986\\%
+\hline%
+std&4.262539863586426\\%
+\hline%
+min&{-}0.4652418792247772\\%
+\hline%
+max&12.615300178527832\\%
+\hline%
+volume\_weighted\_mean&{[}8.617223661765742, {-}5.279255594863886e{-}05, 0.000153282820345665{]}\\%
+\hline%
+\end{tabular}%
+\caption{Velocity field (U) statistics}%
+\end{figure}
+
+%
+\section{Statistiques du champ de pression (p)}%
+\label{sec:Statistiquesduchampdepression(p)}%
+
+%
+
+
+\begin{figure}[h!]%
+\begin{tabular}{|c|c|}%
+\hline%
+Statistic&Value\\%
+\hline%
+Statistique&Valeur\\%
+\hline%
+mean&0.5063239336013794\\%
+\hline%
+std&1.0810129642486572\\%
+\hline%
+min&{-}4.667999744415283\\%
+\hline%
+max&8.727890014648438\\%
+\hline%
+volume\_weighted\_mean&0.7527323818939506\\%
+\hline%
+\end{tabular}%
+\caption{Pressure field (p) statistics}%
+\end{figure}
+
+%
+\section{Visualisations}%
+\label{sec:Visualisations}%
+
+%
+
+
+\begin{figure}[h!]%
+\centering%
+\includegraphics[width=0.7\textwidth]{/home/steven/foampilot/foampilot/tutorials/06_buildingAero/slice_plot.png}%
+\caption{Slice Plot.Png}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\centering%
+\includegraphics[width=0.7\textwidth]{/home/steven/foampilot/foampilot/tutorials/06_buildingAero/contour_plot.png}%
+\caption{Contour Plot.Png}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\centering%
+\includegraphics[width=0.7\textwidth]{/home/steven/foampilot/foampilot/tutorials/06_buildingAero/vector_plot.png}%
+\caption{Vector Plot.Png}%
+\end{figure}
+
+%
+
+
+\begin{figure}[h!]%
+\centering%
+\includegraphics[width=0.7\textwidth]{/home/steven/foampilot/foampilot/tutorials/06_buildingAero/mesh_style_plot.png}%
+\caption{Mesh Style Plot.Png}%
+\end{figure}
+
+%
+\appendix%
+\section{Données cellule}%
+\label{sec:Donnescellule}%
+Les données cellule ont été exportées vers cell\_data.csv pour analyse externe.
+
+%
+\end{document}
