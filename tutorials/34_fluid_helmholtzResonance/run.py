@@ -19,23 +19,17 @@ def prepare_variant(case_path: Path, variant: str) -> Solver:
     solver.constant.write()
     mesh = Meshing(case_path, mesher="blockMesh")
 
-    for source in (REFERENCE / "system").iterdir():
-        if source.is_file():
-            solver.system.import_reference_file(source)
+    # Declarative generation: solver.system.write() already called in setup_case
     for suffix, destination in (("Blocks", "blockMeshDict.caseBlocks"), ("Boundary", "blockMeshDict.caseBoundary")):
         solver.system.import_reference_file(
             REFERENCE / "system" / f"blockMeshDict.{variant}{suffix}",
             destination,
         )
-    for source in (REFERENCE / "constant").iterdir():
-        if source.is_file():
-            solver.constant.import_reference_file(source)
-    for source in (REFERENCE / "0").iterdir():
-        if source.is_file():
-            solver.fields_manager.import_reference_field(source, case_path)
+    # Declarative generation: solver.constant.write() already called in setup_case
+    # Declarative generation: solver.fields_manager.write_initial_fields()
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
-    mesh.mesher.import_reference_dict(REFERENCE / "system" / "blockMeshDict")
+    # Declarative generation: no files to remove
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     return solver
 
 

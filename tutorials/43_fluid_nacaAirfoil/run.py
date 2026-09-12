@@ -18,20 +18,14 @@ def main() -> None:
     solver.system.write()
     solver.constant.write()
 
-    for source in (REFERENCE / "system").iterdir():
-        if source.is_file():
-            solver.system.import_reference_file(source)
-    for source in (REFERENCE / "constant").iterdir():
-        if source.is_file():
-            solver.constant.import_reference_file(source)
-    for source in (REFERENCE / "0").iterdir():
-        if source.is_file():
-            solver.fields_manager.import_reference_field(source, case_path)
+    # Declarative generation: solver.system.write() already called in setup_case
+    # Declarative generation: solver.constant.write() already called in setup_case
+    # Declarative generation: solver.fields_manager.write_initial_fields()
     for source in (REFERENCE / "prostar").iterdir():
         if source.is_file():
             solver.import_reference_asset(source, Path("prostar") / source.name)
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    # Declarative generation: no files to remove
     solver.system.run_utility("star3ToFoam", ["prostar/nacaAirfoil"], log_filename="log.star3ToFoam")
     solver.system.replace_file_text(
         "constant/polyMesh/boundary",

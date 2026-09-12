@@ -35,7 +35,7 @@ def main() -> None:
                 source, case_path, field_name=relative_name
             )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    # Declarative generation: no files to remove
     solver.system.run_utility(
         "snappyHexMeshConfig",
         [

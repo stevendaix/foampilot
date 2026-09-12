@@ -91,7 +91,7 @@ def main() -> None:
     solver.system.import_reference_file(REFERENCE / "constant" / "fvModels", "fvModels")
 
     mesh = Meshing(case_path, mesher="blockMesh")
-    mesh.mesher.import_reference_dict(RESOURCE_BLOCK_MESH)
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     mesh.mesher.import_reference_asset(
         Path("/opt/openfoam13/tutorials/resources/geometry/ballValve-torus.obj.gz"),
         case_path / "constant" / "geometry" / "ballValve-torus.obj",

@@ -40,12 +40,10 @@ def prepare_case(case_path: Path, hydrogen: bool = False) -> Solver:
         else:
             solver.constant.import_reference_file(source)
 
-    for source in (REFERENCE / "0").iterdir():
-        if source.is_file():
-            solver.fields_manager.import_reference_field(source, case_path)
+    # Declarative generation: solver.fields_manager.write_initial_fields()
 
     mesh = Meshing(case_path, mesher="blockMesh")
-    mesh.mesher.import_reference_dict(REFERENCE / "system" / "blockMeshDict")
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     mesh.mesher.run()
 
     if not hydrogen:

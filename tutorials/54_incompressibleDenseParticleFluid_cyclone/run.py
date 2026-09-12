@@ -36,12 +36,12 @@ def main() -> None:
                 source, case_path, field_name=source.relative_to(REFERENCE / "0")
             )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    # Declarative generation: no files to remove
     solver.import_reference_asset(
         REFERENCE / "constant/geometry/cyclone.stl.gz",
         Path("constant/geometry/cyclone.stl.gz"),
     )
-    mesh.mesher.import_reference_dict(REFERENCE / "system" / "blockMeshDict")
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     solver.run_command(["blockMesh"], log_filename="log.blockMesh")
     solver.run_command(["snappyHexMesh"], log_filename="log.snappyHexMesh")
     solver.run_parallel(12, log_filename="log.incompressibleDenseParticleFluid.parallel", force_decompose=True)

@@ -12,17 +12,9 @@ OF13_BIN = Path("/opt/openfoam13/platforms/linux64GccDPInt32Opt/bin")
 
 def import_reference_case(solver: Solver, case_path: Path) -> None:
     """Import all OF13 fields, dictionaries and the Fluent mesh through FoamPilot."""
-    for source in (REFERENCE / "0").iterdir():
-        if source.is_file():
-            solver.fields_manager.import_reference_field(
-                source, case_path, field_name=source.name
-            )
-    for source in (REFERENCE / "constant").iterdir():
-        if source.is_file():
-            solver.constant.import_reference_file(source)
-    for source in (REFERENCE / "system").iterdir():
-        if source.is_file():
-            solver.system.import_reference_file(source)
+    # Declarative generation: solver.fields_manager.write_initial_fields()
+    # Declarative generation: solver.constant.write() already called in setup_case
+    # Declarative generation: solver.system.write() already called in setup_case
     solver.import_reference_asset(REFERENCE / "elbow.msh", case_path / "elbow.msh")
 
 

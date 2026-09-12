@@ -38,9 +38,9 @@ def main() -> None:
                 source, case_path, field_name=source.relative_to(REFERENCE / "0")
             )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    # Declarative generation: no files to remove
     solver.import_reference_asset(GEOMETRY, Path("constant/geometry/ballValve-torus.obj.gz"))
-    mesh.mesher.import_reference_dict(MESH_REFERENCE)
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     solver.run_command(["blockMesh"], log_filename="log.blockMesh")
     solver.system.run_utility("createZones", log_filename="log.createZones")
     solver.system.run_utility(

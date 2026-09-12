@@ -56,7 +56,7 @@ def prepare_source(source_case: Path) -> None:
     source_solver.system.import_reference_file(
         REFERENCE / "system" / "decomposeParDict", filename="decomposeParDict"
     )
-    source_solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    source_# Declarative generation: no files to remove
     Meshing(source_case, mesher="blockMesh").mesher.import_reference_dict(MESH_REFERENCE)
     source_solver.run_command(["blockMesh"], log_filename="log.blockMesh.source")
     source_solver.run_command(["decomposePar"], log_filename="log.decomposePar.source")
@@ -101,7 +101,7 @@ def main() -> None:
             log_filename=f"log.foamDictionary.merge.{field}",
         )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    # Declarative generation: no files to remove
     solver.system.update_dictionary_entries(
         "system/fvSolution", {"relaxationFactors/equations": '{ ".*" 0.1; }'}
     )

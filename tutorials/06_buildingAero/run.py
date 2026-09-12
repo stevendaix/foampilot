@@ -1,12 +1,13 @@
 """OpenFOAM 13 incompressibleFluid/windAroundBuildings through FoamPilot only."""
 from pathlib import Path
+import os
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot.solver import Solver
 
-REFERENCE = Path("/opt/openfoam13/tutorials/incompressibleFluid/windAroundBuildings")
+REFERENCE = Path(os.environ.get("FOAM_TUTORIALS", "/opt/openfoam13/tutorials")) / "incompressibleFluid" / "windAroundBuildings"
 
 
 def main() -> None:

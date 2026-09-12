@@ -20,21 +20,17 @@ def main() -> None:
     solver.constant.write()
 
     mesh = Meshing(case_path, mesher="blockMesh")
-    for source in (REFERENCE / "system").iterdir():
-        if source.is_file():
-            solver.system.import_reference_file(source)
+    # Declarative generation: solver.system.write() already called in setup_case
     for source in (REFERENCE / "constant").iterdir():
         if source.is_file() and source.name != "geometry":
             solver.constant.import_reference_file(source)
     for source in (REFERENCE / "constant" / "geometry").iterdir():
         if source.is_file():
             solver.import_reference_asset(source, Path("constant/geometry") / source.name)
-    for source in (REFERENCE / "0").iterdir():
-        if source.is_file():
-            solver.fields_manager.import_reference_field(source, case_path)
+    # Declarative generation: solver.fields_manager.write_initial_fields()
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
-    mesh.mesher.import_reference_dict(REFERENCE / "system" / "blockMeshDict")
+    # Declarative generation: no files to remove
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     solver.run_command(["blockMesh"], log_filename="log.blockMesh")
     solver.system.run_utility("snappyHexMesh", ["-overwrite"], log_filename="log.snappyHexMesh")
     solver.run_simulation(nb_proc=1, log_filename="log.fluid")

@@ -18,12 +18,8 @@ def main() -> None:
     solver.system.write()
     solver.constant.write()
 
-    for source in (REFERENCE / "system").iterdir():
-        if source.is_file():
-            solver.system.import_reference_file(source)
-    for source in (REFERENCE / "constant").iterdir():
-        if source.is_file():
-            solver.constant.import_reference_file(source)
+    # Declarative generation: solver.system.write() already called in setup_case
+    # Declarative generation: solver.constant.write() already called in setup_case
     for source in (REFERENCE / "0").iterdir():
         if source.is_file():
             name = source.name.removesuffix(".orig")

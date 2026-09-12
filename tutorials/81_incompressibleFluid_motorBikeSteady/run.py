@@ -41,7 +41,7 @@ def main() -> None:
                 source, case_path, field_name=rel.parent / active_name(source)
             )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    # Declarative generation: no files to remove
     block = Meshing(case_path, mesher="blockMesh")
     block.mesher.import_reference_dict(REFERENCE / "system" / "blockMeshDict")
     solver.run_command(["surfaceFeatures"], log_filename="log.surfaceFeatures")

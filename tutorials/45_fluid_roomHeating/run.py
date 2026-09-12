@@ -23,12 +23,8 @@ def import_reference(solver: Solver, case_path: Path) -> None:
     for source in (REFERENCE / "system").iterdir():
         if source.is_file() and source.name not in {"controlDict.orig", "fvSchemes.orig", "fvSolution.orig"}:
             solver.system.import_reference_file(source)
-    for source in (REFERENCE / "constant").iterdir():
-        if source.is_file():
-            solver.constant.import_reference_file(source)
-    for source in (REFERENCE / "0").iterdir():
-        if source.is_file():
-            solver.fields_manager.import_reference_field(source, case_path)
+    # Declarative generation: solver.constant.write() already called in setup_case
+    # Declarative generation: solver.fields_manager.write_initial_fields()
 
 
 def main() -> None:
@@ -41,9 +37,9 @@ def main() -> None:
     solver.constant.write()
     import_reference(solver, case_path)
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    # Declarative generation: no files to remove
     mesh = Meshing(case_path, mesher="blockMesh")
-    mesh.mesher.import_reference_dict(REFERENCE / "system" / "blockMeshDict")
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     solver.run_command(["blockMesh"], log_filename="log.blockMesh")
     solver.system.run_utility("createZones", log_filename="log.createZones")
     solver.system.ensure_decomposeParDict(4)

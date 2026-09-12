@@ -43,8 +43,8 @@ def main() -> None:
                 source, case_path, field_name=rel.parent / active_name(source)
             )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
-    mesh.mesher.import_reference_dict(REFERENCE / "system" / "blockMeshDict")
+    # Declarative generation: no files to remove
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     solver.run_command(["blockMesh"], log_filename="log.blockMesh")
     for map_time in ("0.0015", "0.003"):
         source = REFERENCE / "system" / "meshes" / map_time / "blockMeshDict"

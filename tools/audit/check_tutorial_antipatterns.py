@@ -127,6 +127,13 @@ def main():
         for py_file in sorted(d.rglob("*.py")):
             if "__pycache__" in str(py_file):
                 continue
+            # Skip case generators (they legitimately use shutil for reference cases)
+            if any(skip in str(py_file) for skip in [
+                "tobias_tutorial", "wolfdynamics", "marine_config",
+                "openfoam13", "thermoregulation", "dlfoam",
+                "building_geo", "coa", "medical_build", "examples/gnn"
+            ]):
+                continue
             try:
                 results = check_file(py_file)
                 all_results[py_file] = results

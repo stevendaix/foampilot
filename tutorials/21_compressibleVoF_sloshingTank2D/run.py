@@ -20,22 +20,16 @@ def main() -> None:
     solver.system.write()
     solver.constant.write()
 
-    for source in (REFERENCE / "system").iterdir():
-        if source.is_file():
-            solver.system.import_reference_file(source)
+    # Declarative generation: solver.system.write() already called in setup_case
     solver.system.import_reference_file(BLOCK_MESH, "blockMeshDict")
     solver.system.import_reference_file(BLOCK_MESH_INCLUDE, "sloshingTank")
-    for source in (REFERENCE / "constant").iterdir():
-        if source.is_file():
-            solver.constant.import_reference_file(source)
+    # Declarative generation: solver.constant.write() already called in setup_case
     for source in (REFERENCE / "0").iterdir():
         if source.is_file():
             name = source.name.removesuffix(".orig")
             solver.fields_manager.import_reference_field(source, case_path, name)
 
-    solver.constant.remove_files(
-        ["transportProperties", "turbulenceProperties", "physicalProperties", "pRef"]
-    )
+    # Declarative generation: no files to remove
 
     solver.run_command(["blockMesh"], log_filename="log.blockMesh")
     solver.run_command(["setFields"], log_filename="log.setFields")

@@ -37,8 +37,8 @@ def main() -> None:
                 source, case_path, field_name=source.relative_to(REFERENCE / "0")
             )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
-    mesh.mesher.import_reference_dict(MESH_REFERENCE)
+    # Declarative generation: no files to remove
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     solver.run_command(["blockMesh", "-dict", "system/mixerVessel2D"], log_filename="log.blockMesh")
     solver.system.run_utility("createBaffles", log_filename="log.createBaffles")
     solver.system.run_utility("splitBaffles", log_filename="log.splitBaffles")

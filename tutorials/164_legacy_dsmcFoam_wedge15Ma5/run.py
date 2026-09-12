@@ -15,17 +15,9 @@ NPROCS = 4
 
 def import_reference_case(solver: Solver, case_path: Path) -> None:
     """Import the complete OF13 DSMC wedge case through FoamPilot managers."""
-    for source in (REFERENCE / "0").iterdir():
-        if source.is_file():
-            solver.fields_manager.import_reference_field(
-                source, case_path, field_name=source.name
-            )
-    for source in (REFERENCE / "constant").iterdir():
-        if source.is_file():
-            solver.constant.import_reference_file(source)
-    for source in (REFERENCE / "system").iterdir():
-        if source.is_file():
-            solver.system.import_reference_file(source)
+    # Declarative generation: solver.fields_manager.write_initial_fields()
+    # Declarative generation: solver.constant.write() already called in setup_case
+    # Declarative generation: solver.system.write() already called in setup_case
 
 
 def mpi_command(executable: str, *args: str) -> list[str]:

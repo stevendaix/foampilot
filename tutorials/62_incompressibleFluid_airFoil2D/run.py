@@ -33,7 +33,7 @@ def main() -> None:
                 source, case_path, field_name=source.relative_to(REFERENCE / "0")
             )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
+    # Declarative generation: no files to remove
     solver.run_simulation(nb_proc=1, log_filename="log.incompressibleFluid")
 
 

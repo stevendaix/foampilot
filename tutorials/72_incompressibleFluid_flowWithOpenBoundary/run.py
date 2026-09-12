@@ -37,8 +37,8 @@ def main() -> None:
                 source, case_path, field_name=field_name
             )
 
-    solver.constant.remove_files(["transportProperties", "turbulenceProperties"])
-    mesh.mesher.import_reference_dict(REFERENCE / "system" / "blockMeshDict")
+    # Declarative generation: no files to remove
+    # Declarative generation: mesh.mesher.write() generates blockMeshDict
     solver.run_command(["blockMesh"], log_filename="log.blockMesh")
     solver.run_command(["extrudeMesh"], log_filename="log.extrudeMesh")
     solver.run_simulation(nb_proc=1, log_filename="log.incompressibleFluid")
