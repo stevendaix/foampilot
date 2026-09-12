@@ -13,7 +13,7 @@ import subprocess
 from pathlib import Path
 
 from foampilot import Solver, ValueWithUnit
-from foampilot.base import CaseBuilder, Meshing
+from foampilot.core.base.meshing import CaseBuilder, Meshing
 from foampilot.core.meshing.marine_mrf import write_rotating_zone
 from foampilot.constant import MomentumTransportFile
 from foampilot.system.controlDictFile import ControlDictFile
