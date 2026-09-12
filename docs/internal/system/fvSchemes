@@ -1,0 +1,42 @@
+FoamFile
+{
+    version     2.0;
+    format     ascii;
+    class     dictionary;
+    object     fvSchemes;
+}
+
+ddtSchemes
+{
+    default Euler;
+}
+gradSchemes
+{
+    default Gauss linear;
+}
+divSchemes
+{
+    default none;
+    "div(rhoPhi,U)" Gauss linearUpwind grad(U);
+    "div(phi,alpha)" Gauss MPLIC;
+    "div(phi,omega)" Gauss upwind;
+    "div(phi,k)" Gauss upwind;
+    "div(phirb,alpha.water)" Gauss interfaceCompression water;
+    "div(phirb,alpha.air)" Gauss interfaceCompression air;
+}
+laplacianSchemes
+{
+    default Gauss linear corrected;
+}
+interpolationSchemes
+{
+    default linear;
+}
+snGradSchemes
+{
+    default corrected;
+}
+wallDist
+{
+    method meshWave;
+}

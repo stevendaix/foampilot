@@ -1,0 +1,55 @@
+site_name: FoamPilot Documentation
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - navigation.instant
+
+plugins:
+  - search
+  - i18n:
+      default_language: en
+      languages:
+        en: 
+          name: English
+          default: true
+          build: true
+        fr: 
+          name: Français
+          default: false
+          build: true      
+          translate_nav:
+            Home: Accueil
+            About: À propos
+            Installation: Installation
+            OpenFOAM: OpenFOAM
+        zh: 
+          name: 中文
+          default: false
+          build: true
+          translate_nav:
+            Home: 主页
+            About: 关于
+            Installation: 安装
+            OpenFOAM: OpenFOAM
+extra:
+  alternate:
+    - name: English
+      link: en
+      lang: en
+    - name: Français
+      link: fr
+      lang: fr
+    - name: 中文
+      link: zh
+      lang: zh
+
+nav:
+  - welcome.md
+  - Home: en/index.md
+  - About: en/about.md
+  - Installation:
+      - OpenFOAM: en/install_openfoam.md
