@@ -11,10 +11,10 @@ Utilise typst pour créer un document scientifique avec:
 
 from pathlib import Path
 import json
+import sys
 
 # Add foampilot to path
-import sys
-sys.path.insert(0, '/home/steven/foampilot')
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from foampilot.core.reporting.typst_pdf import ScientificDocument, TypstRenderer
 

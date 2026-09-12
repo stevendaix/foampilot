@@ -3,7 +3,6 @@
 OpenFOAM case builder from TBAD geometry.
 Complete pipeline: STL/NIfTI → CAD → Mesh → OpenFOAM case.
 """
-import shutil
 import logging
 from pathlib import Path
 from typing import Optional, Union, List
@@ -51,7 +50,11 @@ class OpenFOAMCaseBuilder:
                           refinement: int = 1, layers: int = 3, layer_thickness: float = 0.2):
         stl_dest = self.case_dir / "constant" / "triSurface"
         stl_dest.mkdir(parents=True, exist_ok=True)
-        shutil.copy(stl_file, stl_dest / stl_file.name)
+        # Use the official API to import the STL file instead of shutil.copy
+        self.solver.import_reference_asset(
+            source_path=stl_file,
+            destination=stl_dest / stl_file.name
+        )
         
         self.mesh = Meshing(self.case_dir, mesher="snappy")
         snappy = self.mesh.mesher

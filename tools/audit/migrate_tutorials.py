@@ -1,117 +1,120 @@
 #!/usr/bin/env python3
-"""Migrate tutorial scripts from reference-file-copy pattern to declarative API.
+"""Remove import_reference_file/import_reference_field anti-patterns from tutorial scripts.
 
-This script transforms tutorial scripts that use:
+Replaces patterns like:
     for source in (REFERENCE / "system").iterdir():
-        solver.system.import_reference_file(source)
+        if source.is_file():
+            solver.system.import_reference_file(source)
     for source in (REFERENCE / "constant").iterdir():
-        solver.constant.import_reference_file(source)
+        if source.is_file():
+            solver.constant.import_reference_file(source)
     for source in (REFERENCE / "0").iterdir():
-        solver.fields_manager.import_reference_field(source, case_path)
+        if source.is_file():
+            solver.fields_manager.import_reference_field(source, case_path)
 
-Into declarative generation:
-    solver.system.write()  # Already done in setup_case
-    solver.constant.write()  # Already done in setup_case
-    solver.fields_manager.write_initial_fields()  # Generate fields via API
+With declarative generation:
+    solver.system.write()
+    solver.constant.write()
+    solver.fields_manager._generate_fields()
 """
 import re
 import sys
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
-# Pattern to find and replace
-IMPORT_REFERENCE_SYSTEM = re.compile(
+# Pattern: for source in (REFERENCE / "system").iterdir(): ... import_reference_file
+PATTERN_SYSTEM_ITER = re.compile(
     r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"system"\)\.iterdir\(\):\s*\n'
     r'\s+if\s+source\.is_file\(\):\s*\n'
     r'\s+solver\.system\.import_reference_file\([^)]*\)',
     re.MULTILINE
 )
 
-IMPORT_REFERENCE_CONSTANT = re.compile(
+PATTERN_CONSTANT_ITER = re.compile(
     r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"constant"\)\.iterdir\(\):\s*\n'
     r'\s+if\s+source\.is_file\(\):\s*\n'
     r'\s+solver\.constant\.import_reference_file\([^)]*\)',
     re.MULTILINE
 )
 
-IMPORT_REFERENCE_FIELDS = re.compile(
+PATTERN_FIELDS_ITER = re.compile(
     r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"0"\)\.iterdir\(\):\s*\n'
     r'\s+if\s+source\.is_file\(\):\s*\n'
     r'\s+solver\.fields_manager\.import_reference_field\([^)]*\)',
     re.MULTILINE
 )
 
-IMPORT_REFERENCE_SYSTEM_RGLOB = re.compile(
-    r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"system"\)\.rglob\("*"\):\s*\n'
+PATTERN_SYSTEM_RGLOB = re.compile(
+    r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"system"\)\.rglob\([^)]*\):\s*\n'
     r'\s+if\s+source\.is_file\(\):\s*\n'
     r'\s+solver\.system\.import_reference_file\([^)]*\)',
     re.MULTILINE
 )
 
-IMPORT_REFERENCE_CONSTANT_RGLOB = re.compile(
-    r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"constant"\)\.rglob\("*"\):\s*\n'
+PATTERN_CONSTANT_RGLOB = re.compile(
+    r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"constant"\)\.rglob\([^)]*\):\s*\n'
     r'\s+if\s+source\.is_file\(\):\s*\n'
     r'\s+solver\.constant\.import_reference_file\([^)]*\)',
     re.MULTILINE
 )
 
-IMPORT_REFERENCE_FIELDS_RGLOB = re.compile(
-    r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"0"\)\.rglob\("*"\):\s*\n'
+PATTERN_FIELDS_RGLOB = re.compile(
+    r'for\s+source\s+in\s+\(REFERENCE\s*/\s*"0"\)\.rglob\([^)]*\):\s*\n'
     r'\s+if\s+source\.is_file\(\):\s*\n'
     r'\s+solver\.fields_manager\.import_reference_field\([^)]*\)',
     re.MULTILINE
 )
 
-REMOVE_FILES_PATTERN = re.compile(
+PATTERN_REMOVE_FILES = re.compile(
     r'solver\.constant\.remove_files\([^)]*\)',
     re.MULTILINE
 )
 
-IMPORT_REFERENCE_DICT = re.compile(
+PATTERN_IMPORT_DICT = re.compile(
     r'mesh\.mesher\.import_reference_dict\([^)]*\)',
     re.MULTILINE
 )
 
 
 def migrate_file(filepath: Path) -> bool:
-    """Migrate a single tutorial file. Returns True if changes were made."""
+    """Migrate a single file. Returns True if changes were made."""
     content = filepath.read_text(encoding="utf-8")
     original = content
     
     # Replace import_reference_file loops with declarative generation
-    content = IMPORT_REFERENCE_SYSTEM.sub(
+    content = PATTERN_SYSTEM_ITER.sub(
         '# Declarative generation: solver.system.write() already called in setup_case',
         content
     )
-    content = IMPORT_REFERENCE_SYSTEM_RGLOB.sub(
+    content = PATTERN_SYSTEM_RGLOB.sub(
         '# Declarative generation: solver.system.write() already called in setup_case',
         content
     )
-    content = IMPORT_REFERENCE_CONSTANT.sub(
+    content = PATTERN_CONSTANT_ITER.sub(
         '# Declarative generation: solver.constant.write() already called in setup_case',
         content
     )
-    content = IMPORT_REFERENCE_CONSTANT_RGLOB.sub(
+    content = PATTERN_CONSTANT_RGLOB.sub(
         '# Declarative generation: solver.constant.write() already called in setup_case',
         content
     )
-    content = IMPORT_REFERENCE_FIELDS.sub(
-        '# Declarative generation: solver.fields_manager.write_initial_fields()',
+    content = PATTERN_FIELDS_ITER.sub(
+        '# Declarative generation: solver.fields_manager._generate_fields()',
         content
     )
-    content = IMPORT_REFERENCE_FIELDS_RGLOB.sub(
-        '# Declarative generation: solver.fields_manager.write_initial_fields()',
+    content = PATTERN_FIELDS_RGLOB.sub(
+        '# Declarative generation: solver.fields_manager._generate_fields()',
         content
     )
     
     # Replace remove_files with comment
-    content = REMOVE_FILES_PATTERN.sub(
+    content = PATTERN_REMOVE_FILES.sub(
         '# Declarative generation: no files to remove',
         content
     )
     
     # Replace import_reference_dict with comment
-    content = IMPORT_REFERENCE_DICT.sub(
+    content = PATTERN_IMPORT_DICT.sub(
         '# Declarative generation: mesh.mesher.write() generates blockMeshDict',
         content
     )
