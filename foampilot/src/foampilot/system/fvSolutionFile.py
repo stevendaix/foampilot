@@ -1,5 +1,5 @@
 from typing import Dict, Optional, Any, List, Tuple
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 
 class FvSolutionFile(OpenFOAMFile):
     """

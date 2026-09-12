@@ -14,7 +14,7 @@ import shutil
 from pathlib import Path
 
 from foampilot.solver import Solver
-from foampilot.utilities import OpenFOAMDictAddFile
+from foampilot.core.dictionaries.legacy import OpenFOAMDictAddFile
 
 ROOT = Path(__file__).resolve().parent
 TEMPLATE = ROOT / "case_template"

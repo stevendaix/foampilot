@@ -143,7 +143,7 @@ def test_base_solver_opfoam14_solvers():
 
 def test_openfoam_file_functions_field():
     """Test that OpenFOAMFile.write_boundary_file() includes functions support."""
-    from foampilot.base.openFOAMFile import OpenFOAMFile
+    from foampilot.core.base.openFOAMFile import OpenFOAMFile
 
     with tempfile.TemporaryDirectory() as tmp:
         foam_file = OpenFOAMFile("controlDict")

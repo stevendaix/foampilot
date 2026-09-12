@@ -31,7 +31,7 @@ from pathlib import Path
 from foampilot.solver import Solver
 from foampilot import Meshing
 from foampilot.system.decomposeParDictFile import DecomposeParDictFile
-from foampilot.utilities.function import Functions
+from foampilot.core.physics.functions import Functions
 
 CASE_REL_PATH = "case"
 

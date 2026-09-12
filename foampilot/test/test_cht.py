@@ -245,7 +245,7 @@ def test_controlDict_region_solvers_write():
 
 def test_case_fields_manager_multi_region():
     """Test that CaseFieldsManager generates correct per-region fields."""
-    from foampilot.base.cases_variables import CaseFieldsManager
+    from foampilot.core.base.cases_variables import CaseFieldsManager
     from foampilot.cht import FluidRegion, SolidRegion
 
     fluid = FluidRegion(name="fluid", turbulence_model="kOmegaSST")
@@ -271,7 +271,7 @@ def test_case_fields_manager_multi_region():
 
 def test_case_fields_manager_no_regions():
     """Test backward compatibility: CaseFieldsManager without regions."""
-    from foampilot.base.cases_variables import CaseFieldsManager
+    from foampilot.core.base.cases_variables import CaseFieldsManager
 
     fm = CaseFieldsManager(energy_activated=True)
     assert "T" in fm.get_field_names()

@@ -13,7 +13,7 @@ from pathlib import Path
 from foampilot.system.controlDictFile import ControlDictFile
 from foampilot.system.fvSchemesFile import FvSchemesFile
 from foampilot.system.fvSolutionFile import FvSolutionFile
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 import ast
 
 

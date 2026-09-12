@@ -15,7 +15,7 @@ import sys
 import numpy as np
 
 try:
-    from foampilot.utilities.vof_to_dpm import VofToDpmConverter
+    from foampilot.extensions.cfd.vof_to_dpm import VofToDpmConverter
 except ModuleNotFoundError:
     # Educational fallback: the converter itself only needs NumPy and stdlib.
     module_path = Path(__file__).parents[1] / "src" / "foampilot" / "utilities" / "vof_to_dpm.py"

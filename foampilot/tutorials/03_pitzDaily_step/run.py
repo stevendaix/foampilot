@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot import Meshing
 from foampilot.solver import Solver
-from foampilot.utilities.function import Functions
+from foampilot.core.physics.functions import Functions
 
 
 def build_geometry_and_mesh(case_path):

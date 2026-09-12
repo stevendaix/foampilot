@@ -25,7 +25,6 @@ class OpenFOAMDictAddFile:
             if key == "box" and isinstance(value, list) and len(value) == 2 and all(
                 isinstance(p, (list, tuple)) and len(p) == 3 for p in value
             ):
-                # Cas particulier pour box
                 flat = ''.join(f"({p[0]} {p[1]} {p[2]})" for p in value)
                 file.write(f"{indent}{key}     {flat};\n")
             elif isinstance(value, dict):
@@ -45,18 +44,6 @@ class OpenFOAMDictAddFile:
                 file.write(f"{indent});\n")
             else:
                 file.write(f"{indent}{key} {str(value)};\n")
-
-
-    def write_raw(self, name_dict, base_path, content, folder='system'):
-        """Write a complete OpenFOAM file without adding or parsing a header.
-
-        This is intended for advanced dictionaries and fields containing
-        ``#include``/``#codeStream`` directives that cannot be represented
-        safely by the attribute serializer.
-        """
-        path = Path(base_path) / folder / name_dict
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8")
 
     def write(self, name_dict, base_path, folder='system'):
         """
@@ -91,6 +78,7 @@ class OpenFOAMDictAddFile:
         path.write_text(content, encoding="utf-8")
         return path
 
+
 class dict_tools:
 
     @staticmethod
@@ -116,7 +104,7 @@ class dict_tools:
                 },
                 "constructFrom": construct_from,
                 "patches": "()",
-                "set": name  # Vous pouvez personnaliser cela si nécessaire
+                "set": name
             }
             patches_list.append(patch_dict)
 
@@ -132,30 +120,27 @@ class dict_tools:
         Args:
             name (str): Nom de l'action.
             action_type (str): Type de l'action (e.g., 'cellSet', 'faceSet').
-            action (str): Type d'action (e.g., 'new', 'subset').
+            action (str): Type d'action (e.g., 'new', 'subset', 'delete').
             source (str): Source de l'action (e.g., 'boxToCell', 'patchToFace').
-            **kwargs: Autres attributs optionnels pour l'action.
+            **kwargs: Autres attributs optionnels.
 
         Returns:
             dict: Dictionnaire représentant l'action.
         """
         valid_types = ['cellSet', 'cellZoneSet', 'faceSet']
         valid_actions = ['new', 'subset', 'delete']
-
         if action_type not in valid_types:
-            raise ValueError(f"Invalid action type: {action_type}. Must be one of {valid_types}.")
+            raise ValueError(f"Invalid action type: {action_type}. Must be one of {valid_types}")
         if action not in valid_actions:
-            raise ValueError(f"Invalid action: {action}. Must be one of {valid_actions}.")
-        
-        # Crée le dictionnaire de l'action avec les attributs fournis
+            raise ValueError(f"Invalid action: {action}. Must be one of {valid_actions}")
+
         action_dict = {
             "name": name,
             "type": action_type,
             "action": action,
             "source": source
         }
-        action_dict.update(kwargs)  # Ajoute d'autres attributs
-
+        action_dict.update(kwargs)
         return action_dict
 
     @staticmethod

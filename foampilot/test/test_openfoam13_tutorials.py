@@ -9,7 +9,7 @@ from foampilot.tutorials import (
 )
 from foampilot.solver.base_solver import BaseSolver
 from foampilot.openfoam.execution.environment import OpenFOAMEnvironment
-from foampilot.utilities import OpenFOAMDictAddFile
+from foampilot.core.dictionaries.legacy import OpenFOAMDictAddFile
 
 
 def _write_minimal_case(root: Path, *, include_nu: bool = True) -> None:

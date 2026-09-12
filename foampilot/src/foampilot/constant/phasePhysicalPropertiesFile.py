@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Optional, Any, Union
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 from foampilot.core.units.manageunits import ValueWithUnit
 
 

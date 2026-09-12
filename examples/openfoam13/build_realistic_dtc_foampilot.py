@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent / "foampilot"
 sys.path.insert(0, str(REPO / "src"))
 
-from foampilot.mesh.marine_motion import write_six_dof_dynamic_mesh_dict
+from foampilot.core.meshing.marine_motion import write_six_dof_dynamic_mesh_dict
 from foampilot.solver.marine_case import MarineCaseConfig
 from foampilot.tutorials.openfoam13 import validate_generated_case
 

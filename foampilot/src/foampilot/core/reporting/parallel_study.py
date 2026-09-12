@@ -467,7 +467,7 @@ def _read_processor_mesh_metrics(case_dir: Path) -> dict:
         owner_path = mesh_dir / "owner"
         if owner_path.exists():
             try:
-                from foampilot.utilities.read_mesh import OpenFoamFile
+                from foampilot.core.geometry.mesh_reader import OpenFoamFile
                 owner = OpenFoamFile(str(mesh_dir), name="owner", verbose=False)
                 n_cells = int(owner.nb_cell)
             except Exception:
@@ -482,7 +482,7 @@ def _read_processor_mesh_metrics(case_dir: Path) -> dict:
         n_faces_total = 0
         if boundary_path.exists():
             try:
-                from foampilot.utilities.read_mesh import OpenFoamFile
+                from foampilot.core.geometry.mesh_reader import OpenFoamFile
                 bf = OpenFoamFile(str(mesh_dir), name="boundary", verbose=False)
                 if hasattr(bf, "boundaryface") and bf.boundaryface:
                     for patch_name, patch_data in bf.boundaryface.items():

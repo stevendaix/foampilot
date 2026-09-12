@@ -6,7 +6,7 @@ from collections import defaultdict
 from enum import Enum
 from dataclasses import dataclass, field
 
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 
 logger = logging.getLogger(__name__)
 

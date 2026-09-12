@@ -14,7 +14,7 @@ from pathlib import Path
 
 from foampilot import Solver, ValueWithUnit
 from foampilot.base import CaseBuilder, Meshing
-from foampilot.mesh import write_rotating_zone
+from foampilot.core.meshing.marine_mrf import write_rotating_zone
 from foampilot.constant import MomentumTransportFile
 from foampilot.system.controlDictFile import ControlDictFile
 from foampilot.system.decomposeParDictFile import DecomposeParDictFile

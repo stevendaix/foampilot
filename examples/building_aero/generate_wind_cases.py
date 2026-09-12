@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilo
 
 from foampilot import Meshing, FluidMechanics, ValueWithUnit
 from foampilot.solver import Solver
-from foampilot.utilities.epw_weather_reader import WeatherFileEPW
+from foampilot.core.geometry.epw_reader import WeatherFileEPW
 from wind_profile import (
     log_wind_profile,
     friction_velocity,

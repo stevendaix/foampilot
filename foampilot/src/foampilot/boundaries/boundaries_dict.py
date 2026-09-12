@@ -8,7 +8,7 @@ from foampilot.core.dictionaries import BoundaryDict
 from foampilot.core.units.manageunits import ValueWithUnit
 from foampilot.boundaries.boundaries_conditions_config import BOUNDARY_CONDITIONS_CONFIG, WALL_FUNCTIONS, CONDITION_CALCULATORS
 
-from foampilot.base.cases_variables import CaseFieldsManager
+from foampilot.core.base.cases_variables import CaseFieldsManager
 
 logger = logging.getLogger(__name__)
 

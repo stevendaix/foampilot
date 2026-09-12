@@ -11,8 +11,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from foampilot.base import Meshing
-from foampilot.base.cases_variables import CaseFieldsManager
+from foampilot.core.base.meshing import Meshing
+from foampilot.core.base.cases_variables import CaseFieldsManager
 from foampilot.cht.regions import FluidRegion, SolidRegion
 from foampilot.core.physics.openfoam13 import PhysicsConfig
 

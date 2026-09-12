@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 
-from foampilot.openfoam13 import (
+from foampilot.core.physics.openfoam13 import (
     PROFILES,
     RegionSpec,
     UrbanClimateCase,

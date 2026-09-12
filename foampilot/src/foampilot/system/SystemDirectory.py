@@ -5,7 +5,7 @@ from typing import Optional
 from foampilot.system.controlDictFile import ControlDictFile
 from foampilot.system.fvSchemesFile import FvSchemesFile
 from foampilot.system.fvSolutionFile import FvSolutionFile
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 import subprocess
 from foampilot.system.decomposeParDictFile import DecomposeParDictFile
 

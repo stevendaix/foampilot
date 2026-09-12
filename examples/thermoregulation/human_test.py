@@ -1,4 +1,4 @@
-from foampilot.utilities.make_human import HumanGeometry
+from foampilot.extensions.medical.make_human import HumanGeometry
 from build123d import *
 from build123d import exporters3d
 

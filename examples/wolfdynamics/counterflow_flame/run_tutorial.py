@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT / "foampilot" / "src"))
 
 from foampilot.solver.base_solver import BaseSolver
 from foampilot.tutorials import OpenFOAM13Environment, validate_generated_case
-from foampilot.utilities import OpenFOAMDictAddFile
+from foampilot.core.dictionaries.legacy import OpenFOAMDictAddFile
 
 
 MODULE = "multicomponentFluid"

@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 from typing import Optional, Dict, Any, List, Tuple
 
 logger = logging.getLogger(__name__)

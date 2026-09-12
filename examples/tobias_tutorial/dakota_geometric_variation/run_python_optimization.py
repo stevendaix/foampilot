@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Iterable
 
 from foampilot.solver import Solver
-from foampilot.utilities import OpenFOAMDictAddFile
+from foampilot.core.dictionaries.legacy import OpenFOAMDictAddFile
 
 ROOT = Path(__file__).resolve().parent
 TEMPLATES = ROOT / "templates"

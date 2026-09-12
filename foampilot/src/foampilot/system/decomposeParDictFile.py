@@ -1,4 +1,4 @@
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 
 class DecomposeParDictFile(OpenFOAMFile):
     """

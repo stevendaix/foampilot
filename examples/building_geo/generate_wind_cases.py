@@ -42,7 +42,7 @@ from foampilot.urban import (
     GmshQuarterBuilder,
     MeshConfig,
 )
-from foampilot.utilities.epw_weather_reader import WeatherFileEPW
+from foampilot.core.geometry.epw_reader import WeatherFileEPW
 from wind_profile import (
     log_wind_profile,
     friction_velocity,

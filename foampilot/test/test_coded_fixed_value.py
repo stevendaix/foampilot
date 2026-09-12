@@ -22,7 +22,7 @@ from pathlib import Path
 # Ensure foampilot is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 
 
 # ---------------------------------------------------------------------------

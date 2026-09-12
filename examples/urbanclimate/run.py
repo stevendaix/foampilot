@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 import subprocess
 
-from foampilot.openfoam13 import PROFILES, RegionSpec, UrbanClimateNativeCaseBuilder
+from foampilot.core.physics.openfoam13 import PROFILES, RegionSpec, UrbanClimateNativeCaseBuilder
 
 ROOT = Path(__file__).resolve().parent
 CASES = ROOT / "cases"

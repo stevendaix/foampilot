@@ -24,7 +24,7 @@ import subprocess
 from pathlib import Path
 
 from foampilot import Meshing
-from foampilot.utilities import OpenFOAMDictAddFile
+from foampilot.core.dictionaries.legacy import OpenFOAMDictAddFile
 from foampilot.cht import (
     ChtSolver,
     FluidRegion,

@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from foampilot.base.openFOAMFile import OpenFOAMFile
+from foampilot.core.base.openFOAMFile import OpenFOAMFile
 
 logger = logging.getLogger(__name__)
 

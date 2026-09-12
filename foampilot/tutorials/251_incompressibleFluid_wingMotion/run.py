@@ -18,7 +18,7 @@ os.environ.update({
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from foampilot.solver import Solver
-from foampilot.utilities.function import Functions
+from foampilot.core.physics.functions import Functions
 
 REFERENCE_ROOT = Path("/opt/openfoam13/tutorials/incompressibleFluid/wingMotion")
 REFERENCE_MESH = REFERENCE_ROOT / "wingMotion_snappyHexMesh"

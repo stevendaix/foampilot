@@ -2,7 +2,7 @@ from pathlib import Path
 import json
 import pytest
 
-from foampilot.openfoam13 import PhysicsConfig, check_openfoam13_case
+from foampilot.core.physics.openfoam13 import PhysicsConfig, check_openfoam13_case
 
 
 def test_default_catalog_has_all_requested_repositories():
