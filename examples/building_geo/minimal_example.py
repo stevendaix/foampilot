@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase 1.4 — Minimal complete OpenFOAM case from foampilot.urban.
+Phase 1.4 — Minimal complete OpenFOAM case from foampilot.extensions.urban.
 
 Produces a complete OpenFOAM case for 1 building so that checkMesh passes.
 """
@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.urban import (
+from foampilot.extensions.urban import (
     Building,
     UrbanModel,
     CFDDomain,

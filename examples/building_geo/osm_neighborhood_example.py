@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilo
 
 from foampilot import Meshing, FluidMechanics, ValueWithUnit
 from foampilot.solver import Solver
-from foampilot.urban import (
+from foampilot.extensions.urban import (
     Building,
     UrbanModel,
     CFDDomain,
@@ -35,13 +35,13 @@ from foampilot.urban import (
     GmshQuarterBuilder,
     MeshConfig,
 )
-from foampilot.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban.model.terrain import CFDTerrain
 from shapely.geometry import Polygon
 
 
 def download_osm_buildings(place: str, tags: dict, distance: int):
     """Download building footprints from OSM using foampilot OSMReader."""
-    from foampilot.urban import OSMReader
+    from foampilot.extensions.urban import OSMReader
 
     reader = OSMReader(distance=distance, tags=tags)
     urban = reader.read(place)

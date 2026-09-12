@@ -2,7 +2,12 @@
 
 # Import required libraries
 from foampilot.solver import Solver
-from foampilot import Meshing, commons, utilities, postprocess,latex_pdf, FluidMechanics , ValueWithUnit
+from foampilot.core.base.meshing import Meshing
+from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
+from foampilot.core.postprocessing.residuals import ResidualsPost
+from foampilot.core.physics.fluids_theory import FluidMechanics
+from foampilot.core.units.manageunits import ValueWithUnit
+from foampilot.core.reporting.latex_pdf import LatexDocument
 import pyvista as pv
 from pathlib import Path
 import numpy as np

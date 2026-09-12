@@ -18,9 +18,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilo
 
 import h5py
 import numpy as np
-from foampilot.urban import Building, UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
-from foampilot.urban.readers.voxcity_reader import VoxCityReader
+from foampilot.extensions.urban import Building, UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban.readers.voxcity_reader import VoxCityReader
 from shapely.geometry import Polygon
 
 # Add the voxcity_export_work/src to path for vector builder
@@ -145,7 +145,7 @@ def main():
 
     if urban.building_count() == 0:
         print("WARNING: No buildings loaded, using synthetic fallback")
-        from foampilot.urban import Building, UrbanModel
+        from foampilot.extensions.urban import Building, UrbanModel
         from shapely.geometry import Polygon
         urban = UrbanModel()
         urban.add_building(Building(

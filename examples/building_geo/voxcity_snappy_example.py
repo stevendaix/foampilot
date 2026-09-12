@@ -11,12 +11,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.urban import (
+from foampilot.extensions.urban import (
     Building,
     UrbanModel,
 )
-from foampilot.urban.model.terrain import CFDTerrain
-from foampilot.urban.snappy_config import (
+from foampilot.extensions.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban.snappy_config import (
     DomainConfig,
     TerrainConfig,
     BuildingConfig,
@@ -63,7 +63,7 @@ def build_from_voxcity(rectangle_vertices, meshsize=5.0):
     try:
         import ee
         from voxcity.generator import get_voxcity
-        from foampilot.urban.readers.voxcity_reader import VoxCityReader
+        from foampilot.extensions.urban.readers.voxcity_reader import VoxCityReader
     except ImportError as exc:
         raise RuntimeError(
             "VoxCity and Google Earth Engine are required for --use-voxcity. "

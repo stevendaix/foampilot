@@ -7,8 +7,8 @@ import gmsh
 import shapely.ops
 import pyproj
 from voxcity.io import load_voxcity
-from foampilot.urban import Building, UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban import Building, UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
 from vector_builder import VectorGmshBuilder
 
 v = load_voxcity('output/voxcity.h5')

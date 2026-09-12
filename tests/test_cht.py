@@ -23,7 +23,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent / "foampilot" / "src"))
 
 # Import all CHT components at module level
-from foampilot.cht import (
+from foampilot.workflows.cht import (
     ChtSolver, FluidRegion, SolidRegion, CoupledInterface,
     CoupledTemperatureBC, ExternalTemperatureBC, HeatFluxBC,
     FixedTemperatureBC, InletOutletTemperatureBC, SymmetryBC,
@@ -41,7 +41,7 @@ from foampilot.cht import (
 
 def test_cht_module_imports():
     """Test that all CHT module components are importable."""
-    from foampilot.cht import (
+    from foampilot.workflows.cht import (
         ChtSolver, FluidRegion, SolidRegion, CoupledInterface,
         CoupledTemperatureBC, ExternalTemperatureBC, HeatFluxBC,
         FixedTemperatureBC, InletOutletTemperatureBC, SymmetryBC,
@@ -159,7 +159,7 @@ def test_cht_solver_creation():
 
 def test_cht_solver_invalid_name_raises():
     """Test that ChtSolver raises ValueError for unsupported solver."""
-    from foampilot.cht import ChtSolver, FluidRegion
+    from foampilot.workflows.cht import ChtSolver, FluidRegion
 
     raised = False
     try:
@@ -177,7 +177,7 @@ def test_cht_solver_invalid_name_raises():
 
 def test_cht_solver_region_solvers_auto():
     """Test that ChtSolver auto-generates region_solvers for fluid/solid."""
-    from foampilot.cht import ChtSolver, FluidRegion, SolidRegion
+    from foampilot.workflows.cht import ChtSolver, FluidRegion, SolidRegion
 
     with tempfile.TemporaryDirectory() as tmp:
         fluid = FluidRegion(name="fluid")
@@ -246,7 +246,7 @@ def test_controlDict_region_solvers_write():
 def test_case_fields_manager_multi_region():
     """Test that CaseFieldsManager generates correct per-region fields."""
     from foampilot.core.base.cases_variables import CaseFieldsManager
-    from foampilot.cht import FluidRegion, SolidRegion
+    from foampilot.workflows.cht import FluidRegion, SolidRegion
 
     fluid = FluidRegion(name="fluid", turbulence_model="kOmegaSST")
     solid = SolidRegion(name="solid")
@@ -505,7 +505,7 @@ def test_coupled_interface():
 
 def test_cht_solver_setup_case():
     """Test that ChtSolver.setup_case() writes all expected files."""
-    from foampilot.cht import ChtSolver, FluidRegion, SolidRegion, CoupledInterface
+    from foampilot.workflows.cht import ChtSolver, FluidRegion, SolidRegion, CoupledInterface
 
     with tempfile.TemporaryDirectory() as tmp:
         case_path = Path(tmp) / "test_cht_setup"

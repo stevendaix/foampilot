@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "f
 import gmsh
 from foampilot.core.meshing.gmsh import GmshMesher
 from foampilot.core.meshing.direct_openfoam_exporter import DirectOpenFOAMExporter
-from foampilot.cht import (
+from foampilot.workflows.cht import (
     ChtSolver,
     FluidRegion,
     SolidRegion,

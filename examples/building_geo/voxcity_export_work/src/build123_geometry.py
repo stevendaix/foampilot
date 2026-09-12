@@ -11,8 +11,8 @@ from typing import Optional
 
 from build123d import Box, BuildPart, Compound, Location, Part, Solid
 
-from foampilot.urban.model.urban_model import UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban.model.urban_model import UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
 
 
 def build_fluid_solid(

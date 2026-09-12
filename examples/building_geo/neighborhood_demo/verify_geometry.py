@@ -19,8 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "foampilot" / "src"
 sys.path.insert(0, str(Path(__file__).resolve().parent / "voxcity_export_work" / "src"))
 
 import numpy as np
-from foampilot.urban import Building, UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban import Building, UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
 
 
 def load_raw_buildings_from_hdf5(hdf5_path: str, mesh_size: float = 5.0) -> UrbanModel:

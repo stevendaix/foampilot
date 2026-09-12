@@ -6,8 +6,8 @@ Synthetic fallback for the neighborhood demo when VoxCity/EE is unavailable.
 import numpy as np
 from shapely.geometry import Polygon
 
-from foampilot.urban import Building, UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban import Building, UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
 
 
 def build_synthetic_urban(config: dict):

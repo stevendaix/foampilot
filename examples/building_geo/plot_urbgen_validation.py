@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon as MplPolygon
 from shapely.geometry import Polygon
 
-from foampilot.urban.generation import UrbGENConfig, generate_urbgen
+from foampilot.extensions.urban.generation import UrbGENConfig, generate_urbgen
 
 COLORS = {0: "#4C78A8", 1: "#F58518", 2: "#54A24B", 3: "#E45756", 4: "#72B7B2", 5: "#B279A2", 7: "#FF9DA6"}
 NAMES = {0: "I", 1: "L", 2: "T", 3: "H", 4: "C", 5: "Plus", 7: "Courtyard"}

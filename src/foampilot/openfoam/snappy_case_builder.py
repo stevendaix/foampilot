@@ -4,11 +4,11 @@ import logging
 
 import pyvista as pv
 
-from foampilot.urban.model.urban_model import UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
-from foampilot.urban.terrain.processor import TerrainProcessor, TerrainConfig
-from foampilot.urban.geometry.building_extruder import BuildingExtruder, BuildingConfig
-from foampilot.urban.snappy_config import DomainConfig, SnappyMeshConfig
+from foampilot.extensions.urban.model.urban_model import UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban.terrain.processor import TerrainProcessor, TerrainConfig
+from foampilot.extensions.urban.geometry.building_extruder import BuildingExtruder, BuildingConfig
+from foampilot.extensions.urban.snappy_config import DomainConfig, SnappyMeshConfig
 
 logger = logging.getLogger(__name__)
 

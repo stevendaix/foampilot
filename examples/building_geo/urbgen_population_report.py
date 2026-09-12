@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 from shapely.geometry import Polygon
-from foampilot.urban.generation import UrbGENConfig, generate_urbgen
+from foampilot.extensions.urban.generation import UrbGENConfig, generate_urbgen
 
 site = Polygon([(10, 10), (190, 10), (190, 140), (10, 140)])
 report = []

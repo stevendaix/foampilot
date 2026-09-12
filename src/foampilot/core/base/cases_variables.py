@@ -170,7 +170,7 @@ class CaseFieldsManager:
         Solid regions get only ``T``; fluid regions get ``U``, pressure,
         temperature (if energy activated), and turbulence fields.
         """
-        from foampilot.cht.regions import SolidRegion
+        from foampilot.workflows.cht.regions import SolidRegion
 
         self.region_fields = {}
 

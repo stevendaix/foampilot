@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "foampilot" / "src"))
 
-from foampilot.urban.readers.voxcity_reader import VoxCityReader
+from foampilot.extensions.urban.readers.voxcity_reader import VoxCityReader
 
 
 def parse_args():
@@ -46,8 +46,8 @@ def main():
         urban, terrain = reader.read(rectangle_vertices)
         print(f"VoxCity: {urban.building_count()} buildings, terrain={terrain.source}")
     else:
-        from foampilot.urban import Building, UrbanModel
-        from foampilot.urban.model.terrain import CFDTerrain
+        from foampilot.extensions.urban import Building, UrbanModel
+        from foampilot.extensions.urban.model.terrain import CFDTerrain
         from shapely.geometry import Polygon
 
         urban = UrbanModel()

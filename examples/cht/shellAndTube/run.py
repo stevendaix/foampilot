@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "foampilot" / "src"))
 
-from foampilot.cht import (
+from foampilot.workflows.cht import (
     ChtSolver,
     FluidRegion,
     SolidRegion,

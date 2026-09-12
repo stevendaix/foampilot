@@ -28,11 +28,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilo
 sys.path.insert(0, str(Path(__file__).resolve().parent / "voxcity_export_work" / "src"))
 
 from foampilot import FluidMechanics, ValueWithUnit
-from foampilot.urban import Building, UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
-from foampilot.urban.snappy_config import DomainConfig, TerrainConfig, BuildingConfig, SnappyMeshConfig
+from foampilot.extensions.urban import Building, UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban.snappy_config import DomainConfig, TerrainConfig, BuildingConfig, SnappyMeshConfig
 from foampilot.solver import Solver
-from foampilot.urban.readers.voxcity_reader import VoxCityReader
+from foampilot.extensions.urban.readers.voxcity_reader import VoxCityReader
 from vector_builder import VectorGmshBuilder
 from wind_profile import KAPPA, Z_REF
 from shapely.geometry import Polygon

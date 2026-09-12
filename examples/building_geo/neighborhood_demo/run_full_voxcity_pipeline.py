@@ -35,8 +35,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "voxcity_export_work" /
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from foampilot import FluidMechanics, ValueWithUnit
-from foampilot.urban import Building, UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban import Building, UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
 from foampilot.solver import Solver
 from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
 from vector_builder_build123 import VectorGmshBuilder
@@ -52,7 +52,7 @@ def load_voxcity_hdf5_urban(hdf5_path: str) -> tuple[UrbanModel, CFDTerrain]:
     Uses the same loading logic as generate.py --voxcity-h5.
     """
     import shapely.ops
-    from foampilot.urban.readers.voxcity_reader import VoxCityReader
+    from foampilot.extensions.urban.readers.voxcity_reader import VoxCityReader
 
     h5_path = Path(hdf5_path)
     if not h5_path.exists():

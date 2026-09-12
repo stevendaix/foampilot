@@ -19,7 +19,7 @@ import pandas as pd
 # Ensure foampilot is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "src"))
 
-from foampilot.cht import (
+from foampilot.workflows.cht import (
     calc_nusselt_number,
     calc_heat_transfer_coefficient,
     calc_total_heat_balance,

@@ -6,8 +6,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import gmsh
 import shapely.ops
 import pyproj
-from foampilot.urban import Building, UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban import Building, UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
 from voxcity.io import load_voxcity
 from vector_builder import VectorGmshBuilder
 

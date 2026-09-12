@@ -12,8 +12,8 @@ import gmsh
 import numpy as np
 import shapely.geometry
 import shapely.ops
-from foampilot.urban.model.urban_model import Building, UrbanModel
-from foampilot.urban.model.terrain import CFDTerrain
+from foampilot.extensions.urban.model.urban_model import Building, UrbanModel
+from foampilot.extensions.urban.model.terrain import CFDTerrain
 from foampilot.core.meshing.direct_openfoam_exporter import DirectOpenFOAMExporter
 from shapely.geometry import Point
 

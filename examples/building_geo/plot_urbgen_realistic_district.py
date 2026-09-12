@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon as MplPolygon
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from shapely.geometry import Polygon
-from foampilot.urban.generation import UrbGENConfig, generate_urbgen
+from foampilot.extensions.urban.generation import UrbGENConfig, generate_urbgen
 
 OUT = Path(__file__).with_name('urbgen_validation_images')
 OUT.mkdir(exist_ok=True)
