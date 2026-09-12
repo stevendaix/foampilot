@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from foampilot.geometry.medical_build import (
+from foampilot.core.geometry.medical_build import (
     BranchRecord,
     GeometryAnalysisData,
     LocalDeformationSpec,

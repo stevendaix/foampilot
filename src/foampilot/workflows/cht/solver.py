@@ -161,14 +161,10 @@ class ChtSolver(BaseSolver):
                 const_dir = self.case_path / "constant" / region.name
                 const_dir.mkdir(parents=True, exist_ok=True)
 
-                if self.solver_name == "chtMultiRegionFoam" and hasattr(region, "get_physical_properties"):
-                    tp_file = const_dir / "physicalProperties"
-                    tp_file.write_text(region.get_physical_properties())
-                else:
-                    tp_file = const_dir / "thermophysicalProperties"
-                    tp_file.write_text(region.get_thermophysical_properties())
-                    tp_file = const_dir / "transportProperties"
-                    tp_file.write_text(region.get_transport_properties())
+                tp_file = const_dir / "thermophysicalProperties"
+                tp_file.write_text(region.get_thermophysical_properties())
+                tp_file = const_dir / "transportProperties"
+                tp_file.write_text(region.get_transport_properties())
 
     def _write_region_thermophysical_properties(self) -> None:
         """Write ``thermophysicalProperties`` for fluid regions.
@@ -181,12 +177,8 @@ class ChtSolver(BaseSolver):
                 const_dir = self.case_path / "constant" / region.name
                 const_dir.mkdir(parents=True, exist_ok=True)
 
-                if self.solver_name == "chtMultiRegionFoam" and hasattr(region, "get_physical_properties"):
-                    tp_file = const_dir / "physicalProperties"
-                    tp_file.write_text(region.get_physical_properties())
-                else:
-                    tp_file = const_dir / "thermophysicalProperties"
-                    tp_file.write_text(region.get_thermophysical_properties())
+                tp_file = const_dir / "thermophysicalProperties"
+                tp_file.write_text(region.get_thermophysical_properties())
 
     def write_region_system_files(self) -> None:
         """Create OF13 per-region dictionaries and neutralize mono-region functions."""

@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 
-_vof_to_dpm_path = Path(__file__).parents[1] / "src" / "foampilot" / "utilities" / "vof_to_dpm.py"
+_vof_to_dpm_path = Path(__file__).parents[1] / "src" / "foampilot" / "extensions" / "cfd" / "vof_to_dpm.py"
 _vof_to_dpm_spec = importlib.util.spec_from_file_location("foampilot_vof_to_dpm", _vof_to_dpm_path)
 if _vof_to_dpm_spec is None or _vof_to_dpm_spec.loader is None:
     raise RuntimeError(f"Cannot load {_vof_to_dpm_path}")

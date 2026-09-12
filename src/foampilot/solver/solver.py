@@ -135,11 +135,18 @@ class Solver:
     @property
     def solver_name(self) -> Optional[str]:
         """Explicit OpenFOAM solver module override, if configured."""
-        return self._solver_name_user
+        if self._solver_name_user:
+            return self._solver_name_user
+        if self._requested_solver:
+            return self._requested_solver
+        if self._solver:
+            return self._solver.solver_name
+        return None
 
     @solver_name.setter
     def solver_name(self, value: Optional[str]):
         self._solver_name_user = value
+        self._requested_solver = value
         self._update_solver()
 
     # ---------- Solver selection ----------

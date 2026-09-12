@@ -60,7 +60,7 @@ def test_cht_module_imports():
 
 def test_cht_syntax_check():
     """Syntax-check all CHT module files."""
-    cht_dir = Path(__file__).parent / "foampilot" / "src" / "foampilot" / "cht"
+    cht_dir = Path(__file__).parent.parent / "src" / "foampilot" / "workflows" / "cht"
     files = list(cht_dir.glob("*.py"))
     for f in files:
         with open(f) as fh:

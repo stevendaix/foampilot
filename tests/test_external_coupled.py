@@ -5,7 +5,7 @@ import sys
 import pytest
 
 
-_MODULE_PATH = Path(__file__).parents[1] / "src" / "foampilot" / "coupling" / "external_coupled.py"
+_MODULE_PATH = Path(__file__).parents[1] / "src" / "foampilot" / "extensions" / "coupling" / "external_coupled.py"
 _SPEC = spec_from_file_location("external_coupled", _MODULE_PATH)
 _MODULE = module_from_spec(_SPEC)
 sys.modules["external_coupled"] = _MODULE

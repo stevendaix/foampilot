@@ -1,27 +1,14 @@
 from pathlib import Path
 import sys
-import types
 
 import numpy as np
 import pytest
 
-# Load the focused package tree without importing foampilot's eager optional
-# top-level integrations (geometry, visualization, chemistry, ...).
-_SRC = Path(__file__).parents[1] / "src"
-foampilot_pkg = types.ModuleType("foampilot")
-foampilot_pkg.__path__ = [str(_SRC / "foampilot")]
-sys.modules.setdefault("foampilot", foampilot_pkg)
-utilities_pkg = types.ModuleType("foampilot.utilities")
-utilities_pkg.__path__ = [str(_SRC / "foampilot" / "utilities")]
-sys.modules.setdefault("foampilot.utilities", utilities_pkg)
-postprocess_pkg = types.ModuleType("foampilot.postprocess")
-postprocess_pkg.__path__ = [str(_SRC / "foampilot" / "postprocess")]
-sys.modules.setdefault("foampilot.postprocess", postprocess_pkg)
-
-from foampilot.physiology import JOS3, JOS3NodeCoupler, SurfaceMapping
+from foampilot.workflows.physiology import JOS3, JOS3NodeCoupler, SurfaceMapping
+from foampilot.workflows.physiology.jos3 import thermoregulation as threg
+from foampilot.workflows.physiology.units import as_magnitude
 from foampilot.core.postprocessing.openfoam_external_coupled import OpenFOAM13TemperatureProvider
-from foampilot.physiology.jos3 import thermoregulation as threg
-from foampilot.physiology.units import as_magnitude
+from foampilot.core.postprocessing.openfoam_external_coupled import OpenFOAM13TemperatureProvider
 
 
 def test_surface_mapping_rejects_invalid_values():

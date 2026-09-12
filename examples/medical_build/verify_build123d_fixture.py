@@ -2,8 +2,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import numpy as np
-from foampilot.geometry.medical_build.models import ReconstructionSpec
-from foampilot.geometry.medical_build.reconstruction import Build123dReconstruction
+from foampilot.core.geometry.medical_build.models import ReconstructionSpec
+from foampilot.core.geometry.medical_build.reconstruction import Build123dReconstruction
 
 def main():
     d=json.loads(Path(__file__).with_name("minimal_analysis_contract.json").read_text())

@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE))
 from section_stl_reconstruction import quality, reconstruct_branch, write_binary_stl
 from validate_local_deformation_real import load_analysis
 
-from foampilot.geometry.medical_build import (
+from foampilot.core.geometry.medical_build import (
     LocalDeformationSpec,
     apply_local_deformation,
     deformation_report,

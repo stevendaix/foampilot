@@ -1,6 +1,6 @@
 """Unit normalization for the physiology/OpenFOAM boundary.
 
-The project-wide :mod:`foampilot.utilities.manageunits` module owns the Pint
+The project-wide :mod:`foampilot.core.units.manageunits` module owns the Pint
 registry. This adapter keeps the physiology API array-friendly while ensuring
 that every boundary value is checked and converted before numerical work.
 """

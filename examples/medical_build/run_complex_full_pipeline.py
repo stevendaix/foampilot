@@ -2,8 +2,8 @@ from __future__ import annotations
 import argparse, json, time
 from pathlib import Path
 import numpy as np
-from foampilot.geometry.medical_build.reconstruction import Build123dReconstruction, normalize_sections
-from foampilot.geometry.medical_build.models import ReconstructionSpec
+from foampilot.core.geometry.medical_build.reconstruction import Build123dReconstruction, normalize_sections
+from foampilot.core.geometry.medical_build.models import ReconstructionSpec
 
 def timed(report, name, fn):
     t=time.perf_counter(); value=fn(); report[name]={"seconds":round(time.perf_counter()-t,6),"status":"ok"}; return value

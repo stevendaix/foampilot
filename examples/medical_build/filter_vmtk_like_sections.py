@@ -12,7 +12,7 @@ SRC = ROOT / "foampilot" / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from foampilot.geometry.medical_build.section_filtering import (  # noqa: E402
+from foampilot.core.geometry.medical_build.section_filtering import (  # noqa: E402
     SectionFilterConfig,
     contour_metrics,
     continuity_rejection,

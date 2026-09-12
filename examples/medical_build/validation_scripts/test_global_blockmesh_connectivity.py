@@ -1,6 +1,6 @@
 from pathlib import Path
 import json,numpy as np
-from foampilot.geometry.medical_build.global_blockmesh import GlobalBlockMesh
+from foampilot.core.geometry.medical_build.global_blockmesh import GlobalBlockMesh
 ROOT=Path(__file__).resolve().parents[2] / 'case_complex'; OUT=ROOT/'global_blockmesh_diagnostic'; OUT.mkdir(exist_ok=True)
 data=json.loads((ROOT/'analysis_sections.json').read_text())
 def sample(points,n=8):

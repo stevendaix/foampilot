@@ -9,8 +9,8 @@ from pathlib import Path
 import json, math
 import numpy as np
 import pyvista as pv
-from foampilot.geometry.medical_build.analysis_data import GeometryAnalysisData, BranchRecord, SectionRecord
-from foampilot.geometry.medical_build.deformation import LocalDeformationSpec, apply_local_deformation, deformation_report
+from foampilot.core.geometry.medical_build.analysis_data import GeometryAnalysisData, BranchRecord, SectionRecord
+from foampilot.core.geometry.medical_build.deformation import LocalDeformationSpec, apply_local_deformation, deformation_report
 
 ROOT=Path(__file__).resolve().parents[2]
 NPZ_ROOT=Path(__file__).resolve().parents[2] / 'case_complex'

@@ -23,19 +23,19 @@ from .boundary_conditions import (
 )
 
 _LAZY = {
-    "ChtSolver": ("foampilot.cht.solver", "ChtSolver"),
-    "calc_region_heat_flux": ("foampilot.cht.postprocess", "calc_region_heat_flux"),
-    "calc_interface_heat_flux": ("foampilot.cht.postprocess", "calc_interface_heat_flux"),
-    "calc_nusselt_number": ("foampilot.cht.postprocess", "calc_nusselt_number"),
-    "calc_thermal_boundary_layer_thickness": ("foampilot.cht.postprocess", "calc_thermal_boundary_layer_thickness"),
-    "calc_heat_transfer_coefficient": ("foampilot.cht.postprocess", "calc_heat_transfer_coefficient"),
-    "calc_total_heat_balance": ("foampilot.cht.postprocess", "calc_total_heat_balance"),
-    "calc_temperature_contour": ("foampilot.cht.postprocess", "calc_temperature_contour"),
-    "calc_thermal_resistance": ("foampilot.cht.postprocess", "calc_thermal_resistance"),
-    "OpenFOAMDirectReader": ("foampilot.postprocess.openfoam_direct", "OpenFOAMDirectReader"),
-    "CHTDirectReader": ("foampilot.postprocess.openfoam_direct", "CHTDirectReader"),
-    "read_openfoam": ("foampilot.postprocess.openfoam_direct", "read_openfoam"),
-    "read_cht_openfoam": ("foampilot.postprocess.openfoam_direct", "read_cht_openfoam"),
+    "ChtSolver": ("foampilot.workflows.cht.solver", "ChtSolver"),
+    "calc_region_heat_flux": ("foampilot.workflows.cht.postprocess", "calc_region_heat_flux"),
+    "calc_interface_heat_flux": ("foampilot.workflows.cht.postprocess", "calc_interface_heat_flux"),
+    "calc_nusselt_number": ("foampilot.workflows.cht.postprocess", "calc_nusselt_number"),
+    "calc_thermal_boundary_layer_thickness": ("foampilot.workflows.cht.postprocess", "calc_thermal_boundary_layer_thickness"),
+    "calc_heat_transfer_coefficient": ("foampilot.workflows.cht.postprocess", "calc_heat_transfer_coefficient"),
+    "calc_total_heat_balance": ("foampilot.workflows.cht.postprocess", "calc_total_heat_balance"),
+    "calc_temperature_contour": ("foampilot.workflows.cht.postprocess", "calc_temperature_contour"),
+    "calc_thermal_resistance": ("foampilot.workflows.cht.postprocess", "calc_thermal_resistance"),
+    "OpenFOAMDirectReader": ("foampilot.core.postprocessing.openfoam_direct", "OpenFOAMDirectReader"),
+    "CHTDirectReader": ("foampilot.core.postprocessing.openfoam_direct", "CHTDirectReader"),
+    "read_openfoam": ("foampilot.core.postprocessing.openfoam_direct", "read_openfoam"),
+    "read_cht_openfoam": ("foampilot.core.postprocessing.openfoam_direct", "read_cht_openfoam"),
 }
 
 
