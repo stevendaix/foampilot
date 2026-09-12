@@ -9,7 +9,11 @@ import json
 from pathlib import Path
 import numpy as np
 from foampilot.solver import Solver
-from foampilot import Meshing, utilities, postprocess, FluidMechanics, ValueWithUnit
+from foampilot.core.base.meshing import Meshing
+from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
+from foampilot.core.postprocessing.residuals import ResidualsPost
+from foampilot.core.physics.fluids_theory import FluidMechanics
+from foampilot.core.units.manageunits import ValueWithUnit
 import classy_blocks as cb
 import sys
 

@@ -6,7 +6,7 @@ Uses existing STL + foampilot snappyHexMesh.
 import shutil
 from pathlib import Path
 
-from foampilot import Meshing, ValueWithUnit, Solver
+from foampilot.core.base.meshing import Meshing, ValueWithUnit, Solver
 
 
 def build_case(stl_path: Path, case_dir: Path):

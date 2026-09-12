@@ -59,9 +59,10 @@ from scipy.spatial import cKDTree
 
 # foampilot imports (optionnels)
 try:
-    from foampilot import Meshing, Solver, FluidMechanics, ValueWithUnit
-    from foampilot import utilities
-    from foampilot import postprocess
+    from foampilot.core.base.meshing import Meshing, Solver, FluidMechanics, ValueWithUnit
+    from foampilot.core.physics.fluids_theory import FluidMechanics
+    from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing
+    from foampilot.core.postprocessing.residuals import ResidualsPost
     FOAMPILOT_AVAILABLE = True
 except ImportError as e:
     FOAMPILOT_AVAILABLE = False

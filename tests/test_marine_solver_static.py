@@ -13,21 +13,21 @@ def test_marine_driver_uses_foundation_module_selection():
 
 
 def test_python_wrapper_accepts_explicit_solver():
-    source = (ROOT / "foampilot/src/foampilot/solver/solver.py").read_text()
+    source = (ROOT / "src/foampilot/solver/solver.py").read_text()
     assert "solver_name: str | None = None" in source
     assert "self._requested_solver = solver_name" in source
     assert "if self._requested_solver:" in source
 
 
 def test_base_solver_runs_marine_executable_directly():
-    source = (ROOT / "foampilot/src/foampilot/openfoam/solvers/registry.py").read_text()
+    source = (ROOT / "src/foampilot/openfoam/solvers/registry.py").read_text()
     assert '"marineFoam"' in source
     assert "LEGACY_SOLVERS" in source
 
 
 def test_marine_apis_are_publicly_exported():
-    mesh = (ROOT / "foampilot/src/foampilot/mesh/__init__.py").read_text()
-    solver = (ROOT / "foampilot/src/foampilot/solver/__init__.py").read_text()
+    mesh = (ROOT / "src" / "foampilot" / "core" / "meshing" / "__init__.py").read_text()
+    solver = (ROOT / "src/foampilot/solver/__init__.py").read_text()
     assert "write_six_dof_dynamic_mesh_dict" in mesh
     assert "MarineMRFZone" in mesh
     assert "marine_overset" in mesh

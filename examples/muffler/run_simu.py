@@ -21,7 +21,7 @@ current_path = Path.cwd() / 'cas_test'
 
 # List available fluids
 print("Available fluids:")
-available_fluids = utilities.FluidMechanics.get_available_fluids()
+available_fluids = FluidMechanics.get_available_fluids()
 for name in available_fluids:
     print(f"- {name}")
 
@@ -180,7 +180,7 @@ print("Boundary condition files have been generated")
 solver.run_simulation()
 
 # Post-process simulation residuals
-residuals_post = utilities.ResidualsPost(current_path / "log.incompressibleFluid")
+residuals_post = ResidualsPost(current_path / "log.incompressibleFluid")
 # Export residuals in multiple formats for analysis
 residuals_post.process(export_csv=True, export_json=True, export_png=True, export_html=True)
 

@@ -162,7 +162,7 @@ def step3_mesh_gmsh(case_dir: Path, stl_path: Path, config: dict, centerline: np
 
     import shutil
     from mesh_utils import run_checkmesh
-    from foampilot import Meshing, ValueWithUnit
+    from foampilot.core.base.meshing import Meshing, ValueWithUnit
 
     mc = config["mesh"]
     max_faces = mc.get("target_faces", 5000)
@@ -220,7 +220,7 @@ def step3_mesh_gmsh(case_dir: Path, stl_path: Path, config: dict, centerline: np
         lc_max = mc.get("lc_max", 0.004)
 
         # --- Set up minimal OpenFOAM case files for snappyHexMesh ---
-        from foampilot import Solver
+        from foampilot.solver import Solver
         solver = Solver(case_dir)
         solver.compressible = False
         solver.with_gravity = False
@@ -310,7 +310,7 @@ def step4_openfoam_case(case_dir: Path, config: dict, mesh_file: Path = None, ce
     """
     logger.info("[Step 4/4] Building OpenFOAM case...")
 
-    from foampilot import ValueWithUnit, Solver
+    from foampilot.core.units.manageunits import ValueWithUnit, Solver
     from foampilot.constant.transportPropertiesFile import NonNewtonianModels
 
     fluid = config["fluid"]

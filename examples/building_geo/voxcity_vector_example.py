@@ -27,7 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent / "voxcity_export_work" / "src"))
 
-from foampilot import FluidMechanics, ValueWithUnit
+from foampilot.core.physics.fluids_theory import FluidMechanics, ValueWithUnit
 from foampilot.extensions.urban import Building, UrbanModel
 from foampilot.extensions.urban.model.terrain import CFDTerrain
 from foampilot.extensions.urban.snappy_config import DomainConfig, TerrainConfig, BuildingConfig, SnappyMeshConfig

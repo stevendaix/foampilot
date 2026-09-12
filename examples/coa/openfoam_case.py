@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Optional, Union, List
 
-from foampilot import Meshing, ValueWithUnit, Solver, Boundary
+from foampilot.core.base.meshing import Meshing, ValueWithUnit, Solver, Boundary
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class OpenFOAMCaseBuilder:
         self.case_dir.mkdir(parents=True, exist_ok=True)
         
     def setup_solver(self, steady: bool = True, turbulence: str = "laminar"):
-        from foampilot import ValueWithUnit
+        from foampilot.core.units.manageunits import ValueWithUnit
         
         rho = ValueWithUnit(1060, "kg/m^3")
         nu = ValueWithUnit(3.77e-6, "m^2/s")

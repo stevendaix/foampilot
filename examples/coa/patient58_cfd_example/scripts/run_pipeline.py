@@ -400,7 +400,7 @@ def step4_setup_cfd():
     """Set up OpenFOAM case with boundary conditions using foampilot.Solver."""
     logger.info("=== Step 4: OpenFOAM case setup ===")
     
-    from foampilot import Solver, ValueWithUnit
+    from foampilot.solver import Solver, ValueWithUnit
     
     solver = Solver(CASE_DIR)
     solver.compressible = False
@@ -522,7 +522,7 @@ def step6_post_process():
     """Post-process CFD results using foampilot."""
     logger.info("=== Step 6: Post-processing ===")
     
-    from foampilot import Meshing
+    from foampilot.core.base.meshing import Meshing
     
     # Run foamLog to parse residuals
     run_cmd(["foamLog", "log.simpleFoam"], timeout=15)

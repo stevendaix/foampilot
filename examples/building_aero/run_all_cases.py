@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "foampilot" / "src"))
 
-from foampilot import postprocess, utilities
+from foampilot.core.postprocessing.openfoam_pyvista import FoamPostProcessing, utilities
 from foampilot.core.postprocessing import FoamPostProcessing
 
 
@@ -51,7 +51,7 @@ def run_case(case_dir: Path, nb_proc: int = 2, check_only: bool = False, sigfpe:
 
     if not check_only:
         # Run the simulation
-        from foampilot import Meshing
+        from foampilot.core.base.meshing import Meshing
         from foampilot.solver import Solver
 
         solver = Solver(case_dir)

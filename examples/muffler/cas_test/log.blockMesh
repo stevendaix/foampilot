@@ -8,11 +8,11 @@ blockMesh executed successfully.
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 Build  : 13-cde978a97c93
-Exec   : blockMesh
-Date   : Dec 28 2025
-Time   : 15:50:56
+Exec   : blockMesh -case /home/steven/foampilot/examples/muffler/cas_test
+Date   : Sep 12 2026
+Time   : 15:27:42
 Host   : "MSI"
-PID    : 25795
+PID    : 55266
 I/O    : uncollated
 Case   : /home/steven/foampilot/examples/muffler/cas_test
 nProcs : 1

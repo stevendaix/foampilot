@@ -2,7 +2,12 @@
 
 from pathlib import Path
 from foampilot.solver import Solver
-from foampilot import Meshing, commons, utilities, postprocess,latex_pdf, FluidMechanics , ValueWithUnit
+from foampilot.core.base.meshing import Meshing
+from foampilot.core.physics.functions import Functions
+from foampilot.core.dictionaries.legacy import OpenFOAMDictAddFile, dict_tools
+from foampilot.core.physics.fluids_theory import FluidMechanics
+from foampilot.core.units.manageunits import ValueWithUnit
+from foampilot.core.reporting.latex_pdf import LatexDocument
 import classy_blocks as cb
 import numpy as np
 import json

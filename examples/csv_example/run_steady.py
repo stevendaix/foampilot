@@ -16,7 +16,7 @@ import pandas as pd
 from pathlib import Path
 
 from foampilot.solver import Solver
-from foampilot import Meshing, ValueWithUnit
+from foampilot.core.base.meshing import Meshing, ValueWithUnit
 from foampilot.boundaries import set_csv_condition
 
 

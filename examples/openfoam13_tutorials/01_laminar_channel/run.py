@@ -10,7 +10,7 @@ edited by hand.
 
 from pathlib import Path
 
-from foampilot import Meshing, ValueWithUnit
+from foampilot.core.base.meshing import Meshing, ValueWithUnit
 from foampilot.solver import Solver
 
 

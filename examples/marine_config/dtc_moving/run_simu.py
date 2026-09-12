@@ -13,7 +13,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from foampilot import Solver, ValueWithUnit
+from foampilot.solver import Solver, ValueWithUnit
 from foampilot.core.base.meshing import CaseBuilder, Meshing
 from foampilot.core.meshing.marine_motion import write_dynamic_mesh_dict
 from foampilot.constant import (

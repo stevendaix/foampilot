@@ -2,7 +2,7 @@ from pathlib import Path
 import importlib.util
 import sys
 
-MODULE = Path(__file__).parents[2] / "src" / "foampilot" / "coupling" / "cantera_openfoam.py"
+MODULE = Path(__file__).parents[2] / "src" / "foampilot" / "extensions" / "coupling" / "cantera_openfoam.py"
 spec = importlib.util.spec_from_file_location("cantera_openfoam", MODULE)
 module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module

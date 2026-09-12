@@ -29,7 +29,7 @@ Author: foampilot
 from pathlib import Path
 
 from foampilot.solver import Solver
-from foampilot import Meshing
+from foampilot.core.base.meshing import Meshing
 from foampilot.system.decomposeParDictFile import DecomposeParDictFile
 from foampilot.core.physics.functions import Functions
 

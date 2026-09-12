@@ -23,7 +23,7 @@ from pathlib import Path
 
 import numpy as np
 
-from foampilot import meshing, boundary, solver
+from foampilot.core.meshing import, boundary, solver
 from foampilot.gnn import Experiment
 from foampilot.cases.nozzle import make_nozzle_config
 

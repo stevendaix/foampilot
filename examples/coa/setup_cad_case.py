@@ -6,7 +6,7 @@ Based on run.py but using our CAD pipeline output.
 import shutil
 from pathlib import Path
 
-from foampilot import Meshing, ValueWithUnit, Solver
+from foampilot.core.base.meshing import Meshing, ValueWithUnit, Solver
 
 
 def setup_cad_case(stl_path: Path, case_dir: Path):
