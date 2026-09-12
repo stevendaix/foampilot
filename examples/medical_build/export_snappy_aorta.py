@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
-import shutil
 from pathlib import Path
 
 
 def load_snappy_mesher():
-    source = Path(__file__).parents[2] / "foampilot" / "src" / "foampilot" / "core" / "meshing" / "snappy.py"
+    source = Path(__file__).parents[2] / "src" / "foampilot" / "core" / "meshing" / "snappy.py"
     spec = importlib.util.spec_from_file_location("foampilot_snappymesh_standalone", source)
     if spec is None or spec.loader is None:
         raise ImportError(f"Cannot load SnappyMesher from {source}")
@@ -32,7 +31,10 @@ def main() -> None:
     (case / "0").mkdir(parents=True, exist_ok=True)
 
     target = tri_surface / "aorta_wall.stl"
-    shutil.copy2(args.stl, target)
+    # Use the official API to import the STL file instead of shutil.copy2
+    from foampilot.solver import Solver
+    solver = Solver(case)
+    solver.import_reference_asset(args.stl, target)
 
     SnappyMesher = load_snappy_mesher()
     mesher = SnappyMesher(case_path=case, stl_file=target, castellatedMesh=True, snap=True, addLayers=False)
