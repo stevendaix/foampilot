@@ -60,7 +60,7 @@ def check_file(filepath: Path) -> Dict[str, Tuple[bool, str]]:
     results = {}
     content = filepath.read_text(encoding="utf-8")
 
-    # 1. Forbidden function calls
+    # 1. Forbidden function calls (file manipulation)
     forbidden_found = []
     for pattern in FORBIDDEN_PATTERNS:
         if pattern in content:
@@ -84,18 +84,24 @@ def check_file(filepath: Path) -> Dict[str, Tuple[bool, str]]:
     has_abs_path = "/home/steven/" in content or "/Users/" in content
     results["paths"] = (not has_abs_path, "OK" if not has_abs_path else "ABSOLUTE PATH DETECTED")
 
-    # 4. ValueWithUnit usage
-    has_vwu = "ValueWithUnit" in content
-    results["units"] = (has_vwu, "YES" if has_vwu else "MISSING")
+    # 4. ValueWithUnit usage (only check for tutorial scripts, not case generators)
+    is_tutorial = "tutorials/" in str(filepath) or "examples/" in str(filepath)
+    if is_tutorial:
+        has_vwu = "ValueWithUnit" in content
+        results["units"] = (has_vwu, "YES" if has_vwu else "MISSING")
+    else:
+        results["units"] = (True, "N/A (case generator)")
 
-    # 5. Structure blocks
-    has_solver = "Solver(" in content
-    has_run = "run_simulation" in content
-    has_post = "FoamPostProcessing" in content
-    results["structure"] = (
-        has_solver and has_run,
-        f"Solver={has_solver}, run={has_run}, post={has_post}"
-    )
+    # 5. Structure blocks (only for tutorial scripts)
+    if is_tutorial:
+        has_solver = "Solver(" in content
+        has_run = "run_simulation" in content
+        results["structure"] = (
+            has_solver and has_run,
+            f"Solver={has_solver}, run={has_run}"
+        )
+    else:
+        results["structure"] = (True, "N/A (case generator)")
 
     return results
 

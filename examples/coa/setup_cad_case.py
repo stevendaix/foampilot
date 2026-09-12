@@ -3,7 +3,6 @@
 OpenFOAM case setup from CAD-reconstructed TBAD geometry.
 Based on run.py but using our CAD pipeline output.
 """
-import shutil
 from pathlib import Path
 
 from foampilot.core.base.meshing import Meshing, ValueWithUnit, Solver
@@ -37,9 +36,11 @@ def setup_cad_case(stl_path: Path, case_dir: Path):
     solver.system.write()
     solver.constant.write()
 
-    stl_dest = case_dir / "constant" / "triSurface"
-    stl_dest.mkdir(parents=True, exist_ok=True)
-    shutil.copy(stl_path, stl_dest / stl_path.name)
+    # Use the official API to import the STL file instead of shutil.copy
+    solver.import_reference_asset(
+        source_path=stl_path,
+        destination=case_dir / "constant" / "triSurface" / stl_path.name
+    )
 
     mesh = Meshing(case_dir, mesher="snappy")
     snappy = mesh.mesher
