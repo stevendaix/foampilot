@@ -9,6 +9,7 @@
 !LICENSE*
 !README*.md
 !readme.md
+!AGENTS.md
 !run_*
 !cas_test/
 !test_*.py
@@ -17,11 +18,27 @@
 !src/**
 !.github/**
 !tools/**
+!docs/**
+!tests/**
+!tutorials/**
+!validation/**
+!third_party/**
+!foampilot/**
+!test/**
+!*.sh
+
 # === Ignore les dossiers de build / metadata ===
 *.egg-info/
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
 
-# === Fichiers générés par OpenFOAM dans les exemples ===
+# === Fichiers générés par OpenFOAM ===
 /constant/
 /system/
 /0*/
@@ -30,9 +47,15 @@ __pycache__/
 /VTK/
 /processor*/
 *.vtk
-*.log
+*.vtu
+*.pvd
+*.stl
+*.msh
 *.e*
 *.o*
+*.log
+*.err
+*.out
 *.png
 *.jpg
 *.gif
@@ -42,75 +65,52 @@ __pycache__/
 *.pdf
 *.typst
 *.aux
-*.out
 *.toc
 *.bbl
 *.blg
+*.gz
 
 # === Embedded git repositories ===
 /test/vmtk-test-data/
 
-
-# === Couplage YADE/OpenFOAM 13 ===
-!third_party/
-!third_party/yade-openfoam-coupling/
-!third_party/yade-openfoam-coupling/**
-!third_party/openfoam13/
-!third_party/openfoam13/ported/
-!third_party/openfoam13/ported/**
-!third_party/openfoam13/build_ports.sh
-!validation/
-!validation/yade-openfoam13/
-!validation/yade-openfoam13/**
-
-# Artefacts de compilation du couplage YADE/OpenFOAM
+# === Couplage YADE/OpenFOAM ===
 third_party/yade-openfoam-coupling/**/Make/linux*/
 third_party/yade-openfoam-coupling/**/lnInclude/
 third_party/yade-openfoam-coupling/**/*.o
 third_party/yade-openfoam-coupling/**/*.dep
 third_party/yade-openfoam-coupling/ccpl*.png
 
-# === Fichiers générés par YADE/OpenFOAM dans les validations ===
+# === Artefacts YADE/OpenFOAM dans les validations ===
 validation/yade-openfoam13/**/*.gz
 validation/yade-openfoam13/**/*.log
 validation/yade-openfoam13/processor*/
 
-# === Local CFD runs and Python caches ===
+# === Local CFD runs ===
 /openfoam_runs/
-**/__pycache__/
-__pycache__/
-*.pyc
+/openfoam13-marine-smoke/
 
-# === FoamPilot marine / OpenFOAM Foundation 13 ===
-!openfoam13/
-!openfoam13/**
-openfoam13/**/polyMesh/
-openfoam13/**/polyMesh/**
-openfoam13/**/postProcessing/
-openfoam13/**/postProcessing/**
-openfoam13/**/processor*/
-openfoam13/**/processor*/**
-openfoam13/**/VTK/
-openfoam13/**/VTK/**
-openfoam13/**/*.log
-openfoam13/**/*.o
-openfoam13/**/*.dep
-openfoam13/**/Make/linux*/
-openfoam13/**/lnInclude/
-openfoam13/**/__pycache__/
-openfoam13/**/*.pyc
-openfoam13/**/0.[0-9]*/
-openfoam13/**/0.[0-9]*/**
-openfoam13/**/constant/polyMesh/
-openfoam13/**/constant/polyMesh/**
+# === Artefacts de compilation ===
+**/Make/linux*/
+**/lnInclude/
 
-# === UrbGEN generated CFD validation output ===
-/foampilot/examples/building_geo/urbgen_cfd_validation/
+# === OpenFOAM generated files in examples ===
+examples/openfoam13/**/polyMesh/
+examples/openfoam13/**/polyMesh/**
+examples/openfoam13/**/postProcessing/
+examples/openfoam13/**/processor*/
+examples/openfoam13/**/VTK/
+examples/openfoam13/**/*.log
+examples/openfoam13/**/*.o
+examples/openfoam13/**/*.dep
+examples/openfoam13/**/0.[0-9]*/
+examples/openfoam13/**/0.[0-9]*/**
+examples/openfoam13/**/constant/polyMesh/
+examples/openfoam13/**/constant/polyMesh/**
 
-# Generated OpenFOAM turbine outputs
+# === Generated turbine outputs ===
 validation/openfoam13/**/postProcessing/
 
-# === medical_build : sorties de campagnes reproductibles mais non versionnées ===
+# === medical_build outputs ===
 examples/medical_build/outputs/**
 examples/medical_build/**/outputs/**
 examples/medical_build/**/__pycache__/
@@ -119,7 +119,6 @@ examples/medical_build/**/*.log
 examples/medical_build/**/*.png
 examples/medical_build/**/*.jpg
 examples/medical_build/**/*.csv
-# Les sources et petits contrats médicaux restent versionnables.
 !examples/medical_build/*.py
 !examples/medical_build/*.md
 !examples/medical_build/*.json
@@ -127,5 +126,7 @@ examples/medical_build/**/*.csv
 !examples/medical_build/**/VALIDATION*.md
 !examples/medical_build/**/expected/**
 !examples/medical_build/**/manifest*.json
-!foampilot/tests/geometry/medical_build/*.py
-!foampilot/test/vmtk_test_data/**
+
+# === .env files ===
+.env
+.env.*
